@@ -1,0 +1,42 @@
+# Earthquake Simulator Pro — Docker Compose deployment
+# Usage: docker-compose up -d
+
+version: '3.8'
+
+services:
+  quake-sim:
+    build: .
+    container_name: quake-sim
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    volumes:
+      # Persistent data files (survive container recreation)
+      - ./traffic.json:/app/traffic.json
+      - ./ratelimit.json:/app/ratelimit.json
+      # Realtime SSE recordings for the replay feature (optional)
+      - ./recordings:/app/recordings
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      # Optional: TTS upstream for voice announcements (otherwise TTS is disabled)
+      # - TTS_UPSTREAM_URL=http://127.0.0.1:7896/tts
+      # Optional: multi-source earthquake collector upstream for /api/live-quakes
+      # - LIVE_API_BASE=http://127.0.0.1:7891
+      # Optional: CORS origins (comma-separated)
+      # - CORS_ORIGINS=https://your-domain.com
+      # Optional: disable rate limit persistence
+      # - RATELIMIT_PERSIST=false
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    # Resource limits (adjust for your server)
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 128M

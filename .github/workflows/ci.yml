@@ -1,0 +1,35 @@
+name: CI
+
+# The primary remote is a bare backup repo on the production ECS, so this
+# workflow only runs if/when the repo is mirrored to GitHub. The mandatory
+# local gate is the pre-push hook (githooks/pre-push) + `npm run check`.
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [20, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Unit & integration tests + physics/tsunami benchmark validators
+        run: npm test
+      - name: Release validation (versioned assets, PWA markers, i18n, a11y, data catalogs)
+        run: node tools/validate-release.js
+      - name: Cache-busting version gate
+        run: node tools/bump-versions.js --check
+      - name: Audio asset validation
+        run: npm run validate:audio
+      - name: GMPE accuracy scorecard (validate:accuracy)
+        run: node tools/validate-accuracy.js

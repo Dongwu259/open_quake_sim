@@ -1,0 +1,40 @@
+node_modules/
+public/tiles/
+*.log
+.DS_Store
+Thumbs.db
+*.bak
+__pycache__/
+
+# Runtime state files (created by server.js at runtime)
+traffic.json
+ratelimit.json
+recordings/
+
+# Local secrets and environment
+.env
+.env.*
+!.env.example
+
+# Editor / tool local settings
+.claude/
+.agents/
+
+# Generated or recovered local artifacts
+public/app.js.recovered
+*.tmp
+.cache/
+coverage/
+dist/
+.browser-test/
+error_log.json
+
+# GeoClaw crosscheck fixtures are not shipped; if you regenerate them locally
+# with tools/export-geoclaw-case.js, keep solver artifacts out of git.
+tools/geoclaw-crosscheck/
+
+# GSI regional DEM mosaics and the tile cache are regenerable
+# (tools/fetch-gsi-dem.js + tools/blend-gsi-gebco.js); they are large binary
+# data products and stay out of git.
+public/geojson/gsi/*.json
+tools/data/gsi-tiles/

@@ -1,0 +1,5 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),Tsunami=require('../public/tsunami-validation.js');
+const dataset=JSON.parse(fs.readFileSync('public/geojson/historical_tsunami_observations.json','utf8'));
+test('historical tsunami preview dataset is structurally valid but not falsely certified',()=>{const result=Tsunami.validate(dataset);assert.equal(result.valid,true);assert.equal(result.researchReady,false);assert.equal(result.eventCount,3);assert.ok(result.observationCount>=10);assert.ok(result.areaCount>=10);});
+test('evaluator separates warning confusion, runup and tide-gauge errors',()=>{const predictions={events:dataset.events.map(event=>({id:event.id,forecastAreas:event.forecastAreas.map(area=>({code:area.code,predictedLevel:area.observedLevel})),observations:event.observations.map(obs=>({id:obs.id,peakHeightM:obs.peakHeightM}))}))};const report=Tsunami.evaluate(dataset,predictions);assert.equal(report.classification.misses,0);assert.equal(report.classification.hits,16);assert.equal(report.heightByType.runup.rms,0);assert.equal(report.heightByType['tide-gauge'].rms,0);});

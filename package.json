@@ -1,0 +1,40 @@
+{
+  "name": "open-quake-sim",
+  "version": "5.5.0-preview",
+  "description": "Earthquake Simulator Pro — real-time seismic wave propagation & EEW simulation for Japan",
+  "license": "MIT",
+  "author": "Dongwu259",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dongwu259/open-quake-sim.git"
+  },
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "node --test tests/physics.test.js tests/dc3d.test.js tests/nlswe-benchmarks.test.js tests/reference-backend.test.js tests/moment-tensor.test.js tests/finite-fault.test.js tests/observed-fault-models.test.js tests/presets.test.js tests/display-event.test.js tests/config.test.js tests/audio.test.js tests/sim-utils.test.js tests/research.test.js tests/data-catalog.test.js tests/grid-package.test.js tests/waveform-data.test.js tests/strong-motion-data.test.js tests/strong-motion-waveforms.test.js tests/nested-grid.test.js tests/tsunami-validation.test.js tests/tsunami-scorecard.test.js tests/bulletin.test.js tests/tts-text-builder.test.js tests/srev-announcer.test.js tests/server.test.js tests/tts-api.test.js tests/replay-export.test.js tests/station-catalog.test.js tests/seafloor-stations.test.js tests/rt-kmoni.test.js tests/rt-eew.test.js tests/rt-tsunami.test.js tests/rt-data.test.js tests/rt-demo.test.js tests/rt-quakeinfo.test.js tests/autosim-scorecard.test.js tests/calibrate-gmpe.test.js tests/rt-kmoni-worker.test.js tests/strong-motion-obs.test.js tests/eew-mag-correction.test.js tests/rt-focus.test.js tests/etas-calibration.test.js tests/aftershock-manual.test.js tests/tsunami-worker.test.js tests/geoclaw-case.test.js tests/gsi-dem.test.js && node tools/validate-physics-benchmarks.js && node tools/validate-nlswe-benchmarks.js && node tools/validate-tsunami-alerts.js && node tools/validate-tsunami-observations.js && node tools/validate-focal-mechanisms.js",
+    "scorecard:tsunami": "node tools/scorecard-tsunami.js --write",
+    "test:tsunami": "node tools/validate-nlswe-benchmarks.js && node tools/validate-tsunami-alerts.js && node tools/validate-tsunami-stability.js",
+    "validate:physics": "node tools/validate-physics-benchmarks.js && node tools/validate-nlswe-benchmarks.js",
+    "test:browser": "node tests/browser-integration.test.js",
+    "validate:audio": "node tools/validate-audio-assets.js",
+    "validate:accuracy": "node tools/validate-accuracy.js",
+    "validate:focal": "node tools/validate-focal-mechanisms.js",
+    "calibrate:polarity": "node tools/calibrate-polarity.js",
+    "validate:stations": "node tools/validate-station-catalog.js public/geojson/stations.json",
+    "validate:release": "npm test && npm run validate:audio && node tools/validate-release.js && node tools/validate-tsunami-stability.js && node tools/validate-accuracy.js",
+    "check": "npm run validate:release && node tools/bump-versions.js --check",
+    "install-hooks": "node tools/install-git-hooks.js",
+    "prepare": "node tools/install-git-hooks.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@turf/turf": "^6.5.0",
+    "leaflet": "^1.9.4",
+    "seisplotjs": "^3.2.5",
+    "seisplotjs-seedcodec": "^1.0.3",
+    "ws": "^8.18.0"
+  }
+}

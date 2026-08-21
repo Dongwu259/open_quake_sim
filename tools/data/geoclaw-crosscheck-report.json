@@ -1,0 +1,45 @@
+{
+  "schema": "quake-sim-geoclaw-crosscheck-v1",
+  "rows": [
+    {
+      "gauge": "offshore-1",
+      "peakOursM": 0.7756,
+      "peakGeoClawM": 0.7105,
+      "peakRelDiff": 0.092,
+      "arrivalOursS": 60.0,
+      "arrivalGeoClawS": 60.0,
+      "arrivalDiffMin": 0.0,
+      "pearsonR": 0.92
+    },
+    {
+      "gauge": "offshore-2",
+      "peakOursM": 0.4427,
+      "peakGeoClawM": 0.584,
+      "peakRelDiff": 0.242,
+      "arrivalOursS": 60.0,
+      "arrivalGeoClawS": 60.0,
+      "arrivalDiffMin": 0.0,
+      "pearsonR": 0.873
+    },
+    {
+      "gauge": "coast-sendai",
+      "peakOursM": 0.0589,
+      "peakGeoClawM": 0.1148,
+      "peakRelDiff": 0.487,
+      "arrivalOursS": null,
+      "arrivalGeoClawS": 3480.0,
+      "arrivalDiffMin": null,
+      "pearsonR": 0.583
+    },
+    {
+      "gauge": "coast-ofunato",
+      "peakOursM": 0.2347,
+      "peakGeoClawM": 0.3988,
+      "peakRelDiff": 0.411,
+      "arrivalOursS": 60.0,
+      "arrivalGeoClawS": 60.0,
+      "arrivalDiffMin": 0.0,
+      "pearsonR": 0.684
+    }
+  ]
+}

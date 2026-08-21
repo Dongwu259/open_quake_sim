@@ -1,0 +1,153 @@
+{
+  "schema": "quake-sim-tsunami-predictions-v1",
+  "generatedAt": "2026-08-16T16:41:07.137Z",
+  "events": [
+    {
+      "id": "tohoku2011",
+      "solverSeconds": 25.2,
+      "model": "tohoku",
+      "observations": [
+        {
+          "id": "tohoku-ofunato-runup",
+          "peakHeightM": 2.6625375747680664
+        },
+        {
+          "id": "tohoku-onagawa-runup",
+          "peakHeightM": 15.931545684596397
+        },
+        {
+          "id": "tohoku-rikuzentakata-runup",
+          "peakHeightM": 7.049165725708008
+        },
+        {
+          "id": "tohoku-sendai-runup",
+          "peakHeightM": 1.3018074035644531
+        }
+      ],
+      "forecastAreas": [
+        {
+          "code": "210",
+          "physicalHeightM": 14.489,
+          "predictedLevel": "major"
+        },
+        {
+          "code": "220",
+          "physicalHeightM": 16.296,
+          "predictedLevel": "major"
+        },
+        {
+          "code": "250",
+          "physicalHeightM": 3.662,
+          "predictedLevel": "major"
+        },
+        {
+          "code": "201",
+          "physicalHeightM": 0.003,
+          "predictedLevel": "none"
+        },
+        {
+          "code": "300",
+          "physicalHeightM": 1.73,
+          "predictedLevel": "warning"
+        },
+        {
+          "code": "310",
+          "physicalHeightM": 1.347,
+          "predictedLevel": "warning"
+        }
+      ]
+    },
+    {
+      "id": "hokkaido1993",
+      "solverSeconds": 8.6,
+      "model": "synthetic",
+      "observations": [
+        {
+          "id": "okushiri-aonae-runup",
+          "peakHeightM": 0.2146388823691366
+        },
+        {
+          "id": "okushiri-hamanaka-runup",
+          "peakHeightM": 0.22412279546987623
+        },
+        {
+          "id": "esashi-runup",
+          "peakHeightM": 0.07565164566040039
+        }
+      ],
+      "forecastAreas": [
+        {
+          "code": "111",
+          "physicalHeightM": 0.869,
+          "predictedLevel": "advisory"
+        },
+        {
+          "code": "200",
+          "physicalHeightM": 0.096,
+          "predictedLevel": "none"
+        },
+        {
+          "code": "230",
+          "physicalHeightM": 0,
+          "predictedLevel": "none"
+        },
+        {
+          "code": "340",
+          "physicalHeightM": 0,
+          "predictedLevel": "none"
+        }
+      ]
+    },
+    {
+      "id": "noto2024",
+      "solverSeconds": 7.7,
+      "model": "noto2024",
+      "observations": [
+        {
+          "id": "noto-wajima-gauge",
+          "peakHeightM": 0.8027205467224121
+        },
+        {
+          "id": "noto-kanazawa-gauge",
+          "peakHeightM": 0.04796791076660156
+        },
+        {
+          "id": "noto-toyama-gauge",
+          "peakHeightM": 0.027403593063354492
+        }
+      ],
+      "forecastAreas": [
+        {
+          "code": "360",
+          "physicalHeightM": 1.945,
+          "predictedLevel": "warning"
+        },
+        {
+          "code": "350",
+          "physicalHeightM": 0.114,
+          "predictedLevel": "none"
+        },
+        {
+          "code": "340",
+          "physicalHeightM": 0.116,
+          "predictedLevel": "none"
+        },
+        {
+          "code": "361",
+          "physicalHeightM": 0.062,
+          "predictedLevel": "none"
+        },
+        {
+          "code": "370",
+          "physicalHeightM": 0.048,
+          "predictedLevel": "none"
+        },
+        {
+          "code": "520",
+          "physicalHeightM": 0,
+          "predictedLevel": "none"
+        }
+      ]
+    }
+  ]
+}

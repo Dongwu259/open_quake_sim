@@ -1,0 +1,13 @@
+#!/bin/sh
+# QuakeSim pre-push gate — cache-busting hashes and service-worker markers
+# must be in sync before code leaves the machine (JS/CSS are cached
+# 'max-age=31536000, immutable', so a forgotten bump is a production incident).
+# Installed into .git/hooks/ by tools/install-git-hooks.js
+# (runs automatically on `npm install`, or manually: npm run install-hooks).
+command -v node >/dev/null 2>&1 || exit 0
+if ! node tools/bump-versions.js --check; then
+  echo ""
+  echo "  Fix with:  node tools/bump-versions.js"
+  echo "             git add public/index.html public/app.js public/sw.js"
+  exit 1
+fi

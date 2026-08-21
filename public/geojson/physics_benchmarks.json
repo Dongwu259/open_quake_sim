@@ -1,0 +1,60 @@
+{
+  "schema": "quake-sim-physics-benchmarks-v1",
+  "generatedAt": "2026-08-02",
+  "units": {"length": "km", "displacement": "m", "acceleration": "gal", "time": "s"},
+  "references": [
+    {"id": "okada1992", "citation": "Okada, Y. (1992), BSSA 82(2), 1018-1040; DC3D.f revision May 2002", "implementation": "okada_wrapper 24.6.15", "license": "MIT"},
+    {"id": "geoclaw514", "citation": "Clawpack/GeoClaw 5.14.0 dtopotools.SubFault.okada", "license": "BSD-3-Clause"},
+    {"id": "iasp91", "citation": "Kennett and Engdahl (1991), Geophysical Journal International 105, 429-465"},
+    {"id": "jma-intensity", "citation": "Japan Meteorological Agency instrumental seismic intensity processing specification"},
+    {"id": "newmark", "citation": "Newmark (1959), average-acceleration beta=1/4 gamma=1/2"}
+  ],
+  "dc3d": [
+    {
+      "id": "geoclaw-dip20-surface",
+      "input": {"x": 1, "y": -2, "depth": 10, "dip": 20, "al1": -5, "al2": 5, "aw1": -3, "aw2": 3, "strikeSlip": 0, "dipSlip": 2, "tensile": 0},
+      "expected": {"ux": 0.005467160099995122, "uy": -0.0023957762555556483, "uz": 0.07142811222892093},
+      "tolerance": {"absolute": 1e-12, "relative": 1e-10},
+      "reference": "okada1992; uz independently reproduced by geoclaw514"
+    },
+    {
+      "id": "dc3d-strike90-surface",
+      "input": {"x": 1, "y": -2, "depth": 3, "dip": 90, "al1": -0.7, "al2": 0.7, "aw1": -0.7, "aw2": 0.7, "strikeSlip": 1, "dipSlip": 0, "tensile": 0},
+      "expected": {"ux": 0.004483276014628473, "uy": -0.005566873531932991, "uz": 0.005992727633485323},
+      "tolerance": {"absolute": 1e-12, "relative": 1e-10},
+      "reference": "okada1992 displacement terms"
+    },
+    {
+      "id": "dc3d-mixed45-surface",
+      "input": {"x": 4, "y": 3, "depth": 8, "dip": 45, "al1": -6, "al2": 6, "aw1": -4, "aw2": 4, "strikeSlip": 1.2, "dipSlip": -0.8, "tensile": 0.1},
+      "expected": {"ux": 0.004401309057813774, "uy": -0.026123911378957566, "uz": -0.07204387554113967},
+      "tolerance": {"absolute": 1e-12, "relative": 1e-10},
+      "reference": "okada1992 displacement terms"
+    }
+  ],
+  "layeredTravelTime": {
+    "input": {"horizontalKm": 100, "depthKm": 30, "surfaceVp": 5.8, "surfaceVs": 3.3},
+    "expected": {"pSeconds": 17.065245782094852, "sSeconds": 30.064167025381998},
+    "toleranceSeconds": 1e-9,
+    "reference": "quake-sim IASP91 layer table frozen CPU result"
+  },
+  "jmaThreeComponent": {
+    "input": {"sampleRate": 100, "samples": 400, "x": "100*sin(2*pi*n/100)", "y": "50*sin(2*pi*n/80)", "z": "25*sin(2*pi*n/60)"},
+    "expectedIntensity": 4.993009514801999,
+    "tolerance": 1e-9,
+    "reference": "JMA frequency weighting and 0.3 s duration rule"
+  },
+  "responseSpectrum": {
+    "input": {"sampleRate": 100, "samples": 1000, "acceleration": "100*sin(2*pi*n/100)", "damping": 0.05},
+    "expectedPsaGal": {"0.5": 161.78641943350556, "1": 954.7384284357971, "2": 80.86401722696421},
+    "relativeTolerance": 1e-9,
+    "reference": "Newmark average-acceleration frozen CPU result"
+  },
+  "applicability": {
+    "dc3d": "Homogeneous isotropic elastic half-space; rectangular dislocations; no layering, plasticity, landslide or poroelastic response.",
+    "nlswe": "Hydrostatic long waves; no dispersion or wave breaking; wet/dry accuracy depends on terrain resolution and threshold.",
+    "travelTime": "Direct upgoing ray in a simplified 1-D IASP91 table, not a full regional 3-D tomography solution.",
+    "jmaThreeComponent": "Requires calibrated acceleration in gal and adequate sampling/duration; synthetic inputs are not observations.",
+    "responseSpectrum": "Linear elastic SDOF, constant 5 percent damping unless explicitly changed."
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "schema": "quake-sim-tsunami-validation-report-v1",
+  "createdAt": "2026-08-16T16:41:48.657Z",
+  "datasetResearchReady": false,
+  "confusionMatrix": {
+    "labels": [
+      "none",
+      "advisory",
+      "warning",
+      "major"
+    ],
+    "matrix": [
+      [
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        9,
+        0,
+        2,
+        0
+      ],
+      [
+        0,
+        1,
+        1,
+        3
+      ]
+    ]
+  },
+  "classification": {
+    "total": 16,
+    "hits": 7,
+    "misses": 9,
+    "falseAlarms": 0,
+    "hitRate": 0.4375,
+    "falseAlarmRate": 0
+  },
+  "heightByType": {
+    "runup": {
+      "count": 7,
+      "bias": -12.70579004112338,
+      "rms": 15.806819328508077,
+      "mae": 12.70579004112338
+    },
+    "tide-gauge": {
+      "count": 3,
+      "bias": -0.6739693164825441,
+      "rms": 0.7025417788505259,
+      "mae": 0.6739693164825441
+    }
+  },
+  "arrivalMinutes": {
+    "count": 0,
+    "bias": null,
+    "rms": null,
+    "mae": null
+  },
+  "missingEvents": [],
+  "missingObservations": 0,
+  "missingObservationsByEvent": {}
+}

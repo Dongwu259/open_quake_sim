@@ -1,0 +1,304 @@
+{
+  "version": 1,
+  "generatedAt": "2026-08-13T07:39:40.738Z",
+  "thresholds": {
+    "truthTimeTolMs": 300000,
+    "truthDistTolKm": 200,
+    "windowPreMs": 120000,
+    "windowPostMs": 600000,
+    "feltMinIntensity": 0.5
+  },
+  "trainingReportsSkipped": 9,
+  "events": [
+    {
+      "eventId": "20260811084457",
+      "truthSource": "wolfx-eqlist",
+      "retransmissionsDropped": 4,
+      "truth": {
+        "lat": 32.3,
+        "lng": 130.5,
+        "mag": 2.7,
+        "depthKm": 10,
+        "originTime": "2026-08-10T23:44:00.000Z",
+        "place": "熊本県天草・芦北地方"
+      },
+      "convergence": {
+        "reports": [
+          {
+            "serial": 1,
+            "dtSinceFirstS": 0,
+            "dtSinceOriginS": 25,
+            "lat": 32.3,
+            "lng": 130.5,
+            "mag": 3.1,
+            "depthKm": 10,
+            "posErrKm": 0,
+            "magErr": 0.4,
+            "depthErrKm": 0,
+            "isFinal": false,
+            "isWarn": false,
+            "isAssumption": false
+          },
+          {
+            "serial": 2,
+            "dtSinceFirstS": 0.7,
+            "dtSinceOriginS": 25.7,
+            "lat": 32.3,
+            "lng": 130.5,
+            "mag": 3.1,
+            "depthKm": 10,
+            "posErrKm": 0,
+            "magErr": 0.4,
+            "depthErrKm": 0,
+            "isFinal": false,
+            "isWarn": false,
+            "isAssumption": false
+          },
+          {
+            "serial": 3,
+            "dtSinceFirstS": 1.4,
+            "dtSinceOriginS": 26.4,
+            "lat": 32.3,
+            "lng": 130.5,
+            "mag": 3.1,
+            "depthKm": 10,
+            "posErrKm": 0,
+            "magErr": 0.4,
+            "depthErrKm": 0,
+            "isFinal": false,
+            "isWarn": false,
+            "isAssumption": false
+          },
+          {
+            "serial": 4,
+            "dtSinceFirstS": 2.1,
+            "dtSinceOriginS": 27.1,
+            "lat": 32.3,
+            "lng": 130.5,
+            "mag": 3.1,
+            "depthKm": 10,
+            "posErrKm": 0,
+            "magErr": 0.4,
+            "depthErrKm": 0,
+            "isFinal": true,
+            "isWarn": false,
+            "isAssumption": false
+          }
+        ],
+        "first": {
+          "serial": 1,
+          "dtSinceFirstS": 0,
+          "dtSinceOriginS": 25,
+          "lat": 32.3,
+          "lng": 130.5,
+          "mag": 3.1,
+          "depthKm": 10,
+          "posErrKm": 0,
+          "magErr": 0.4,
+          "depthErrKm": 0,
+          "isFinal": false,
+          "isWarn": false,
+          "isAssumption": false
+        },
+        "final": {
+          "serial": 4,
+          "dtSinceFirstS": 2.1,
+          "dtSinceOriginS": 27.1,
+          "lat": 32.3,
+          "lng": 130.5,
+          "mag": 3.1,
+          "depthKm": 10,
+          "posErrKm": 0,
+          "magErr": 0.4,
+          "depthErrKm": 0,
+          "isFinal": true,
+          "isWarn": false,
+          "isAssumption": false
+        },
+        "reportCount": 4
+      },
+      "intensity": {
+        "available": true,
+        "srcType": "crustal",
+        "windowStart": "2026-08-11T02:14:51.124Z",
+        "windowEnd": "2026-08-11T02:27:18.262Z",
+        "kmoniFrames": 609,
+        "input": {
+          "lat": 32.3,
+          "lng": 130.5,
+          "mag": 3.1,
+          "depthKm": 10,
+          "source": "eew-final"
+        },
+        "all": {
+          "n": 1677,
+          "rms": 0.288,
+          "bias": 0.062,
+          "meanAbs": 0.081,
+          "within05Pct": 94.2,
+          "within10Pct": 97.4
+        },
+        "felt": {
+          "n": 123,
+          "rms": 1.034,
+          "bias": 0.675,
+          "meanAbs": 0.938,
+          "within05Pct": 20.3,
+          "within10Pct": 65
+        },
+        "maxObs": 1,
+        "maxPred": 2.21
+      }
+    },
+    {
+      "eventId": "20260811170344",
+      "truthSource": "wolfx-eqlist",
+      "retransmissionsDropped": 0,
+      "truth": {
+        "lat": 42.8,
+        "lng": 144.4,
+        "mag": 3.5,
+        "depthKm": 90,
+        "originTime": "2026-08-11T08:03:00.000Z",
+        "place": "釧路沖"
+      },
+      "convergence": {
+        "reports": [
+          {
+            "serial": 1,
+            "dtSinceFirstS": 0,
+            "dtSinceOriginS": 19.8,
+            "lat": 42.8,
+            "lng": 144.5,
+            "mag": 3.5,
+            "depthKm": 90,
+            "posErrKm": 8.2,
+            "magErr": 0,
+            "depthErrKm": 0,
+            "isFinal": false,
+            "isWarn": false,
+            "isAssumption": false
+          },
+          {
+            "serial": 2,
+            "dtSinceFirstS": 4.4,
+            "dtSinceOriginS": 23.1,
+            "lat": 42.8,
+            "lng": 144.5,
+            "mag": 3.5,
+            "depthKm": 90,
+            "posErrKm": 8.2,
+            "magErr": 0,
+            "depthErrKm": 0,
+            "isFinal": false,
+            "isWarn": false,
+            "isAssumption": false
+          },
+          {
+            "serial": 3,
+            "dtSinceFirstS": 24.5,
+            "dtSinceOriginS": 45.3,
+            "lat": 42.8,
+            "lng": 144.5,
+            "mag": 3.6,
+            "depthKm": 110,
+            "posErrKm": 8.2,
+            "magErr": 0.1,
+            "depthErrKm": 20,
+            "isFinal": false,
+            "isWarn": false,
+            "isAssumption": false
+          },
+          {
+            "serial": 4,
+            "dtSinceFirstS": 40,
+            "dtSinceOriginS": 60.7,
+            "lat": 42.8,
+            "lng": 144.5,
+            "mag": 3.6,
+            "depthKm": 110,
+            "posErrKm": 8.2,
+            "magErr": 0.1,
+            "depthErrKm": 20,
+            "isFinal": true,
+            "isWarn": false,
+            "isAssumption": false
+          }
+        ],
+        "first": {
+          "serial": 1,
+          "dtSinceFirstS": 0,
+          "dtSinceOriginS": 19.8,
+          "lat": 42.8,
+          "lng": 144.5,
+          "mag": 3.5,
+          "depthKm": 90,
+          "posErrKm": 8.2,
+          "magErr": 0,
+          "depthErrKm": 0,
+          "isFinal": false,
+          "isWarn": false,
+          "isAssumption": false
+        },
+        "final": {
+          "serial": 4,
+          "dtSinceFirstS": 40,
+          "dtSinceOriginS": 60.7,
+          "lat": 42.8,
+          "lng": 144.5,
+          "mag": 3.6,
+          "depthKm": 110,
+          "posErrKm": 8.2,
+          "magErr": 0.1,
+          "depthErrKm": 20,
+          "isFinal": true,
+          "isWarn": false,
+          "isAssumption": false
+        },
+        "reportCount": 4
+      },
+      "intensity": {
+        "available": true,
+        "srcType": "intraslab",
+        "windowStart": "2026-08-11T08:01:28.000Z",
+        "windowEnd": "2026-08-11T08:14:28.742Z",
+        "kmoniFrames": 759,
+        "input": {
+          "lat": 42.8,
+          "lng": 144.5,
+          "mag": 3.6,
+          "depthKm": 110,
+          "source": "eew-final"
+        },
+        "all": {
+          "n": 1678,
+          "rms": 0.515,
+          "bias": 0.203,
+          "meanAbs": 0.212,
+          "within05Pct": 83.8,
+          "within10Pct": 89.7
+        },
+        "felt": {
+          "n": 284,
+          "rms": 1.24,
+          "bias": 1.105,
+          "meanAbs": 1.159,
+          "within05Pct": 4.2,
+          "within10Pct": 39.1
+        },
+        "maxObs": 1,
+        "maxPred": 2.15
+      }
+    }
+  ],
+  "cancelledEvents": [],
+  "noEvents": false,
+  "files": [
+    "recordings\\20260811.jsonl.gz",
+    "recordings\\20260812.jsonl.gz"
+  ],
+  "sitelist": {
+    "source": "https://weather-kyoshin.east.edge.storage-yahoo.jp/SiteList/sitelist.json",
+    "stations": 1725
+  }
+}
