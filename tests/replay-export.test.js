@@ -61,6 +61,11 @@ test('setup — server starts and listens', { concurrency: false }, async () => 
 test('inject a deterministic frame set into the recorder', () => {
   SRV._test.replayReset();
   T0 = Date.now() - 60000;
+  // Filler OLDER than the export window's from (T0-1000): the export clamps
+  // effFrom up to the earliest recorded frame, so without an older frame the
+  // clamp result depends on leftover recordings and the test is flaky on a
+  // clean checkout (CI). This frame is never exported (outside the window).
+  SRV._test.replayPushFrame({ t: T0 - 2000, type: 'kmoni_rt', event: { dataTime: 'old', intensity: 'eee' } });
   // EEW event 1: Serial 1 + a later report — one marker expected
   SRV._test.replayPushFrame(eewFrame('EXT-T1', 1, T0, 'EXTテスト熊本', 5.9));
   SRV._test.replayPushFrame(eewFrame('EXT-T1', 2, T0 + 5000, 'EXTテスト熊本', 6.1));
