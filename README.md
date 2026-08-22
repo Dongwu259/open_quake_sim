@@ -1,6 +1,6 @@
 # Earthquake Simulator Pro（地震模拟器 Pro）
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Node.js ≥18](https://img.shields.io/badge/node-%E2%89%A5%2018-brightgreen)](package.json) [![CI](https://github.com/Dongwu259/open_quake_sim/actions/workflows/ci.yml/badge.svg)](https://github.com/Dongwu259/open_quake_sim/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/Dongwu259/open_quake_sim)](https://github.com/Dongwu259/open_quake_sim/releases) [![官网](https://img.shields.io/badge/%E5%AE%98%E7%BD%91-dwfileshare.top-blue)](https://dwfileshare.top) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Node.js ≥18](https://img.shields.io/badge/node-%E2%89%A5%2018-brightgreen)](package.json) [![CI](https://github.com/Dongwu259/open_quake_sim/actions/workflows/ci.yml/badge.svg)](https://github.com/Dongwu259/open_quake_sim/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/Dongwu259/open_quake_sim)](https://github.com/Dongwu259/open_quake_sim/releases) [![npm](https://img.shields.io/npm/v/open_quake_sim)](https://www.npmjs.com/package/open_quake_sim) [![官网](https://img.shields.io/badge/%E5%AE%98%E7%BD%91-dwfileshare.top-blue)](https://dwfileshare.top) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 **中文** | [English](README_EN.md)
 
