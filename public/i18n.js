@@ -199,12 +199,12 @@ Object.assign(I18N.zh, {
 });
 
 // Keep the current release identity after all historical dictionary blocks.
-I18N.ja['app.title'] = '地震シミュレーター v5.5 プレビュー版';
-I18N.en['app.title'] = 'Earthquake Simulator v5.5 Preview';
-I18N.zh['app.title'] = '地震模拟器 v5.5预览版';
-I18N.ja['formulas.subtitle'] = 'v5.5 プレビュー版の実装と一致する科学説明';
-I18N.en['formulas.subtitle'] = 'Scientific notes aligned with the v5.5 preview implementation';
-I18N.zh['formulas.subtitle'] = '与 v5.5预览版实际计算实现保持一致';
+I18N.ja['app.title'] = '地震シミュレーター v5.5';
+I18N.en['app.title'] = 'Earthquake Simulator v5.5';
+I18N.zh['app.title'] = '地震模拟器 v5.5正式版';
+I18N.ja['formulas.subtitle'] = 'v5.5 正式版の実装と一致する科学説明';
+I18N.en['formulas.subtitle'] = 'Scientific notes aligned with the v5.5 release implementation';
+I18N.zh['formulas.subtitle'] = '与 v5.5正式版实际计算实现保持一致';
 Object.assign(I18N.ja, {
   'report.surveying':'シミュレーション震度調査','report.survey_subtitle':'観測点の最大震度を集計しています','report.collecting':'調査中…',
   'bulletin.sequence':'震度速報・震源情報・地震情報を順次放送中'
@@ -450,7 +450,7 @@ function loadHelpI18n(cb) {
   if (_helpI18nLoading) return;
   _helpI18nLoading = true;
   var s = document.createElement('script');
-  s.src = 'i18n-help.js?v=b128ea';
+  s.src = 'i18n-help.js?v=dac5df';
   s.onload = function() {
     _helpI18nLoaded = true;
     _helpI18nLoading = false;
@@ -560,7 +560,7 @@ Object.assign(I18N.ja, {
   'help.v54_final_simfix_text':'v5.4プレビュー期に混入したリグレッションを修复:P波コーダ期にPGAがほぼゼロとなる観測点・都市サークルが早期に除去され再活性化されず、中遠方都市(311シナリオの仙台など)でS波ピーク震度が一切計算されない問題を直しました。S波到達後の立ち上がり窓内は除去せず、チェーン子イベントのS波到達も同様に保護されます。',
   'help.v54_final_quality':'正式版品質',
   'help.v54_final_quality_text':'771件の単体テスト、5つの独立検証ツール(物理/NLSWE/津波警報/津波観測/震源メカニズム)、24,265件のリリース検査(資産・PWA・研究データ・i18n・アクセシビリティ・デプロイ保護)を全て通過。',
-  'help.v55_preview':'━━ v5.5 プレビュー版 更新 ━━',
+  'help.v55_preview':'━━ v5.5正式版 更新 ━━','help.v55_quality':'正式版の品質','help.v55_quality_text':'765件の単体/結合テストと24,200件以上のリリースチェック（アセット、PWA、研究データ、i18n、アクセシビリティ）を通過。GMPE精度スコアカードと津波ベンチマークも全てグリーン。PWAキャッシュ世代を更新済み。',
   'help.v55_aftershock':'手動余震エディタと余震生成の修复',
   'help.v55_aftershock_text':'サイドバーの「余震シーケンス」をオンにすると手動余震エディタが現れ、発震時刻(シミュレーション秒)・マグニチュード・深さを指定して余震を追加でき、📍ボタンで地図上の任意の位置をその余震の震中として指定できます(未指定時は主震震中)。手動余震は通常通り測点を揺らし、閾値以上なら波圈イベントとして表示され、タイムラインにも刻まれます。自動カタログは個別にオフ可能。併せて余震生成の問題を修复:チェーンシナリオで余震イベントが一切出現しない上限計算バグ、余震PGAが常に主震の深さで計算される問題、主震ピークの小さい測点で近傍の大きな余震が計算されない問題、遅い余震の到達前にサークルが除去される問題を直し、最大余震の表示も正しく更新されます。',
   'help.v55_tsuworker':'津波ソルバーのWeb Worker化',
@@ -611,7 +611,7 @@ Object.assign(I18N.en, {
   'help.v54_final_simfix_text':'Fixes a regression introduced during the v5.4 preview: station and city circles whose P-coda PGA sat near zero were culled early and never reactivated, so S-wave peak intensities at mid/far cities (e.g. Sendai in the Tohoku scenario) were never computed. Circles are no longer culled within the post-S-arrival ramp window, and chained sub-event S arrivals get the same protection.',
   'help.v54_final_quality':'Release quality',
   'help.v54_final_quality_text':'Passes 771 unit tests, 5 standalone validation tools (physics, NLSWE, tsunami alerts, tsunami observations, focal mechanisms) and 24,265 release checks (assets, PWA, research data, i18n, accessibility, deployment protection).',
-  'help.v55_preview':'━━ v5.5 Preview Update ━━',
+  'help.v55_preview':'━━ v5.5 Release Update ━━','help.v55_quality':'Release quality','help.v55_quality_text':'Passes 765 unit/integration tests and 24,200+ release checks (assets, PWA, research data, i18n, accessibility); GMPE accuracy scorecard and tsunami benchmarks are green, and the PWA cache generation is refreshed.',
   'help.v55_aftershock':'Manual aftershock editor and generation fixes',
   'help.v55_aftershock_text':'Enabling the aftershock sequence in the sidebar now reveals a manual aftershock editor: add aftershocks with a chosen origin time (sim seconds), magnitude and depth, and the 📍 button picks a per-entry epicenter on the map (default is the mainshock epicenter). Manual aftershocks shake stations as usual, spawn wave-ring events above the event threshold and appear on the timeline; the automatic catalog can be switched off separately. Generation fixes included: aftershock events never spawned in chain scenarios (the cap counted chain sub-events), aftershock PGA always used the mainshock depth, stations with a weak mainshock peak skipped strong nearby aftershocks, circles were culled before late aftershock arrivals, and the largest-aftershock readout stayed at M0.0.',
   'help.v55_tsuworker':'Tsunami solver in a Web Worker',
@@ -662,7 +662,7 @@ Object.assign(I18N.zh, {
   'help.v54_final_simfix_text':'修复 v5.4 预览期引入的回归:P 波尾波期 PGA 接近零的测站/城市圆点被提前裁剪且不再激活,导致中远场城市(如 311 剧本的仙台)S 波峰值震度从不计算。现在 S 波到达后的爬升窗口内不再裁剪,连锁剧本子事件的 S 到达同样受保护。',
   'help.v54_final_quality':'正式版质量',
   'help.v54_final_quality_text':'通过 771 项单元测试、5 个独立验证工具(物理/NLSWE/海啸警报/海啸观测/震源机制)与 24,265 项发布检查(资源、PWA、科研数据、i18n、无障碍、部署保护)。',
-  'help.v55_preview':'━━ v5.5预览版 更新 ━━',
+  'help.v55_preview':'━━ v5.5正式版 更新 ━━','help.v55_quality':'正式版质量','help.v55_quality_text':'通过 765 项单元/集成测试与 24,200 项以上发布检查（资源、PWA、科研数据、i18n、无障碍），GMPE 精度记分卡与海啸基准全绿，PWA 缓存代次已更新。',
   'help.v55_aftershock':'手动余震编辑器与余震生成修复',
   'help.v55_aftershock_text':'侧边栏开启「余震序列」后显示手动余震编辑器:可指定发震时刻(模拟秒)、震级与深度添加余震,也可用 📍 按钮在地图上为单条余震选点(默认取主震震中)。手动余震正常摇动测站、达到事件阈值时生成波圈事件并刻入时间线;自动目录可单独关闭。同时修复余震生成的多处问题:连锁剧本中余震事件从不出现(上限误把连锁子事件计入)、余震 PGA 总按主震深度计算、主震峰值微弱的测站漏算附近大余震、较晚余震到达前圆点被提前裁剪,以及最大余震读数恒为 M0.0。',
   'help.v55_tsuworker':'海啸求解器移入 Web Worker',

@@ -1,8 +1,8 @@
 // ============================================================
-//  QuakeSim Service Worker — PWA shell (v5.5 preview, cache-first)
+//  QuakeSim Service Worker — PWA shell (v5.5 release, cache-first)
 //  Bump CACHE_VERSION when changing SW behavior to purge old caches.
 // ============================================================
-var CACHE_VERSION = 'qs-cache-v468847';
+var CACHE_VERSION = 'qs-cache-v306418';
 var CORE_CACHE    = CACHE_VERSION + '-core';
 
 // v4.2: Slim precache — app shell + critical JS/CSS only.

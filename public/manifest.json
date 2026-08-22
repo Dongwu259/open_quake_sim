@@ -1,7 +1,7 @@
 {
   "name": "Earthquake Simulator Pro 地震模拟器",
   "short_name": "QuakeSim",
-  "description": "Earthquake Simulator Pro v5.5 Preview — offline-capable earthquake and tsunami simulation for Japan",
+  "description": "Earthquake Simulator Pro v5.5 — offline-capable earthquake and tsunami simulation for Japan",
   "lang": "zh",
   "dir": "ltr",
   "start_url": "./",

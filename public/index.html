@@ -4,15 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0a0e1a">
-<meta name="description" content="Earthquake Simulator Pro v5.5预览版，面向日本的可复现地震与海啸情景模拟器。包含多种GMPE、矩守恒有限断层、JMA逐站独立验证、非线性浅水方程、科研结果对比和SREV式实时TTS。">
+<meta name="description" content="Earthquake Simulator Pro v5.5正式版，面向日本的可复现地震与海啸情景模拟器。包含多种GMPE、矩守恒有限断层、JMA逐站独立验证、非线性浅水方程、科研结果对比和SREV式实时TTS。">
 <meta name="keywords" content="earthquake simulator,地震模拟,震度,地震波,日本地震,GMPE,Shindo,JMA">
-<meta property="og:title" content="Earthquake Simulator Pro v5.5预览版 — 地震与海啸情景模拟">
+<meta property="og:title" content="Earthquake Simulator Pro v5.5正式版 — 地震与海啸情景模拟">
 <meta property="og:description" content="Web-based earthquake simulation for Japan. Real physics engine with 6 GMPE models, finite fault editor, TTS bulletin broadcast, and real-time monitoring from 5 data sources.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://quake-sim.example.com/">
 <meta property="og:image" content="https://quake-sim.example.com/og-image.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Earthquake Simulator Pro v5.5预览版">
+<meta name="twitter:title" content="Earthquake Simulator Pro v5.5正式版">
 <meta name="twitter:description" content="Real-time earthquake wave propagation simulator for Japan. 6 GMPE, TTS bulletin, PWA offline.">
 <meta name="twitter:image" content="https://quake-sim.example.com/og-image.png">
 <link rel="canonical" href="https://quake-sim.example.com/">
@@ -20,13 +20,13 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="QuakeSim">
-<link rel="manifest" href="manifest.json?v=c3b1c3">
+<link rel="manifest" href="manifest.json?v=416dd4">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
-<title>地震模拟器 v5.5预览版 | Earthquake Simulator Pro</title>
+<title>地震模拟器 v5.5正式版 | Earthquake Simulator Pro</title>
 <link rel="stylesheet" href="leaflet/leaflet.css?v=f885c4">
 <link rel="stylesheet" href="style.css?v=02506c">
 <link rel="preload" href="leaflet/leaflet.js?v=5a640f" as="script">
-<link rel="preload" href="app.js?v=89e809" as="script">
+<link rel="preload" href="app.js?v=ea123c" as="script">
 <link rel="preload" href="style.css?v=02506c" as="style">
 <link rel="preload" href="config.js?v=22335e" as="script">
 <link rel="preload" href="physics.js?v=50f28d" as="script">
@@ -36,8 +36,8 @@
 <div id="app" role="application" aria-label="Earthquake Simulator">
   <div id="sidebar" role="complementary" aria-label="控制面板">
     <div id="sidebar-header">
-      <h1 data-i18n="app.title">地震模拟器 v5.5预览版</h1>
-      <div id="build-ver" style="font-size:.65em;color:var(--text-secondary);opacity:.5;margin-top:-2px" data-sw="sw.js=v468847">(······)</div>
+      <h1 data-i18n="app.title">地震模拟器 v5.5正式版</h1>
+      <div id="build-ver" style="font-size:.65em;color:var(--text-secondary);opacity:.5;margin-top:-2px" data-sw="sw.js=v306418">(······)</div>
       <button id="btn-help" class="help-link" type="button" data-i18n="help.title">使用帮助</button>
       <button id="btn-formulas" class="help-link" type="button" data-i18n="formulas.title">公式原理</button>
       <button id="btn-settings" class="help-link" type="button" data-i18n="settings.title">设置</button>
@@ -694,7 +694,7 @@
 <script src="research.js?v=3ee192"></script>
 <script src="data-catalog.js?v=bee20f"></script>
 <script src="grid-package.js?v=865d26"></script>
-<script src="i18n.js?v=401b6f"></script>
+<script src="i18n.js?v=e86425"></script>
 <script src="dc3d.js?v=2865dd"></script>
 <script src="physics.js?v=50f28d"></script>
 <script src="tsunami-solver-host.js?v=21d342"></script>
@@ -792,7 +792,7 @@ window._loadThreeJS = function(cb) {
     </div>
   </div>
 </div>
-<script src="app.js?v=89e809"></script>
+<script src="app.js?v=ea123c"></script>
 <script src="aftershock.js?v=15df18"></script>
 <script src="rt-data.js?v=de1b78"></script>
 <script src="rt-kmoni.js?v=be3a9d"></script>
@@ -849,7 +849,7 @@ window._loadThreeJS = function(cb) {
       <h3 data-i18n="help.share">📎 URL分享</h3>
       <p data-i18n="help.share_text">点击Start按钮旁的🔗按钮可复制当前模拟的完整URL链接。将链接分享给他人，对方打开后自动加载相同的震中、震级、深度等参数。支持参数：lat/lng（震中）、mag（震级）、depth（深度）、strike（走向）、dip（倾角）、preset（预设场景）、lang（语言）、detect（检测模式）、aftershock（余震）、tsunami（海啸）。</p>
       <hr style="border-color:var(--border);margin:12px 0">
-      <h3 data-i18n="help.v55_preview">━━ v5.5预览版 更新 ━━</h3>
+      <h3 data-i18n="help.v55_preview">━━ v5.5正式版 更新 ━━</h3>
       <h3 data-i18n="help.v55_asdetect">余震次级 EEW 再检测</h3>
       <p data-i18n="help.v55_asdetect_text">检测模式下,达到事件阈值(默认 M5.5)的余震(含手动余震)现在会像主震一样触发独立的 EEW 检测轨迹:网格搜索定位、震级反演、逐报播报。较小的余震保持位置三角标记。</p>
       <h3 data-i18n="help.v55_tokyo">首都直下型 M7.3 想定预设</h3>
@@ -863,6 +863,8 @@ window._loadThreeJS = function(cb) {
       <h3 data-i18n="help.v55_aftershock">手动余震编辑器与余震生成修复</h3>
       <p data-i18n="help.v55_aftershock_text">侧边栏开启「余震序列」后显示手动余震编辑器:可指定发震时刻(模拟秒)、震级与深度添加余震,也可用 📍 按钮在地图上为单条余震选点(默认取主震震中)。手动余震正常摇动测站、达到事件阈值时生成波圈事件并刻入时间线;自动目录可单独关闭。同时修复余震生成的多处问题:连锁剧本中余震事件从不出现(上限误把连锁子事件计入)、余震 PGA 总按主震深度计算、主震峰值微弱的测站漏算附近大余震、较晚余震到达前圆点被提前裁剪,以及最大余震读数恒为 M0.0。</p>
       <hr style="border-color:var(--border);margin:12px 0">
+      <h3 data-i18n="help.v55_quality">正式版质量</h3>
+      <p data-i18n="help.v55_quality_text">通过 765 项单元/集成测试与 24,200 项以上发布检查（资源、PWA、科研数据、i18n、无障碍），GMPE 精度记分卡与海啸基准全绿，PWA 缓存代次已更新。</p>
       <h3 data-i18n="help.v54_preview">━━ v5.4正式版 更新 ━━</h3>
       <h3 data-i18n="help.v54_gebco">GEBCO 2025 真实水深地形</h3>
       <p data-i18n="help.v54_gebco_text">内置地形从合成演示网格升级为 GEBCO 2025 Grid（公有领域）0.15° 分块平均重采样（经 CEDA OPeNDAP 获取，tools/build-bathymetry-gebco.py 重建）。海陆混合格元只平均水样本，里亚斯型海湾保持张开；海啸波高计对比 RMS 从 0.81 改善到 0.64，亚洲大陆不再被误认为海洋。另内置三陆、南海、相模湾、能登、北海道西南 5 个 0.025° 高分辨率沿岸网格，震中位于区域内时海啸求解器自动切换（女川爬高预测 1.5m→15.9m，实测 18.4m）。科研数据清单的地形角色升级为已认证。</p>
@@ -1013,7 +1015,7 @@ window._loadThreeJS = function(cb) {
       <h3 data-i18n="help.seafloor">海底测站与地形</h3>
       <p data-i18n="help.seafloor_text">203 个 DONET1/2 与 S-net 海底测站以方形标记显示。内置 0.15 度地形已修正日本陆海掩膜，但仍是合成演示数据，不是 ETOPO、GEBCO 或 GSI 产品；可替换为导入的高分辨率地形栅格。</p>
       <h3 data-i18n="help.science">科学计算引擎</h3>
-      <p data-i18n="help.science_text">v5.5预览版整合统一震源模型、解析Okada DC3D、时变破裂、分层走时、Newmark-beta PSA、JMA三分量处理、NLSWE、湿润/干涸、爬高与淹没显示、震源机制科研流程和SREV式实时TTS。公开基准和数据限制见“公式原理”；这些能力不等于业务预报。</p>
+      <p data-i18n="help.science_text">v5.5正式版整合统一震源模型、解析Okada DC3D、时变破裂、分层走时、Newmark-beta PSA、JMA三分量处理、NLSWE、湿润/干涸、爬高与淹没显示、震源机制科研流程和SREV式实时TTS。公开基准和数据限制见“公式原理”；这些能力不等于业务预报。</p>
       <h3 data-i18n="help.theme">主题与快捷键</h3>
       <p data-i18n="help.theme_text">按T键或点击状态栏🌓按钮切换深色/浅色主题（偏好保存在本地）。按?键显示快捷键面板。右键点击地图可弹出快捷菜单（设置震中/添加多事件/查看坐标）。设置震中后显示最近城市名称。所有测站点击可查看详情并切换波形监测。</p>
       <h3 data-i18n="help.shindoreport">震度报告</h3>
@@ -1039,7 +1041,7 @@ window._loadThreeJS = function(cb) {
 <div id="formulas-overlay" class="help-overlay formula-mode-basic" style="display:none" role="dialog" aria-modal="true" aria-labelledby="formulas-title">
   <div class="help-panel formulas-panel" tabindex="-1">
     <div class="help-header formulas-header">
-      <div><span id="formulas-title" data-i18n="formulas.header">📐 科学公式与原理</span><small data-i18n="formulas.subtitle">与 v5.5预览版实际计算实现保持一致</small></div>
+      <div><span id="formulas-title" data-i18n="formulas.header">📐 科学公式与原理</span><small data-i18n="formulas.subtitle">与 v5.5正式版实际计算实现保持一致</small></div>
       <button id="btn-formulas-close" class="help-close" type="button" data-i18n-aria="aria.close" aria-label="Close">&times;</button>
     </div>
     <div class="formulas-toolbar">

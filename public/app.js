@@ -8615,7 +8615,7 @@ async function init() {
   initMobileToggle();
   // Register service worker for offline PWA support (non-critical)
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js?v=468847').catch(function(e) {
+    navigator.serviceWorker.register('sw.js?v=306418').catch(function(e) {
       console.warn('SW registration failed (non-critical):', e);
     });
   }

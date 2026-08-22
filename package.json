@@ -1,6 +1,6 @@
 {
   "name": "open_quake_sim",
-  "version": "5.5.0-preview",
+  "version": "5.5.0",
   "description": "Earthquake Simulator Pro — real-time seismic wave propagation & EEW simulation for Japan",
   "license": "MIT",
   "author": "Dongwu259",
