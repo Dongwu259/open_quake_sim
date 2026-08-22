@@ -1,6 +1,6 @@
 # Earthquake Simulator Pro
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Node.js ≥18](https://img.shields.io/badge/node-%E2%89%A5%2018-brightgreen)](package.json) [![CI](https://github.com/Dongwu259/open_quake_sim/actions/workflows/ci.yml/badge.svg)](https://github.com/Dongwu259/open_quake_sim/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/Dongwu259/open_quake_sim)](https://github.com/Dongwu259/open_quake_sim/releases) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 [中文文档](README.md) | **English**
 
@@ -23,6 +23,12 @@ A web-based earthquake simulation and real-time monitoring app for Japan. A zero
 - NIED Kmoni (~1,700 stations) realtime intensity (square markers, chain-activation detection, top-station ranking)
 - P2P earthquake bulletins (Shindo/hypocenter/per-point/long-period) and tsunami information (coastline coloring + arrival countdown table)
 - Earthquake history (USGS/EMSC and more), server-side SSE recording with a timeline replay, a dedicated EEW page, and one-click transfer of a real event into a simulation
+
+## Screenshots
+
+| Simulation: Tokyo Inland M7.3 (EEW forecast) | Realtime monitor: EEW demo | Settings page |
+|---|---|---|
+| ![Tokyo Inland M7.3 simulation](docs/screenshots/sim-tokyo.jpg) | ![Realtime EEW demo](docs/screenshots/eew-demo.png) | ![Settings page](docs/screenshots/settings.png) |
 
 ## Quick Start
 

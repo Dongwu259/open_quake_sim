@@ -1,6 +1,6 @@
 # Earthquake Simulator Pro（地震模拟器 Pro）
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Node.js ≥18](https://img.shields.io/badge/node-%E2%89%A5%2018-brightgreen)](package.json) [![CI](https://github.com/Dongwu259/open_quake_sim/actions/workflows/ci.yml/badge.svg)](https://github.com/Dongwu259/open_quake_sim/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/Dongwu259/open_quake_sim)](https://github.com/Dongwu259/open_quake_sim/releases) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 **中文** | [English](README_EN.md)
 
@@ -23,6 +23,12 @@
 - NIED 強震モニタ约 1700 台站实时烈度（方点显示、连锁摇动检测、最强台站排行）
 - P2P 地震情报（震度速报/震源信息/各地震度/长周期地震动）与海啸情报（海岸段着色 + 到达倒计时表）
 - 地震历史（USGS/EMSC 等）、服务器端 SSE 录制与时间轴回放、专属 EEW 页面、检测到事件可一键转入模拟
+
+## 截图
+
+| 模拟：首都直下 M7.3（EEW 预报） | 实时监测：EEW 演示 | 设置页面 |
+|---|---|---|
+| ![首都直下 M7.3 模拟](docs/screenshots/sim-tokyo.jpg) | ![实时监测 EEW 演示](docs/screenshots/eew-demo.png) | ![设置页面](docs/screenshots/settings.png) |
 
 ## 快速开始
 
