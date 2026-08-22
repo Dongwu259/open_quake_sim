@@ -1,0 +1,17 @@
+# Deterministic line endings: text is LF in the repo and in every checkout
+# (bump-versions hashes working-copy bytes, so CI and Windows must agree).
+* text=auto eol=lf
+
+# Binary assets — never normalize.
+*.wav binary
+*.mp3 binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.gz binary
+*.zip binary
+*.dbf binary
+*.shp binary
+*.shx binary
