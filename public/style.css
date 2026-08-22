@@ -1101,3 +1101,13 @@ body.presenter-mode .autofocus-label{left:290px;bottom:44px}
   .whatsnew-cards{grid-template-columns:1fr;padding:12px}
   .whatsnew-footer button{width:100%}
 }
+
+/* Settings page */
+.settings-section{margin:10px 0;padding:10px 12px;border:1px solid var(--border);border-radius:8px}
+.settings-section h3{margin-bottom:6px}
+.settings-row{display:flex;align-items:center;gap:8px;margin:8px 0;flex-wrap:wrap}
+.settings-row label{white-space:nowrap}
+.settings-row input[type=text]{flex:1;min-width:180px;background:var(--input-bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:12px}
+.settings-row input[type=range]{flex:1;min-width:120px}
+.settings-note{font-size:.75em;color:var(--text-secondary)}
+#author-credit{text-align:center;font-size:.7em;color:var(--text-secondary);opacity:.65;margin-top:6px}

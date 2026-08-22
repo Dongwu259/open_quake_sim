@@ -102,7 +102,29 @@ const TRAFFIC_FILE = path.join(__dirname, 'traffic.json');
 // HTTP Keep-Alive agents for outbound connection reuse
 const _httpAgent = new http.Agent({ keepAlive: true, maxSockets: 8, keepAliveMsecs: 30000 });
 const _httpsAgent = new require('https').Agent({ keepAlive: true, maxSockets: 8, keepAliveMsecs: 30000 });
-const TTS_UPSTREAM_URL = process.env.TTS_UPSTREAM_URL || 'http://127.0.0.1:7896/tts';
+// TTS upstream resolution: TTS_UPSTREAM_URL env > settings.json (set from the
+// in-app settings page, loopback only) > built-in default. Resolved per call so
+// settings-page changes apply without a restart.
+const SETTINGS_FILE = path.join(__dirname, 'settings.json');
+let localSettings = {};
+try { localSettings = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8')); } catch(e) { localSettings = {}; }
+function saveLocalSettings() { return queueJsonWrite(SETTINGS_FILE, localSettings, true); }
+function currentTtsUpstream() {
+  return process.env.TTS_UPSTREAM_URL || localSettings.ttsUpstreamUrl || 'http://127.0.0.1:7896/tts';
+}
+function ttsUpstreamSource() {
+  return process.env.TTS_UPSTREAM_URL ? 'env' : (localSettings.ttsUpstreamUrl ? 'settings' : 'default');
+}
+// Public shape of the TTS settings — the API key is write-only and never echoed.
+function ttsSettingsPayload() {
+  return {
+    upstream: currentTtsUpstream(),
+    source: ttsUpstreamSource(),
+    configurable: !process.env.TTS_UPSTREAM_URL,
+    hasKey: !!localSettings.ttsApiKey,
+    keyMode: localSettings.ttsApiKeyMode || 'query'
+  };
+}
 // Base URL of the local multi-source earthquake collector proxied by
 // /api/live-quakes, /api/earthquakes and /api/catalog.
 const LIVE_API_BASE = process.env.LIVE_API_BASE || 'http://127.0.0.1:7891';
@@ -214,6 +236,7 @@ var _ttsSynthesisRateLimit = {}; // independent limiter for dynamic neural TTS
 var _ttsAudioCache = new Map();  // voice+'\n'+text -> Buffer, LRU via delete+set
 var _ttsAudioCacheBytes = 0;
 var _testRateLimit = {};   // {ip: [timestamp, ...]} — rate limit state for test endpoint
+var _settingsRateLimit = null;
 var _wfRateLimit = {};     // {ip: [timestamp, ...]} — rate limit state for waveform fetch
 var _exportRateLimit = {}; // {ip: [timestamp, ...]} — rate limit state for replay export
 var _adminLoginFails = {}; // {ip: {count, resetTime}} — rate limit state for admin login
@@ -1141,6 +1164,77 @@ const server = http.createServer((req, res) => {
   }
 
   // health check endpoint (includes P2P connection state + uptime)
+  // ---- Local settings (settings page) ----
+  // GET is public (no secrets: just the effective TTS upstream + its source);
+  // POST is loopback-only so a remote visitor can never repoint the upstream
+  // (SSRF guard) — this app is meant to be configured from its own machine.
+  if (reqPath === '/api/settings' && req.method === 'GET') {
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' });
+    res.end(JSON.stringify({
+      ok: true,
+      loopback: isLoopbackIp(req.socket.remoteAddress),
+      tts: ttsSettingsPayload()
+    }));
+    return;
+  }
+  if (reqPath === '/api/settings' && req.method === 'POST') {
+    if (!isLoopbackIp(req.socket.remoteAddress)) {
+      sendError(res, 403, 'FORBIDDEN', 'Settings can only be changed from the local machine.');
+      return;
+    }
+    if (!_settingsRateLimit) _settingsRateLimit = {};
+    var sip = _reqIp;
+    var snow = Date.now();
+    _settingsRateLimit[sip] = (_settingsRateLimit[sip] || []).filter(function(t) { return snow - t < 60000; });
+    if (_settingsRateLimit[sip].length >= 10) {
+      sendError(res, 429, 'RATE_LIMITED', 'Too many requests. Max 10 per minute.');
+      return;
+    }
+    _settingsRateLimit[sip].push(snow);
+    var sBody = '';
+    req.on('data', function(c) { if (sBody.length < 4096) sBody += c; });
+    req.on('end', function() {
+      var payload = {};
+      try { payload = JSON.parse(sBody || '{}'); } catch(e) {
+        sendError(res, 400, 'INVALID_JSON', 'Request body must be JSON.'); return;
+      }
+      var v = payload.ttsUpstreamUrl;
+      if (v === '') {
+        delete localSettings.ttsUpstreamUrl; // empty string resets to the default upstream
+      } else if (typeof v === 'string' && v.length <= 200 && /^https?:\/\//i.test(v)) {
+        localSettings.ttsUpstreamUrl = v;
+      } else if (v !== undefined) {
+        sendError(res, 400, 'INVALID_PARAM', 'ttsUpstreamUrl must be an http(s) URL (or an empty string to reset).');
+        return;
+      }
+      var k = payload.ttsApiKey;
+      if (k === '') {
+        delete localSettings.ttsApiKey; // empty string clears the stored key
+      } else if (typeof k === 'string' && k.length <= 200 && /^[\x20-\x7e]+$/.test(k)) {
+        localSettings.ttsApiKey = k;
+      } else if (k !== undefined) {
+        sendError(res, 400, 'INVALID_PARAM', 'ttsApiKey must be printable ASCII (or an empty string to clear).');
+        return;
+      }
+      var km = payload.ttsApiKeyMode;
+      if (km !== undefined) {
+        if (km === 'query' || km === 'bearer' || km === 'x-api-key') {
+          localSettings.ttsApiKeyMode = km;
+        } else {
+          sendError(res, 400, 'INVALID_PARAM', 'ttsApiKeyMode must be query, bearer or x-api-key.');
+          return;
+        }
+      }
+      saveLocalSettings();
+      res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' });
+      res.end(JSON.stringify({
+        ok: true,
+        tts: ttsSettingsPayload()
+      }));
+    });
+    return;
+  }
+
   if (reqPath === '/health') {
     const p2pConnected = !!(p2pWs && p2pWs.readyState === 1);
     const wolfxEewOk = !!(wolfxEewWs && wolfxEewWs.readyState === 1);
@@ -1279,6 +1373,14 @@ process.on('unhandledRejection', function(reason) {
   logError(String(reason));
 });
 
+server.on('error', function(e) {
+  if (e && e.code === 'EADDRINUSE') {
+    console.error('Error: port ' + PORT + ' is already in use — another server.js instance is probably still running. Stop it first, or start this one with a different port, e.g. PORT=3001 node server.js');
+    process.exit(1);
+  }
+  console.error(e);
+  process.exit(1);
+});
 server.listen(PORT, '127.0.0.1', () => {
   console.log(`QuakeSim running on http://127.0.0.1:${PORT}`);
   console.log(`Public dir: ${PUBLIC}`);
@@ -2266,7 +2368,7 @@ function _proxyTtsSynthesis(clientReq, res, text, voice) {
   }
   var target;
   try {
-    target = new URL(TTS_UPSTREAM_URL);
+    target = new URL(currentTtsUpstream());
   } catch (error) {
     sendError(res, 502, 'UPSTREAM_ERROR', 'TTS service is not configured correctly.');
     return;
@@ -2275,10 +2377,20 @@ function _proxyTtsSynthesis(clientReq, res, text, voice) {
   target.searchParams.set('text', text);
   target.searchParams.set('voice', voice);
 
+  // Optional cloud-TTS credential from the settings page (server-side only,
+  // never exposed via /api/settings GET). Three common key placements.
+  var keyHeaders = {};
+  if (localSettings.ttsApiKey) {
+    var keyMode = localSettings.ttsApiKeyMode || 'query';
+    if (keyMode === 'bearer') keyHeaders['Authorization'] = 'Bearer ' + localSettings.ttsApiKey;
+    else if (keyMode === 'x-api-key') keyHeaders['X-API-Key'] = localSettings.ttsApiKey;
+    else target.searchParams.set('key', localSettings.ttsApiKey);
+  }
+
   var settled = false;
   var upstreamReq = http.get(target, {
     agent: _httpAgent,
-    headers: { 'User-Agent': 'QuakeSim/5.3 TTS Proxy', 'Accept': 'audio/mpeg' }
+    headers: Object.assign({ 'User-Agent': 'QuakeSim/5.3 TTS Proxy', 'Accept': 'audio/mpeg' }, keyHeaders)
   }, function(upstreamRes) {
     var chunks = [];
     var total = 0;

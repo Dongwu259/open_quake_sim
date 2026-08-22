@@ -9,6 +9,7 @@ __pycache__/
 # Runtime state files (created by server.js at runtime)
 traffic.json
 ratelimit.json
+settings.json
 recordings/
 
 # Local secrets and environment

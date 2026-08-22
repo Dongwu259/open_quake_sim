@@ -514,6 +514,64 @@ test('kmoni image frame validator accepts GIF/PNG magic only', () => {
   assert.strictEqual(T.kmoniImageContentType(null), null);
 });
 
+test('GET /api/settings exposes the effective TTS upstream config', async () => {
+  const res = await fetch(BASE_URL + '/api/settings');
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  assert.equal(data.ok, true);
+  assert.equal(data.loopback, true);
+  assert.equal(data.tts.upstream, 'http://127.0.0.1:1/tts'); // set via TTS_UPSTREAM_URL env above
+  assert.equal(data.tts.source, 'env');
+  assert.equal(data.tts.configurable, false);
+});
+
+test('POST /api/settings validates and stores the TTS upstream URL', async () => {
+  const settingsFile = path.join(__dirname, '..', 'settings.json');
+  try { fs.unlinkSync(settingsFile); } catch (e) {}
+  const bad = await fetch(BASE_URL + '/api/settings', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ttsUpstreamUrl: 'ftp://not-http' })
+  });
+  assert.equal(bad.status, 400);
+  const good = await fetch(BASE_URL + '/api/settings', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ttsUpstreamUrl: 'http://127.0.0.1:9999/tts' })
+  });
+  assert.equal(good.status, 200);
+  const data = await good.json();
+  assert.equal(data.ok, true);
+  // The env var still wins; the saved value is stored but shadowed.
+  assert.equal(data.tts.upstream, 'http://127.0.0.1:1/tts');
+  assert.equal(data.tts.source, 'env');
+  await new Promise(r => setTimeout(r, 300)); // queueJsonWrite is async
+  const saved = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
+  assert.equal(saved.ttsUpstreamUrl, 'http://127.0.0.1:9999/tts');
+  // apikey: stored server-side, never echoed back to any client
+  const keyed = await fetch(BASE_URL + '/api/settings', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ttsApiKey: 'test-key-123', ttsApiKeyMode: 'bearer' })
+  });
+  assert.equal(keyed.status, 200);
+  const kd = await keyed.json();
+  assert.equal(kd.tts.hasKey, true);
+  assert.equal(kd.tts.keyMode, 'bearer');
+  assert.equal(JSON.stringify(kd).includes('test-key-123'), false, 'the api key must never be echoed');
+  const getAfter = await (await fetch(BASE_URL + '/api/settings')).json();
+  assert.equal(getAfter.tts.hasKey, true);
+  assert.equal(JSON.stringify(getAfter).includes('test-key-123'), false, 'GET must never expose the api key');
+  const badMode = await fetch(BASE_URL + '/api/settings', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ttsApiKeyMode: 'cookie' })
+  });
+  assert.equal(badMode.status, 400);
+  await new Promise(r => setTimeout(r, 300));
+  const saved2 = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
+  assert.equal(saved2.ttsApiKey, 'test-key-123');
+  assert.equal(saved2.ttsApiKeyMode, 'bearer');
+  fs.unlinkSync(settingsFile);
+});
+
+
 // ================================================================
 //  CLEANUP
 // ================================================================

@@ -318,10 +318,85 @@
     return 'sounds/' + lang + '/info/female/' + name + '.wav';
   };
 
+  // Speak text via the browser's local Web Speech API (the settings page's
+  // "browser" engine). Returns the same abort-capable controller contract as
+  // playRemoteTTS so the SREV announcer FIFO can cancel queued speech.
+  // Chrome can garbage-collect an unreferenced utterance before it ever
+  // speaks (silent failure) — keep every queued utterance alive until its
+  // onend/onerror fires.
+  AudioManager._browserTtsKeepAlive = [];
+  AudioManager.playBrowserTTS = function(text, volume, onEnd, onError) {
+    var settled = false;
+    var aborted = false;
+    function done(ok, err) {
+      if (settled) return;
+      settled = true;
+      if (ok) { if (typeof onEnd === 'function') onEnd(); }
+      else if (typeof onError === 'function') onError(err || new Error('Browser TTS failed'));
+    }
+    var utter = null;
+    var controller = {
+      abort: function() {
+        if (aborted) return;
+        aborted = true;
+        settled = true;
+        try { window.speechSynthesis.cancel(); } catch(e) {}
+      }
+    };
+    try {
+      utter = new SpeechSynthesisUtterance(text);
+      var keep = AudioManager._browserTtsKeepAlive;
+      keep.push(utter);
+      function release() {
+        var ki = keep.indexOf(utter);
+        if (ki >= 0) keep.splice(ki, 1);
+      }
+      var prefs = (window.Settings && typeof window.Settings.get === 'function') ? window.Settings.get() : {};
+      var voices = window.speechSynthesis.getVoices() || [];
+      var chosen = null;
+      if (prefs.ttsBrowserVoice) {
+        for (var i = 0; i < voices.length; i++) {
+          if (voices[i].name === prefs.ttsBrowserVoice) { chosen = voices[i]; break; }
+        }
+      }
+      if (!chosen) {
+        for (var j = 0; j < voices.length; j++) {
+          if (/^ja([-_]|$)/i.test(voices[j].lang)) { chosen = voices[j]; break; }
+        }
+      }
+      // Only pin a language when a matching voice exists; a ja-JP request on a
+      // system without a Japanese voice can stay silent on some platforms.
+      if (chosen) { utter.voice = chosen; utter.lang = chosen.lang; }
+      var rate = Number(prefs.ttsBrowserRate);
+      utter.rate = (rate >= 0.5 && rate <= 2) ? rate : 1.0;
+      var vol = Number(volume);
+      utter.volume = isNaN(vol) ? 1 : Math.max(0, Math.min(1, vol));
+      utter.onend = function() { release(); done(true); };
+      utter.onerror = function(e) { release(); if (!aborted) done(false, e); };
+      // Chrome sometimes leaves the queue paused after a previous cancel().
+      try { window.speechSynthesis.resume(); } catch(e) {}
+      window.speechSynthesis.speak(utter);
+    } catch(e) {
+      done(false, e);
+    }
+    return controller;
+  };
+
   // Fetch, decode and play one dynamically generated TTS response. Unlike
   // preloadBuffer(), this exposes cancellation so reset/replay cannot leave a
   // late network response speaking over the next simulation.
   AudioManager.playRemoteTTS = function(url, volume, onEnd, onError) {
+    // Settings page: the browser-local engine speaks via the Web Speech API
+    // (no server, no network). Falls through to the server-proxy path when
+    // speech synthesis is unavailable.
+    if (typeof window !== 'undefined' && window.Settings && typeof window.Settings.get === 'function' &&
+        window.Settings.get('ttsEngine') === 'browser' && 'speechSynthesis' in window) {
+      try {
+        var parsedUrl = new URL(url, window.location.origin);
+        var spokenText = parsedUrl.searchParams.get('text');
+        if (spokenText) return AudioManager.playBrowserTTS(spokenText, volume, onEnd, onError);
+      } catch(e) { /* fall through to the remote path */ }
+    }
     var aborted = false;
     var settled = false;
     var source = null;

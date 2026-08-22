@@ -6869,14 +6869,6 @@ if (btnFormulas) btnFormulas.addEventListener('click', function(){
     if (opening && typeof loadHelpI18n === 'function') loadHelpI18n();
   }
 });
-var btnPrivacy = document.getElementById('btn-privacy');
-if (btnPrivacy) btnPrivacy.addEventListener('click', function(){
-  var ov = document.getElementById('privacy-overlay');
-  if (ov) {
-    if (ov.style.display === 'flex') closeAccessibleModal('privacy-overlay');
-    else openAccessibleModal('privacy-overlay', '#btn-privacy-close');
-  }
-});
 // Auto-focus button
 var btnAF = document.getElementById('btn-autofocus');
 if (btnAF) {
@@ -7031,16 +7023,6 @@ function trapAccessibleModalKey(e, overlay, closeFn) {
   if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
   else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
 }
-function bindPrivacyModal() {
-  var overlay = document.getElementById('privacy-overlay');
-  var closeBtn = document.getElementById('btn-privacy-close');
-  if (!overlay || !closeBtn || overlay.getAttribute('data-bound') === '1') return false;
-  overlay.setAttribute('data-bound', '1');
-  closeBtn.addEventListener('click', function(){ closeAccessibleModal('privacy-overlay'); });
-  overlay.addEventListener('click', function(e){ if (e.target === overlay) closeAccessibleModal('privacy-overlay'); });
-  overlay.addEventListener('keydown', function(e){ trapAccessibleModalKey(e, overlay, function(){ closeAccessibleModal('privacy-overlay'); }); });
-  return true;
-}
 var _formulaLastFocus = null;
 function setFormulaMode(mode) {
   var overlay = document.getElementById('formulas-overlay');
@@ -7141,7 +7123,6 @@ function fallbackCopy(value, onDone) {
   document.body.removeChild(area);
 }
 if (!bindHelpModal()) window.addEventListener('DOMContentLoaded', bindHelpModal);
-if (!bindPrivacyModal()) window.addEventListener('DOMContentLoaded', bindPrivacyModal);
 if (!bindFormulaModal()) window.addEventListener('DOMContentLoaded', bindFormulaModal);
 if (!bindErrorOverlay()) window.addEventListener('DOMContentLoaded', bindErrorOverlay);
 document.getElementById('multi-event-mode').addEventListener('change', function(){

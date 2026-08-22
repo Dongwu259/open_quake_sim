@@ -24,10 +24,10 @@
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <title>地震模拟器 v5.5预览版 | Earthquake Simulator Pro</title>
 <link rel="stylesheet" href="leaflet/leaflet.css?v=c27524">
-<link rel="stylesheet" href="style.css?v=c219e8">
+<link rel="stylesheet" href="style.css?v=15ccd0">
 <link rel="preload" href="leaflet/leaflet.js?v=5a640f" as="script">
-<link rel="preload" href="app.js?v=205512" as="script">
-<link rel="preload" href="style.css?v=c219e8" as="style">
+<link rel="preload" href="app.js?v=89e809" as="script">
+<link rel="preload" href="style.css?v=15ccd0" as="style">
 <link rel="preload" href="config.js?v=ef34d9" as="script">
 <link rel="preload" href="physics.js?v=50f28d" as="script">
 </head>
@@ -40,7 +40,7 @@
       <div id="build-ver" style="font-size:.65em;color:var(--text-secondary);opacity:.5;margin-top:-2px" data-sw="sw.js=v468847">(······)</div>
       <button id="btn-help" class="help-link" type="button" data-i18n="help.title">使用帮助</button>
       <button id="btn-formulas" class="help-link" type="button" data-i18n="formulas.title">公式原理</button>
-      <button id="btn-privacy" class="help-link" type="button" data-i18n="privacy.title">隐私信息</button>
+      <button id="btn-settings" class="help-link" type="button" data-i18n="settings.title">设置</button>
     </div>
 
     <!-- Tab navigation -->
@@ -239,6 +239,7 @@
           </div>
         </div>
         <div class="disclaimer" data-i18n="disclaimer.text">本模拟器仅用于地震防灾研究与教学用途，请勿在公共场所最大音量外放，以免引起不必要的恐慌。模拟结果不代表实际地震预警信息。</div>
+        <div id="author-credit" data-i18n="author.credit">作者：Bilibili东吴摄影</div>
               </div>
 
       <!-- ====== ADVANCED TAB ====== -->
@@ -693,7 +694,7 @@
 <script src="research.js?v=3ee192"></script>
 <script src="data-catalog.js?v=bee20f"></script>
 <script src="grid-package.js?v=865d26"></script>
-<script src="i18n.js?v=bb22e2"></script>
+<script src="i18n.js?v=401b6f"></script>
 <script src="dc3d.js?v=2865dd"></script>
 <script src="physics.js?v=50f28d"></script>
 <script src="tsunami-solver-host.js?v=21d342"></script>
@@ -705,7 +706,8 @@
 <script src="moment-tensor.js?v=5bc10f"></script>
 <script src="finite-fault.js?v=a1f2c7"></script>
 <script src="observed-fault-models.js?v=c07cb6"></script>
-<script src="audio.js?v=2a15c6"></script>
+<script src="audio.js?v=81436d"></script>
+<script src="settings.js?v=a47ebe"></script>
 <script src="tts-text-builder.js?v=06c065"></script>
 <script src="srev-announcer.js?v=76ac4e"></script>
 <script>
@@ -739,7 +741,58 @@ window._loadThreeJS = function(cb) {
   loadNext();
 };
 </script>
-<script src="app.js?v=205512"></script>
+<div id="settings-overlay" class="help-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="settings-dialog-title">
+  <div class="help-panel" tabindex="-1">
+    <div class="help-header"><span id="settings-dialog-title" data-i18n="settings.header">⚙ 设置</span><button id="btn-settings-close" class="help-close" data-i18n-aria="aria.close" aria-label="关闭">&times;</button></div>
+    <div class="help-body" style="font-size:.9em">
+      <div class="settings-section">
+        <h3 data-i18n="settings.tts">TTS 语音</h3>
+        <div class="settings-row">
+          <label for="settings-tts-engine" data-i18n="settings.engine">引擎</label>
+          <select id="settings-tts-engine" class="rt-select">
+            <option value="browser" data-i18n="settings.engine_browser">浏览器本地（免配置）</option>
+            <option value="server" data-i18n="settings.engine_server">服务器代理（神经 TTS）</option>
+          </select>
+        </div>
+        <div id="settings-tts-browser">
+          <div class="settings-row">
+            <label for="settings-tts-voice" data-i18n="settings.voice">语音</label>
+            <select id="settings-tts-voice" class="rt-select"></select>
+          </div>
+          <div class="settings-row">
+            <label for="settings-tts-rate" data-i18n="settings.rate">语速</label>
+            <input id="settings-tts-rate" type="range" min="0.5" max="2" step="0.1" value="1">
+          </div>
+        </div>
+        <div id="settings-tts-server" style="display:none">
+          <div class="settings-row">
+            <label for="settings-tts-upstream" data-i18n="settings.upstream">上游地址</label>
+            <input id="settings-tts-upstream" type="text" placeholder="http://127.0.0.1:7896/tts">
+            <button id="settings-tts-save" class="rt-mini-btn" type="button" data-i18n="settings.save">保存</button>
+            <span id="settings-tts-save-status" class="settings-note"></span>
+          </div>
+          <div class="settings-row">
+            <label for="settings-tts-apikey">API Key</label>
+            <input id="settings-tts-apikey" type="password" autocomplete="off" data-i18n-ph="settings.apikey_ph" placeholder="留空则不使用 key">
+            <select id="settings-tts-keymode" class="rt-select">
+              <option value="query" data-i18n="settings.keymode_query">?key= 参数</option>
+              <option value="bearer" data-i18n="settings.keymode_bearer">Authorization Bearer</option>
+              <option value="x-api-key" data-i18n="settings.keymode_header">X-API-Key 请求头</option>
+            </select>
+            <button id="settings-tts-keyclear" class="rt-mini-btn" type="button" data-i18n="settings.key_clear">清除 key</button>
+          </div>
+          <p id="settings-tts-upstream-note" class="settings-note" data-i18n="settings.upstream_hint">仅本机可修改；留空恢复默认</p>
+        </div>
+        <div class="settings-row">
+          <button id="settings-tts-test" class="rt-mini-btn" type="button" data-i18n="settings.test">试听</button>
+          <span id="settings-tts-test-status" class="settings-note"></span>
+        </div>
+        <p class="settings-note" data-i18n="settings.note">浏览器本地引擎使用系统语音，无需网络和服务器；服务器引擎使用自建 TTS 上游（如 edge-tts），音质更好。</p>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="app.js?v=89e809"></script>
 <script src="aftershock.js?v=15df18"></script>
 <script src="rt-data.js?v=e907c3"></script>
 <script src="rt-kmoni.js?v=be3a9d"></script>
@@ -819,8 +872,6 @@ window._loadThreeJS = function(cb) {
       <p data-i18n="help.v54_rtperf_text">强震监测的逐帧解码、链式激活检测与最强测站排行移入 Web Worker（故障自动回退主线程），大震与高速回放时界面更流畅。新增回放精度评分卡（tools/scorecard-autosim.js）：用服务器录制数据量化 EEW 逐报收敛误差与 GMPE 震度预测精度。</p>
       <h3 data-i18n="help.v54_gmpe">GMPE 自动路由与小震偏差校正</h3>
       <p data-i18n="help.v54_gmpe_text">GMPE auto 模式改为按震源类别路由：地壳地震用 Si & Midorikawa (1999)，板间/板内用带饱和保护的 Zhao 2006（n=52 实测验证：全局 RMS 1.278→约 0.95，311 M9 由 2.47→1.21）。新增分震级档校正表（tools/calibrate-gmpe.js，M<4.5 约 -0.9 震度），修复回放评分卡发现的小震系统性高估，并随录制数据积累持续改进。</p>
-      <h3 data-i18n="help.v54_api">TTS 语音合成公开 API</h3>
-      <p data-i18n="help.v54_api_text">/api/v1/tts/synthesize 支持 POST JSON 调用，API key 认证用户限流提升至 240 次/分钟并计入开发者门户用量；相同文本命中服务端音频缓存（X-TTS-Cache）。可用语音扩展为日中英韩 11 个神经语音（见 /api/v1/tts/voices 的 neuralVoices）。</p>
       <h3 data-i18n="help.v54_phase2">强震动标定、都道府县预报表与 EEW 首报修正</h3>
       <p data-i18n="help.v54_phase2_text">新增强震动观测标定管线（tools/fetch-strong-motion-obs.js + tools/scorecard-strong-motion.js）：冻结 USGS Shakemap 收录的 NIED K-NET/KiK-net 6 个历史地震共 2,626 个测站的实测 PGA/PGV（公有领域），逐站对比 GMPE 预测并产出分距离段残差报告。信息页图表区新增都道府县预测震度表：逐县列出预测震度及 ±1σ 区间（PLUM 合并行无区间）。真实检测模式的 EEW 首报震级新增 +0.7M 保守上修，随报数衰减并在 FINAL 前归零——探针实测首报因 P-S 爬升未完成系统性偏低 0.8~1.1M（tools/data/eew-mag-bias-report.json）。</p>
       <h3 data-i18n="help.v54_phase3">要石式波圈聚焦、zhao2006 分距离校正与稳态震级修正</h3>
@@ -1213,28 +1264,6 @@ damage = Σ buildings·fragility(shindo)</code>
   </div>
 </div>
 
-<div id="privacy-overlay" class="help-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="privacy-dialog-title">
-  <div class="help-panel" tabindex="-1">
-    <div class="help-header"><span id="privacy-dialog-title" data-i18n="privacy.header">🔒 隐私信息</span><button id="btn-privacy-close" class="help-close" data-i18n-aria="aria.close" aria-label="Close">&times;</button></div>
-    <div class="help-body" style="font-size:.84em">
-      <h3 data-i18n="privacy.summary">本应用不收集您的任何信息</h3>
-      <p data-i18n="privacy.summary_text">模拟计算与保存的数据均保留在浏览器内。我们不收集个人信息、地理位置或使用记录；仅在启用日语 TTS 时，会将当前模拟的播报文本发送到本站服务器进行语音合成。</p>
-      <h3 data-i18n="privacy.local">本地存储的数据</h3>
-      <p data-i18n="privacy.local_text">以下偏好与数据仅保存在您的浏览器本地，不会发送到服务器：</p>
-      <p>• <b data-i18n="privacy.item_lang">界面语言</b>（qs-lang）<br>• <b data-i18n="privacy.item_config">高级参数设置</b>（qs-config）—— P/S 波速、应力降、衰减系数、断层参数、频谱参数等<br>• <b data-i18n="privacy.item_theme">主题与 UI 缩放</b>（qs-theme / qs-ui-scale）<br>• <b data-i18n="privacy.item_scn">场景管理器保存的场景</b>（qs-scenarios）—— 包括震源、震级、深度、走向、倾角、滑移角及多事件与有限断层滑移分布模型<br>• <b data-i18n="privacy.item_guide">移动端首次引导提示</b>（qs-mobile-guided）</p>
-      <h3 data-i18n="privacy.nocloud">场景管理器与服务器</h3>
-      <p data-i18n="privacy.nocloud_text">您在「场景管理器」中保存、导入、导出的场景，以及自定义的有限断层滑移分布，全部存储在您本地浏览器中。这些数据绝不会上传到服务器，也不会与其他用户共享。您可以通过场景管理器的「导出」按钮将场景下载为 JSON 文件，完全由您掌控。</p>
-      <h3 data-i18n="privacy.network">网络请求说明</h3>
-      <p data-i18n="privacy.tts_network">启用日语 TTS 时，当前模拟的发震时刻、震源地、最大震度、深度、震级和海啸状态会作为播报文本发送到本站服务器进行语音合成；不包含个人身份信息。</p>
-      <p data-i18n="privacy.network_text">仅在以下情况会发起网络请求，且不包含任何个人身份信息：</p>
-      <p>• 加载地图瓦片与地理数据（来自公共地图服务）<br>• 访问人次计数（仅记录页面被加载的次数，无 Cookie、无 IP 关联个人身份）<br>• 可选的实时地震监测（USGS / P2PQuake 公共数据源，仅在您主动启用时连接）<br>• 预加载音频文件（服务器本地静态资源）</p>
-      <h3 data-i18n="privacy.clear">如何清除数据</h3>
-      <p data-i18n="privacy.clear_text">在浏览器设置中清除站点数据（或清除 localStorage），即可删除上述所有本地保存的内容。清除后模拟器将恢复默认设置，已保存的场景将无法恢复（除非您已导出为文件）。</p>
-    </div>
-  </div>
-</div>
-
-<!-- Error display overlay -->
 <div id="error-overlay" style="display:none" role="alert" aria-live="assertive">
   <div id="error-panel">
     <div id="error-header"><span data-i18n="error.header">⚠ 脚本错误</span><button id="error-close" data-i18n-aria="aria.close" aria-label="Close">&times;</button></div>
