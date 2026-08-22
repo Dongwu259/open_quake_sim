@@ -2,6 +2,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+**中文** | [English](README_EN.md)
+
 面向日本的网页版地震模拟与实时地震监测系统。零依赖 Node.js 静态服务器 + Leaflet 前端，打开浏览器即可进行地震波传播、海啸、紧急地震速报（EEW）全流程模拟，并接入真实地震数据源进行 7×24 实时监测。
 
 > **免责声明**：本项目为科研/教育用途的模拟软件，所有震度、海啸、EEW 结果均为模型估算，**不可用于防灾决策**。真实地震信息请以日本气象厅（JMA）等官方发布为准。
@@ -76,6 +78,12 @@ npm run install-hooks             # 安装 pre-push 版本门禁钩子
 
 静态资源采用内容哈希缓存指纹：HTML `no-cache`，JS/CSS 一年 immutable——修改 `public/` 任何文件后必须运行 `tools/bump-versions.js`，否则浏览器可能长时间使用旧缓存。
 
+## 文档
+
+- [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)：开发者指南（架构、目录、测试、版本指纹规则、常见配方）
+- [docs/FINITE_FAULT_FORMAT.md](docs/FINITE_FAULT_FORMAT.md)：有限断层 v1 数据契约（英文）
+- [docs/PHYSICS_BENCHMARKS.md](docs/PHYSICS_BENCHMARKS.md)：物理参考与数值基准
+
 ## Docker
 
 ```bash
@@ -90,9 +98,9 @@ docker-compose up -d
 - 地形/海深：GEBCO 2025、地理院（GSI）DEM、Natural Earth
 - 地图库：Leaflet、Turf.js
 
-## English Summary
+## English
 
-A web-based earthquake simulator and real-time monitoring app for Japan: seismic-wave propagation with calibrated GMPEs, finite-fault models (observed USGS + scenario), an NLSWE tsunami solver, a JQuake-style EEW detection mode, and live monitoring of JMA EEW / NIED Kmoni / P2P bulletins with server-side replay. Node.js ≥ 18, `npm install && node server.js`. All simulation results are model estimates for research/education only — not for disaster-prevention decisions.
+The full English README lives at [README_EN.md](README_EN.md).
 
 ## License
 
