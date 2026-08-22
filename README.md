@@ -1,6 +1,6 @@
 # Earthquake Simulator Pro（地震模拟器 Pro）
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Node.js ≥18](https://img.shields.io/badge/node-%E2%89%A5%2018-brightgreen)](package.json) [![CI](https://github.com/Dongwu259/open_quake_sim/actions/workflows/ci.yml/badge.svg)](https://github.com/Dongwu259/open_quake_sim/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/Dongwu259/open_quake_sim)](https://github.com/Dongwu259/open_quake_sim/releases) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Node.js ≥18](https://img.shields.io/badge/node-%E2%89%A5%2018-brightgreen)](package.json) [![CI](https://github.com/Dongwu259/open_quake_sim/actions/workflows/ci.yml/badge.svg)](https://github.com/Dongwu259/open_quake_sim/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/Dongwu259/open_quake_sim)](https://github.com/Dongwu259/open_quake_sim/releases) [![官网](https://img.shields.io/badge/%E5%AE%98%E7%BD%91-dwfileshare.top-blue)](https://dwfileshare.top) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 **中文** | [English](README_EN.md)
 
@@ -32,7 +32,19 @@
 
 ## 快速开始
 
+npm 包方式（最简单）：
+
 ```bash
+npx open_quake_sim
+# 或全局安装：npm install -g open_quake_sim && quake-sim
+# 打开 http://localhost:3000
+```
+
+源码方式：
+
+```bash
+git clone https://github.com/Dongwu259/open_quake_sim.git
+cd open_quake_sim
 npm install
 node server.js
 # 打开 http://localhost:3000
@@ -87,6 +99,7 @@ npm run install-hooks             # 安装 pre-push 版本门禁钩子
 ## 文档
 
 - [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)：开发者指南（架构、目录、测试、版本指纹规则、常见配方）
+- [docs/FAQ.md](docs/FAQ.md)：常见问题（安装运行、TTS、实时监测、数据文件、精度边界）
 - [docs/FINITE_FAULT_FORMAT.md](docs/FINITE_FAULT_FORMAT.md)：有限断层 v1 数据契约（英文）
 - [docs/PHYSICS_BENCHMARKS.md](docs/PHYSICS_BENCHMARKS.md)：物理参考与数值基准
 

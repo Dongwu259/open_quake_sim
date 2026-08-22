@@ -1,6 +1,6 @@
 # Earthquake Simulator Pro
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Node.js ≥18](https://img.shields.io/badge/node-%E2%89%A5%2018-brightgreen)](package.json) [![CI](https://github.com/Dongwu259/open_quake_sim/actions/workflows/ci.yml/badge.svg)](https://github.com/Dongwu259/open_quake_sim/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/Dongwu259/open_quake_sim)](https://github.com/Dongwu259/open_quake_sim/releases) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Node.js ≥18](https://img.shields.io/badge/node-%E2%89%A5%2018-brightgreen)](package.json) [![CI](https://github.com/Dongwu259/open_quake_sim/actions/workflows/ci.yml/badge.svg)](https://github.com/Dongwu259/open_quake_sim/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/Dongwu259/open_quake_sim)](https://github.com/Dongwu259/open_quake_sim/releases) [![Website](https://img.shields.io/badge/website-dwfileshare.top-blue)](https://dwfileshare.top) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 [中文文档](README.md) | **English**
 
@@ -32,7 +32,19 @@ A web-based earthquake simulation and real-time monitoring app for Japan. A zero
 
 ## Quick Start
 
+Via the npm package (easiest):
+
 ```bash
+npx open_quake_sim
+# or install globally: npm install -g open_quake_sim && quake-sim
+# open http://localhost:3000
+```
+
+From source:
+
+```bash
+git clone https://github.com/Dongwu259/open_quake_sim.git
+cd open_quake_sim
 npm install
 node server.js
 # open http://localhost:3000
@@ -84,7 +96,7 @@ npm run install-hooks             # install the pre-push version gate
 
 Static assets use content-hash cache fingerprints: HTML is `no-cache`, JS/CSS is one-year immutable — after editing anything under `public/`, you **must** run `tools/bump-versions.js`, or browsers may keep stale code for a long time.
 
-More docs: [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) (developer guide, Chinese), [docs/FINITE_FAULT_FORMAT.md](docs/FINITE_FAULT_FORMAT.md) (finite-fault v1 data contract), [docs/PHYSICS_BENCHMARKS.md](docs/PHYSICS_BENCHMARKS.md) (physics reference benchmarks, Chinese).
+More docs: [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) (developer guide, Chinese), [docs/FAQ.md](docs/FAQ.md) (FAQ, Chinese), [docs/FINITE_FAULT_FORMAT.md](docs/FINITE_FAULT_FORMAT.md) (finite-fault v1 data contract), [docs/PHYSICS_BENCHMARKS.md](docs/PHYSICS_BENCHMARKS.md) (physics reference benchmarks, Chinese).
 
 ## Docker
 

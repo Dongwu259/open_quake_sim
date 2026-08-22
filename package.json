@@ -8,7 +8,20 @@
     "type": "git",
     "url": "git+https://github.com/Dongwu259/open_quake_sim.git"
   },
+  "homepage": "https://dwfileshare.top",
+  "keywords": ["earthquake", "eew", "tsunami", "japan", "seismology", "simulation", "emergency-warning"],
   "main": "server.js",
+  "bin": {
+    "quake-sim": "bin/quake-sim.js",
+    "open_quake_sim": "bin/quake-sim.js"
+  },
+  "files": [
+    "bin/",
+    "server.js",
+    "public/",
+    "sounds/",
+    "tools/fetch_waveform.py"
+  ],
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
@@ -25,7 +38,7 @@
     "validate:release": "npm test && npm run validate:audio && node tools/validate-release.js && node tools/validate-tsunami-stability.js && node tools/validate-accuracy.js",
     "check": "npm run validate:release && node tools/bump-versions.js --check",
     "install-hooks": "node tools/install-git-hooks.js",
-    "prepare": "node tools/install-git-hooks.js"
+    "prepare": "node -e \"try{require('./tools/install-git-hooks.js')}catch(e){}\""
   },
   "engines": {
     "node": ">=18.0.0"
