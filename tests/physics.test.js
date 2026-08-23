@@ -1824,3 +1824,31 @@ test('calcLPGM — delegates to the band-max Sv estimate', () => {
     assert.strictEqual(Physics.calcLPGM(m, d, p, 1.5), Physics.calcLongPeriodSv(m, d, p).lpcClass);
   }
 });
+
+// ================================================================
+//  2026-08-23 audit regressions
+// ================================================================
+
+test('ETAS catalog — every child has finite lat/lng/depth (gauss NaN regression)', () => {
+  // The ETAS gauss() used uninitialized u1/u2 so every child coordinate was
+  // NaN (undefined === 0 is false — the loops never ran).
+  const cat = Physics.generateAftershockCatalog(7.5, 36.0, 140.0, 20, 30, 25,
+    150, 0.1, 1.1, 0.9, 30, 1, null, 200, null, 42);
+  assert.ok(cat.length > 0, 'ETAS branch should produce children');
+  for (const c of cat) {
+    assert.ok(isFinite(c.lat) && isFinite(c.lng) && isFinite(c.depth), 'finite coords');
+    assert.ok(c.lat > 24 && c.lat < 46 && c.lng > 122 && c.lng < 150, 'coords stay near Japan');
+  }
+});
+
+test('layeredTravelTime — far stations get a first-arrival head wave (Pn) that beats the surface crawl', () => {
+  // Shallow source: the old stack stopped at the source depth, so a 2000 km
+  // station rode a degenerate direct ray at ~6.5 km/s instead of mantle Pn.
+  const tFar = Physics.pTravelTime(2000, 30);
+  const tSurf = 2000 / 8.04; // Moho head-wave floor
+  assert.ok(tFar > 0 && isFinite(tFar));
+  assert.ok(tFar <= tSurf + 60, 'far P arrival must not be slower than the Moho crawl');
+  // near-field unaffected: still slower than a straight surface line
+  const tNear = Physics.pTravelTime(100, 30);
+  assert.ok(tNear > 100 / 8.04, 'near P arrival keeps the layered (slower) path');
+});

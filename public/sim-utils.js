@@ -90,15 +90,18 @@ U.encodeScenario = function(events, flags, faultOpts, manualAftershocks) {
   var scn = {
     v: 1,
     e: events.map(function(ev) {
+      // Null-safe fallbacks — an `||` chain here used to swallow falsy zeros
+      // (strike=0 north, depth=0 surface, time=0) into the defaults, silently
+      // rewriting shared mechanisms on a encode/decode round-trip.
       return [
-        +(+(ev[0] || ev.lat)).toFixed(3),
-        +(+(ev[1] || ev.lng)).toFixed(3),
-        +(ev[2] || ev.mag || 7.0),
-        +(ev[3] || ev.depth || 30),
-        +(ev[4] || ev.strike || 45),
-        +(ev[5] || ev.dip || 90),
+        +(+(ev[0] != null ? ev[0] : ev.lat)).toFixed(3),
+        +(+(ev[1] != null ? ev[1] : ev.lng)).toFixed(3),
+        +(ev[2] != null ? ev[2] : (ev.mag != null ? ev.mag : 7.0)),
+        +(ev[3] != null ? ev[3] : (ev.depth != null ? ev.depth : 30)),
+        +(ev[4] != null ? ev[4] : (ev.strike != null ? ev.strike : 45)),
+        +(ev[5] != null ? ev[5] : (ev.dip != null ? ev.dip : 90)),
         +(ev[6] != null ? ev[6] : (ev.rake != null ? ev.rake : 0)),
-        +(ev[7] || ev.time || 0),
+        +(ev[7] != null ? ev[7] : (ev.time != null ? ev.time : 0)),
         !!(ev[8] != null ? ev[8] : ev.mechanismKnown),
         // Optional 10th slot: bundled fault-model id (e.g. 'tohoku') so
         // shared chains keep observed slip models. Older links lack it.

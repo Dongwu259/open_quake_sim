@@ -298,7 +298,10 @@ var RTQuakeInfo = (function() {
 
   // Thin wrapper over the shared RTData toast queue; falls back to a local
   // fixed toast so the module also works standalone (and in node tests).
+  // Replayed history stays silent like the sounds/TTS — fast replay used to
+  // flood the shared queue with stale bulletins.
   function toast(msg) {
+    if (isReplayingFeed()) return;
     try {
       if (typeof RTData !== 'undefined' && RTData && typeof RTData.toastQueued === 'function') {
         RTData.toastQueued(msg);
@@ -457,9 +460,14 @@ var RTQuakeInfo = (function() {
     }).catch(function() { slot.loading = false; slot.failedAt = Date.now(); });
   }
 
+  // True when the on-map observed fills came from the replay stream — a
+  // replayed historical cancel must not wipe LIVE observed fills.
+  var observedFromReplay = false;
+
   function clearObserved() {
     prefObs.fills = {};
     areaObs.fills = {};
+    observedFromReplay = false;
     restyleObs(prefObs);
     restyleObs(areaObs);
   }
@@ -476,6 +484,7 @@ var RTQuakeInfo = (function() {
     var other = (scope === 'pref') ? areaObs : prefObs;
     slot.fills = fills;
     other.fills = {}; // newer bulletin scope supersedes the coarser one
+    observedFromReplay = isReplayingFeed();
     ensureObsLayer(slot);
     restyleObs(slot);
     restyleObs(other);
@@ -689,6 +698,14 @@ var RTQuakeInfo = (function() {
 
   function handle551(evt) {
     if (evt.cancelled) {
+      // Cancels used to bypass the dedup entirely — a P2P reconnect resends
+      // the last message, re-announcing and wiping observed fills that a
+      // newer bulletin had already replaced.
+      if (!markSeen(evt.id ? String(evt.id) : dedupKey(evt))) return false;
+      if (isReplayingFeed() && !observedFromReplay) {
+        // Replayed history cancelling LIVE observed fills — drop it.
+        return true;
+      }
       toast(bulletinTitle(evt.issueType) + ' — ' + (typeof window !== 'undefined' && window.t ? window.t('realtime.eew_cancel') : '取消'));
       clearObserved();
       clearDetailPanel();

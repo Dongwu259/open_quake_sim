@@ -24,6 +24,9 @@ function _simidDs(src) {
   if (src === 'intraslab') return (typeof cfgGet !== 'undefined' ? cfgGet('dsIntra') : 0.221);
   return 0;
 }
+// Public alias — callers outside this module get the live config instead of
+// the frozen Physics.SIMID_DS snapshot above.
+Physics.simidDs = _simidDs;
 
 Physics.SHINDO_SCORE = {0:0,1:1,2:2,3:3,4:4,'5-':4.75,'5+':5.25,'6-':5.75,'6+':6.25,7:6.75,5:5.0,6:6.0};
 
@@ -753,13 +756,15 @@ Physics.resolveGmpModel = function(gmpModel, src, mw) {
   return 'si-midorikawa';
 };
 
-Physics.calcPGA = function(mag, Rkm, gmpModel, depthKm, eventMw, sliderMw, epicenterSrc, attA, attB, attC, anelastic, vs30) {
+Physics.calcPGA = function(mag, Rkm, gmpModel, depthKm, eventMw, sliderMw, epicenterSrc, attA, attB, attC, anelastic, vs30, rake) {
   if (Rkm <= 0.5) Rkm = 0.5;
   var mw = (eventMw != null) ? (mag + (eventMw - sliderMw)) : mag;
   var src = epicenterSrc || Physics.sourceType(depthKm);
   gmpModel = Physics.resolveGmpModel(gmpModel, src, mw);
   if (gmpModel === 'kanno2006') return Physics.pgaKanno(mw, Rkm, depthKm, vs30 || 400);
-  if (gmpModel === 'zhao2006') return Physics.pgaZhao2006(mw, Rkm, depthKm, src, vs30);
+  // rake feeds the Zhao-2006 crustal reverse-fault FR term — without it the
+  // term was dead code on every routing path (reverse events under-predicted).
+  if (gmpModel === 'zhao2006') return Physics.pgaZhao2006(mw, Rkm, depthKm, src, vs30, rake);
   if (gmpModel === 'si-midorikawa' || gmpModel === 'log-ff') {
     if (gmpModel === 'si-midorikawa') return Physics.pgaSiMid(mw, Rkm, depthKm, src);
     var srcBoost = _simidDs(src);
@@ -771,13 +776,13 @@ Physics.calcPGA = function(mag, Rkm, gmpModel, depthKm, eventMw, sliderMw, epice
 /**
  * Compute PGV with GMPE routing and source-type boost. @param {number} mag @param {number} Rkm @param {number} depthKm @param {string} [epicenterSrc] @param {number} [vs30] @returns {number} PGV in cm/s
  */
-Physics.calcPGV = function(mag, Rkm, gmpModel, depthKm, eventMw, sliderMw, epicenterSrc, anelastic, vs30) {
+Physics.calcPGV = function(mag, Rkm, gmpModel, depthKm, eventMw, sliderMw, epicenterSrc, anelastic, vs30, rake) {
   if (Rkm <= 0.5) Rkm = 0.5;
   var mw = (eventMw != null) ? (mag + (eventMw - sliderMw)) : mag;
   var src = epicenterSrc || Physics.sourceType(depthKm);
   gmpModel = Physics.resolveGmpModel(gmpModel, src, mw);
   if (gmpModel === 'kanno2006') return Physics.pgvKanno(mw, Rkm, depthKm, vs30 || 400);
-  if (gmpModel === 'zhao2006') return Physics.pgvZhao2006(mw, Rkm, depthKm, src, vs30);
+  if (gmpModel === 'zhao2006') return Physics.pgvZhao2006(mw, Rkm, depthKm, src, vs30, rake);
   if (gmpModel === 'si-midorikawa' || gmpModel === 'log-ff') {
     if (gmpModel === 'si-midorikawa') return Physics.pgvSiMid(mw, Rkm, depthKm, src);
     return Physics.pgvLog(mw, Rkm, anelastic) * Math.pow(10, _simidDs(src));
@@ -1236,11 +1241,52 @@ Physics.layeredTravelTime = function(horizontalKm, depthKm, phase, surfaceVeloci
     if(depthKm<=top)break;var h=Math.min(depthKm,bot)-top;if(h>0){var v=Physics.IASP91[i][col]*velocityScale;layers.push([h,v]);maxV=Math.max(maxV,v);}
   }
   function offset(p){var x=0;for(var j=0;j<layers.length;j++){var pv=Math.min(0.999999,p*layers[j][1]);x+=layers[j][0]*pv/Math.sqrt(1-pv*pv);}return x;}
+  function directTime(p){var t=0;for(var j=0;j<layers.length;j++){var pv=Math.min(0.999999,p*layers[j][1]);t+=layers[j][0]/(layers[j][1]*Math.sqrt(1-pv*pv));}return t;}
+  // Head wave below the source: IASP91 speeds grow monotonically, so the
+  // fastest reachable medium is the deepest row below the source (Pn/Sn).
+  // delay = Σ h·cos(θc)/v with sin(θc)=v/vRefractor over the source→refractor
+  // column. The layer stack above only ran to the source depth, so far
+  // stations used to ride the degenerate near-horizontal direct ray and
+  // under-estimate arrivals (X/6.5 instead of a mantle head wave).
+  var refractorV=0,refractorTop=Infinity,belowLayers=[];
+  for(var ib=0;ib<Physics.IASP91.length;ib++){
+    var topB=Physics.IASP91[ib][0],botB=ib+1<Physics.IASP91.length?Physics.IASP91[ib+1][0]:Infinity;
+    if(botB<=depthKm)continue;
+    // Column from the source depth down to each refractor top; the deepest
+    // row is the refractor half-space itself (zero delay thickness).
+    var startB=Math.max(topB,depthKm);
+    var hB=(botB===Infinity?startB:botB)-startB;
+    if(!(hB>0))continue;
+    var vB=Physics.IASP91[ib][col]*velocityScale;
+    belowLayers.push([hB,vB]);
+    if(vB>refractorV){refractorV=vB;refractorTop=startB;}
+  }
+  var headTime=Infinity;
+  if(refractorV>maxV){
+    var delay=0;
+    for(var jb=0;jb<belowLayers.length;jb++){
+      if(belowLayers[jb][1]>=refractorV)break; // at the refractor itself
+      var vr=belowLayers[jb][1];var cosc=Math.sqrt(Math.max(0,1-(vr/refractorV)*(vr/refractorV)));
+      delay+=belowLayers[jb][0]*cosc/vr;
+    }
+    // Up-leg back to the surface station: critical passage through the
+    // source-depth stack as well (source is buried, station is at the top).
+    for(var ju=0;ju<layers.length;ju++){
+      if(layers[ju][1]>=refractorV)break;
+      var vu=layers[ju][1];var cosu=Math.sqrt(Math.max(0,1-(vu/refractorV)*(vu/refractorV)));
+      delay+=layers[ju][0]*cosu/vu;
+    }
+    headTime=horizontalKm/refractorV+delay;
+  }
   var lo=0,hi=0.999999/maxV;
+  if(offset(hi)<horizontalKm){
+    // Supercritical — no direct ray turns back within the source-depth stack.
+    return headTime===Infinity?directTime(hi):headTime;
+  }
   for(var it=0;it<70;it++){var mid=(lo+hi)/2;if(offset(mid)<horizontalKm)lo=mid;else hi=mid;}
-  var p=(lo+hi)/2,time=0;
-  for(var j=0;j<layers.length;j++){var pv=Math.min(0.999999,p*layers[j][1]);time+=layers[j][0]/(layers[j][1]*Math.sqrt(1-pv*pv));}
-  return time;
+  var time=directTime((lo+hi)/2);
+  // First arrival: near stations take the direct ray, far stations the head wave.
+  return Math.min(time,headTime);
 };
 
 Physics.pTravelTime = function(horizontalKm, depthKm, surfaceVelocity) { return Physics.layeredTravelTime(horizontalKm,depthKm,'P',surfaceVelocity); };
@@ -2053,7 +2099,10 @@ Physics.createGroundMotionContext = function(source, options) {
       sourceType:sourceType
     },
     options: options, geometry: geometry, gmpModel: gmpModel,
-    gmpeVs30: gmpModel === 'zhao2006' ? 1200 : (gmpModel === 'kanno2006' ? 800 : 760)
+    // Reference Vs30 for the reference-site models (si-midorikawa / log).
+    // zhao2006/kanno2006 ignore this — their native site classes take the
+    // station Vs30 directly inside predictStationMotion.
+    gmpeVs30: 760
   };
 };
 
@@ -2082,13 +2131,25 @@ Physics.predictStationMotion = function(context, station, overrides) {
   var attC = opts.attC == null ? 0.31 : Number(opts.attC);
   var anelastic = opts.anelastic == null ? 0.001 : Number(opts.anelastic);
 
+  // Site-term convention (matches tools/scorecard-strong-motion.js predictStation
+  // and the app forecast path _predictPrefectureShindosFor): zhao2006/kanno2006
+  // carry native paper Vs30 site classes, so the station Vs30 is fed straight
+  // into the GMPE and NO external amplification is applied on top. The
+  // reference-site models (si-midorikawa / log) predict on a 760 m/s reference
+  // and take the external vs30Amplification factor below. The old mix (zhao at
+  // a 1200 m/s CH reference + a 760-anchored amp) double-referenced the site
+  // term and skewed zhao/kanno forecasts ~10-15%.
+  var nativeVsModel = (model === 'zhao2006' || model === 'kanno2006');
+  var vs30 = Number(station.vs30) || 400;
+  var gmpeVs30 = nativeVsModel ? vs30 : (context.gmpeVs30 || 760);
+
   function pointPga(distance) {
     return Physics.calcPGA(source.mw, distance, model, source.depthKm, null, source.mw,
-      source.sourceType, attA, attB, attC, anelastic, context.gmpeVs30);
+      source.sourceType, attA, attB, attC, anelastic, gmpeVs30, source.rakeDeg);
   }
   function pointPgv(distance) {
     return Physics.calcPGV(source.mw, distance, model, source.depthKm, null, source.mw,
-      source.sourceType, anelastic, context.gmpeVs30);
+      source.sourceType, anelastic, gmpeVs30, source.rakeDeg);
   }
 
   var patches = [];
@@ -2110,6 +2171,24 @@ Physics.predictStationMotion = function(context, station, overrides) {
     }
     referencePga = Math.sqrt(pgaSquares);
     referencePgv = Math.sqrt(pgvSquares);
+  } else if (geometry && geometry.subs && geometry.subs.length) {
+    // Beyond the cutoff the full patch quadrature is not worth its cost — but
+    // a hard switch to the raw point source used to leave a step in the
+    // predicted field at exactly cutoffKm. Carry the SRSS/point ratio
+    // measured AT the cutoff distance outwards so the surface stays
+    // continuous (at great range the ratio tends to 1 anyway).
+    var pgaSqFar = 0, pgvSqFar = 0;
+    for (var ifr = 0; ifr < geometry.subs.length; ifr++) {
+      var subF = geometry.subs[ifr];
+      var phF = Physics.haversineDist(station.lat, station.lng, subF.lat, subF.lng);
+      var pdF = Math.sqrt(phF * phF + subF.depth * subF.depth);
+      var wF = Math.sqrt(Math.max(0, Number(subF.momentFraction) || 0));
+      var pF = pointPga(pdF) * wF, vF = pointPgv(pdF) * wF;
+      pgaSqFar += pF * pF; pgvSqFar += vF * vF;
+    }
+    var basePga = pointPga(cutoffKm), basePgv = pointPgv(cutoffKm);
+    referencePga = pointPga(distanceKm) * (basePga > 0 ? Math.sqrt(pgaSqFar) / basePga : 1);
+    referencePgv = pointPgv(distanceKm) * (basePgv > 0 ? Math.sqrt(pgvSqFar) / basePgv : 1);
   } else {
     referencePga = pointPga(distanceKm);
     referencePgv = pointPgv(distanceKm);
@@ -2127,11 +2206,14 @@ Physics.predictStationMotion = function(context, station, overrides) {
   }
 
   var siteModel = opts.siteModel || 'vs30';
-  var vs30 = Number(station.vs30) || 400;
   var sitePga, sitePgv;
   if (opts.siteAmplificationPga != null) {
     sitePga = Number(opts.siteAmplificationPga);
     sitePgv = opts.siteAmplificationPgv == null ? sitePga : Number(opts.siteAmplificationPgv);
+  } else if (nativeVsModel) {
+    // Native Vs30 site classes already applied inside the GMPE above — an
+    // external factor here would double-count site response.
+    sitePga = sitePgv = 1;
   } else if (siteModel === 'vs30') {
     if (opts.siteNonlinear === 'ss14') {
       sitePga = Physics.vs30AmplificationNL(vs30, 'pga', referencePga * stationFactor);
@@ -3691,7 +3773,9 @@ Physics._generateAftershockCatalogETAS = function(mainMw, mainLat, mainLng, main
   }
   var rng = seededRand((Math.floor(mainLat * 1000 + mainLng * 1000 + mainMw * 100) ^ ((Number(randomSeed) || 0) >>> 0)) >>> 0);
 
-  function gauss() { var u1,u2,safety=0; while(u1===0&&safety++<100)u1=rng(); safety=0; while(u2===0&&safety++<100)u2=rng(); return Math.sqrt(-2*Math.log(Math.max(u1,1e-10)))*Math.cos(2*Math.PI*Math.max(u2,1e-10)); }
+  // u1/u2 must start at 0 (not undefined) or the while loops below never run
+  // and every ETAS child gets NaN coordinates/depth.
+  function gauss() { var u1=0,u2=0,safety=0; while(u1===0&&safety++<100)u1=rng(); safety=0; while(u2===0&&safety++<100)u2=rng(); return Math.sqrt(-2*Math.log(Math.max(u1,1e-10)))*Math.cos(2*Math.PI*Math.max(u2,1e-10)); }
 
   var catalog = [];
   var queue = [{id: -1, time: 0, lat: mainLat, lng: mainLng, mag: mainMw, depth: mainDepth,

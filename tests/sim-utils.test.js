@@ -326,3 +326,27 @@ test('formatShindoLabel — all Shindo levels', () => {
   assert.strictEqual(U.formatShindoLabel('6+'), '震度6+');
   assert.strictEqual(U.formatShindoLabel(7), '震度7');
 });
+
+// ================================================================
+//  encodeScenario — falsy-zero regression (2026-08-23 audit)
+// ================================================================
+
+test('encodeScenario/decodeScenario — falsy zeros survive the round-trip', () => {
+  // strike=0 (north), dip=90, rake=0, time=0, depth=0 — an `||` chain used to
+  // rewrite these into 45/30/7.0 defaults.
+  const events = [[35.68, 139.76, 7.0, 0, 0, 90, 0, 0]];
+  const decoded = U.decodeScenario(U.encodeScenario(events, { detect: false, aftershock: false, tsunami: false }, null));
+  assert.ok(decoded, 'decode should succeed');
+  assert.strictEqual(decoded.events[0].strike, 0);
+  assert.strictEqual(decoded.events[0].depth, 0);
+  assert.strictEqual(decoded.events[0].rake, 0);
+  assert.strictEqual(decoded.events[0].time, 0);
+});
+
+test('encodeScenario/decodeScenario — object-form events with zero fields', () => {
+  const events = [{ lat: 36.0, lng: 140.0, mag: 6.5, depth: 0, strike: 0, dip: 60, rake: 0, time: 0 }];
+  const decoded = U.decodeScenario(U.encodeScenario(events, { detect: false, aftershock: false, tsunami: false }, null));
+  assert.strictEqual(decoded.events[0].depth, 0);
+  assert.strictEqual(decoded.events[0].strike, 0);
+  assert.strictEqual(decoded.events[0].mag, 6.5);
+});

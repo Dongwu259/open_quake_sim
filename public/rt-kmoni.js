@@ -545,6 +545,9 @@ var RTKmoni = (function() {
     return fetchJSON(SITE_API).catch(function() {
       return fetchJSON(SITE_DIRECT);
     }).then(function(json) {
+      // A stop() may have landed while the fetch was in flight — rebuilding
+      // the 1725-station layer here would resurrect a terminated engine.
+      if (!active) return;
       var items = Array.isArray(json) ? json : ((json && json.items) || []);
       siteConfigId = (json && json.siteConfigId) || null;
       sitelistRetries = 0; // success clears the backoff ladder ...
@@ -1110,10 +1113,12 @@ var RTKmoni = (function() {
         if (tr) msg = tr;
       }
     } catch (e) {}
-    toast(msg + ' — Shindo ' + band);
-    // sounds belong to the live feed — server replay stays silent
+    // toast + sounds belong to the live feed — server replay stays silent
     try {
       if (typeof RTData !== 'undefined' && RTData.isReplaying && RTData.isReplaying()) return;
+    } catch (e) {}
+    toast(msg + ' — Shindo ' + band);
+    try {
       if (typeof window !== 'undefined' && typeof window.playEEWSound === 'function') {
         window.playEEWSound('Shindo' + Math.min(Math.max(band, 1), 7));
       }
@@ -1144,9 +1149,11 @@ var RTKmoni = (function() {
         if (tr) msg = tr;
       }
     } catch (e) {}
-    toast(msg);
     try {
       if (typeof RTData !== 'undefined' && RTData.isReplaying && RTData.isReplaying()) return;
+    } catch (e2) {}
+    toast(msg);
+    try {
       if (typeof window !== 'undefined' && typeof window.playEEWSound === 'function') {
         window.playEEWSound('Shindo0');
       }

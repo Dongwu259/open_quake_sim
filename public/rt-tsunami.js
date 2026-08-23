@@ -212,8 +212,12 @@ var RTTsunami = (function() {
   // ================================================================
 
   // Shared toast FIFO (rt-data) when available; the module-local div stays
-  // as the standalone/test fallback.
+  // as the standalone/test fallback. Replayed history stays silent like the
+  // sounds/TTS — fast replay used to flood the shared queue.
   function toast(msg, opts) {
+    try {
+      if (typeof RTData !== 'undefined' && RTData.isReplaying && RTData.isReplaying()) return;
+    } catch (e) {}
     try {
       if (typeof RTData !== 'undefined' && RTData && typeof RTData.toastQueued === 'function') {
         RTData.toastQueued(msg, opts);
@@ -397,7 +401,9 @@ var RTTsunami = (function() {
     }).then(function(json) {
       geoFetching = false;
       areasGeo = json;
-      if (docHidden()) return;
+      // A stop() may have landed mid-fetch — keep the cached data but do not
+      // (re)build the map layer while inactive.
+      if (!active || docHidden()) return;
       ensureLayer();
       restyleLayer();
     }).catch(function(e) {
@@ -635,6 +641,15 @@ var RTTsunami = (function() {
     return isNaN(ms) ? Date.now() : ms;
   }
 
+  function isReplayingNow() {
+    try {
+      return typeof RTData !== 'undefined' && RTData.isReplaying && RTData.isReplaying();
+    } catch (e) { return false; }
+  }
+  // True when the active warning was issued by the replay stream — replayed
+  // historical cancels must only lift replayed warnings, never a live one.
+  var areasFromReplay = false;
+
   function handle552(evt) {
     var parsed = parseTsunamiAreas(evt.tsunamiAreas);
     var typeStr = String(evt.type || '');
@@ -642,6 +657,11 @@ var RTTsunami = (function() {
       (parsed.length === 0 && typeStr.indexOf('取消') !== -1);
     if (isCancel) {
       if (isDemoEvent(evt)) demoActive = false; // the demo's own cancel landed
+      if (isReplayingNow() && !areasFromReplay) {
+        // Replayed history cancelling a LIVE warning — drop it silently.
+        return true;
+      }
+      areasFromReplay = false;
       clearWarning();
       toast(tr('realtime.tsunami.cancelled', '津波情報は取り消されました', '海啸信息已取消'));
       playSound('Tsunami_lifted');
@@ -659,6 +679,7 @@ var RTTsunami = (function() {
     var hadAreas = areas.length > 0;
     var downgraded = hadAreas && detectDowngrade(areas, parsed);
     areas = parsed;
+    areasFromReplay = isReplayingNow();
     issuedAt = issueMs(evt);
     var newMax = maxGradeOf(areas);
     var newRank = gradeRank(newMax);

@@ -395,8 +395,11 @@ var RTEew = (function() {
       st.serial = parsed.serial;
       st.latest = parsed;
       st.isTraining = !!parsed.isTraining;
+      // Refresh the liveness clock only on a report that actually advanced —
+      // out-of-order/duplicate serials used to keep stamping receivedAt so
+      // the 120 s expiry sweep never retired the event.
+      st.receivedAt = receivedAtMs;
     }
-    st.receivedAt = receivedAtMs;
 
     if (!wasWarn && parsed.isWarn) {
       effects.push({ type: 'sound', name: 'EEW_alert' });
@@ -511,6 +514,16 @@ var RTEew = (function() {
       try {
         var v = window.t(key);
         if (v && v !== key) return v;
+      } catch (e) {}
+    }
+    return fallback;
+  }
+  // tt() with {placeholder} vars (falls back with the raw serial baked in)
+  function ttv(key, fallback, vars) {
+    if (typeof window !== 'undefined' && typeof window.t === 'function') {
+      try {
+        var v = window.t(key, vars);
+        if (v && v !== key && !/\{[a-z]+\}/.test(v)) return v;
       } catch (e) {}
     }
     return fallback;
@@ -844,6 +857,17 @@ var RTEew = (function() {
     for (var id in runtime) removeOverlay(id);
   }
 
+  // The static WarnArea layers (47-prefecture fallback + 188 EEW areas) used
+  // to survive stop() on the map — a realtime on/off cycle left them stacked.
+  function removeStaticOverlays() {
+    try { if (prefLayer && typeof map !== 'undefined' && map) map.removeLayer(prefLayer); } catch (e) {}
+    prefLayer = null;
+    prefNamJaList = null;
+    try { if (eewArea.layer && typeof map !== 'undefined' && map) map.removeLayer(eewArea.layer); } catch (e) {}
+    eewArea.layer = null;
+    eewArea.centroids = {};
+  }
+
   function applyRadius(rt, ringKey, shownKey, km) {
     var ring = rt[ringKey];
     if (!ring) return;
@@ -1044,21 +1068,28 @@ var RTEew = (function() {
         document.body.classList && document.body.classList.contains('eew-page-mode')) {
       hideMainview(); return;
     }
+    // Upstream feed strings go through innerHTML here — escape them (the
+    // panel path uses textContent; this card used to interpolate raw).
+    var esc = (typeof SimUtils !== 'undefined' && SimUtils.escapeHTML) ? SimUtils.escapeHTML : function(s) {
+      return String(s).replace(/[&<>"']/g, function(c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    };
     var latest = st.latest;
     var isWarn = !!latest.isWarn;
     var sh = latest.maxInt || '?';
     var html = '<div class="mv-shindo" style="background:' + shindoFill(sh) + '">' +
       '<span class="mv-shindo-cap">' + tt('realtime.mv_max', '最大震度') + '</span>' +
-      '<span class="mv-shindo-val">' + sh + '</span></div>';
+      '<span class="mv-shindo-val">' + esc(sh) + '</span></div>';
     html += '<div class="mv-mid">' +
       '<div class="mv-title">' + (isWarn ? tt('realtime.eew_warn', 'EEW警報') : tt('realtime.eew_forecast', 'EEW予報')) +
-        ' 第' + st.serial + '報' + (st.isTraining ? ' (' + tt('realtime.eew_training', '訓練') + ')' : '') + '</div>' +
-      '<div class="mv-hypo">' + (latest.place || '?') + '  M' + Number(latest.mag).toFixed(1) +
+        ' ' + ttv('realtime.eew_report_n', '第' + st.serial + '報', { n: st.serial }) + (st.isTraining ? ' (' + tt('realtime.eew_training', '訓練') + ')' : '') + '</div>' +
+      '<div class="mv-hypo">' + esc(latest.place || '?') + '  M' + Number(latest.mag).toFixed(1) +
         '  ' + tt('realtime.mv_depth', '深さ') + ' ' + ((latest.depth != null) ? latest.depth : '?') + 'km</div>';
     if (latest.warnAreas && latest.warnAreas.length) {
       var names = [];
       for (var i = 0; i < latest.warnAreas.length && names.length < 8; i++) {
-        if (latest.warnAreas[i] && latest.warnAreas[i].name) names.push(latest.warnAreas[i].name);
+        if (latest.warnAreas[i] && latest.warnAreas[i].name) names.push(esc(latest.warnAreas[i].name));
       }
       if (names.length) {
         if (latest.warnAreas.length > names.length) names.push('…');
@@ -1246,6 +1277,7 @@ var RTEew = (function() {
         return res.json();
       }).then(function(geo) {
         eewArea.loading = false;
+        if (!running) return; // stop() landed mid-fetch — do not rebuild
         try {
           buildEewAreaLayer(geo);
           restylePrefOverlay();
@@ -1330,6 +1362,7 @@ var RTEew = (function() {
         return res.json();
       }).then(function(geo) {
         prefLoading = false;
+        if (!running) return; // stop() landed mid-fetch — do not rebuild
         try {
           buildPrefLayer(geo);
           restylePrefOverlay();
@@ -1495,6 +1528,7 @@ var RTEew = (function() {
     clearDemoTimers();
     detach();
     removeAllOverlays();
+    removeStaticOverlays();
     tracker = createTracker();
     hidePanel();
     hideMainview();

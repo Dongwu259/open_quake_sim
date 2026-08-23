@@ -197,7 +197,6 @@ var _renderHistoricalTsunamiValidationDataset = null;
 var _jmaTsunamiAreaData = null; // official JMA AreaTsunami forecast-area lines
 var _tsuForecastAreas = [], _tsuForecastAreaByCode = Object.create(null);
 var waveCanvas = null, waveCtx = null;
-var audioCache = {};
 var gridCells = [];
 // Tsunami state
 var isOceanEpicenter = false, tsunamiRadius = 0, tsunamiCircles = [];
@@ -328,6 +327,7 @@ refreshRakeStateLabel();
 // Aftershock sequence
 var aftershockEnabled = false;
 var _eewCountdownIv = null; // EEW countdown interval (for cancel button)
+var _pendingGmpeCalibration = null; // calibration table awaiting an idle moment (generation guard)
 var aftershockCatalog = [];   // [{time, lat, lng, mag, depth, id}]
 var manualAftershocks = [];    // v5.5: user-defined entries {time (sim s), mag, depth, lat?, lng?}
 var activeAftershocks = [];
@@ -669,8 +669,17 @@ async function loadJapanGeoJSON() {
     ];
     // Optional GMPE calibration table (magnitude-binned intensity bias from
     // tools/calibrate-gmpe.js over server recordings). Absent table = identity.
+    // Never swapped mid-run: a late-arriving table used to change GMPE outputs
+    // partway through a simulation — stash and apply at the next idle moment.
     fetch('/geojson/gmpe-calibration.json').then(function(r){ return r.ok ? r.json() : null; })
-      .then(function(t){ if (t && Physics.setGmpeCalibration) Physics.setGmpeCalibration(t); })
+      .then(function(t){
+        if (!t) return;
+        if ((typeof isRunning !== 'undefined' && isRunning) || (typeof isCountingDown !== 'undefined' && isCountingDown)) {
+          _pendingGmpeCalibration = t;
+          return;
+        }
+        if (Physics.setGmpeCalibration) Physics.setGmpeCalibration(t);
+      })
       .catch(function(){});
     var prefPromises = [
       fetch('/geojson/pref_population.json').catch(function(){ return null; }),
@@ -1632,10 +1641,6 @@ function gmpMw(mag) {
   return mag + (eventMw - _liveMag);
 }
 
-// Si & Midorikawa (1999) fault-type dummy terms (log10 units) — interplate/intraslab
-// radiate more high-frequency energy than crustal at equal Mw/distance.
-var SIMID_DS = { crustal: 0.00, interplate: 0.12, intraslab: 0.22 };
-
 // --- Legacy hand-tuned log model (explicit 'log' option), retained for
 //     reproducibility and model comparison. ---
 function pgaLog(mag,Rkm){return Physics.pgaLog(mag,Rkm,cfgGet("attA"),cfgGet("attB"),cfgGet("attC"),cfgGet("anelastic"));}
@@ -1654,17 +1659,22 @@ function pgvLog(mag,Rkm){return Physics.pgvLog(mag,Rkm,cfgGet("anelastic"));}
 function pgaSiMid(mag,Rkm,depthKm,src){return Physics.pgaSiMid(mag,Rkm,depthKm,src);}
 function pgvSiMid(mag,Rkm,depthKm,src){return Physics.pgvSiMid(mag,Rkm,depthKm,src);}
 
-function calcPGA(mag,Rkm,vs30){return calcPGAFor(mag,Rkm,_liveDepth,activeSrcType(),vs30,eventMw,_liveMag);}
-function calcPGV(mag,Rkm,vs30){return calcPGVFor(mag,Rkm,_liveDepth,activeSrcType(),vs30,eventMw,_liveMag);}
-function calcPGAFor(mag,Rkm,depthKm,src,vs30,eventMwOverride,sliderMwOverride){return Physics.calcPGA(mag,Rkm,cfgGet("gmpModel"),depthKm,eventMwOverride,sliderMwOverride == null ? mag : sliderMwOverride,src,cfgGet("attA"),cfgGet("attB"),cfgGet("attC"),cfgGet("anelastic"),vs30);}
-function calcPGVFor(mag,Rkm,depthKm,src,vs30,eventMwOverride,sliderMwOverride){return Physics.calcPGV(mag,Rkm,cfgGet("gmpModel"),depthKm,eventMwOverride,sliderMwOverride == null ? mag : sliderMwOverride,src,cfgGet("anelastic"),vs30);}
+// Mechanism rake for the currently-displayed event (chain sub-events carry
+// their own). Feeds the Zhao-2006 crustal reverse FR term through calcPGA/PGV.
+function activeRake() {
+  var dp = (typeof uiDisplayParams === 'function') ? uiDisplayParams() : null;
+  return (dp && dp.rake != null) ? dp.rake : currentRake;
+}
+function calcPGA(mag,Rkm,vs30){return calcPGAFor(mag,Rkm,_liveDepth,activeSrcType(),vs30,eventMw,_liveMag,activeRake());}
+function calcPGV(mag,Rkm,vs30){return calcPGVFor(mag,Rkm,_liveDepth,activeSrcType(),vs30,eventMw,_liveMag,activeRake());}
+function calcPGAFor(mag,Rkm,depthKm,src,vs30,eventMwOverride,sliderMwOverride,rakeOverride){return Physics.calcPGA(mag,Rkm,cfgGet("gmpModel"),depthKm,eventMwOverride,sliderMwOverride == null ? mag : sliderMwOverride,src,cfgGet("attA"),cfgGet("attB"),cfgGet("attC"),cfgGet("anelastic"),vs30,rakeOverride);}
+function calcPGVFor(mag,Rkm,depthKm,src,vs30,eventMwOverride,sliderMwOverride,rakeOverride){return Physics.calcPGV(mag,Rkm,cfgGet("gmpModel"),depthKm,eventMwOverride,sliderMwOverride == null ? mag : sliderMwOverride,src,cfgGet("anelastic"),vs30,rakeOverride);}
 
 function calcJmaIntensity(pgaGal,pgvCms){return Physics.calcJmaIntensity(pgaGal,pgvCms);}
 
 // Finer numeric scale for the validation scorecard, anchored to JMA instrumental
 // intensity (I) midpoints so 5-/5+/6-/6+ are distinct (shindoNum collapses them).
 // Handles both the modern scale (strings) and the pre-1996 integer scale (5,6).
-var SHINDO_SCORE = {0:0,1:1,2:2,3:3,4:4,'5-':4.75,'5+':5.25,'6-':5.75,'6+':6.25,7:6.75,5:5.0,6:6.0};
 function soilAmp(lat,lng,isSeafloor,stationFactor){
   if (isSeafloor) {
     var wd = _waterDepth(lat, lng);
@@ -2273,7 +2283,7 @@ function updateEewPage() {
   }
   if (latest) {
     els.tag.textContent = (latest.isWarn ? t('realtime.eew_warn') : t('realtime.eew_forecast')) +
-      ' 第' + st.serial + '報' + (st.isTraining ? ' (' + t('realtime.eew_training') + ')' : '');
+      ' ' + t('realtime.eew_report_n', {n: st.serial}) + (latest.isTraining ? ' (' + t('realtime.eew_training') + ')' : '');
     els.loc.textContent = latest.place || '--';
     els.time.textContent = latest.originMs ? new Date(latest.originMs).toLocaleString() : '--';
     els.mag.textContent = (latest.mag != null && isFinite(latest.mag)) ? 'M' + Number(latest.mag).toFixed(1) : '--';
@@ -2381,7 +2391,7 @@ function initWaveCanvas() {
     if (!best) { sp.style.display = 'none'; return; }
     // In non-show-all mode, only pop up for shaking stations (legacy behavior).
     if (!showAllStations && best.shindo === 0) { sp.style.display = 'none'; return; }
-    var typeTag = best.isSeafloor ? '🌊海底' : '🏔陆地';
+    var typeTag = best.isSeafloor ? t('station.type_seafloor') : t('station.type_land');
     var hasShake = (best.shindo !== 0 && best.shindo != null) && isRunning;
     var distKm = epicenter ? Physics.haversineDist(epicenter.lat, epicenter.lng, best.lat, best.lng).toFixed(1) : '—';
     var lpgmTxt = (hasShake && best.lpgm && best.lpgm >= 1) ? '<br>LPGM: <span class="sp-val">Class ' + best.lpgm + '</span>' : '';
@@ -2478,10 +2488,6 @@ function initWaveCanvas() {
   function rs() {
     var w = mapEl.clientWidth, h = mapEl.clientHeight;
     if (waveCanvas.width !== w || waveCanvas.height !== h) { waveCanvas.width = w; waveCanvas.height = h; }
-    if (smCanvas) {
-      var sw = Math.floor(w / 5), sh = Math.floor(h / 5);
-      if (smCanvas.width !== sw || smCanvas.height !== sh) { smCanvas.width = sw; smCanvas.height = sh; }
-    }
   }
   window.addEventListener('resize', rs);
   map.on('resize', rs);
@@ -3144,9 +3150,6 @@ function _plumPrefectureShindos(tr, centroids) {
 
 // Detect-mode EEW: triggered by station P-wave detections (not known epicenter)
 // Waits for 2nd bulletin (detectBulletin >= 2) for stable magnitude estimate before alerting
-var _detectLastCheckedBulletin = 0; // track which bulletin we already evaluated
-var _detectLastCheckedMag = 0;       // magnitude at last EEW check (re-check when mag improves)
-var _detectLastCheckedTime = 0;      // sim-time of last EEW check
 
 function _triggerDetectEEWAlert() {
   if (_detectEEWTriggered) return;
@@ -3357,8 +3360,10 @@ function _checkDetectEEW() {
   if (previouslyWarranted && !_eewWarranted && _detectEEWTriggered) {
     _enqueueSrevSpeech(TTSTextBuilder.buildEEWCancellation(), {id:'eew-cancellation',replace:true,priority:40});
     _detectEEWTriggered = false;
-    // Allow a genuinely new event to raise a fresh alert after cancellation.
-    for (var ci = 0; ci < _detectTracks.length; ci++) _detectTracks[ci].alerted = false;
+    // Track 'alerted' flags are deliberately NOT reset here: every genuinely
+    // new event opens its own detect track (fresh alerted=false), while a
+    // reset here let an oscillating same-track forecast re-trigger the alarm
+    // chime alternately after cancellation.
   }
 
   // Initialize observation peaks once; later estimate revisions must not erase
@@ -3402,6 +3407,12 @@ function _predShindoRangeSuffix() {
 
 function startCountdown() {
   if (isRunning || isCountingDown) return;
+  // A calibration table that arrived mid-run is applied now, before the new
+  // run's forecasts begin (see the fetch guard in init()).
+  if (_pendingGmpeCalibration) {
+    if (Physics.setGmpeCalibration) Physics.setGmpeCalibration(_pendingGmpeCalibration);
+    _pendingGmpeCalibration = null;
+  }
   if (!epicenter) {
     if (detectMode) {
       statusText.textContent = t('detect.need_epicenter') || 'Please click the map to set an epicenter first (it will be hidden during simulation)';
@@ -3567,7 +3578,7 @@ function startCountdown() {
   detectedEpicenter = null; detectedMag = 0; detectStationCount = 0;
   detectUncertainty = 200; tsunamiAlerted = false; detectFirstTime = 0;
   detectedT0 = 0; detectedPRadius = 0; detectedSRadius = 0; _detectTracks = [];
-  detectBulletin = 0; detectFinal = false; detectLockedEpicenter = null; _detectLastCheckedBulletin = 0; _detectLastCheckedMag = 0; _detectLastCheckedTime = 0;
+  detectBulletin = 0; detectFinal = false; detectLockedEpicenter = null;
   detectStableSince = 0; detectLastEpicenter = null;
   detectHistory = []; detectLastBulletinTime = 0; detectLastBulletinStations = 0;
   detectBestEpicenter = null; detectBestUncertainty = Infinity;
@@ -3648,7 +3659,7 @@ function startCountdown() {
       var predSh = _predictedMaxShindo;
       _eewShVal.textContent = (predSh !== undefined && predSh !== 0) ? predSh : '?';
       _eewShBox.style.background = SHINDO_FILL[predSh] || '#888';
-      _eewBulText.textContent = '予測';
+      _eewBulText.textContent = t('eew.forecast_short');
       _eewBulText.style.color = '#fa0';
       _eewMagText.textContent = 'M' + _liveMag.toFixed(1);
       _eewDepthText.textContent = _liveDepth + 'km';
@@ -3889,7 +3900,7 @@ function simLoop(timestamp) {
   } else { tsunamiRadius = 0; }
   activateCircles();
 
-  var mag = _liveMag, holdTime = mag * 2.5;
+  var mag = _liveMag, holdTime = mag * cfgGet('holdCoef');
   var ts = tauShort(mag), tm = Physics.tauMid(mag), tl = Physics.tauLong(mag);
   var curSec = Math.floor(simElapsed), curMaxPga = 0, curMaxSh = 0;
   // Keep the event-maximum intensity in each map cell. Rebuilding this object
@@ -3984,7 +3995,7 @@ function simLoop(timestamp) {
           var asc = c.aftershocks[ai];
           if (simElapsed < asc.pArrive) break;
           var asElapsed2 = simElapsed - asc.pArrive;
-          var asHold2 = aftershockCatalog[asc.idx].mag * 2.5;
+          var asHold2 = aftershockCatalog[asc.idx].mag * cfgGet('holdCoef');
           var asPtoS2 = asc.sArrive - asc.pArrive;
           var asSRamp2 = Physics.waveSRampDur(aftershockCatalog[asc.idx].mag);
           if (asElapsed2 < asPtoS2 + asSRamp2 + asHold2) {
@@ -3993,7 +4004,9 @@ function simLoop(timestamp) {
             if (simElapsed < asc.sArrive && asP2 > Physics.P_PHASE_MAX_PGA) asP2 = Physics.P_PHASE_MAX_PGA;
             asPgaSec += asP2;
           } else {
-            asPgaSec += asc.peakPga * Math.exp(-(asElapsed2 - asPtoS2 - asSRamp2 - asHold2) / ts);
+            // decay with the AFTERSHOCK's own magnitude-tau (the mainshock
+            // tau let strong aftershocks ring on far too long)
+            asPgaSec += asc.peakPga * Math.exp(-(asElapsed2 - asPtoS2 - asSRamp2 - asHold2) / tauShort(aftershockCatalog[asc.idx].mag));
           }
         }
         c._cachedAsPga = asPgaSec;
@@ -6162,6 +6175,11 @@ function endSimulation() {
   if (_reportActive && !_finalBulletinActive) _dismissShindoReport();
   if (animationId) { cancelAnimationFrame(animationId); animationId = null; }
   if (_eewCountdownIv) { clearInterval(_eewCountdownIv); _eewCountdownIv = null; }
+  // Pending EEW sound/TTS callbacks must not fire after the run ended — the
+  // reset path cleared these, the natural-end path did not.
+  if (_eewSoundTimer1) { clearTimeout(_eewSoundTimer1); _eewSoundTimer1 = null; }
+  if (_eewSoundTimer2) { clearTimeout(_eewSoundTimer2); _eewSoundTimer2 = null; }
+  _stopEEWTTS();
   btnStart.disabled = false; btnStart.textContent = t('btn.start.again');
   // Show replay button if timeline data captured
   var btnReplay = document.getElementById('btn-replay');
@@ -6953,21 +6971,15 @@ map.on('zoomstart', function() { if (!_autoFocusMoving && _autoFocus) { _autoFoc
 
 // ---- Real-time earthquake monitoring mode ----
 // ---- Real-time monitoring (unified USGS + P2PQuake) ----
-var _rtMode = false, _rtTimer = null, _rtData = [], _rtSeen = {}, _rtSeenKeys = [];
-var _rtUSGSLast = 0, _rtP2PLast = 0, _rtLiveSources = null, _p2pSource = null, _p2pReconnectTimeout = null, _p2pRetries = 0;
-var _rtSkipCountdown = false, _rtRenderTimer = null, _rtFetching = false;
-var _rtMapLayer = null, _rtMapMarkers = [];
-var RT_MAX_SEEN = 200, RT_MAX_ITEMS = 15;
-var RT_SRC_COLORS = {P2P:'#2ecc71', USGS:'#888', Wolfx:'#4af', WOLFX_EQ:'#4af', WOLFX_CENC:'#fa4',
-  JMA:'#af4', 'JMA-Feed':'#fa4', EMSC:'#f80', P2PQUAKE:'#2ecc71',
-  GEOFON:'#e74c3c', GEONET:'#1abc9c', CWA:'#f39c12'};
+var _rtMode = false;              // realtime toggle state (UI pulse)
+var _rtSkipCountdown = false;     // skip the next EEW countdown chime
 
 // Unified event format: {id, mag, lat, lng, depth, place, time, source, raw}
 // All normalization, upsert, mark, delegation, and rendering functions are in rt-data.js
 
 document.getElementById('btn-realtime').addEventListener('click', function() {
   if (typeof RTData === 'undefined' || typeof RTData.toggle !== 'function') {
-    showScriptError('Real-time data module is unavailable');
+    showErrorOverlay('Real-time data module is unavailable');
     return;
   }
   _rtMode = RTData.toggle();
@@ -6975,11 +6987,6 @@ document.getElementById('btn-realtime').addEventListener('click', function() {
   // Realtime stopped: drop the presenter bar too (unless a sim owns it).
   if (!_rtMode && !isRunning) exitPresenterMode();
 });
-
-// RT global state (used by rt-data.js)
-var _rtLastHTML = '';
-var _rtDelegated = false;
-var RT_MAG_COLORS = ['#ffff00','#ffcc00','#ff9900','#ff6600','#ff3300','#ff0000','#cc0000','#990000'];
 
 // Modal buttons: bind immediately when markup exists, otherwise after DOM ready.
 function bindHelpModal(){
@@ -7070,6 +7077,10 @@ function bindFormulaModal() {
   if (closeBtn) closeBtn.addEventListener('click', closeFormulaModal);
   overlay.addEventListener('click', function(e) {
     if (e.target === overlay) closeFormulaModal();
+  });
+  // Same Escape/Tab focus trap as the other accessible modals.
+  overlay.addEventListener('keydown', function(e) {
+    trapAccessibleModalKey(e, overlay, closeFormulaModal);
   });
   var modeButtons = overlay.querySelectorAll('.formula-mode-btn');
   for (var i = 0; i < modeButtons.length; i++) {
@@ -7357,7 +7368,6 @@ makeApply('dip','dip-num','dip-val',function(v){return v+'°';});
 makeApply('rake','rake-num','rake-val',function(v){return v+'°';});
 soundModeEl.addEventListener('change', function(){
   _stopEEWTTS(); _stopBulletinTTS();
-  for(var k in audioCache)delete audioCache[k];
   preloadAudio();
 });
 var _ttsToggle = document.getElementById('tts-enable');
@@ -7365,6 +7375,10 @@ if (_ttsToggle) _ttsToggle.addEventListener('change', function(){
   if (!this.checked) { _stopEEWTTS(); _stopBulletinTTS(); }
 });
 document.addEventListener('keydown', function(e){
+  // Don't hijack typing in form fields (space would start the countdown, R would reset).
+  var tgt = e.target;
+  if (tgt && (tgt.tagName === 'INPUT' || tgt.tagName === 'TEXTAREA' || tgt.tagName === 'SELECT' || tgt.isContentEditable)) return;
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
   if (e.code === 'Space' && !isRunning && !isCountingDown && epicenter) { e.preventDefault(); startCountdown(); }
   if (e.code === 'KeyR' && !isRunning && !isCountingDown) { e.preventDefault(); resetSimulation(); }
   if (e.code === 'Equal' || e.code === 'NumpadAdd') simSpeedEl.selectedIndex = Math.min(simSpeedEl.options.length-1, simSpeedEl.selectedIndex+1);
@@ -7621,7 +7635,6 @@ function advBind() {
 }
 
 // ShakeMap IDW interpolation
-var smCanvas = null, smCtx = null, smLastTime = 0;
 
 // [initShakeMap] removed — dead code (not called anywhere)
 
@@ -7686,7 +7699,7 @@ function updateWaveform() {
   if (!wfCtx) { wfCanvas.width = 320; wfCanvas.height = 100; wfCtx = wfCanvas.getContext('2d'); if (!wfCtx) return; }
   if (typeof _computeBruneCache === 'function') _computeBruneCache(wfStation);
   var _whp = window.hidpiPrepCanvas(wfCanvas), W = _whp.W, H = _whp.H;
-  if (!wfStation) { wfCtx.fillStyle = '#000'; wfCtx.fillRect(0,0,W,H); wfCtx.fillStyle = '#666'; wfCtx.font = '10px monospace'; wfCtx.fillText('No station nearby', 10, H/2); return; }
+  if (!wfStation) { wfCtx.fillStyle = '#000'; wfCtx.fillRect(0,0,W,H); wfCtx.fillStyle = '#666'; wfCtx.font = '10px monospace'; wfCtx.fillText(window.t ? window.t('wave.no_station') : 'No station nearby', 10, H/2); return; }
   // v5.2 chain: retune the watched station to the currently-firing sub-event
   // (sample history resets — a fresh seismogram for the new event).
   var _wfd = uiDisplayParams();
@@ -7698,7 +7711,7 @@ function updateWaveform() {
       if (wnd < bestD) { bestD = wnd; wfStation = rawLandGrid[wi]; }
     }
     wfSamples = []; wfMaxSample = 0; _wfSignals = null;
-    if (!wfStation) { wfCtx.fillStyle = '#000'; wfCtx.fillRect(0,0,W,H); wfCtx.fillStyle = '#666'; wfCtx.font = '10px monospace'; wfCtx.fillText('No station nearby', 10, H/2); return; }
+    if (!wfStation) { wfCtx.fillStyle = '#000'; wfCtx.fillRect(0,0,W,H); wfCtx.fillStyle = '#666'; wfCtx.font = '10px monospace'; wfCtx.fillText(window.t ? window.t('wave.no_station') : 'No station nearby', 10, H/2); return; }
   }
   if (!_wfSignals) _wfSignals = _wfBuildSignals(wfStation);
   var dist = hypoDist(wfStation.lat, wfStation.lng);
@@ -7778,7 +7791,7 @@ function updateWaveform() {
 
   // Draw (W, H already set above)
   wfCtx.fillStyle = '#000'; wfCtx.fillRect(0, 0, W, H);
-  if (wfSamples.length < 2) { wfCtx.fillStyle = '#666'; wfCtx.font = '10px monospace'; wfCtx.fillText('Waiting for P-wave...', 10, H/2); return; }
+  if (wfSamples.length < 2) { wfCtx.fillStyle = '#666'; wfCtx.font = '10px monospace'; wfCtx.fillText(window.t ? window.t('wave.waiting_p') : 'Waiting for P-wave...', 10, H/2); return; }
 
   // Grid
   wfCtx.strokeStyle = '#222'; wfCtx.lineWidth = 0.5;
@@ -7901,7 +7914,7 @@ function updateIntensityCurve() {
   if (!intensityCanvas) { intensityCanvas = document.getElementById('intensity-canvas'); if (!intensityCanvas) return; }
   if (!intensityCtx) { intensityCanvas.width = 320; intensityCanvas.height = 80; intensityCtx = intensityCanvas.getContext('2d'); if (!intensityCtx) return; }
   var W = intensityCanvas.width, H = intensityCanvas.height;
-  if (!wfStation) { intensityCtx.fillStyle = '#000'; intensityCtx.fillRect(0, 0, W, H); intensityCtx.fillStyle = '#666'; intensityCtx.font = '10px monospace'; intensityCtx.fillText('No station nearby', 10, H/2); return; }
+  if (!wfStation) { intensityCtx.fillStyle = '#000'; intensityCtx.fillRect(0, 0, W, H); intensityCtx.fillStyle = '#666'; intensityCtx.font = '10px monospace'; intensityCtx.fillText(window.t ? window.t('wave.no_station') : 'No station nearby', 10, H/2); return; }
 
   // Sample current shindo for nearest station (once per sim-second)
   var curSec = Math.floor(simElapsed);
@@ -7915,7 +7928,7 @@ function updateIntensityCurve() {
 
   // Draw
   intensityCtx.fillStyle = '#000'; intensityCtx.fillRect(0, 0, W, H);
-  if (intensitySamples.length < 2) { intensityCtx.fillStyle = '#666'; intensityCtx.font = '10px monospace'; intensityCtx.fillText('Waiting for P-wave...', 10, H/2); return; }
+  if (intensitySamples.length < 2) { intensityCtx.fillStyle = '#666'; intensityCtx.font = '10px monospace'; intensityCtx.fillText(window.t ? window.t('wave.waiting_p') : 'Waiting for P-wave...', 10, H/2); return; }
 
   // Horizontal grid lines for shindo levels
   var levels = [1, 2, 3, 4, 5, 6, 7];
@@ -8434,17 +8447,33 @@ function applyUrlParams() {
     for (var i = 0; i < presetSel.options.length; i++)
       if (presetSel.options[i].value === p.preset) { presetSel.value = p.preset; presetSel.dispatchEvent(new Event('change')); break; }
   }
-  // Individual params (override preset)
-  if (p.mag) { magSlider.value = p.mag; magSlider.dispatchEvent(new Event('input')); }
-  if (p.depth) { depthSlider.value = p.depth; depthSlider.dispatchEvent(new Event('input')); }
-  if (p.strike) { strikeSlider.value = p.strike; document.getElementById('strike-num').value = p.strike; strikeVal.textContent = p.strike+'°'; }
-  if (p.dip) { dipSlider.value = p.dip; document.getElementById('dip-num').value = p.dip; currentDip = parseFloat(p.dip); _dipExplicit=true; refreshDipStateLabel(); }
-  if (p.rake != null) { rakeSlider.value = p.rake; document.getElementById('rake-num').value = p.rake; rakeVal.textContent = p.rake+'°'; currentRake = parseFloat(p.rake); }
+  // Individual params (override preset). Values are validated against the
+  // control ranges — garbage like ?mag=abc or ?speed=99 used to write NaN /
+  // blank the selects and pollute every downstream radius/report.
+  function numParam(v, min, max) {
+    var n = parseFloat(v);
+    return (isFinite(n) && n >= min && n <= max) ? n : null;
+  }
+  function selectHasValue(el, v) {
+    if (!el) return false;
+    for (var i = 0; i < el.options.length; i++) if (el.options[i].value === v) return true;
+    return false;
+  }
+  var mag = numParam(p.mag, parseFloat(magSlider.min), parseFloat(magSlider.max));
+  if (mag !== null) { magSlider.value = mag; magSlider.dispatchEvent(new Event('input')); }
+  var dep = numParam(p.depth, parseFloat(depthSlider.min), parseFloat(depthSlider.max));
+  if (dep !== null) { depthSlider.value = dep; depthSlider.dispatchEvent(new Event('input')); }
+  var stk = numParam(p.strike, parseFloat(strikeSlider.min), parseFloat(strikeSlider.max));
+  if (stk !== null) { strikeSlider.value = stk; document.getElementById('strike-num').value = stk; strikeVal.textContent = stk+'°'; }
+  var dp = numParam(p.dip, parseFloat(dipSlider.min), parseFloat(dipSlider.max));
+  if (dp !== null) { dipSlider.value = dp; document.getElementById('dip-num').value = dp; currentDip = dp; _dipExplicit=true; refreshDipStateLabel(); }
+  var rk = numParam(p.rake, parseFloat(rakeSlider.min), parseFloat(rakeSlider.max));
+  if (rk !== null) { rakeSlider.value = rk; document.getElementById('rake-num').value = rk; rakeVal.textContent = rk+'°'; currentRake = rk; }
   if (p.mech === '1') _rakeExplicit = true;
   else if (p.mech === '0') _rakeExplicit = false;
   refreshRakeStateLabel();
-  if (p.speed) { simSpeedEl.value = p.speed; }
-  if (p.sound) { soundModeEl.value = p.sound; }
+  if (p.speed && selectHasValue(simSpeedEl, p.speed)) { simSpeedEl.value = p.speed; }
+  if (p.sound && selectHasValue(soundModeEl, p.sound)) { soundModeEl.value = p.sound; }
   if (p.tsunami === '0') { document.getElementById('tsunami-enable').checked = false; }
   if (p.detect === '1') { document.getElementById('detect-mode').checked = true; detectMode = true; }
   if (p.aftershock === '1') { document.getElementById('aftershock-enable').checked = true; aftershockEnabled = true; _syncAsManualPanel(); }
@@ -8598,7 +8627,11 @@ async function init() {
     var audioTotalPreload = AudioManager._pendingLoads;
     if (audioLoadingEl && audioTotalPreload > 0) {
       audioLoadingEl.style.display = '';
+      var audioPollTicks = 0;
       var audioCheckTimer = setInterval(function() {
+        // Cap the poll: a hung request never drains _pendingLoads and the
+        // interval used to run forever.
+        if (++audioPollTicks > 120) { clearInterval(audioCheckTimer); audioLoadingEl.style.display = 'none'; return; }
         var done = audioTotalPreload - AudioManager._pendingLoads;
         if (audioProgressEl) audioProgressEl.textContent = done + '/' + audioTotalPreload;
         if (AudioManager._pendingLoads <= 0) {
@@ -8619,7 +8652,7 @@ async function init() {
   initMobileToggle();
   // Register service worker for offline PWA support (non-critical)
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js?v=306418').catch(function(e) {
+    navigator.serviceWorker.register('sw.js?v=195080').catch(function(e) {
       console.warn('SW registration failed (non-critical):', e);
     });
   }
@@ -8952,7 +8985,7 @@ var ScenarioManager = (function(){
       if (isFinite(+a.lat) && isFinite(+a.lng)) { e.lat = +a.lat; e.lng = +a.lng; }
       return e;
     });
-    return { schema:Research.SCENARIO_SCHEMA,name:name || tr('scn.untitled'),version:2,appVersion:'v5.4',
+    return { schema:Research.SCENARIO_SCHEMA,name:name || tr('scn.untitled'),version:2,appVersion:'v5.5.1',
              seed:Research.normalizeSeed(cfgGet('randomSeed')),events:events,flags:flags,config:JSON.parse(JSON.stringify(CFG)),
              faultOpts:FiniteFaultEditor.getState(),manualAftershocks:manAs,display:_researchDisplayState(),dataVersions:versions.data,modelVersions:versions.model,
              experiment:_currentExperiment,created:(function(){try{return new Date().toISOString();}catch(e){return '';}})() };
@@ -9128,6 +9161,8 @@ FiniteFaultEditor.init();
   });
   var calibrate=document.getElementById('polarity-calibrate');
   if(calibrate) calibrate.addEventListener('click',function(){
+    var out=document.getElementById('polarity-inversion-result');
+    if(!out){ out=document.createElement('div'); out.id='polarity-inversion-result'; calibrate.parentNode.appendChild(out); }
     try {
       if(!_polarityRecords||!_polarityRecords.length) throw new Error(t('info.polarity_need_file'));
       var ref={strike:Number(document.getElementById('polarity-ref-strike').value),dip:Number(document.getElementById('polarity-ref-dip').value),rake:Number(document.getElementById('polarity-ref-rake').value),provenance:{source:'user-supplied-reference',eventId:(document.getElementById('polarity-ref-event')||{}).value||null,url:(document.getElementById('polarity-ref-url')||{}).value||null}};
@@ -9666,7 +9701,7 @@ function drawGMPECompare() {
       var pga;
       if (m.name === 'log') pga = Physics.pgaLog(mw, R, attA, attB, attC, anel);
       else if (m.name === 'Si-Midorikawa') pga = Physics.pgaSiMid(mw, R, depth, src);
-      else pga = Physics.pgaLog(mw, R, attA, attB, attC, anel) * Math.pow(10, (Physics.SIMID_DS[src] || 0));
+      else pga = Physics.pgaLog(mw, R, attA, attB, attC, anel) * Math.pow(10, (Physics.simidDs ? Physics.simidDs(src) : (Physics.SIMID_DS[src] || 0)));
       pts.push({ R: R, pga: pga });
       if (pga > globalMax) globalMax = pga;
     }

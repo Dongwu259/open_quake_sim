@@ -8,11 +8,16 @@
 
   var COMPONENTS = ['xx','yy','zz','xy','xz','yz'];
   var ALIASES = {
-    xx:['xx','mxx','Mxx','Mrr','mrr','rr'], yy:['yy','myy','Myy','Mtt','mtt','tt'],
-    zz:['zz','mzz','Mzz','Mpp','mpp','pp'], xy:['xy','mxy','Mxy','Mrt','mrt','rt'],
-    xz:['xz','mxz','Mxz','Mrp','mrp','rp'], yz:['yz','myz','Myz','Mtp','mtp','tp']
+    xx:['xx','mxx','Mxx','Mrr','mrr','rr','tensor-mrr','derived-mrr'],
+    yy:['yy','myy','Myy','Mtt','mtt','tt','tensor-mtt','derived-mtt'],
+    zz:['zz','mzz','Mzz','Mpp','mpp','pp','tensor-mpp','derived-mpp'],
+    xy:['xy','mxy','Mxy','Mrt','mrt','rt','tensor-mrt','derived-mrt'],
+    xz:['xz','mxz','Mxz','Mrp','mrp','rp','tensor-mrp','derived-mrp'],
+    yz:['yz','myz','Myz','Mtp','mtp','tp','tensor-mtp','derived-mtp']
   };
-  function num(v) { var n=Number(v); return isFinite(n)?n:null; }
+  // USGS feeds several tensor fields as "value, uncertainty" strings — take
+  // the leading token or Number() yields NaN and the whole import throws.
+  function num(v) { if (typeof v === 'string') v = v.split(',')[0].trim(); var n=Number(v); return isFinite(n)?n:null; }
   function first(obj, keys) {
     for(var i=0;i<keys.length;i++) if(obj&&obj[keys[i]]!=null&&num(obj[keys[i]])!=null) return num(obj[keys[i]]);
     return null;

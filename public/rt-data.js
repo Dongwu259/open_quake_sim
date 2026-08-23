@@ -277,17 +277,24 @@ var RTData = (function() {
     var depth = Math.max(0, Number(item.depth) || 10);
     var get = typeof cfgGet === 'function' ? cfgGet : function() { return undefined; };
     var src = Physics.resolveSourceType(depth, item.sourceType, get('sourceTypeOverride') || 'auto');
-    var model = get('gmpModel') || 'auto';
+    var model = Physics.resolveGmpModel(get('gmpModel') || 'auto', src, item.mag);
+    // Same site-term convention as the app forecast path: zhao/kanno take the
+    // station Vs30 natively (paper site classes); only the reference-site
+    // models get the external 760-anchored amplification.
+    var nativeVs = (model === 'zhao2006' || model === 'kanno2006');
     var best = 0;
     for (var i = 0; i < stations.length; i++) {
       var station = stations[i];
       var surface = Physics.haversineDist(item.lat, item.lng, station.lat, station.lng);
       var dist = Math.sqrt(surface * surface + depth * depth);
       var vs = Physics.lookupVs30(station.lat, station.lng, station.vs30);
+      var gmpeVs = nativeVs ? (vs > 0 ? vs : 400) : 760;
       var pga = Physics.calcPGA(item.mag, dist, model, depth, item.mw, item.mag, src,
-        get('attA'), get('attB'), get('attC'), get('anelastic'), 760);
-      var pgv = Physics.calcPGV(item.mag, dist, model, depth, item.mw, item.mag, src, get('anelastic'), 760);
-      var intensity = Physics.calcJmaIntensity(pga * Physics.vs30Amplification(vs, 'pga'), pgv * Physics.vs30Amplification(vs, 'pgv'));
+        get('attA'), get('attB'), get('attC'), get('anelastic'), gmpeVs, item.rake);
+      var pgv = Physics.calcPGV(item.mag, dist, model, depth, item.mw, item.mag, src, get('anelastic'), gmpeVs, item.rake);
+      var ampPga = nativeVs ? 1 : Physics.vs30Amplification(vs, 'pga');
+      var ampPgv = nativeVs ? 1 : Physics.vs30Amplification(vs, 'pgv');
+      var intensity = Physics.calcJmaIntensity(pga * ampPga, pgv * ampPgv);
       if (intensity > best) best = intensity;
     }
     return Physics.intensityToShindo(best);
@@ -305,11 +312,11 @@ var RTData = (function() {
   }
 
   function notify(msg) {
-    var el = _toastEl();
-    el.textContent = msg;
-    el.style.opacity = '1';
-    clearTimeout(el._timeout);
-    el._timeout = setTimeout(function() { el.style.opacity = '0'; }, 4000);
+    // Route through the shared FIFO as a priority entry. The old direct
+    // write clobbered el._timeout while a queued toast was mid-display, so
+    // the pump's resume callback never fired and toastBusy stayed true — a
+    // single notify() permanently froze the whole satellite toast queue.
+    toastQueued(msg, { priority: true });
 
     // v4.2: Browser notification for background monitoring
     if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
@@ -790,8 +797,9 @@ var RTData = (function() {
       p2pLast = Date.now();
       // The raw Wolfx jma_eew object is nested under .event by the SSE relay
       var raw = (evt && evt.event) ? evt.event : evt;
-      // A real EEW aborts the demo so live kmoni data resumes immediately
-      if (raw && !raw.isTraining && typeof RTDemo !== 'undefined' && RTDemo.isRunning && RTDemo.isRunning()) {
+      // A real EEW aborts the demo so live kmoni data resumes immediately —
+      // but replayed history is not a real EEW and must not kill the RTDemo.
+      if (raw && !raw.isTraining && !replaying && typeof RTDemo !== 'undefined' && RTDemo.isRunning && RTDemo.isRunning()) {
         try { RTDemo.stop(); } catch(e) {}
       }
       var item = normalizeWolfxEEW(raw);
@@ -1979,6 +1987,8 @@ var RTData = (function() {
   function getP2PLast() { return p2pLast; }
   function resetState() {
     if (timer) { clearInterval(timer); timer = null; }
+    if (renderTimer) { clearTimeout(renderTimer); renderTimer = null; }
+    sseWatchdogStop();
     mode = false; // before stopReplay so the live stream does not resume
     stopReplay();
     stopP2PStream();
@@ -1992,6 +2002,16 @@ var RTData = (function() {
     skipCountdown = false; fetching = false;
     _clearAutoSimTrack();
     if (mapLayer) { mapLayer.clearLayers(); mapMarkers = []; }
+    // Drop any toasts still queued mid-display so a fresh session starts clean.
+    toastQueue.length = 0;
+    toastBusy = false;
+    try {
+      var toastEl = (typeof document !== 'undefined' && document.getElementById) ? document.getElementById('rt-toast') : null;
+      if (toastEl) {
+        if (toastEl._timeout) { clearTimeout(toastEl._timeout); toastEl._timeout = null; }
+        toastEl.style.opacity = '0';
+      }
+    } catch (e) {}
   }
 
   return {

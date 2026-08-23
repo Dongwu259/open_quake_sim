@@ -8,11 +8,28 @@ const WebSocket = require('ws');
 const ROOT = path.resolve(__dirname, '..');
 const BASE_URL = process.env.QS_BROWSER_URL || 'http://127.0.0.1:3000/';
 const PROFILE_ROOT = path.join(ROOT, '.browser-test');
+// Browser executables: env override first (QS_EDGE_PATH / QS_CHROME_PATH /
+// QS_FIREFOX_PATH), then the usual install locations — the old single hard-
+// coded path per browser silently SKIPped on any machine that installed
+// elsewhere. A missing browser still SKIPs gracefully.
+function resolveExe(envVar, candidates) {
+  if (process.env[envVar]) return process.env[envVar];
+  for (const c of candidates) { try { if (fs.existsSync(c)) return c; } catch (e) {} }
+  return candidates[0];
+}
+const localAppData = process.env.LOCALAPPDATA || '';
 const chromiumBrowsers = [
-  {name:'Edge',exe:'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',port:9322},
-  {name:'Chrome',exe:'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',port:9323}
+  {name:'Edge',exe:resolveExe('QS_EDGE_PATH',[
+    'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+    'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe']),port:9322},
+  {name:'Chrome',exe:resolveExe('QS_CHROME_PATH',[
+    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+    path.join(localAppData,'Google','Chrome','Application','chrome.exe')]),port:9323}
 ];
-const firefox = {name:'Firefox',exe:'C:\\Program Files\\Mozilla Firefox\\firefox.exe'};
+const firefox = {name:'Firefox',exe:resolveExe('QS_FIREFOX_PATH',[
+  'C:\\Program Files\\Mozilla Firefox\\firefox.exe',
+  'C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe'])};
 
 function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 function assert(condition, message) { if (!condition) throw new Error(message); }

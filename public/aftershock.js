@@ -214,6 +214,22 @@ var Aftershock = (function() {
         }
       }
       if (stnTimes.length < 4) continue;
+      // v5.5: use the shared SimUtils grid search (same weighting + uncertainty
+      // floor as the main EEW locator) instead of a drifting local copy; the
+      // local loop below stays as the no-SimUtils fallback.
+      if (typeof SimUtils !== 'undefined' && SimUtils.gridSearchTriangulate) {
+        stnTimes.sort(function(a, b) { return a.t - b.t; }); // earlier arrivals get the higher weight
+        var sol = SimUtils.gridSearchTriangulate(stnTimes, pw(as.depth), [as.depth], { searchStep: 0.15, searchRange: 1.2 });
+        if (sol) {
+          results.push({
+            lat: sol.lat, lng: sol.lng, mag: as.mag,
+            uncertainty: sol.uncertainty, time: asSimTime,
+            depth: as.depth, id: 'det_as_' + ai
+          });
+          if (results.length >= 5) break;
+          continue;
+        }
+      }
       var bestLat = as.lat, bestLng = as.lng, bestErr = Infinity;
       var searchStep = 0.15, searchRange = 1.2;
       var centerLat = 0, centerLng = 0;

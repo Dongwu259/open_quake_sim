@@ -35,9 +35,20 @@
   }
   function pgvAndDuration(motion){
     var c=motion.components,n=c.x.length,dt=1/motion.sampleRate,means={x:0,y:0,z:0};['x','y','z'].forEach(function(k){for(var i=0;i<n;i++)means[k]+=Number(c[k][i])||0;means[k]/=n;});
-    var velocity={x:0,y:0,z:0},pgv=0,arias=[],sum=0;
-    for(var i=0;i<n;i++){var vectorSq=0;['x','y','z'].forEach(function(k){var a=(Number(c[k][i])||0)-means[k];velocity[k]+=a*dt;vectorSq+=a*a;});pgv=Math.max(pgv,Math.sqrt(velocity.x*velocity.x+velocity.y*velocity.y+velocity.z*velocity.z));sum+=vectorSq*dt;arias.push(sum);}
-    var t5=0,t95=0;if(sum>0){for(var j=0;j<n;j++){if(!t5&&arias[j]>=sum*.05)t5=j*dt;if(!t95&&arias[j]>=sum*.95){t95=j*dt;break;}}}
+    var vel={x:new Array(n),y:new Array(n),z:new Array(n)},acc={x:0,y:0,z:0},arias=[],sum=0;
+    for(var i=0;i<n;i++){var vectorSq=0;['x','y','z'].forEach(function(k){var a=(Number(c[k][i])||0)-means[k];acc[k]+=a*dt;vel[k][i]=acc[k];vectorSq+=a*a;});sum+=vectorSq*dt;arias.push(sum);}
+    // Linear baseline correction on the integrated traces: pure integration of
+    // an un-corrected record accumulates a drift ramp that systematically
+    // inflates PGV. Remove the least-squares velocity trend before the peak.
+    ['x','y','z'].forEach(function(k){
+      if(n<2)return;var st=0,stt=0,sv=0,stv=0;
+      for(var i=0;i<n;i++){var t=i*dt;st+=t;stt+=t*t;var v=vel[k][i];sv+=v;stv+=t*v;}
+      var denom=n*stt-st*st;if(!(denom>0))return;var slope=(n*stv-st*sv)/denom,intercept=(sv-slope*st)/n;
+      for(var j=0;j<n;j++)vel[k][j]-=intercept+slope*j*dt;
+    });
+    var pgv=0;
+    for(var g=0;g<n;g++)pgv=Math.max(pgv,Math.sqrt(vel.x[g]*vel.x[g]+vel.y[g]*vel.y[g]+vel.z[g]*vel.z[g]));
+    var t5=0,t95=0;if(sum>0){for(var j2=0;j2<n;j2++){if(!t5&&arias[j2]>=sum*.05)t5=j2*dt;if(!t95&&arias[j2]>=sum*.95){t95=j2*dt;break;}}}
     return {pgvVectorCms:pgv,duration5to95Sec:Math.max(0,t95-t5)};
   }
   function analyze(payload,physics){

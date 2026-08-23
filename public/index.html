@@ -2,6 +2,7 @@
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
+<script>/* align <html lang> with the saved language before first paint (applyLanguage keeps it in sync afterwards) */try{var __l=localStorage.getItem('qs-lang');if(__l==='ja'||__l==='en'||__l==='zh')document.documentElement.lang=__l;}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0a0e1a">
 <meta name="description" content="Earthquake Simulator Pro v5.5正式版，面向日本的可复现地震与海啸情景模拟器。包含多种GMPE、矩守恒有限断层、JMA逐站独立验证、非线性浅水方程、科研结果对比和SREV式实时TTS。">
@@ -20,16 +21,16 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="QuakeSim">
-<link rel="manifest" href="manifest.json?v=416dd4">
+<link rel="manifest" href="manifest.json?v=ccd9d3">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <title>地震模拟器 v5.5正式版 | Earthquake Simulator Pro</title>
 <link rel="stylesheet" href="leaflet/leaflet.css?v=f885c4">
-<link rel="stylesheet" href="style.css?v=02506c">
+<link rel="stylesheet" href="style.css?v=4b8e8b">
 <link rel="preload" href="leaflet/leaflet.js?v=5a640f" as="script">
-<link rel="preload" href="app.js?v=f0e997" as="script">
-<link rel="preload" href="style.css?v=02506c" as="style">
+<link rel="preload" href="app.js?v=4f2245" as="script">
+<link rel="preload" href="style.css?v=4b8e8b" as="style">
 <link rel="preload" href="config.js?v=22335e" as="script">
-<link rel="preload" href="physics.js?v=50f28d" as="script">
+<link rel="preload" href="physics.js?v=2a042c" as="script">
 </head>
 <body>
 <a href="#map" class="skip-link" data-i18n="aria.skip">跳转到内容</a>
@@ -37,7 +38,7 @@
   <div id="sidebar" role="complementary" aria-label="控制面板">
     <div id="sidebar-header">
       <h1 data-i18n="app.title">地震模拟器 v5.5正式版</h1>
-      <div id="build-ver" style="font-size:.65em;color:var(--text-secondary);opacity:.5;margin-top:-2px" data-sw="sw.js=v306418">(······)</div>
+      <div id="build-ver" style="font-size:.65em;color:var(--text-secondary);opacity:.5;margin-top:-2px" data-sw="sw.js=v195080">(······)</div>
       <button id="btn-help" class="help-link" type="button" data-i18n="help.title">使用帮助</button>
       <button id="btn-formulas" class="help-link" type="button" data-i18n="formulas.title">公式原理</button>
       <button id="btn-settings" class="help-link" type="button" data-i18n="settings.title">设置</button>
@@ -690,20 +691,20 @@
 <script src="leaflet/leaflet.js?v=5a640f"></script>
 <script src="turf/turf.min.js?v=07f3b6"></script>
 <script src="config.js?v=22335e"></script>
-<script src="sim-utils.js?v=01c74d"></script>
-<script src="research.js?v=3ee192"></script>
+<script src="sim-utils.js?v=58ccc5"></script>
+<script src="research.js?v=d9aad6"></script>
 <script src="data-catalog.js?v=bee20f"></script>
 <script src="grid-package.js?v=865d26"></script>
-<script src="i18n.js?v=e86425"></script>
+<script src="i18n.js?v=1f5c1a"></script>
 <script src="dc3d.js?v=2865dd"></script>
-<script src="physics.js?v=50f28d"></script>
+<script src="physics.js?v=2a042c"></script>
 <script src="tsunami-solver-host.js?v=21d342"></script>
 <script src="reference-backend.js?v=3ead82"></script>
 <script src="waveform-data.js?v=27c01f"></script>
 <script src="strong-motion-waveforms.js?v=4ab568"></script>
-<script src="strong-motion-data.js?v=a40be1"></script>
+<script src="strong-motion-data.js?v=f345d3"></script>
 <script src="tsunami-validation.js?v=45a850"></script>
-<script src="moment-tensor.js?v=5bc10f"></script>
+<script src="moment-tensor.js?v=3f7583"></script>
 <script src="finite-fault.js?v=a1f2c7"></script>
 <script src="observed-fault-models.js?v=c07cb6"></script>
 <script src="audio.js?v=81436d"></script>
@@ -792,14 +793,14 @@ window._loadThreeJS = function(cb) {
     </div>
   </div>
 </div>
-<script src="app.js?v=f0e997"></script>
-<script src="aftershock.js?v=15df18"></script>
-<script src="rt-data.js?v=de1b78"></script>
-<script src="rt-kmoni.js?v=be3a9d"></script>
-<script src="rt-eew.js?v=5d3a8d"></script>
+<script src="app.js?v=4f2245"></script>
+<script src="aftershock.js?v=e29837"></script>
+<script src="rt-data.js?v=b1aff5"></script>
+<script src="rt-kmoni.js?v=b581c5"></script>
+<script src="rt-eew.js?v=e3de03"></script>
 <script src="rt-demo.js?v=c99e56"></script>
-<script src="rt-quakeinfo.js?v=520ad2"></script>
-<script src="rt-tsunami.js?v=e50e07"></script>
+<script src="rt-quakeinfo.js?v=b6b2bc"></script>
+<script src="rt-tsunami.js?v=d59204"></script>
 <script src="info-panel.js?v=b799dd"></script>
 <script src="renderer.js?v=20fa7b"></script>
 <div id="help-overlay" class="help-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="help-dialog-title">
@@ -842,8 +843,6 @@ window._loadThreeJS = function(cb) {
       <p data-i18n="help.intensity_table_text">信息标签页顶部显示JMA风格震度速报表，按震级降序排列前20个有感城市。每行显示城市名、彩色震度徽章和峰值加速度（PGA/gal）。模拟期间实时更新。无震感的城市自动隐藏。点击地图上的震度圆圈可弹出观测点详情窗口（含P波和S波到达时间）。</p>
       <h3 data-i18n="help.tts">TTS语音播报</h3>
       <p data-i18n="help.tts_text">支持日语、英语和中文语音。日语 EEW、推定最大震度修订、震度调查、最终地震信息和海啸更新使用 SREV 式 FIFO 队列。调查语音结束后界面自动关闭，长播报不会再被请求超时中途截断。新增独立 EEW 提示音与震度1至7音效，每次模拟只播放最终最大震度对应的一种。</p>
-      <h3 data-i18n="help.visitor">访问人次</h3>
-      <p data-i18n="help.visitor_text">基本标签页免责声明下方显示页面累计访问次数。每次页面加载时自动递增，重启不丢失。</p>
       <h3 data-i18n="help.error">错误显示</h3>
       <p data-i18n="help.error_text">模拟过程中如发生JavaScript错误，浏览器窗口底部会出现红色错误面板，显示错误信息和发生位置（文件:行:列）。多个错误会堆叠显示。点击×按钮关闭，或20秒后自动隐藏。</p>
       <h3 data-i18n="help.share">📎 URL分享</h3>

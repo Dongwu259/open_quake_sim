@@ -335,7 +335,7 @@ test('tracker — offset estimated once and clamped to [-5000, +60000]', () => {
   assert.strictEqual(RTEew.clampOffsetMs(NaN), 0);
 });
 
-test('tracker — out-of-order older serial keeps latest report', () => {
+test('tracker — out-of-order older serial keeps latest report (and does not refresh receivedAt)', () => {
   const tr = RTEew.createTracker();
   const mk = function(serial, mag) {
     return RTEew.parseWolfx({ EventID: 'E6', Serial: serial, Magunitude: mag });
@@ -345,7 +345,9 @@ test('tracker — out-of-order older serial keeps latest report', () => {
   const r = RTEew.trackReport(tr, mk(2, 5.0), t0 + 1000);
   assert.strictEqual(r.state.serial, 3);
   assert.strictEqual(r.state.latest.mag, 6.2, 'latest stays the newer report');
-  assert.strictEqual(r.state.receivedAt, t0 + 1000);
+  // Stale/duplicate serials must not re-stamp receivedAt — the 120 s expiry
+  // sweep used to be kept alive forever by them (2026-08-23 audit fix).
+  assert.strictEqual(r.state.receivedAt, t0);
 });
 
 test('elapsedSec — local clock since origin, clamped >= 0', () => {

@@ -45,7 +45,7 @@ npm run validate:physics
 - σ 拆分为 per-class τ/φ（0.303-0.321 / 0.604，ln 单位）；
 - PGV 无论文模型，用论文 SA(1.0 s) 行经伪速度换算 `PGV≈SA/(2π)`（声明为 ±25% 工程近似）。
 
-**对冻结 K-NET/KiK-net 站点包（6 事件 2,626 站）的原始（无补丁）残差**：真 Rrup（捆绑有限断层角点）总体 PGA bias **+0.11**（目标 <0.15，旧实现修补丁前 +0.58）；点源震中距约定 −0.25，`<100 km 桶无偏（−0.01~−0.03）`，>100 km 偏差为点源距离对巨型破裂的固有量（重拟 modelBias 后总体 iBias 0.000 / iRms 0.739）。残差结构与 mega-thrust 外推的已知行为一致（tohoku/tokachi/hyuganada 过预测 0.36-0.45、fukushima2022 slab 欠预测 0.53），见 `tools/probe-zhao2006-faithful.js`。19 事件 JMA 独立集：bias +0.199→**+0.043**，RMS 0.724→0.776（门禁通过）。
+**对冻结 K-NET/KiK-net 站点包（6 事件 2,626 站）的原始（无补丁）残差**：真 Rrup（捆绑有限断层角点）总体 PGA bias **+0.11**（目标 <0.15，旧实现修补丁前 +0.58）；点源震中距约定 −0.25，`<100 km 桶无偏（−0.01~−0.03）`，>100 km 偏差为点源距离对巨型破裂的固有量（重拟 modelBias 后总体 iBias 0.000 / iRms 0.739）。残差结构与 mega-thrust 外推的已知行为一致（tohoku/tokachi/hyuganada 过预测 0.36-0.45、fukushima2022 slab 欠预测 0.53），见 `tools/probe-zhao2006-faithful.js`。19 事件 JMA 独立集（2026-08-23 重测，zhao/kanno 原生 Vs30 场地项对齐后）：n=2626 bias **+0.203**、RMS **0.782**（发布门禁通过）。
 
 ## 适用范围（2026-08-17 修订）
 

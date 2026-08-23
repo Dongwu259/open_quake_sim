@@ -16,11 +16,17 @@ function isLoopbackIp(ip) {
   return ip === '127.0.0.1' || ip === '::1';
 }
 
+// Proxy-header trust can be disabled with QUAKE_TRUST_PROXY=0 when the
+// process is NOT behind a same-host reverse proxy (a misconfigured proxy
+// that forwards client-supplied headers would let callers choose their
+// rate-limit identity).
+var TRUST_PROXY_HEADERS = process.env.QUAKE_TRUST_PROXY !== '0';
+
 // Proxy headers are authoritative only when the direct peer is this host's
 // nginx. Direct clients cannot spoof rate-limit or audit identities.
 function getClientIp(req) {
   var peer = normalizeIp(req && req.socket && req.socket.remoteAddress);
-  if (isLoopbackIp(peer)) {
+  if (TRUST_PROXY_HEADERS && isLoopbackIp(peer)) {
     var realIp = normalizeIp(req && req.headers && req.headers['x-real-ip']);
     if (realIp) return realIp;
     var forwarded = String(req && req.headers && req.headers['x-forwarded-for'] || '').split(',');
@@ -239,7 +245,6 @@ var _testRateLimit = {};   // {ip: [timestamp, ...]} — rate limit state for te
 var _settingsRateLimit = null;
 var _wfRateLimit = {};     // {ip: [timestamp, ...]} — rate limit state for waveform fetch
 var _exportRateLimit = {}; // {ip: [timestamp, ...]} — rate limit state for replay export
-var _adminLoginFails = {}; // {ip: {count, resetTime}} — rate limit state for admin login
 var _rateLimitPersist = process.env.RATELIMIT_PERSIST !== 'false'; // default true (persist to disk)
 var RATELIMIT_FILE = path.join(__dirname, 'ratelimit.json');
 
@@ -257,13 +262,6 @@ function loadRateLimits() {
           if (timestamps.length > 0) _ttsRateLimit[ip] = timestamps;
         }
       }
-      // Restore admin login fails, filtering expired entries
-      if (data.login) {
-        for (var ip in data.login) {
-          var entry = data.login[ip];
-          if (entry && now < entry.resetTime) _adminLoginFails[ip] = entry;
-        }
-      }
     }
   } catch(e) { /* ignore corrupted file */ }
 }
@@ -273,11 +271,9 @@ function saveRateLimits() {
   try {
     // Only save if there's data to persist (avoid writing empty files)
     var ttsKeys = Object.keys(_ttsRateLimit);
-    var loginKeys = Object.keys(_adminLoginFails);
-    if (ttsKeys.length === 0 && loginKeys.length === 0) return;
+    if (ttsKeys.length === 0) return;
     fs.writeFileSync(RATELIMIT_FILE, JSON.stringify({
-      tts: _ttsRateLimit,
-      login: _adminLoginFails
+      tts: _ttsRateLimit
     }));
   } catch(e) { /* ignore write errors */ }
 }
@@ -311,7 +307,7 @@ const SECURITY_HEADERS = {
   'X-Frame-Options': 'SAMEORIGIN',
   'X-XSS-Protection': '1; mode=block',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
-  'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://cyberjapandata.gsi.go.jp; connect-src 'self' https://earthquake.usgs.gov wss://api.p2pquake.net https://weather-kyoshin.east.edge.storage-yahoo.jp; font-src 'self'",
+  'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://cyberjapandata.gsi.go.jp; connect-src 'self' https://earthquake.usgs.gov wss://api.p2pquake.net https://weather-kyoshin.east.edge.storage-yahoo.jp; font-src 'self'; object-src 'none'; base-uri 'self'",
 };
 // HSTS: only on HTTPS (RFC 6797 §7.2 — HTTP must be ignored by UAs)
 var _hstsHeader = 'max-age=31536000; includeSubDomains';
@@ -490,7 +486,7 @@ function _httpGet(url, cb, timeoutMs) {
     called = true;
     cb(err, body, statusCode);
   }
-  var req = proto.get(url, { headers: { 'User-Agent': 'QuakeSim/5.3' }, agent: agent }, function(resp) {
+  var req = proto.get(url, { headers: { 'User-Agent': 'QuakeSim/5.5.1' }, agent: agent }, function(resp) {
     var body = '';
     resp.on('data', function(c) { body += c; if (body.length > 2097152) { req.destroy(); guard(new Error('Response too large')); } });
     resp.on('end', function() { req.setTimeout(0); guard(null, body, resp.statusCode); });
@@ -584,7 +580,7 @@ function serveUSGS(res) {
         }
         // Share cache: refresh standalone live-quakes cache too
         if (hasLive && lqData && lqData.ok) {
-          _liveQuakeCache = JSON.stringify({ok:true, data:lqData.data, pagination:lqData.pagination});
+          _liveQuakeCache = { url: 'catalog:share', body: JSON.stringify({ok:true, data:lqData.data, pagination:lqData.pagination}) };
           _liveQuakeCacheTime = now;
         }
       } catch(e) { /* parse error — continue with USGS */ }
@@ -696,8 +692,11 @@ const server = http.createServer((req, res) => {
     filePath = path.join(PUBLIC, reqPath === '/' ? 'index.html' : reqPath);
   }
   filePath = path.normalize(filePath);
-  // defense-in-depth: verify normalized path stays within allowed dirs
-  if (!filePath.startsWith(PUBLIC) && !filePath.startsWith(SOUNDS)) {
+  // defense-in-depth: verify normalized path stays within allowed dirs.
+  // The separator matters — without it a sibling like <public>X would pass
+  // a plain startsWith(PUBLIC) check.
+  function _insideDir(fp, dir) { return fp === dir || fp.startsWith(dir + path.sep); }
+  if (!_insideDir(filePath, PUBLIC) && !_insideDir(filePath, SOUNDS)) {
     logError('Path escape blocked: ' + _reqIp + ' ' + reqPath);
     sendError(res, 403, 'FORBIDDEN', 'Path escape blocked'); return;
   }
@@ -1004,11 +1003,19 @@ const server = http.createServer((req, res) => {
       var frameMsg = (typeof frame.type === 'string' && frame.type !== '' && frame.type.indexOf('\n') < 0 && frame.type.indexOf('\r') < 0)
         ? 'event: ' + frame.type + '\ndata: ' + frameBody + '\n\n'
         : 'data: ' + frameBody + '\n\n';
-      try { res.write(frameMsg); } catch(e) { try { res.end(); } catch(e2) {} return; }
+      // Backpressure: a slow client used to make res.write buffer the whole
+      // replay window in memory — wait for drain before scheduling the next
+      // frame (exactly one continuation is ever pending).
+      var writable = true;
+      try { writable = res.write(frameMsg); } catch(e) { try { res.end(); } catch(e2) {} return; }
       _rIdx++;
       var wait = 0;
       if (_rIdx < _rFrames.length) wait = Math.min(2000, Math.max(0, (_rFrames[_rIdx].t - frame.t) / _rSpeed));
-      setTimeout(emitReplayFrame, wait);
+      if (writable) {
+        setTimeout(emitReplayFrame, wait);
+      } else {
+        res.once('drain', function() { setTimeout(emitReplayFrame, wait); });
+      }
     }
     emitReplayFrame();
     return;
@@ -1059,7 +1066,13 @@ const server = http.createServer((req, res) => {
             });
           }
           if (!res.write(batch.join('\n') + '\n')) {
-            await new Promise(function(resolve) { res.once('drain', resolve); });
+            // Resolve on drain OR disconnect — a closed client never drains
+            // and the promise used to hang forever.
+            await new Promise(function(resolve) {
+              res.once('drain', resolve);
+              res.once('close', resolve);
+              res.once('error', resolve);
+            });
           }
         });
         if (aborted) return;
@@ -1244,7 +1257,14 @@ const server = http.createServer((req, res) => {
     // 503 when all realtime feeds are down, 200 otherwise.
     const allOk = p2pConnected || wolfxEewOk || wolfxEqOk || emscOk;
     const code = allOk ? 200 : 503;
-    const _replayHealth = _replayInfo();
+    // _replayInfo() may gunzip the day's recording file; the per-file
+    // size/mtime cache misses constantly because the recorder appends every
+    // few seconds. Memo the replay block (same TTL as /api/replay/info) so a
+    // /health flood cannot block the event loop.
+    if (!_healthReplayCache || Date.now() - _healthReplayCache.at >= 10000) {
+      const _rh = _replayInfo();
+      _healthReplayCache = { at: Date.now(), block: { frames: _rh.frames, earliest: _rh.earliest, latest: _rh.latest, diskBytes: _rh.diskBytes } };
+    }
     res.writeHead(code, { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' });
     res.end(JSON.stringify({
       status: allOk ? 'ok' : 'degraded',
@@ -1256,7 +1276,7 @@ const server = http.createServer((req, res) => {
       uptime: uptimeSec,
       totalUptime: totalUptimeSeconds(),
       sseClients: sseClients.length,
-      replay: { frames: _replayHealth.frames, earliest: _replayHealth.earliest, latest: _replayHealth.latest, diskBytes: _replayHealth.diskBytes, clients: _replayClients.length },
+      replay: { frames: _healthReplayCache.block.frames, earliest: _healthReplayCache.block.earliest, latest: _healthReplayCache.block.latest, diskBytes: _healthReplayCache.block.diskBytes, clients: _replayClients.length },
       time: new Date().toISOString()
     }));
     return;
@@ -1269,15 +1289,17 @@ const server = http.createServer((req, res) => {
   // GET /api/live-quakes — realtime earthquake list from multi-source API
   if (reqPath === '/api/live-quakes' && req.method === 'GET') {
     var lqNow = Date.now();
-    if (_liveQuakeCache && (lqNow - _liveQuakeCacheTime) < 30000) {
-      res.writeHead(200, {'Content-Type':'application/json','Cache-Control':'no-cache'});
-      return res.end(_liveQuakeCache);
-    }
     var lqUrlObj = new URL(req.url, 'http://localhost');
     var eqUrl = LIVE_API_BASE + '/api/v1/earthquakes?minMag=' + encodeURIComponent(lqUrlObj.searchParams.get('minMag') || '3') +
       '&hours=' + encodeURIComponent(lqUrlObj.searchParams.get('hours') || '72') +
       '&region=' + encodeURIComponent(lqUrlObj.searchParams.get('region') || 'japan') +
       '&limit=' + encodeURIComponent(lqUrlObj.searchParams.get('limit') || '100') + '&order=desc';
+    // The 30 s cache is keyed by the upstream URL — one global entry used to
+    // let any request parameters overwrite whatever the last caller fetched.
+    if (_liveQuakeCache && _liveQuakeCache.url === eqUrl && (lqNow - _liveQuakeCacheTime) < 30000) {
+      res.writeHead(200, {'Content-Type':'application/json','Cache-Control':'no-cache'});
+      return res.end(_liveQuakeCache.body);
+    }
     _httpGet(eqUrl, function(err, body, statusCode) {
       if (!err && statusCode === 200) {
         try {
@@ -1289,12 +1311,12 @@ const server = http.createServer((req, res) => {
                 sources:(eq.sources||[]).map(function(s){return s.source;}) };
             });
             var result = JSON.stringify({ok:true, data:items, pagination:data.pagination});
-            _liveQuakeCache = result; _liveQuakeCacheTime = lqNow;
+            _liveQuakeCache = { url: eqUrl, body: result }; _liveQuakeCacheTime = Date.now();
             res.writeHead(200, {'Content-Type':'application/json','Cache-Control':'no-cache'}); res.end(result); return;
           }
         } catch(e) {}
       }
-      if (_liveQuakeCache) { res.writeHead(200, {'Content-Type':'application/json','Cache-Control':'no-cache'}); return res.end(_liveQuakeCache); }
+      if (_liveQuakeCache) { res.writeHead(200, {'Content-Type':'application/json','Cache-Control':'no-cache'}); return res.end(_liveQuakeCache.body); }
       res.writeHead(502, {'Content-Type':'application/json'});
       res.end(JSON.stringify({ok:false, data:[], error:err ? err.message : 'Upstream unavailable'}));
     }, 10000);
@@ -1432,6 +1454,7 @@ var _replayClients = [];  // active /api/replay/stream connections
 var _replayClientIps = {}; // replay-stream per-IP connection counts (cap 2)
 var _replayDiskBuf = [];  // JSON lines awaiting the next gzip flush
 var _replayInfoCache = null; // {at, payload} — 10 s memo for /api/replay/info
+var _healthReplayCache = null; // {at, block} — 10 s memo for /health's replay block (gunzip DoS guard)
 
 function _replayPushFrame(frame) {
   _replayFrames.push(frame);
@@ -1951,10 +1974,22 @@ function pollJMAFeed() {
   var mod = (typeof require === 'function') ? require('https') : null;
   if (!mod) return;
   updateSourceStatus('jma_feed', 'polling');
-  mod.get('https://www.data.jma.go.jp/developer/xml/feed/eqvol.xml', function(res) {
+  // Bounded fetch: 15 s timeout and a 2 MB body cap so a hung/huge upstream
+  // response can no longer accumulate unbounded memory.
+  var jmaReq = mod.get('https://www.data.jma.go.jp/developer/xml/feed/eqvol.xml', function(res) {
     var body = '';
-    res.on('data', function(chunk) { body += chunk; });
+    var tooBig = false;
+    res.on('data', function(chunk) {
+      if (tooBig) return;
+      body += chunk;
+      if (body.length > 2 * 1024 * 1024) {
+        tooBig = true;
+        updateSourceStatus('jma_feed', 'error');
+        try { jmaReq.destroy(); } catch (e0) {}
+      }
+    });
     res.on('end', function() {
+      if (tooBig) return;
       updateSourceStatus('jma_feed', 'ok');
       try {
         var entries = body.match(/<entry>[\s\S]*?<\/entry>/g) || [];
@@ -1973,6 +2008,7 @@ function pollJMAFeed() {
     updateSourceStatus('jma_feed', 'error');
     console.log('JMA Feed: fetch error -', e.message);
   });
+  try { jmaReq.setTimeout(15000, function() { jmaReq.destroy(new Error('timeout')); }); } catch (e1) {}
 }
 
 // ---- NIED Kmoni real-time polling (強震モニタ via Yahoo mirror) ----
@@ -2036,7 +2072,7 @@ function _upstreamGet(url, cb) {
   }
   var req = https.get(url, {
     agent: _httpsAgent,
-    headers: { 'Accept-Encoding': 'identity', 'User-Agent': 'QuakeSim/5.3 Upstream Proxy' }
+    headers: { 'Accept-Encoding': 'identity', 'User-Agent': 'QuakeSim/5.5.1 Upstream Proxy' }
   }, function(r) {
     var chunks = [], bodyLen = 0;
     if (r.statusCode !== 200) { r.resume(); done(new Error('upstream ' + r.statusCode)); return; }
@@ -2063,7 +2099,7 @@ function _kmoniFetchSitelist(cb) {
   }
   var req = https.get(KMONI_BASE + '/SiteList/sitelist.json', {
     agent: _httpsAgent,
-    headers: { 'Accept-Encoding': 'identity', 'User-Agent': 'QuakeSim/5.3 Kmoni Proxy' }
+    headers: { 'Accept-Encoding': 'identity', 'User-Agent': 'QuakeSim/5.5.1 Kmoni Proxy' }
   }, function(r) {
     var chunks = [], bodyLen = 0;
     if (r.statusCode !== 200) { r.resume(); done(new Error('sitelist upstream ' + r.statusCode)); return; }
@@ -2144,7 +2180,7 @@ function _kmoniPollTick() {
   var https = require('https');
   var req = https.get(KMONI_BASE + '/RealTimeData/' + ts.date + '/' + ts.time + '.json', {
     agent: _httpsAgent,
-    headers: { 'Accept-Encoding': 'identity', 'User-Agent': 'QuakeSim/5.3 Kmoni Proxy' }
+    headers: { 'Accept-Encoding': 'identity', 'User-Agent': 'QuakeSim/5.5.1 Kmoni Proxy' }
   }, function(r) {
     var chunks = [], bodyLen = 0;
     r.on('data', function(c) { bodyLen += c.length; if (bodyLen <= 1048576) chunks.push(c); });
@@ -2199,7 +2235,7 @@ function _kmoniImgFetchHttp(url, cb) {
   function done2(err, buf) { clearTimeout(guard); done(err, buf); }
   var req = https.get(url, {
     agent: _httpsAgent,
-    headers: { 'Accept-Encoding': 'identity', 'User-Agent': 'QuakeSim/5.3 Kmoni Image Proxy' }
+    headers: { 'Accept-Encoding': 'identity', 'User-Agent': 'QuakeSim/5.5.1 Kmoni Image Proxy' }
   }, function(r) {
     var chunks = [], bodyLen = 0;
     if (r.statusCode !== 200) { r.resume(); done2(new Error('image upstream ' + r.statusCode)); return; }
@@ -2390,7 +2426,7 @@ function _proxyTtsSynthesis(clientReq, res, text, voice) {
   var settled = false;
   var upstreamReq = http.get(target, {
     agent: _httpAgent,
-    headers: Object.assign({ 'User-Agent': 'QuakeSim/5.3 TTS Proxy', 'Accept': 'audio/mpeg' }, keyHeaders)
+    headers: Object.assign({ 'User-Agent': 'QuakeSim/5.5.1 TTS Proxy', 'Accept': 'audio/mpeg' }, keyHeaders)
   }, function(upstreamRes) {
     var chunks = [];
     var total = 0;

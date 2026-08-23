@@ -132,7 +132,7 @@
       schema: SCENARIO_SCHEMA,
       version: 2,
       name: typeof src.name === 'string' ? src.name.slice(0, 160) : 'Untitled',
-      appVersion: typeof src.appVersion === 'string' ? src.appVersion : 'v5.4',
+      appVersion: typeof src.appVersion === 'string' ? src.appVersion : 'v5.5.1',
       created: typeof src.created === 'string' ? src.created : '',
       seed: normalizeSeed(src.seed == null ? 20260725 : src.seed),
       events: events,
