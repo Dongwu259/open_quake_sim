@@ -1,6 +1,6 @@
 {
   "name": "open_quake_sim",
-  "version": "5.5.0",
+  "version": "5.5.1",
   "description": "Earthquake Simulator Pro — real-time seismic wave propagation & EEW simulation for Japan",
   "license": "MIT",
   "author": "Dongwu259",
@@ -9,7 +9,15 @@
     "url": "git+https://github.com/Dongwu259/open_quake_sim.git"
   },
   "homepage": "https://dwfileshare.top",
-  "keywords": ["earthquake", "eew", "tsunami", "japan", "seismology", "simulation", "emergency-warning"],
+  "keywords": [
+    "earthquake",
+    "eew",
+    "tsunami",
+    "japan",
+    "seismology",
+    "simulation",
+    "emergency-warning"
+  ],
   "main": "server.js",
   "bin": {
     "quake-sim": "bin/quake-sim.js",

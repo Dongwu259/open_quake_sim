@@ -5540,10 +5540,14 @@ function updateMaxPgaPanel(curMaxPga, curMaxSh) {
 // Used by ALL three styling paths below — _applyForecastToLivePrefLayer used
 // to carry stale 0.5/0.8 constants from before the first haze fix, which is
 // why detect mode kept its heavy veil.
+// v5.5.1 haze fix round 4 (2026-08-23): halved again — layer bisect on the
+// tokyoInland scenario showed this subdivision fill is THE dominant "colored
+// fog" at every zoom (removing it was the only toggle that cleaned the map).
+// Forecast is now a light tint; observed stays clearly readable.
 function _shindoFillAlpha(sh, observed) {
   var n = Physics.shindoNum(sh);
-  if (observed) return n >= Physics.shindoNum('6-') ? 0.24 : 0.30;
-  return n >= Physics.shindoNum('6-') ? 0.16 : 0.22;
+  if (observed) return n >= Physics.shindoNum('6-') ? 0.15 : 0.20;
+  return n >= Physics.shindoNum('6-') ? 0.07 : 0.10;
 }
 
 function _initLivePrefLayer() {
@@ -5574,7 +5578,7 @@ function _initLivePrefLayer() {
       if (sh === 0 || sh === '0') return { fillOpacity: 0, color: 'transparent', weight: 0, interactive: false };
       var fill = SHINDO_FILL[sh] || '#888';
       // Forecast phase: band-scaled alpha; observation phase will increase
-      return { fillColor: fill, fillOpacity: _shindoFillAlpha(sh, false), color: fill, weight: 1.5, opacity: 0.4, interactive: false };
+      return { fillColor: fill, fillOpacity: _shindoFillAlpha(sh, false), color: fill, weight: 1, opacity: 0.3, interactive: false };
     },
     interactive: false
   }).addTo(map);
@@ -5611,8 +5615,8 @@ function _applyForecastToLivePrefLayer() {
     // v5.5 haze fix: this path used to keep the pre-fix 0.5/0.8 constants —
     // the heavy detect-mode veil came from here.
     layer.setStyle(observed
-      ? { fillColor: fill, fillOpacity: _shindoFillAlpha(sh, true), color: fill, weight: 2.0, opacity: 0.55 }
-      : { fillColor: fill, fillOpacity: _shindoFillAlpha(sh, false), color: fill, weight: 1.5, opacity: 0.6 });
+      ? { fillColor: fill, fillOpacity: _shindoFillAlpha(sh, true), color: fill, weight: 1.2, opacity: 0.35 }
+      : { fillColor: fill, fillOpacity: _shindoFillAlpha(sh, false), color: fill, weight: 1, opacity: 0.3 });
   });
 }
 
@@ -5657,7 +5661,7 @@ function _updateLivePrefLayer() {
       layer.setStyle({ fillOpacity: 0, color: 'transparent', weight: 0 });
     } else {
       var fill = SHINDO_FILL[sh] || '#888';
-      layer.setStyle({ fillColor: fill, fillOpacity: _shindoFillAlpha(sh, true), color: fill, weight: 2.0, opacity: 0.55 });
+      layer.setStyle({ fillColor: fill, fillOpacity: _shindoFillAlpha(sh, true), color: fill, weight: 1.2, opacity: 0.35 });
     }
   });
 }

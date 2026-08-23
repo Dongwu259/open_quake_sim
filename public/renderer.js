@@ -92,7 +92,9 @@
   drawResearchTsunami();
   drawTsunamiWarnings();
   drawIsoseismalLines();
-  drawDamageHeatmap();
+  // v5.5 haze fix round 2: drawDamageHeatmap removed — its 15-30 px red discs
+  // only appeared around shindo 6+/7 stations and read as the "震度7 圆圈在
+  // 发光" halo; the intensity circles already carry that information.
   drawPWaveFlash();
   spawnWaveParticles();
   drawWaveParticles();
@@ -186,17 +188,39 @@
     // v5.5: cap the disc radius (PLUM is a near-field spread; 300 km discs are
     // not "near-field" anything) and bleed the alpha out as the field
     // densifies — unbounded discs saturated into a giant halo.
+    // v5.5 haze fix round 2: the global 40/n scale is not enough — in dense
+    // near-fields the 45 km discs overlap ~10 deep and stack into the glowing
+    // blob users reported. Divide each disc's alpha by its local near-neighbor
+    // count so the cumulative field plateaus instead of saturating.
     var plumAlphaScale = Math.min(1, 40 / srcs.length);
+    var plumR = [];
+    for (var pri = 0; pri < srcs.length; pri++) {
+      plumR.push(Math.min(45, 8 * Math.pow(10, (srcs[pri].I - 3.0) / 2.68)));
+    }
     for (var i = 0; i < srcs.length; i++) {
       var src = srcs[i];
-      var rKm = Math.min(45, 8 * Math.pow(10, (src.I - 3.0) / 2.68));
+      var rKm = plumR[i];
       var rPx = kmToPx(rKm, src);
       if (!(rPx > 4) || rPx > waveCanvas.width * 2) continue;
+      // local overlap: neighbors whose discs reach this center (equirectangular
+      // approx — plenty for <100 km reaches)
+      var nbr = 0;
+      var cosLat = Math.cos(src.lat * Math.PI / 180);
+      for (var nj = 0; nj < srcs.length; nj++) {
+        if (nj === i) continue;
+        var reach2 = (rKm + plumR[nj]) * 0.5;
+        var dLat = (srcs[nj].lat - src.lat) * 111.32;
+        if (dLat > reach2 || dLat < -reach2) continue;
+        var dLng = (srcs[nj].lng - src.lng) * 111.32 * cosLat;
+        if (dLng > reach2 || dLng < -reach2) continue;
+        if (dLat * dLat + dLng * dLng < reach2 * reach2) nbr++;
+      }
+      var dens = 1 / (1 + nbr * 0.6);
       var c = toCanvas(src.lat, src.lng);
       var col = (typeof SHINDO_FILL !== 'undefined' && SHINDO_FILL[Physics.intensityToShindo(src.I)]) || '#fa0';
       var g = waveCtx.createRadialGradient(c.x, c.y, 0, c.x, c.y, rPx);
-      g.addColorStop(0, _plumColorA(col, 0.16 * plumAlphaScale));
-      g.addColorStop(0.65, _plumColorA(col, 0.06 * plumAlphaScale));
+      g.addColorStop(0, _plumColorA(col, 0.16 * plumAlphaScale * dens));
+      g.addColorStop(0.65, _plumColorA(col, 0.06 * plumAlphaScale * dens));
       g.addColorStop(1, _plumColorA(col, 0));
       waveCtx.fillStyle = g;
       waveCtx.beginPath(); waveCtx.arc(c.x, c.y, rPx, 0, Math.PI * 2); waveCtx.fill();
@@ -241,7 +265,7 @@
       var drP = kmToPx(detectedPRadius);
       if (drP > 0 && drP < waveCanvas.width*2) {
         waveCtx.beginPath(); waveCtx.arc(dep.x, dep.y, drP, 0, Math.PI*2);
-        waveCtx.strokeStyle = 'rgba(77,166,255,0.42)'; waveCtx.lineWidth = 8; waveCtx.stroke();
+        waveCtx.strokeStyle = 'rgba(77,166,255,0.20)'; waveCtx.lineWidth = 8; waveCtx.stroke();
         waveCtx.beginPath(); waveCtx.arc(dep.x, dep.y, drP, 0, Math.PI*2);
         waveCtx.strokeStyle = 'rgba(77,166,255,0.9)'; waveCtx.lineWidth = 3;
         waveCtx.setLineDash([6,3]); waveCtx.stroke(); waveCtx.setLineDash([]);
@@ -252,7 +276,7 @@
       var drS = kmToPx(detectedSRadius);
       if (drS > 0 && drS < waveCanvas.width*2) {
         waveCtx.beginPath(); waveCtx.arc(dep.x, dep.y, drS, 0, Math.PI*2);
-        waveCtx.strokeStyle = 'rgba(255,159,67,0.45)'; waveCtx.lineWidth = 10; waveCtx.stroke();
+        waveCtx.strokeStyle = 'rgba(255,159,67,0.22)'; waveCtx.lineWidth = 10; waveCtx.stroke();
         waveCtx.beginPath(); waveCtx.arc(dep.x, dep.y, drS, 0, Math.PI*2);
         waveCtx.strokeStyle = 'rgba(255,159,67,0.92)'; waveCtx.lineWidth = 3.2;
         waveCtx.setLineDash([10,5]); waveCtx.stroke(); waveCtx.setLineDash([]);
@@ -315,7 +339,7 @@
         var dcrP = kmToPx(dce.pR, dceRef);
         if (dcrP > 0 && dcrP < waveCanvas.width * 2) {
           waveCtx.beginPath(); waveCtx.arc(dcp.x, dcp.y, dcrP, 0, Math.PI * 2);
-          waveCtx.strokeStyle = 'rgba(77,166,255,0.34)'; waveCtx.lineWidth = 7; waveCtx.stroke();
+          waveCtx.strokeStyle = 'rgba(77,166,255,0.17)'; waveCtx.lineWidth = 7; waveCtx.stroke();
           waveCtx.beginPath(); waveCtx.arc(dcp.x, dcp.y, dcrP, 0, Math.PI * 2);
           waveCtx.strokeStyle = 'rgba(77,166,255,0.85)'; waveCtx.lineWidth = 2.6;
           waveCtx.setLineDash([6, 3]); waveCtx.stroke(); waveCtx.setLineDash([]);
@@ -325,7 +349,7 @@
         var dcrS = kmToPx(dce.sR, dceRef);
         if (dcrS > 0 && dcrS < waveCanvas.width * 2) {
           waveCtx.beginPath(); waveCtx.arc(dcp.x, dcp.y, dcrS, 0, Math.PI * 2);
-          waveCtx.strokeStyle = 'rgba(255,159,67,0.38)'; waveCtx.lineWidth = 9; waveCtx.stroke();
+          waveCtx.strokeStyle = 'rgba(255,159,67,0.19)'; waveCtx.lineWidth = 9; waveCtx.stroke();
           waveCtx.beginPath(); waveCtx.arc(dcp.x, dcp.y, dcrS, 0, Math.PI * 2);
           waveCtx.strokeStyle = 'rgba(255,159,67,0.88)'; waveCtx.lineWidth = 2.8;
           waveCtx.setLineDash([10, 5]); waveCtx.stroke(); waveCtx.setLineDash([]);
@@ -425,7 +449,7 @@
     var r = kmToPx(displayPRadius, {lat: waveLat, lng: waveLng});
     if (r > 0 && r < waveCanvas.width * 2) {
       waveCtx.beginPath(); waveCtx.arc(epP.x, epP.y, r, 0, Math.PI * 2);
-      waveCtx.strokeStyle = 'rgba(77,166,255,0.42)'; waveCtx.lineWidth = 9; waveCtx.stroke();
+      waveCtx.strokeStyle = 'rgba(77,166,255,0.20)'; waveCtx.lineWidth = 9; waveCtx.stroke();
       waveCtx.beginPath(); waveCtx.arc(epP.x, epP.y, r, 0, Math.PI * 2);
       waveCtx.strokeStyle = 'rgba(77,166,255,0.95)'; waveCtx.lineWidth = 3.2;
       waveCtx.setLineDash([8, 4]); waveCtx.stroke(); waveCtx.setLineDash([]);
@@ -443,7 +467,7 @@
     var r2 = kmToPx(displaySRadius, {lat: waveLat, lng: waveLng});
     if (r2 > 0 && r2 < waveCanvas.width * 2) {
       waveCtx.beginPath(); waveCtx.arc(epP.x, epP.y, r2, 0, Math.PI * 2);
-      waveCtx.strokeStyle = 'rgba(255,159,67,0.46)'; waveCtx.lineWidth = 12; waveCtx.stroke();
+      waveCtx.strokeStyle = 'rgba(255,159,67,0.22)'; waveCtx.lineWidth = 12; waveCtx.stroke();
       waveCtx.beginPath(); waveCtx.arc(epP.x, epP.y, r2, 0, Math.PI * 2);
       waveCtx.strokeStyle = 'rgba(255,159,67,0.96)'; waveCtx.lineWidth = 3.6;
       waveCtx.setLineDash([12, 6]); waveCtx.stroke(); waveCtx.setLineDash([]);
@@ -519,10 +543,11 @@
     if (!fill) continue;
     var fR = parseInt(fill.slice(1,3),16), fG = parseInt(fill.slice(3,5),16), fB = parseInt(fill.slice(5,7),16);
     var tl = toCanvas(c.maxLat, c.minLng), br = toCanvas(c.minLat, c.maxLng);
-    // 0.72/0.22 -> 0.40/0.12: the mosaic stays readable without obscuring the map
-    waveCtx.strokeStyle = 'rgba('+fR+','+fG+','+fB+',0.40)'; waveCtx.lineWidth = 1.5;
+    // v5.5 haze fix round 2: 0.40/0.12 -> 0.22/0.07 — the 0.5° blocks tinted
+    // whole regions; they only need to hint the cell max, not paint it.
+    waveCtx.strokeStyle = 'rgba('+fR+','+fG+','+fB+',0.22)'; waveCtx.lineWidth = 1;
     waveCtx.strokeRect(tl.x, tl.y, br.x-tl.x, br.y-tl.y);
-    waveCtx.fillStyle = 'rgba('+fR+','+fG+','+fB+',0.12)';
+    waveCtx.fillStyle = 'rgba('+fR+','+fG+','+fB+',0.07)';
     waveCtx.fillRect(tl.x, tl.y, br.x-tl.x, br.y-tl.y);
   }
 }
@@ -1192,24 +1217,6 @@
   }
 }
 
-  Renderer.drawDamageHeatmap = function() {
-  if (!isRunning || visibleCircles.length < 5) return;
-  var zoom = map.getZoom();
-  if (zoom < 7) return;
-  for (var i = 0; i < visibleCircles.length; i++) {
-    var c = visibleCircles[i];
-    if (c.isSeafloor) continue;
-    var sn = Physics.shindoNum(c.shindo);
-    if (sn < 5) continue; // only show for shindo 5+ areas
-    var rate = sn >= 7 ? 0.6 : sn >= 6.5 ? 0.25 : sn >= 6 ? 0.08 : 0.02;
-    var pt = toCanvas(c.lat, c.lng);
-    var r = Math.max(8, Math.min(30, rate * 60));
-    waveCtx.beginPath(); waveCtx.arc(pt.x, pt.y, r, 0, Math.PI * 2);
-    waveCtx.fillStyle = 'rgba(200,20,20,' + (rate * 0.4).toFixed(2) + ')';
-    waveCtx.fill();
-  }
-}
-
   // Expose
   if (typeof module !== 'undefined' && module.exports) module.exports = Renderer;
   else root.Renderer = Renderer;
@@ -1236,4 +1243,3 @@ window.drawPWaveFlash = Renderer.drawPWaveFlash;
 window.spawnWaveParticles = Renderer.spawnWaveParticles;
 window.drawWaveParticles = Renderer.drawWaveParticles;
 window.drawIsoseismalLines = Renderer.drawIsoseismalLines;
-window.drawDamageHeatmap = Renderer.drawDamageHeatmap;
