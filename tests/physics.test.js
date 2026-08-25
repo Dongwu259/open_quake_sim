@@ -850,6 +850,48 @@ test('zhao2006 — magnitude scaling: M8 > M7 at same distance', () => {
   assert.ok(pgaM8 > pgaM7, `M8 PGA (${pgaM8.toFixed(1)}) should exceed M7 (${pgaM7.toFixed(1)})`);
 });
 
+// ============================================================
+//  Somerville (1997) directivity — R0-1 (2026-08-24)
+// ============================================================
+
+test('somerville directivity — coefficient scales with magnitude', () => {
+  assert.strictEqual(Physics.somervilleDirectivityCoefficient(4), 0.15);
+  assert.strictEqual(Physics.somervilleDirectivityCoefficient(5), 0.15);
+  assert.strictEqual(Physics.somervilleDirectivityCoefficient(7), 0.25);
+  assert.strictEqual(Physics.somervilleDirectivityCoefficient(9), 0.35);
+});
+
+test('bearingRad — great-circle initial bearing (not planar atan2)', () => {
+  const deg = r => r * 180 / Math.PI;
+  assert.ok(Math.abs(deg(Physics.bearingRad(0, 0, 0, 1)) - 90) < 1e-9);
+  assert.ok(Math.abs(deg(Physics.bearingRad(0, 0, 1, 0)) - 0) < 1e-9);
+  // Destination built from equal-distance NE offsets at 44°N. The old planar
+  // atan2(dLng, dLat) read ~54.3° here because it ignored the cos(lat) scale.
+  const lat0 = 44, lng0 = 142, d = 0.2;
+  const dLat = d * Math.SQRT1_2, dLng = d * Math.SQRT1_2 / Math.cos(lat0 * Math.PI / 180);
+  assert.ok(Math.abs(deg(Physics.bearingRad(lat0, lng0, lat0 + dLat, lng0 + dLng)) - 45) < 0.3);
+});
+
+test('somerville directivity — station on the strike azimuth gets the full factor', () => {
+  const lat0 = 44, lng0 = 142, d = 0.2; // high latitude: max planar-azimuth bias
+  const ctx = {
+    source: { lat: lat0, lng: lng0, mw: 7, depthKm: 10, strikeDeg: 45, sourceType: 'crustal' },
+    geometry: {}, gmpModel: 'zhao2006',
+    options: { directivity: 'somerville1997', siteModel: 'none' }
+  };
+  const dLat = d * Math.SQRT1_2, dLng = d * Math.SQRT1_2 / Math.cos(lat0 * Math.PI / 180);
+  const along = Physics.predictStationMotion(ctx, { lat: lat0 + dLat, lng: lng0 + dLng }, {});
+  assert.ok(along, 'predictStationMotion returned null');
+  // Old planar azimuth (~54.3° vs strike 45°) lost ~0.004 of the factor here.
+  assert.ok(Math.abs(along.directivityFactor - (1 + Physics.somervilleDirectivityCoefficient(7))) < 0.002,
+    `directivityFactor ${along.directivityFactor} should be ${1 + Physics.somervilleDirectivityCoefficient(7)}`);
+  const back = Physics.predictStationMotion(ctx, { lat: lat0 - dLat, lng: lng0 - dLng }, {});
+  assert.strictEqual(back.directivityFactor, 1, 'anti-parallel azimuth must not reduce PGA');
+  const across = Physics.predictStationMotion(ctx, { lat: lat0 + dLat, lng: lng0 - dLng }, {});
+  assert.ok(Math.abs(across.directivityFactor - 1) < 0.005,
+    'perpendicular azimuth must stay near unity');
+});
+
 test('zhao2006 — PGV within reasonable range at M7 50km', () => {
   const pgv = Physics.pgvZhao2006(7.0, 50, 15, 'crustal', 400);
   assert.ok(pgv > 2 && pgv < 100, `PGV for M7@50km should be 2-100 cm/s, got ${pgv.toFixed(1)}`);

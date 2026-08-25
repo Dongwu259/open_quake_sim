@@ -1,0 +1,234 @@
+{
+  "schema": "quake-sim-ensemble-reliability-v1",
+  "generatedAt": "2026-08-24T02:55:53.800Z",
+  "config": {
+    "members": 120,
+    "thresholds": [
+      3.5,
+      4.5,
+      5,
+      5.5
+    ],
+    "stationSubsample": "i%3===0",
+    "model": "logic-tree",
+    "hypocenters": "jma"
+  },
+  "stationsSampled": 1633,
+  "thresholds": [
+    {
+      "threshold": 3.5,
+      "n": 1633,
+      "climatology": 0.533,
+      "brier": 0.1183,
+      "brierSkill": 0.525,
+      "reliabilityBins": [
+        {
+          "pMid": 0.05,
+          "n": 194,
+          "observedFreq": 0.046
+        },
+        {
+          "pMid": 0.15,
+          "n": 153,
+          "observedFreq": 0.052
+        },
+        {
+          "pMid": 0.25,
+          "n": 128,
+          "observedFreq": 0.141
+        },
+        {
+          "pMid": 0.35,
+          "n": 91,
+          "observedFreq": 0.275
+        },
+        {
+          "pMid": 0.45,
+          "n": 99,
+          "observedFreq": 0.323
+        },
+        {
+          "pMid": 0.55,
+          "n": 101,
+          "observedFreq": 0.446
+        },
+        {
+          "pMid": 0.65,
+          "n": 114,
+          "observedFreq": 0.509
+        },
+        {
+          "pMid": 0.75,
+          "n": 135,
+          "observedFreq": 0.719
+        },
+        {
+          "pMid": 0.85,
+          "n": 162,
+          "observedFreq": 0.833
+        },
+        {
+          "pMid": 0.95,
+          "n": 456,
+          "observedFreq": 0.971
+        }
+      ]
+    },
+    {
+      "threshold": 4.5,
+      "n": 1633,
+      "climatology": 0.276,
+      "brier": 0.0916,
+      "brierSkill": 0.542,
+      "reliabilityBins": [
+        {
+          "pMid": 0.05,
+          "n": 706,
+          "observedFreq": 0.011
+        },
+        {
+          "pMid": 0.15,
+          "n": 183,
+          "observedFreq": 0.098
+        },
+        {
+          "pMid": 0.25,
+          "n": 124,
+          "observedFreq": 0.202
+        },
+        {
+          "pMid": 0.35,
+          "n": 117,
+          "observedFreq": 0.274
+        },
+        {
+          "pMid": 0.45,
+          "n": 110,
+          "observedFreq": 0.436
+        },
+        {
+          "pMid": 0.55,
+          "n": 89,
+          "observedFreq": 0.618
+        },
+        {
+          "pMid": 0.65,
+          "n": 82,
+          "observedFreq": 0.744
+        },
+        {
+          "pMid": 0.75,
+          "n": 81,
+          "observedFreq": 0.827
+        },
+        {
+          "pMid": 0.85,
+          "n": 80,
+          "observedFreq": 0.95
+        },
+        {
+          "pMid": 0.95,
+          "n": 61,
+          "observedFreq": 1
+        }
+      ]
+    },
+    {
+      "threshold": 5,
+      "n": 1633,
+      "climatology": 0.173,
+      "brier": 0.0775,
+      "brierSkill": 0.457,
+      "reliabilityBins": [
+        {
+          "pMid": 0.05,
+          "n": 974,
+          "observedFreq": 0.014
+        },
+        {
+          "pMid": 0.15,
+          "n": 149,
+          "observedFreq": 0.128
+        },
+        {
+          "pMid": 0.25,
+          "n": 131,
+          "observedFreq": 0.206
+        },
+        {
+          "pMid": 0.35,
+          "n": 107,
+          "observedFreq": 0.336
+        },
+        {
+          "pMid": 0.45,
+          "n": 92,
+          "observedFreq": 0.457
+        },
+        {
+          "pMid": 0.55,
+          "n": 61,
+          "observedFreq": 0.689
+        },
+        {
+          "pMid": 0.65,
+          "n": 45,
+          "observedFreq": 0.778
+        },
+        {
+          "pMid": 0.75,
+          "n": 38,
+          "observedFreq": 0.842
+        },
+        {
+          "pMid": 0.85,
+          "n": 26,
+          "observedFreq": 0.962
+        }
+      ]
+    },
+    {
+      "threshold": 5.5,
+      "n": 1633,
+      "climatology": 0.102,
+      "brier": 0.055,
+      "brierSkill": 0.398,
+      "reliabilityBins": [
+        {
+          "pMid": 0.05,
+          "n": 1193,
+          "observedFreq": 0.013
+        },
+        {
+          "pMid": 0.15,
+          "n": 147,
+          "observedFreq": 0.129
+        },
+        {
+          "pMid": 0.25,
+          "n": 93,
+          "observedFreq": 0.129
+        },
+        {
+          "pMid": 0.35,
+          "n": 99,
+          "observedFreq": 0.404
+        },
+        {
+          "pMid": 0.45,
+          "n": 46,
+          "observedFreq": 0.739
+        },
+        {
+          "pMid": 0.55,
+          "n": 27,
+          "observedFreq": 0.741
+        }
+      ]
+    }
+  ],
+  "analyticCrossCheck": {
+    "pairs": 4905,
+    "meanAbsDeviation": 0.0192
+  }
+}

@@ -1,5 +1,5 @@
 // ================================================================
-//  Earthquake Simulator Pro v5.5 — Tsunami solver host (main thread)
+//  Earthquake Simulator Pro v5.6 — Tsunami solver host (main thread)
 //
 //  Owns the nonlinear/nested-AMR tsunami solvers so app.js does not care
 //  WHERE they run:

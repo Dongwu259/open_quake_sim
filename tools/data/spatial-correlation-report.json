@@ -1,0 +1,137 @@
+{
+  "schema": "quake-sim-spatial-correlation-v1",
+  "generatedAt": "2026-08-23T17:44:26.437Z",
+  "method": "empirical semivariogram of phi-normalized residuals; pairwise differencing within events (inter-event term cancels per Jayaram & Baker 2009 Eq.(13)); exponential rho(h)=exp(-3h/b) fitted with 1/h weighting up to 60 km",
+  "events": 13,
+  "stations": 4887,
+  "paperReference": {
+    "model": "Jayaram & Baker (2009) Eq.(17)-(20)",
+    "t0Case1RangeKm": 8.5,
+    "t0Case2RangeKm": 40.7,
+    "note": "case split by Vs30 clustering; T=0 in paper units"
+  },
+  "metrics": {
+    "lnPga": {
+      "rangeKm": 94,
+      "fitRmse": 0.1299,
+      "pairs": 217859,
+      "bins": [
+        {
+          "minKm": 0,
+          "maxKm": 5,
+          "gamma": 0.224,
+          "pairs": 566
+        },
+        {
+          "minKm": 5,
+          "maxKm": 10,
+          "gamma": 0.293,
+          "pairs": 1092
+        },
+        {
+          "minKm": 10,
+          "maxKm": 15,
+          "gamma": 0.313,
+          "pairs": 2095
+        },
+        {
+          "minKm": 15,
+          "maxKm": 20,
+          "gamma": 0.408,
+          "pairs": 3974
+        },
+        {
+          "minKm": 20,
+          "maxKm": 30,
+          "gamma": 0.425,
+          "pairs": 10391
+        },
+        {
+          "minKm": 30,
+          "maxKm": 40,
+          "gamma": 0.458,
+          "pairs": 13811
+        },
+        {
+          "minKm": 40,
+          "maxKm": 60,
+          "gamma": 0.542,
+          "pairs": 36010
+        },
+        {
+          "minKm": 60,
+          "maxKm": 80,
+          "gamma": 0.638,
+          "pairs": 45213
+        },
+        {
+          "minKm": 80,
+          "maxKm": 120,
+          "gamma": 0.769,
+          "pairs": 104707
+        }
+      ]
+    },
+    "intensity": {
+      "rangeKm": 72.5,
+      "fitRmse": 0.1437,
+      "pairs": 217859,
+      "bins": [
+        {
+          "minKm": 0,
+          "maxKm": 5,
+          "gamma": 0.258,
+          "pairs": 566
+        },
+        {
+          "minKm": 5,
+          "maxKm": 10,
+          "gamma": 0.348,
+          "pairs": 1092
+        },
+        {
+          "minKm": 10,
+          "maxKm": 15,
+          "gamma": 0.348,
+          "pairs": 2095
+        },
+        {
+          "minKm": 15,
+          "maxKm": 20,
+          "gamma": 0.468,
+          "pairs": 3974
+        },
+        {
+          "minKm": 20,
+          "maxKm": 30,
+          "gamma": 0.484,
+          "pairs": 10391
+        },
+        {
+          "minKm": 30,
+          "maxKm": 40,
+          "gamma": 0.519,
+          "pairs": 13811
+        },
+        {
+          "minKm": 40,
+          "maxKm": 60,
+          "gamma": 0.609,
+          "pairs": 36010
+        },
+        {
+          "minKm": 60,
+          "maxKm": 80,
+          "gamma": 0.71,
+          "pairs": 45213
+        },
+        {
+          "minKm": 80,
+          "maxKm": 120,
+          "gamma": 0.862,
+          "pairs": 104707
+        }
+      ]
+    }
+  }
+}

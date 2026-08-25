@@ -66,7 +66,16 @@ const JMA_KEY_BY_EVENT = {
   tokachi2003: 'tokachi2003',
   noto2024: 'noto2024',
   fukushima2022: 'fukushima2022',
-  hyuganada2024: 'hyuganada2024'
+  hyuganada2024: 'hyuganada2024',
+  // R1 expansion (2026-08-24): +7 crustal events, JMA hypocenters already
+  // frozen in observed.json.
+  chuetsu2004: 'chuetsu',
+  iwate2008: 'iwate2008',
+  fukuoka2005: 'fukuoka2005',
+  noto2007: 'noto2007',
+  fukushima2011: 'fukushima2011',
+  yamagata2019: 'yamagata2019',
+  iburihigashi2018: 'iburihigashi'
 };
 const PRESET_ONLY_EVENTS = ['fukushima2022', 'hyuganada2024'];
 
@@ -302,41 +311,132 @@ function computeReport(obs, calibrationTable, opts) {
 // A model the auto-router emits for at least one frozen event is fitted on
 // its routed events only; a model it never emits (kanno2006 — user-
 // selectable for every source type) is instead forced onto all events.
-function fitModelBias(obs, calibrationTable, model) {
+//
+// R0-4: the residual collection and the pure bin fit are split out so the
+// leave-one-event-out report (buildModelBiasLoeo) refits through exactly
+// the deployed code path.
+function collectModelBiasResiduals(obs, calibrationTable, model) {
   const jmaHypos = loadJmaHypocenters();
   const baseTable = calibrationTable
     ? Object.assign({}, calibrationTable, { modelBias: undefined }) : null;
   Physics.setGmpeCalibration(baseTable);
-  const bins = DIST_LABELS.map(() => newAcc());
   const routable = obs.events.some(ev0 => {
     const ev = predictionEvent(ev0, 'jma', jmaHypos);
     return Physics.resolveGmpModel('auto', ev.sourceType, ev.mw) === model;
   });
+  const events = [];
   for (const ev0 of obs.events) {
     const ev = predictionEvent(ev0, 'jma', jmaHypos);
     if (routable && Physics.resolveGmpModel('auto', ev.sourceType, ev.mw) !== model) continue;
+    const stations = [];
     for (const st of ev.stations) {
       if (!(st.pgaGal > 0) || !(st.pgvCms > 0)) continue;
       const pred = predictStation(ev, st, routable ? undefined : model);
       const obsI = Physics.calcJmaIntensity(st.pgaGal, st.pgvCms);
-      push(bins[distBinIndex(pred.rHypoKm)], pred.intensity - obsI);
+      stations.push({
+        residual: pred.intensity - obsI, distKm: pred.rHypoKm, mw: ev.mw,
+        // Extra fields for the sigma-component / spatial-correlation fits
+        // (R1): station coordinates and the ln-space PGA residual.
+        lat: st.lat, lng: st.lng,
+        lnPgaResidual: Math.log(pred.pga / st.pgaGal)
+      });
     }
+    if (stations.length) events.push({ eventId: ev.eventId, stations });
   }
   Physics.setGmpeCalibration(null);
-  const distBins = [];
-  for (let i = 0; i < DIST_LABELS.length; i++) {
-    if (!bins[i].n) continue;
-    const bias = bins[i].sum / bins[i].n;
+  return { events, routable };
+}
+
+// Pure fit: per-event station residual lists -> per-distance-bin deltaI
+// (null where the bin has no stations). Shared by the deployed fit and the
+// leave-one-event-out refits.
+function fitBinDeltas(events) {
+  const bins = DIST_LABELS.map(() => newAcc());
+  for (const ev of events) {
+    for (const st of ev.stations) push(bins[distBinIndex(st.distKm)], st.residual);
+  }
+  return bins.map((b, i) => {
+    if (!b.n) return null;
+    const bias = b.sum / b.n;
     let deltaI = -bias;
     if (deltaI > 1) deltaI = 1; else if (deltaI < -1) deltaI = -1;
+    return { minKm: DIST_EDGES[i], maxKm: DIST_EDGES[i + 1], bias, deltaI, n: b.n };
+  });
+}
+
+// Published distBins shape for gmpe-calibration.json.
+function fitDistBinsFromEvents(events) {
+  const distBins = [];
+  for (const b of fitBinDeltas(events)) {
+    if (!b) continue;
     distBins.push({
-      minKm: DIST_EDGES[i] === Infinity ? null : DIST_EDGES[i],
-      maxKm: DIST_EDGES[i + 1] === Infinity ? null : DIST_EDGES[i + 1],
-      measuredBias: +bias.toFixed(4), stations: bins[i].n,
-      deltaI: +deltaI.toFixed(3)
+      minKm: b.minKm === Infinity ? null : b.minKm,
+      maxKm: b.maxKm === Infinity ? null : b.maxKm,
+      measuredBias: +b.bias.toFixed(4), stations: b.n,
+      deltaI: +b.deltaI.toFixed(3)
     });
   }
   return distBins;
+}
+
+function fitModelBias(obs, calibrationTable, model) {
+  const { events } = collectModelBiasResiduals(obs, calibrationTable, model);
+  return fitDistBinsFromEvents(events);
+}
+
+// Leave-one-event-out generalization report for the modelBias layer (R0-4):
+// for each frozen event, refit the distance-binned deltaI from the OTHER
+// events and score this event's stations with that refit correction
+// (magnitude gate mirrors the deployed table). If the correction generalizes,
+// held-out intensity RMS stays at or below the uncorrected RMS.
+function buildModelBiasLoeo(obs, calibrationTable, model) {
+  const { events, routable } = collectModelBiasResiduals(obs, calibrationTable, model);
+  const gate = (calibrationTable && calibrationTable.modelBias
+    && calibrationTable.modelBias[model]) || { minM: 7, maxM: Infinity };
+  const correctionAt = (binDeltas, st) => {
+    if (st.mw < (gate.minM == null ? 0 : gate.minM) || st.mw > (gate.maxM == null ? Infinity : gate.maxM)) return 0;
+    return binDeltas[distBinIndex(st.distKm)] ? binDeltas[distBinIndex(st.distKm)].deltaI : 0;
+  };
+  const rms = rs => rs.length ? Math.sqrt(rs.reduce((s, r) => s + r * r, 0) / rs.length) : null;
+  const r3 = v => v == null ? null : +v.toFixed(3);
+  const deployedDeltas = fitBinDeltas(events);
+  const deployed = fitDistBinsFromEvents(events);
+  const folds = events.map(ev => {
+    const refitDeltas = fitBinDeltas(events.filter(e => e !== ev));
+    let un = [], held = [], dep = [];
+    for (const st of ev.stations) {
+      un.push(st.residual);
+      held.push(st.residual + correctionAt(refitDeltas, st));
+      dep.push(st.residual + correctionAt(deployedDeltas, st));
+    }
+    return {
+      eventId: ev.eventId, stations: ev.stations.length,
+      rmsUncorrected: r3(rms(un)), rmsHeldOutRefit: r3(rms(held)), rmsDeployed: r3(rms(dep))
+    };
+  });
+  const binLevelHeld = rms(events.flatMap(ev => {
+    const refitDeltas = fitBinDeltas(events.filter(e => e !== ev));
+    return ev.stations.map(st => st.residual + correctionAt(refitDeltas, st));
+  }));
+  const binLevelUn = rms(events.flatMap(ev => ev.stations.map(st => st.residual)));
+  const worse = binLevelHeld != null && binLevelUn != null && binLevelHeld > binLevelUn + 1e-9;
+  return {
+    schema: 'quake-sim-model-bias-loeo-v1',
+    model, forcedFit: !routable,
+    magnitudeGate: { minM: gate.minM == null ? null : gate.minM, maxM: gate.maxM == null || !isFinite(gate.maxM) ? null : gate.maxM },
+    events: events.length,
+    stations: events.reduce((s, e) => s + e.stations.length, 0),
+    deployedDistBins: deployed,
+    rmsUncorrected: r3(binLevelUn),
+    rmsHeldOutLOO: r3(binLevelHeld),
+    heldOutWorseThanUncorrected: worse,
+    folds,
+    conclusion: events.length < 2
+      ? 'fewer than two events — leave-one-out not meaningful'
+      : (worse
+        ? 'held-out RMS exceeds uncorrected RMS: the modelBias correction does not generalize to unseen events'
+        : 'held-out RMS does not exceed uncorrected RMS: no leave-one-out evidence of overfitting')
+  };
 }
 
 function fmt(v, w) {
@@ -416,6 +516,9 @@ function main() {
   const obsArg = args.find(a => a.startsWith('--obs='));
   const outArg = args.find(a => a.startsWith('--out='));
   const fitArg = args.find(a => a.startsWith('--fit-model-bias='));
+  const loeoArg = args.find(a => a.startsWith('--loeo-model-bias'));
+  const loeoModels = loeoArg && loeoArg.includes('=') ? loeoArg.split('=')[1].split(',')
+    : ['zhao2006', 'si-midorikawa'];
   const obsPath = obsArg ? obsArg.split('=')[1] : 'public/geojson/strong-motion-obs.json';
   const outPath = outArg ? outArg.split('=')[1] : 'tools/data/strong-motion-report.json';
   const useCalibration = !args.includes('--no-calibration');
@@ -429,6 +532,28 @@ function main() {
   if (useCalibration) {
     const calPath = path.join('public', 'geojson', 'gmpe-calibration.json');
     calibration = JSON.parse(fs.readFileSync(calPath, 'utf8'));
+  }
+
+  if (loeoArg) {
+    // Leave-one-event-out generalization report for the modelBias layer
+    // (R0-4); report-only, never rewrites the calibration table.
+    const models = {};
+    for (const model of loeoModels) {
+      const r = buildModelBiasLoeo(obs, calibration, model);
+      models[model] = r;
+      console.log(`${model}: events=${r.events} stations=${r.stations} `
+        + `LOO held-out intensity RMS ${r.rmsHeldOutLOO} vs uncorrected ${r.rmsUncorrected}`);
+      console.log('  ' + r.conclusion);
+    }
+    const out = {
+      schema: 'quake-sim-model-bias-loeo-bundle-v1',
+      generatedAt: new Date().toISOString(),
+      obsSource: obsPath,
+      models
+    };
+    fs.writeFileSync('tools/data/model-bias-loeo-report.json', JSON.stringify(out, null, 2) + '\n');
+    console.log('wrote tools/data/model-bias-loeo-report.json');
+    return;
   }
 
   if (fitArg) {
@@ -477,4 +602,5 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { computeReport, predictStation, fitModelBias, loadJmaHypocenters, DIST_LABELS, DIST_EDGES };
+module.exports = { computeReport, predictStation, fitModelBias, buildModelBiasLoeo,
+  collectModelBiasResiduals, fitDistBinsFromEvents, loadJmaHypocenters, DIST_LABELS, DIST_EDGES };

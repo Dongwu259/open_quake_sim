@@ -1,0 +1,64 @@
+{
+  "schema": "quake-sim-gmpe-loeo-v1",
+  "generatedAt": "2026-08-23T16:58:56.918Z",
+  "model": "zhao2006",
+  "method": "leave-one-event-out refit of the magnitude-binned deltaI (MIN_EVENTS gate re-applied per fold); held-out event residuals scored with the fold correction",
+  "minEvents": 2,
+  "eventsSkipped": 0,
+  "bins": [
+    {
+      "minM": 0,
+      "maxM": 4.5,
+      "events": 0,
+      "stations": 0,
+      "deltaIDeployed": 0,
+      "rmsUncorrected": null,
+      "rmsHeldOutLOO": null,
+      "rmsInSampleDeployed": null,
+      "heldOutWorseThanUncorrected": false,
+      "events_detail": []
+    },
+    {
+      "minM": 4.5,
+      "maxM": 5.5,
+      "events": 0,
+      "stations": 0,
+      "deltaIDeployed": 0,
+      "rmsUncorrected": null,
+      "rmsHeldOutLOO": null,
+      "rmsInSampleDeployed": null,
+      "heldOutWorseThanUncorrected": false,
+      "events_detail": []
+    },
+    {
+      "minM": 5.5,
+      "maxM": 6.5,
+      "events": 0,
+      "stations": 0,
+      "deltaIDeployed": 0,
+      "rmsUncorrected": null,
+      "rmsHeldOutLOO": null,
+      "rmsInSampleDeployed": null,
+      "heldOutWorseThanUncorrected": false,
+      "events_detail": []
+    },
+    {
+      "minM": 6.5,
+      "maxM": 99,
+      "events": 0,
+      "stations": 0,
+      "deltaIDeployed": 0,
+      "rmsUncorrected": null,
+      "rmsHeldOutLOO": null,
+      "rmsInSampleDeployed": null,
+      "heldOutWorseThanUncorrected": false,
+      "events_detail": []
+    }
+  ],
+  "conclusion": "no scored events — nothing to test",
+  "recordings": [
+    "20260821.jsonl.gz",
+    "20260822.jsonl.gz",
+    "20260823.jsonl.gz"
+  ]
+}

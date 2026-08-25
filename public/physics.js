@@ -986,6 +986,481 @@ Physics.vs30AmplificationNL = function(vs30, imt, rockPgaGal) {
 };
 
 // ================================================================
+//  v5.5 R2: 1D SH-WAVE TRANSFER FUNCTION (Thomson–Haskell propagator)
+//
+//  Vertically incident SH waves through a horizontally layered soil
+//  column over an elastic halfspace (the KiK-net borehole geometry).
+//  The surface motion is normalized against the free-surface (outcrop)
+//  motion of the halfspace, so a homogeneous column returns exactly 1.
+//
+//  State vector [u; tau] propagates downward from the free surface
+//  (tau(0)=0) through each layer of thickness h:
+//    u(z+h)   =  u*cos(a) + tau/(Z*w) * sin(a)
+//    tau(z+h) = -u*Z*w*sin(a) + tau*cos(a)     a = w*h/Vs*,  Z = rho*Vs*
+//  With the halfspace radiation condition tau_b = i*Z_b*w*(I-R),
+//  u_b = I+R, the outcrop amplification is
+//    A(w) = 1 / (M11 + M21/(i*Z_b*w))
+//  which for a single layer reduces to the analytic textbook form
+//  Z_b / (Z_b*cos(a) + i*Z_1*sin(a))   (f0 = Vs1/(4H), |A|max -> Z_b/Z_1).
+//  Hysteretic damping enters as a complex Vs* = Vs*(1+i*zeta).
+// ================================================================
+
+/** Approximate bulk density (t/m³) from S-wave velocity, interpolated over
+ *  typical sediment-to-rock values. KiK-net PS logs carry measured density
+ *  when available — this default is only for synthetic/estimated profiles. */
+Physics.densityFromVs = function(vs) {
+  var anchors = [[150, 1.65], [400, 1.90], [700, 2.10], [1500, 2.40], [3000, 2.65]];
+  if (!(vs > 0)) return 2.0;
+  if (vs <= anchors[0][0]) return anchors[0][1];
+  for (var i = 1; i < anchors.length; i++) {
+    if (vs <= anchors[i][0]) {
+      var t = (vs - anchors[i - 1][0]) / (anchors[i][0] - anchors[i - 1][0]);
+      return anchors[i - 1][1] + t * (anchors[i][1] - anchors[i - 1][1]);
+    }
+  }
+  return anchors[anchors.length - 1][1];
+};
+
+// ================================================================
+//  v5.5 B5: JAPAN-FITTED ORTHOGONAL-COMPONENT EPSILON CORRELATION
+//
+//  Jayaram, Baker, Okano, Ishida, McCann & Mihara (2011), "Correlation of
+//  response spectral values in Japanese ground motions", Earthquakes and
+//  Structures 2(4), 357-376 — Eq. (6), fitted on K-NET/KiK-net records
+//  (the paper notes Japanese ground motions correlate MORE strongly between
+//  orthogonal components than previous worldwide datasets). Verified
+//  verbatim against the author-hosted PDF (glyph-level extraction).
+//
+//  The same paper's period-to-period correlation tables (K-NET/KiK-net
+//  specific, recommended over Baker & Jayaram 2008 for Japanese sites)
+//  remain tabular in the paper — digitize before a conditional-spectrum
+//  implementation; do NOT silently substitute the NGA-fit B&J2008 form.
+// ================================================================
+Physics.orthogonalComponentCorrelation = function(periodSec) {
+  if (!(periodSec > 0)) return null;
+  var rho = periodSec < 0.1 ? 0.96 : 0.865 - 0.041 * Math.log(periodSec);
+  return Math.max(0, Math.min(1, rho));
+};
+
+// Minimal complex helpers ({re, im}) used by the SH propagator.
+function cAdd(a, b) { return { re: a.re + b.re, im: a.im + b.im }; }
+function cNeg(a) { return { re: -a.re, im: -a.im }; }
+function cMul(a, b) { return { re: a.re * b.re - a.im * b.im, im: a.re * b.im + a.im * b.re }; }
+function cScale(a, s) { return { re: a.re * s, im: a.im * s }; }
+function cDiv(a, b) {
+  var d = b.re * b.re + b.im * b.im;
+  return { re: (a.re * b.re + a.im * b.im) / d, im: (a.im * b.re - a.re * b.im) / d };
+}
+function cAbs(a) { return Math.sqrt(a.re * a.re + a.im * a.im); }
+// cos/sin of a complex argument.
+function cCos(a) {
+  return { re: Math.cos(a.re) * Math.cosh(a.im), im: -Math.sin(a.re) * Math.sinh(a.im) };
+}
+function cSin(a) {
+  return { re: Math.sin(a.re) * Math.cosh(a.im), im: Math.cos(a.re) * Math.sinh(a.im) };
+}
+
+/**
+ * 1D SH transfer function (surface / halfspace-outcrop) for a layered
+ * velocity profile.
+ * @param {Array} profile [{vs (m/s), thickness (m — ignored for the last
+ *   entry, which is the elastic halfspace), density? (t/m³),
+ *   damping? (hysteretic zeta, default 0.02)}]
+ * @param {Array} freqs frequencies in Hz (must include f>0; w=0 is singular)
+ * @returns {Array|null} |A(f)| amplification factors, same order as freqs
+ */
+Physics.shTransferFunction = function(profile, freqs) {
+  if (!profile || profile.length < 2 || !freqs || !freqs.length) return null;
+  var layers = [];
+  for (var i = 0; i < profile.length; i++) {
+    var p = profile[i];
+    var vs = Number(p.vs);
+    if (!(vs > 0)) return null;
+    var zeta = p.damping == null ? 0.02 : Number(p.damping);
+    var rho = p.density == null ? Physics.densityFromVs(vs) : Number(p.density);
+    if (!(rho > 0)) return null;
+    layers.push({
+      // Vs* = Vs(1 + i*zeta)
+      vsC: { re: vs, im: vs * zeta },
+      rho: rho,
+      thickness: Number(p.thickness)
+    });
+  }
+  var bed = layers[layers.length - 1];
+  var Zb = cScale(bed.vsC, bed.rho); // rho real: Zb = rho * Vs*
+  var out = [];
+  for (var k = 0; k < freqs.length; k++) {
+    var w = 2 * Math.PI * freqs[k];
+    if (!(w > 0)) return null;
+    var u = { re: 1, im: 0 }, tau = { re: 0, im: 0 };
+    for (var m = 0; m < layers.length - 1; m++) {
+      var L = layers[m];
+      if (!(L.thickness > 0)) continue; // zero-thickness layer: identity
+      var Zm = cScale(L.vsC, L.rho);
+      // a = w*h / Vs*
+      var a = cDiv(cScale({ re: w * L.thickness, im: 0 }, 1), L.vsC);
+      var ca = cCos(a), sa = cSin(a);
+      // u' = u*cos(a) + tau * sin(a)/(Z*w);  tau' = tau*cos(a) - u*Z*w*sin(a)
+      var uNew = cAdd(cMul(u, ca), cDiv(cMul(tau, sa), cScale(Zm, w)));
+      var tauNew = cAdd(cMul(tau, ca), cNeg(cMul(cScale(Zm, w), cMul(u, sa))));
+      u = uNew; tau = tauNew;
+    }
+    // A = 1 / (u + tau / (i*Zb*w))
+    var denom = cAdd(u, cDiv(tau, cMul(cScale(Zb, w), { re: 0, im: 1 })));
+    out.push(cAbs(cDiv({ re: 1, im: 0 }, denom)));
+  }
+  return out;
+};
+
+// ================================================================
+//  Site response — Darendeli (2001) curves + equivalent-linear 1D
+//  (R2 engine; curve coefficients cross-checked against the reference
+//  values of dissertation Tables 10.13/10.14 — see tests/site-response)
+// ================================================================
+
+// Darendeli (2001) normalized modulus reduction and damping curves for
+// fine-grained soils (modified hyperbola + scaled Masing).
+//   strain  decimal shear strain (number or array of numbers)
+//   opts    {pi (%, 0), ocr (1), sigmaEffKPa (101.3), freqHz (1), numCycles (10)}
+// Returns { ggmax, damping } — arrays matching the input; damping decimal.
+Physics.darendeliCurves = function(strain, opts) {
+  var o = opts || {};
+  var pi = Math.max(0, Number(o.pi) || 0);
+  var ocr = Number(o.ocr) > 0 ? Number(o.ocr) : 1;
+  var sig = Number(o.sigmaEffKPa) > 0 ? Number(o.sigmaEffKPa) : 101.3;
+  var freq = Number(o.freqHz) > 0 ? Number(o.freqHz) : 1;
+  var ncyc = Number(o.numCycles) > 1 ? Number(o.numCycles) : 10;
+  var atm = sig / 101.325;
+
+  var gammaR = (0.0352 + 0.0010 * pi * Math.pow(ocr, 0.3246)) * Math.pow(atm, 0.3483) / 100;
+  var a = 0.9190; // curvature
+  var dmin = (0.8005 + 0.0129 * pi * Math.pow(ocr, -0.1069)) *
+    Math.pow(atm, -0.2889) * (1 + 0.2919 * Math.log(freq)) / 100;
+  var beta = 0.6329 - 0.00566 * Math.log(ncyc); // Masing scaling with cycles
+  // Curvature correction between the perfect hyperbola and the modified one
+  var c1 = -1.1143 * a * a + 1.8618 * a + 0.2523;
+  var c2 = 0.0805 * a * a - 0.0710 * a - 0.0095;
+  var c3 = -0.0005 * a * a + 0.0002 * a + 0.0003;
+
+  var strains = Array.isArray(strain) ? strain : [strain];
+  var gg = [], dd = [];
+  var grp = gammaR * 100; // percent space for the Masing branch
+  for (var i = 0; i < strains.length; i++) {
+    var g = Math.abs(Number(strains[i]) || 0);
+    var r = g / gammaR;
+    var G = 1 / (1 + Math.pow(r, a));
+    gg.push(G);
+    // Masing damping of the modified hyperbola (percent space; the gp->0
+    // limit is 0, numerically stable down to gp/grp ~ 1e-4 in doubles)
+    var gp = g * 100;
+    var dm1 = (100 / Math.PI) * (4 * (gp - grp * Math.log((gp + grp) / grp)) /
+      (gp * gp / (gp + grp)) - 2);
+    if (!(isFinite(dm1)) || dm1 < 0) dm1 = 0;
+    var dm = c1 * dm1 + c2 * dm1 * dm1 + c3 * dm1 * dm1 * dm1;
+    var d = dmin + beta * (dm / 100) * Math.pow(G, 0.1);
+    dd.push(Math.max(dmin, d));
+  }
+  return { ggmax: gg, damping: dd, strainRef: gammaR, dampingMin: dmin, masingScale: beta };
+};
+
+// Equivalent-linear 1D site response over the Thomson–Haskell engine.
+//   profile  [{vs, thickness, density?, pi?}, ..., {vs}] — last is the
+//            elastic halfspace (no thickness), same contract as
+//            shTransferFunction
+//   freqs    frequency grid [Hz]
+//   opts     { rockPgaG (required: peak rock/outcrop acceleration in g),
+//              effStrainRatio (0.65), maxIter (12), tol (0.02) }
+// Iteration: layer shear strain from the bounded wave-motion estimate
+// gamma ~ effStrainRatio * (pga * gain) / (Vs * 2*pi*f0) — particle-motion
+// strain of the resonant pass (gain = surface amplification, clipped at 3).
+// The stress-form tau/G diverges under fixed-point iteration once softening
+// starts (strain grows as 1/G while G drops with strain); the displacement
+// form saturates naturally. Strains cap at 3% (Darendeli validity) and the
+// modulus update is under-relaxed 50/50 for stability. sigma'_v still sets
+// the confining-pressure dependence of the curves per layer.
+// Returns { amp, ggmax, damping, strain, iter, converged, f0 } where amp is
+// the |A(f)| array aligned with freqs and f0 the peak-amplification
+// frequency of the final pass.
+Physics.siteResponse1D = function(profile, freqs, opts) {
+  if (!profile || profile.length < 2 || !freqs || !freqs.length) return null;
+  var o = opts || {};
+  var pgaG = Number(o.rockPgaG);
+  if (!(pgaG > 0)) return null;
+  var effRatio = Number(o.effStrainRatio) > 0 ? Number(o.effStrainRatio) : 0.65;
+  var maxIter = Math.min(30, Math.max(1, Number(o.maxIter) || 12));
+  var tol = Number(o.tol) > 0 ? Number(o.tol) : 0.02;
+
+  var n = profile.length - 1; // layers over the halfspace
+  var layers = [];
+  var depth = 0;
+  for (var i = 0; i < n; i++) {
+    var p = profile[i];
+    var vs = Number(p.vs);
+    var h = Number(p.thickness);
+    if (!(vs > 0 && h > 0)) return null;
+    var rho = p.density == null ? Physics.densityFromVs(vs) : Number(p.density);
+    if (!(rho > 0)) return null;
+    // effective stress at mid-layer (kPa); no water-table split — a
+    // documented v1 simplification, conservative for shallow layers
+    depth += h;
+    var sigMidKPa = rho * 9.81 * (depth - h / 2);
+    layers.push({ vs: vs, h: h, rho: rho, pi: Math.max(0, Number(p.pi) || 0), sig: sigMidKPa, gg: 1, damp: 0.02 });
+  }
+
+  var amp = null, iter = 0, converged = false, f0 = freqs[0];
+  for (iter = 1; iter <= maxIter; iter++) {
+    var tfProfile = [];
+    for (var j = 0; j < n; j++) {
+      tfProfile.push({ vs: layers[j].vs * Math.sqrt(layers[j].gg), thickness: layers[j].h,
+        density: layers[j].rho, damping: layers[j].damp });
+    }
+    var bed = profile[n];
+    if (!(Number(bed.vs) > 0)) return null;
+    tfProfile.push({ vs: Number(bed.vs), density: bed.density == null ? Physics.densityFromVs(Number(bed.vs)) : Number(bed.density) });
+    amp = Physics.shTransferFunction(tfProfile, freqs);
+    if (!amp) return null;
+
+    var gain = 1;
+    var peakIdx = 0;
+    for (var k = 1; k < amp.length; k++) if (amp[k] > amp[peakIdx]) peakIdx = k;
+    gain = Math.min(3, Math.max(1, amp[peakIdx]));
+    f0 = freqs[peakIdx];
+
+    var maxShift = 0;
+    var accelMs2 = pgaG * 9.81 * gain;
+    var omega = 2 * Math.PI * Math.max(0.2, f0); // guard: freq-grid floor
+    for (var m = 0; m < n; m++) {
+      var L = layers[m];
+      var gam = Math.min(0.03, effRatio * accelMs2 / (L.vs * omega)); // decimal
+      var curves = Physics.darendeliCurves(gam, { pi: L.pi, sigmaEffKPa: L.sig, freqHz: f0 });
+      var targetGg = curves.ggmax[0];
+      var newD = Math.min(0.25, curves.damping[0]);
+      // 50/50 under-relaxation keeps the softening feedback stable
+      var newGg = 0.5 * L.gg + 0.5 * targetGg;
+      var shift = Math.abs(Math.sqrt(newGg) - Math.sqrt(L.gg)) / Math.max(1e-9, Math.sqrt(L.gg));
+      if (shift > maxShift) maxShift = shift;
+      L.gg = newGg; L.damp = 0.5 * L.damp + 0.5 * newD; L.strain = gam;
+    }
+    if (maxShift < tol) { converged = true; break; }
+  }
+
+  return {
+    amp: amp, f0: f0, iter: iter, converged: converged,
+    ggmax: layers.map(function(l) { return l.gg; }),
+    damping: layers.map(function(l) { return l.damp; }),
+    strain: layers.map(function(l) { return l.strain; })
+  };
+};
+
+// Synthesize a layered profile from the committed grid pair (J-SHIS Vs30
+// surface average + JIVSM engineering-bedrock depth). With the S/B
+// empirical f0(Vs30) prior registered (setSbEnsemble), the column is
+// two-scale: a shallow resonant block whose thickness targets the empirical
+// f0 for that Vs30 (real KiK-net resonant columns sit at ~19-48 m — a
+// uniform column down to the JIVSM bedrock resonates far too low and
+// deamplifies the PGA band at soft deep sites; scorecard 2026-08-25:
+// intensity bias -0.154/-0.044, RMS 0.955/0.875 uniform vs two-scale,
+// soft-site <200 m/s rms 1.30->0.99), an intermediate transition down to
+// the JIVSM engineering bedrock, then the blanket + seismic halfspace.
+// Without the prior: v1 uniform single soil layer (documented simplification
+// — real KiK-net profiles stay research-side in .cache and enter via
+// psLogToProfile). Returns a shTransferFunction-style profile or null.
+Physics.synthSiteProfile = function(vs30, bedrockDepthM, opts) {
+  if (!(Number(vs30) > 0)) return null;
+  var o = opts || {};
+  var engVs = Number(o.engBedrockVs) > 0 ? Number(o.engBedrockVs) : 1400;
+  var seisVs = Number(o.seismicBedrockVs) > 0 ? Number(o.seismicBedrockVs) : 3200;
+  var capM = Number(o.maxSoilM) > 0 ? Number(o.maxSoilM) : 600;
+  var H = bedrockDepthM == null ? 30 : Number(bedrockDepthM);
+  if (!(H > 0)) H = 5;
+  H = Math.min(capM, Math.max(3, H));
+  var soilVs = Math.min(1200, Math.max(80, Number(vs30)));
+  var prof;
+  var f0Emp = Physics.sbF0ForVs30(Number(vs30));
+  if (f0Emp > 0) {
+    // resonant block: travel time Vs30/(4·f0Emp), clipped to the local
+    // bedrock depth (rock sites resonate naturally higher) and 80 m
+    var H1 = Math.min(Math.min(H, 80), Math.max(3, Number(vs30) / (4 * f0Emp)));
+    prof = [{ vs: soilVs, thickness: H1 }];
+    var rest = H - H1;
+    if (rest > 5) {
+      prof.push({ vs: Math.min(1150, Math.max(200, soilVs * 1.5)), thickness: rest });
+    }
+  } else {
+    prof = [{ vs: soilVs, thickness: H }];
+  }
+  prof.push({ vs: engVs, thickness: 50 }, { vs: seisVs });
+  prof.synthetic = true; // marks synthesized stratigraphy (research-side PS logs differ)
+  return prof;
+};
+
+// Convert a KiK-net PS-log interval table ({from,to,vs} rows, meters) into a
+// transfer-function profile; the halfspace continues below the deepest log
+// with a modest stiffness increase (boreholes typically stop inside the
+// borehole-bedrock layer). A 2026-08-25 S/B-set scan across halfspace
+// multipliers 1.15-3.0 with and without the 1500 m/s floor plateaued at
+// 45-50% within-half-octave model-vs-empirical f0 agreement — the residual
+// lives in the below-borehole structure and coarse rows, not this knob
+// (R3 JIVSM deep columns are the realistic path to >60%).
+Physics.psLogToProfile = function(rows, opts) {
+  if (!rows || !rows.length) return null;
+  var out = [];
+  for (var i = 0; i < rows.length; i++) {
+    var r = rows[i];
+    if (!(Number(r.vs) > 0)) continue;
+    var h = Number(r.to) - Number(r.from);
+    if (!(h > 0)) continue;
+    out.push({ vs: Number(r.vs), thickness: h, pi: opts && Number(opts.pi) || 0 });
+  }
+  if (!out.length) return null;
+  var lastVs = 0;
+  for (var j = rows.length - 1; j >= 0; j--) if (Number(rows[j].vs) > 0) { lastVs = Number(rows[j].vs); break; }
+  out.push({ vs: Math.max(lastVs * 1.15, 1500) });
+  return out;
+};
+
+// Equivalent-linear amplification factors for the GMPE intensity measures:
+// runs siteResponse1D on a geometric 0.3-20 Hz grid and band-averages the
+// transfer function (geometric mean) over 5-10 Hz for PGA and 0.7-2 Hz for
+// PGV — band means stay stable where single-frequency peaks move with
+// softening. Factors clip to [0.25, 6].
+Physics.eqlinSiteFactor = function(profile, rockPgaGal, opts) {
+  if (!profile || profile.length < 2 || !(rockPgaGal > 0)) return null;
+  var freqs = [];
+  for (var i = 0; i < 120; i++) freqs.push(0.3 * Math.pow(20 / 0.3, i / 119));
+  var res = Physics.siteResponse1D(profile, freqs, opts || { rockPgaG: rockPgaGal / 980.665 });
+  if (!res || !res.amp) return null;
+  function bandMean(lo, hi) {
+    var s = 0, n = 0;
+    for (var k = 0; k < freqs.length; k++) {
+      if (freqs[k] >= lo && freqs[k] <= hi) { s += Math.log(Math.max(1e-6, res.amp[k])); n++; }
+    }
+    return n ? Math.min(6, Math.max(0.25, Math.exp(s / n))) : 1;
+  }
+  return { pga: bandMean(5, 10), pgv: bandMean(0.7, 2), f0: res.f0, converged: res.converged };
+};
+
+// ================================================================
+//  S/B empirical prior for synthesized profiles (v5.6 R2-4)
+// ================================================================
+// Registry fed from public/geojson/sb-spectral-ratio.json ensemble block
+// (frozen KiK-net surface/borehole pairs, tools/sb-spectral-ratio.js).
+// Only the resonance-frequency prior transfers to the runtime synth path:
+// 2026-08-25 A/B measurements showed amplitude curves do NOT — the S/B
+// ratio references the borehole sensor's own site response, so blending
+// band levels toward the bins shifted intensity bias +0.42 and worsened
+// RMS, and the within-bin log-amp-vs-Vs30 gradients came out with the
+// wrong sign (borehole confounding). A resonance FREQUENCY has no such
+// anchor problem, and the empirical f0(Vs30) relation (resonant column
+// ~19-48 m for Vs30 150-900) is far shallower than the JIVSM engineering
+// bedrock — so synthSiteProfile builds a two-scale column whenever the
+// fit is registered. Null registry = legacy uniform column (byte-identical).
+Physics.SB_F0_FIT = null;
+Physics.SB_ENSEMBLE = null; // full bins kept for diagnostics only
+
+Physics.setSbEnsemble = function(ensemble) {
+  var ens = Array.isArray(ensemble) ? { bins: ensemble } : (ensemble || {});
+  Physics.SB_ENSEMBLE = (ens.bins && ens.bins.length) ? ens.bins : null;
+  var f = ens.f0Vs30Fit;
+  Physics.SB_F0_FIT = (f && isFinite(f.a) && isFinite(f.b) && f.n >= 30) ? f : null;
+  return !!(Physics.SB_ENSEMBLE || Physics.SB_F0_FIT);
+};
+
+// Empirical resonant frequency for a Vs30 under the registered fit
+Physics.sbF0ForVs30 = function(vs30) {
+  if (!Physics.SB_F0_FIT || !(vs30 > 0)) return 0;
+  var f = Physics.SB_F0_FIT.a + Physics.SB_F0_FIT.b * Math.log10(vs30);
+  f = Math.pow(10, f);
+  return (f > 0.2 && f < 20) ? f : 0;
+};
+
+// travel-time fundamental frequency of a layered profile (T0 = 4·Σ h/v)
+Physics.profileFundamentalHz = function(profile) {
+  if (!profile || profile.length < 2) return 0;
+  var t = 0;
+  for (var i = 0; i < profile.length - 1; i++) {
+    var vs = Number(profile[i].vs), h = Number(profile[i].thickness);
+    if (vs > 0 && h > 0) t += h / vs;
+  }
+  return t > 0 ? 1 / (4 * t) : 0;
+};
+
+// ================================================================
+//  Cross-period epsilon correlation + conditional spectrum (v5.6 R1-5)
+// ================================================================
+// Registry fed from public/geojson/jayaram2011-rho.json — the appendix
+// Tables 3/4 period-pair correlation matrices (16 periods 0.05-5 s) fitted
+// on Japanese K-NET/KiK-net ground motions by Jayaram et al. (2011),
+// transcribed and validation-gated by tools/parse-jayaram2011-tables.js.
+// Table 5 (subduction slab) is not yet transcribed — the slab class falls
+// back to the interface table. Without the registry, rho degenerates to the
+// same-paper Eq.(6) orthogonal-component correlation (already verified and
+// shipped) — a documented approximation, never a silent one.
+Physics.JAYARAM2011_RHO = null;
+
+Physics.setJayaram2011Rho = function(doc) {
+  var ok = !!(doc && doc.periods && doc.periods.length >= 8 &&
+    doc.classes && doc.classes.crustal && doc.classes.crustal.rho);
+  Physics.JAYARAM2011_RHO = ok ? doc : null;
+  return ok;
+};
+
+Physics._rhoLogBracket = function(periods, T) {
+  if (T <= periods[0]) return { i: 0, t: 0 };
+  var last = periods.length - 1;
+  if (T >= periods[last]) return { i: last - 1, t: 1 };
+  for (var i = 0; i < last; i++) {
+    if (T >= periods[i] && T <= periods[i + 1]) {
+      var lt0 = Math.log(periods[i]), lt1 = Math.log(periods[i + 1]);
+      return { i: i, t: (Math.log(T) - lt0) / Math.max(1e-12, lt1 - lt0) };
+    }
+  }
+  return { i: 0, t: 0 };
+};
+
+// rho(eps(T1), eps(T2)) — bilinear interpolation in log period over the
+// frozen Japan tables; T beyond [0.05, 5] s clamps to the table edge
+Physics.rhoPeriodPair = function(T1, T2, sourceType) {
+  if (!(T1 > 0) || !(T2 > 0)) return 0;
+  if (!Physics.JAYARAM2011_RHO) {
+    // fallback: Eq.(6) orthogonal-component correlation at the shorter period
+    return Physics.orthogonalComponentCorrelation(Math.min(T1, T2));
+  }
+  var doc = Physics.JAYARAM2011_RHO;
+  var cls = sourceType === 'crustal' ? 'crustal' : 'interface';
+  var rho = (doc.classes[cls] || doc.classes.crustal).rho;
+  var a = Physics._rhoLogBracket(doc.periods, T1);
+  var b = Physics._rhoLogBracket(doc.periods, T2);
+  var top = rho[b.i][a.i] * (1 - a.t) + rho[b.i][a.i + 1] * a.t;
+  var bot = rho[b.i + 1][a.i] * (1 - a.t) + rho[b.i + 1][a.i + 1] * a.t;
+  var v = top * (1 - b.t) + bot * b.t;
+  return Math.max(-1, Math.min(1, v));
+};
+
+// Conditional spectrum (scalar-anchor Gaussian conditioning, Baker-style):
+// given per-period lognormal medians and sigmas (LN units) and an anchor
+// epsilon epsStar at anchorPeriod (Sa(T*) observed at median·exp(epsStar·σ*)),
+//   muC(T)  = mu(T) + rho(T, T*) · sigma(T) · epsStar
+//   sigC(T) = sigma(T) · sqrt(1 - rho(T, T*)²)
+// At the anchor period the conditional mean equals the observation and the
+// conditional sigma collapses; periods uncorrelated with the anchor keep
+// their full marginal spread.
+Physics.conditionalSpectrum = function(periods, meanLnSa, sigmaLnSa, anchorPeriod, epsStar, sourceType) {
+  if (!periods || !meanLnSa || !sigmaLnSa || periods.length !== meanLnSa.length ||
+    periods.length !== sigmaLnSa.length || !(anchorPeriod > 0)) return null;
+  var mean = [], sigma = [];
+  for (var i = 0; i < periods.length; i++) {
+    var rho = Physics.rhoPeriodPair(periods[i], anchorPeriod, sourceType);
+    var s = Number(sigmaLnSa[i]);
+    if (!(s >= 0)) s = 0;
+    mean.push(Number(meanLnSa[i]) + rho * s * epsStar);
+    sigma.push(s * Math.sqrt(Math.max(0, 1 - rho * rho)));
+  }
+  return { periods: periods.slice(), meanLnSa: mean, sigmaLnSa: sigma,
+    anchorPeriod: anchorPeriod, epsStar: epsStar };
+};
+
+// ================================================================
 //  GMPE — Kanno et al. (2006) for Japan (4,632 records, Vs30-based)
 // ================================================================
 
@@ -1400,6 +1875,346 @@ Physics.SIMID_SIGMA = { sigmaT: 0.28 };
 // Hand-tuned log model — calibrated to Japanese GMPE residuals (σ ≈ 0.30)
 Physics.LOG_SIGMA = { sigmaT: 0.30 };
 
+// R1 (2026-08-24): fitted inter/intra-event sigma components for the two
+// models without a published decomposition — one-way random-effects ANOVA
+// (method of moments) on the frozen 13-event station set
+// (tools/fit-sigma-components.js -> tools/data/sigma-components-report.json;
+// si-midorikawa: 9 crustal events / 2,962 stations; kanno2006: forced fit
+// over all 13 events / 4,887 stations). ln-PGA units converted to log10 like
+// ZHAO2006_SIGMA. Caveat: the frozen dataset's PGA is the shakemap aggregate
+// (larger horizontal component) while the GMPEs predict geometric mean, so
+// phi carries a small component-convention inflation vs paper regressions.
+// Zhao 2006 keeps its paper Table 6 tau/phi (ZHAO2006_SIGMA, asserted
+// against openquake.hazardlib in tests/gmpe-benchmarks.test.js).
+Physics.GMPE_SIGMA_COMPONENTS = {
+  'si-midorikawa': _zhaoSigmaTable(0.256, 0.654),
+  'kanno2006': _zhaoSigmaTable(0.551, 0.771)
+};
+
+// R1 (2026-08-24): three-branch GMPE logic tree per tectonic class. Weights
+// are Scherbaum-LLH information weights (Delavaud w ∝ exp(-(LLH-LLH_min)))
+// fitted on the frozen 13-event station set with per-model fitted sigma —
+// tools/fit-logic-tree-weights.js -> tools/data/logic-tree-weights.json
+// (crustal 9 events / 2,962 stations; interplate 3 / 1,325; intraslab 1 /
+// 600 — the slab branch is a single-event fit, documented in the report).
+// gmpModel 'logic-tree' aggregates complete per-branch predictions
+// (reference × site term) as a weighted geometric mean and reports the
+// between-branch spread as epistemic sigma (see predictStationMotion).
+Physics.GMPE_LOGIC_TREE = {
+  crustal: [
+    { model: 'si-midorikawa', weight: 0.3666 },
+    { model: 'kanno2006', weight: 0.3376 },
+    { model: 'zhao2006', weight: 0.2958 }
+  ],
+  interplate: [
+    { model: 'kanno2006', weight: 0.3717 },
+    { model: 'zhao2006', weight: 0.3573 },
+    { model: 'si-midorikawa', weight: 0.2710 }
+  ],
+  intraslab: [
+    { model: 'si-midorikawa', weight: 0.3984 },
+    { model: 'zhao2006', weight: 0.3519 },
+    { model: 'kanno2006', weight: 0.2498 }
+  ]
+};
+
+/** Branches of the logic tree for a tectonic class, weights normalized to 1.
+ *  Unknown classes fall back to the auto-routed single model at weight 1. */
+Physics.logicTreeBranches = function(srcType) {
+  var tree = Physics.GMPE_LOGIC_TREE[srcType];
+  if (!tree || !tree.length) {
+    return [{ model: Physics.resolveGmpModel('auto', srcType || 'crustal', 7.0), weight: 1 }];
+  }
+  var wsum = 0;
+  for (var i = 0; i < tree.length; i++) wsum += tree[i].weight;
+  return tree.map(function(b) { return { model: b.model, weight: b.weight / wsum }; });
+};
+
+// ================================================================
+//  STATION-TO-STATION SPATIAL CORRELATION (R1, 2026-08-24)
+//  Jayaram & Baker (2009) EESD 38:1687-1708, Eq.(17)-(20): the correlation
+//  of normalized intra-event residuals at separation h is the exponential
+//  semivariogram complement rho(h) = exp(-3h/b), with the range b
+//  period-dependent and short-period ranges split by Vs30 clustering.
+// ================================================================
+Physics.JB2009 = {
+  /** Semivariogram range b (km) per paper Eq.(17)-(19). */
+  rangeKm: function(periodSec, vs30Clustering) {
+    if (periodSec < 1) return vs30Clustering ? 40.7 - 15.0 * periodSec : 8.5 + 17.2 * periodSec;
+    return 22.0 + 3.7 * periodSec;
+  },
+  /** rho(h) per paper Eq.(20). */
+  rho: function(hKm, periodSec, vs30Clustering) {
+    return Math.exp(-3 * Math.max(0, hKm) / Physics.JB2009.rangeKm(periodSec, vs30Clustering));
+  }
+};
+
+// Empirically calibrated ranges for THIS system's two forecast metrics,
+// fitted on the frozen 13-event station set by tools/fit-spatial-correlation.js
+// (-> tools/data/spatial-correlation-report.json): intra-event residuals
+// normalized by the fitted per-model phi, pairwise semivariogram binned by
+// station separation, exponential range fitted with short-distance priority
+// (paper Section 5: short separations matter most). JMA intensity behaves
+// short-period-like (PGA-dominated); PGA is T=0. NOTE: the fitted ranges
+// (lnPGA 94 km / intensity 72.5 km) are 2-3x the paper's Case-1 short-period
+// range and ~2x its Vs30-clustered Case-2 (40.7 km) — this system's residuals
+// decorrelate more slowly than the NGA data behind the paper, because smooth
+// model-vs-observation misfit survives the 5-bin detrending. The fitted
+// values describe THIS forecast path's actual error structure and are what
+// the Monte Carlo engine samples; Physics.JB2009 keeps the paper formula
+// unchanged for reference.
+Physics.SPATIAL_CORRELATION = {
+  lnPga:     { rangeKm: 94 },
+  intensity: { rangeKm: 72.5 }
+};
+/** rho(h) for a metric of this system ('lnPga' | 'intensity'). */
+Physics.spatialCorrelation = function(hKm, metric) {
+  var m = Physics.SPATIAL_CORRELATION[metric];
+  if (!m || !(m.rangeKm > 0)) return 0;
+  return Math.exp(-3 * Math.max(0, hKm) / m.rangeKm);
+};
+// ================================================================
+//  MONTE CARLO ENSEMBLE ENGINE (R1, 2026-08-24)
+//  Deterministic (seeded) sampling of the full forecast uncertainty stack:
+//  logic-tree branch x inter-event tau x source-parameter jitter x
+//  spatially-correlated intra-event field (phi, exponential correlation
+//  with the empirically fitted range). Members are reproducible on every
+//  platform: the RNG is integer math and the field is FFT-based.
+// ================================================================
+
+// String-hash seeded RNG (FNV-1a 32-bit + mulberry32): deterministic across
+// engines because it only uses 32-bit integer ops and Math.imul.
+Physics.seededRng = function(seed) {
+  var h = 2166136261;
+  var str = String(seed == null ? 'seed' : seed);
+  for (var ci = 0; ci < str.length; ci++) {
+    h ^= str.charCodeAt(ci);
+    h = Math.imul(h, 16777619);
+  }
+  var a = h >>> 0;
+  return function() {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    var t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+};
+/** Standard normal draw (Box-Muller) from a seededRng stream. */
+Physics.gaussRng = function(rng) {
+  var u = 0, v = 0;
+  while (u === 0) u = rng();
+  while (v === 0) v = rng();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+};
+
+function _fft1d(re, im, inverse) {
+  var n = re.length;
+  for (var i = 1, j = 0; i < n; i++) {
+    var bit = n >> 1;
+    for (; j & bit; bit >>= 1) j ^= bit;
+    j ^= bit;
+    if (i < j) {
+      var tr = re[i]; re[i] = re[j]; re[j] = tr;
+      var ti = im[i]; im[i] = im[j]; im[j] = ti;
+    }
+  }
+  for (var len = 2; len <= n; len <<= 1) {
+    var ang = 2 * Math.PI / len * (inverse ? 1 : -1);
+    var wr = Math.cos(ang), wi = Math.sin(ang);
+    for (var i2 = 0; i2 < n; i2 += len) {
+      var cwr = 1, cwi = 0;
+      for (var k = 0; k < (len >> 1); k++) {
+        var ur = re[i2 + k], ui = im[i2 + k];
+        var vr = re[i2 + k + (len >> 1)] * cwr - im[i2 + k + (len >> 1)] * cwi;
+        var vi = re[i2 + k + (len >> 1)] * cwi + im[i2 + k + (len >> 1)] * cwr;
+        re[i2 + k] = ur + vr; im[i2 + k] = ui + vi;
+        re[i2 + k + (len >> 1)] = ur - vr; im[i2 + k + (len >> 1)] = ui - vi;
+        var nwr = cwr * wr - cwi * wi; cwi = cwr * wi + cwi * wr; cwr = nwr;
+      }
+    }
+  }
+  if (inverse) for (var i3 = 0; i3 < n; i3++) { re[i3] /= n; im[i3] /= n; }
+}
+
+/** Unit-variance Gaussian field at scattered points with rho(h)=exp(-3h/range)
+ *  (circulant embedding on a covering grid, bilinear sampling at the points).
+ *  xs/ys are local-plane km coordinates; deterministic given the rng stream. */
+Physics.correlatedGaussianField2D = function(xs, ys, rangeKm, rng) {
+  var n = xs.length;
+  if (!n) return [];
+  if (!(rangeKm > 0) || n === 1) {
+    var id = new Array(n);
+    for (var q = 0; q < n; q++) id[q] = rangeKm > 0 ? Physics.gaussRng(rng) : 0;
+    return id;
+  }
+  var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  for (var i = 0; i < n; i++) {
+    if (xs[i] < minX) minX = xs[i]; if (xs[i] > maxX) maxX = xs[i];
+    if (ys[i] < minY) minY = ys[i]; if (ys[i] > maxY) maxY = ys[i];
+  }
+  var pad = 2 * rangeKm;
+  var cell = Math.max(1, rangeKm / 6);
+  function pow2ge(v) { var p = 1; while (p < v) p <<= 1; return p; }
+  var needX = Math.ceil((maxX - minX + 2 * pad) / cell);
+  var needY = Math.ceil((maxY - minY + 2 * pad) / cell);
+  if (needX > 1024 || needY > 1024) cell = Math.max(cell, Math.max(maxX - minX, maxY - minY) / 512);
+  var gx = Math.min(1024, pow2ge(Math.ceil((maxX - minX + 2 * pad) / cell)));
+  var gy = Math.min(1024, pow2ge(Math.ceil((maxY - minY + 2 * pad) / cell)));
+  var cx = gx * 2, cy = gy * 2; // circulant embedding needs the doubled grid
+  var re = new Float64Array(cx * cy), im = new Float64Array(cx * cy);
+  function lagDist(a, dim) { return (a < dim ? a : (2 * dim - a)) * cell; }
+  for (var b = 0; b < cy; b++) {
+    var dy = lagDist(b, gy);
+    for (var a = 0; a < cx; a++) {
+      var dx = lagDist(a, gx);
+      re[b * cx + a] = Math.exp(-3 * Math.sqrt(dx * dx + dy * dy) / rangeKm);
+    }
+  }
+  // Forward 2D FFT (rows then columns) of the embedded covariance.
+  var rowRe = new Float64Array(cx), rowIm = new Float64Array(cx);
+  for (var b2 = 0; b2 < cy; b2++) {
+    for (var a2 = 0; a2 < cx; a2++) { rowRe[a2] = re[b2 * cx + a2]; rowIm[a2] = im[b2 * cx + a2]; }
+    _fft1d(rowRe, rowIm, false);
+    for (var a3 = 0; a3 < cx; a3++) { re[b2 * cx + a3] = rowRe[a3]; im[b2 * cx + a3] = rowIm[a3]; }
+  }
+  var colRe = new Float64Array(cy), colIm = new Float64Array(cy);
+  for (var a4 = 0; a4 < cx; a4++) {
+    for (var b3 = 0; b3 < cy; b3++) { colRe[b3] = re[b3 * cx + a4]; colIm[b3] = im[b3 * cx + a4]; }
+    _fft1d(colRe, colIm, false);
+    for (var b4 = 0; b4 < cy; b4++) { re[b4 * cx + a4] = colRe[b4]; im[b4 * cx + a4] = colIm[b4]; }
+  }
+  // Spectral synthesis: sqrt of eigenvalues (clamp tiny negatives), complex white noise.
+  for (var e = 0; e < cx * cy; e++) {
+    var lam = re[e] / (cx * cy); // unnormalized forward FFT scale
+    re[e] = Math.sqrt(Math.max(0, lam)) * Physics.gaussRng(rng);
+    im[e] = Math.sqrt(Math.max(0, lam)) * Physics.gaussRng(rng);
+  }
+  // Inverse 2D FFT -> grid field
+  for (var b5 = 0; b5 < cy; b5++) {
+    for (var a5 = 0; a5 < cx; a5++) { rowRe[a5] = re[b5 * cx + a5]; rowIm[a5] = im[b5 * cx + a5]; }
+    _fft1d(rowRe, rowIm, true);
+    for (var a6 = 0; a6 < cx; a6++) { re[b5 * cx + a6] = rowRe[a6]; im[b5 * cx + a6] = rowIm[a6]; }
+  }
+  for (var a7 = 0; a7 < cx; a7++) {
+    for (var b6 = 0; b6 < cy; b6++) { colRe[b6] = re[b6 * cx + a7]; colIm[b6] = im[b6 * cx + a7]; }
+    _fft1d(colRe, colIm, true);
+    for (var b7 = 0; b7 < cy; b7++) { re[b7 * cx + a7] = colRe[b7]; im[b7 * cx + a7] = colIm[b7]; }
+  }
+  // Normalize to unit variance over the synthesized grid, then sample.
+  var mean = 0;
+  for (var g = 0; g < cx * cy; g++) mean += re[g];
+  mean /= cx * cy;
+  var varg = 0;
+  for (var g2 = 0; g2 < cx * cy; g2++) { var d = re[g2] - mean; varg += d * d; }
+  varg /= cx * cy;
+  var sd = Math.sqrt(varg) || 1;
+  var out = new Array(n);
+  for (var s = 0; s < n; s++) {
+    var fx = (xs[s] - (minX - pad)) / cell, fy = (ys[s] - (minY - pad)) / cell;
+    var x0 = Math.max(0, Math.min(cx - 1, Math.floor(fx))), y0 = Math.max(0, Math.min(cy - 1, Math.floor(fy)));
+    var x1 = Math.min(cx - 1, x0 + 1), y1 = Math.min(cy - 1, y0 + 1);
+    var tx = Math.max(0, Math.min(1, fx - x0)), ty = Math.max(0, Math.min(1, fy - y0));
+    var v00 = (re[y0 * cx + x0] - mean) / sd, v10 = (re[y0 * cx + x1] - mean) / sd;
+    var v01 = (re[y1 * cx + x0] - mean) / sd, v11 = (re[y1 * cx + x1] - mean) / sd;
+    out[s] = (v00 * (1 - tx) + v10 * tx) * (1 - ty) + (v01 * (1 - tx) + v11 * tx) * ty;
+  }
+  return out;
+};
+
+/** Monte Carlo ensemble of station intensities for one event.
+ *  context: {source, geometry, gmpModel, options} as predictStationMotion.
+ *  options: {members=200, seed, magSigma=0.2, depthSigmaKm=5, epicenterSigmaKm=5,
+ *            jitter=true, keepMembers=false}
+ *  Per station with st.observedIntensity set, inside68/inside80 flags and the
+ *  pooled coverage diagnostics are computed. */
+Physics.ensembleIntensityField = function(context, stations, options) {
+  options = options || {};
+  var members = Math.max(2, Math.round(options.members || 200));
+  var rng = Physics.seededRng(options.seed == null ? 'ensemble' : options.seed);
+  var srcType = (context.source && context.source.sourceType) || 'crustal';
+  var branches = context.gmpModel === 'logic-tree'
+    ? Physics.logicTreeBranches(srcType)
+    : [{ model: context.gmpModel || Physics.resolveGmpModel('auto', srcType, context.source.mw), weight: 1 }];
+  var jitter = options.jitter !== false;
+  var magSigma = jitter ? (options.magSigma == null ? 0.2 : options.magSigma) : 0;
+  var depthSigma = jitter ? (options.depthSigmaKm == null ? 5 : options.depthSigmaKm) : 0;
+  var epiSigma = jitter ? (options.epicenterSigmaKm == null ? 5 : options.epicenterSigmaKm) : 0;
+
+  var lat0 = context.source.lat, lng0 = context.source.lng;
+  var kx = 111.32 * Math.cos(lat0 * Math.PI / 180), ky = 110.57;
+  var xs = new Array(stations.length), ys = new Array(stations.length);
+  for (var i = 0; i < stations.length; i++) {
+    xs[i] = (Number(stations[i].lng) - lng0) * kx;
+    ys[i] = (Number(stations[i].lat) - lat0) * ky;
+  }
+  var rangeKm = Physics.SPATIAL_CORRELATION.lnPga.rangeKm || 94;
+
+  var acc = stations.map(function() { return []; });
+  var pgaAcc = options.keepPga ? stations.map(function() { return []; }) : null;
+  var LN10 = Math.log(10);
+  for (var m = 0; m < members; m++) {
+    var u = rng(), wsum = 0, branch = branches[branches.length - 1];
+    for (var bi = 0; bi < branches.length; bi++) {
+      wsum += branches[bi].weight;
+      if (u <= wsum) { branch = branches[bi]; break; }
+    }
+    var comp = Physics.getGmpSigmaComponents(branch.model, srcType);
+    var tauLn = (comp.tau == null ? 0.30 : comp.tau) * LN10;
+    var phiLn = (comp.phi == null ? 0.60 : comp.phi) * LN10;
+    var delta = Physics.gaussRng(rng) * tauLn;
+    var ctxM = {
+      source: {
+        lat: lat0 + (epiSigma ? Physics.gaussRng(rng) * epiSigma / ky : 0),
+        lng: lng0 + (epiSigma ? Physics.gaussRng(rng) * epiSigma / kx : 0),
+        mw: context.source.mw + (magSigma ? Physics.gaussRng(rng) * magSigma : 0),
+        depthKm: context.source.depthKm + (depthSigma ? Physics.gaussRng(rng) * depthSigma : 0),
+        strikeDeg: context.source.strikeDeg, dipDeg: context.source.dipDeg, rakeDeg: context.source.rakeDeg,
+        sourceType: srcType
+      },
+      geometry: context.geometry, gmpModel: branch.model, options: context.options
+    };
+    var field = Physics.correlatedGaussianField2D(xs, ys, rangeKm, rng);
+    for (var s = 0; s < stations.length; s++) {
+      var r = Physics.predictStationMotion(ctxM, stations[s], {});
+      if (!r) { acc[s].push(null); if (pgaAcc) pgaAcc[s].push(null); continue; }
+      var f = Math.exp(delta + phiLn * field[s]);
+      acc[s].push(Physics.calcJmaIntensity(r.pga * f, r.pgv * f));
+      if (pgaAcc) pgaAcc[s].push(r.pga * f);
+    }
+  }
+  function quant(sorted, q) {
+    var idx = Math.min(sorted.length - 1, Math.max(0, Math.round(q * (sorted.length - 1))));
+    return sorted[idx];
+  }
+  var inside68 = 0, inside80 = 0, obsN = 0;
+  var perStation = stations.map(function(st, s) {
+    var vals = acc[s].filter(function(v) { return v != null; }).sort(function(a, b) { return a - b; });
+    var row = {
+      lat: Number(st.lat), lng: Number(st.lng),
+      mean: vals.reduce(function(a, b) { return a + b; }, 0) / (vals.length || 1),
+      p10: quant(vals, 0.10), p16: quant(vals, 0.16), p50: quant(vals, 0.50),
+      p84: quant(vals, 0.84), p90: quant(vals, 0.90)
+    };
+    row.median = row.p50;
+    if (st.observedIntensity != null) {
+      row.observedIntensity = Number(st.observedIntensity);
+      var in68 = row.observedIntensity >= row.p16 && row.observedIntensity <= row.p84;
+      var in80 = row.observedIntensity >= row.p10 && row.observedIntensity <= row.p90;
+      row.inside68 = in68; row.inside80 = in80;
+      obsN++; if (in68) inside68++; if (in80) inside80++;
+    }
+    if (options.keepMembers) row.members = vals;
+    if (pgaAcc) row.pgaMembers = pgaAcc[s]
+      .filter(function(v) { return v != null; }).sort(function(a, b) { return a - b; });
+    return row;
+  });
+  return {
+    members: members, branches: branches, perStation: perStation,
+    coverage: obsN ? { n: obsN, p16p84: inside68 / obsN, p10p90: inside80 / obsN } : null
+  };
+};
+
+
 /**
  * Return total sigma (log10 units) for the active GMPE model.
  * @param {string} gmpModel — GMPE key (log|si-midorikawa|log-ff|kanno2006|zhao2006|auto)
@@ -1426,6 +2241,8 @@ Physics.getGmpSigmaComponents = function(gmpModel, srcType, imt, mw) {
     var z = Physics.ZHAO2006_SIGMA[srcType] || Physics.ZHAO2006_SIGMA.crustal;
     return { model:model, tau:z.tau, phi:z.phi, sigmaT:z.sigmaT, unit:'log10' };
   }
+  var fitted = Physics.GMPE_SIGMA_COMPONENTS[model];
+  if (fitted) return { model:model, tau:fitted.tau, phi:fitted.phi, sigmaT:fitted.sigmaT, unit:'log10' };
   var sigmaT = Physics.getGmpSigma(model, srcType, imt, mw);
   return { model:model, tau:null, phi:null, sigmaT:sigmaT, unit:'log10' };
 };
@@ -2112,6 +2929,25 @@ Physics.createGroundMotionContext = function(source, options) {
  * patch evaluates the whole-event GMPE and is combined with moment-weighted
  * SRSS, which converges to the point-source median at equal patch distance.
  */
+// Initial great-circle bearing in radians (0 = north, clockwise) from
+// (lat1,lng1) to (lat2,lng2). Planar atan2(dLng, dLat) overestimates the
+// east-west component by 1/cos(lat) (up to ~39% at 46°N) and rotates any
+// azimuth-dependent term — directivity used to inherit exactly that bias.
+Physics.bearingRad = function(lat1, lng1, lat2, lng2) {
+  var p1 = Number(lat1) * Math.PI / 180, p2 = Number(lat2) * Math.PI / 180;
+  var dl = (Number(lng2) - Number(lng1)) * Math.PI / 180;
+  var y = Math.sin(dl) * Math.cos(p2);
+  var x = Math.cos(p1) * Math.sin(p2) - Math.sin(p1) * Math.cos(p2) * Math.cos(dl);
+  return Math.atan2(y, x);
+};
+
+// Somerville (1997)-style azimuthal directivity strength. Shared by
+// predictStationMotion and the info-page polar chart so the two cannot drift
+// apart (the chart used to hard-code the M9 value 0.35).
+Physics.somervilleDirectivityCoefficient = function(mw) {
+  return 0.15 + Math.max(0, (Number(mw) || 0) - 5) * 0.05;
+};
+
 Physics.predictStationMotion = function(context, station, overrides) {
   if (!context || !context.source || !station) return null;
   var source = context.source;
@@ -2124,123 +2960,191 @@ Physics.predictStationMotion = function(context, station, overrides) {
   var model = context.gmpModel;
   var horizontalKm = Physics.haversineDist(source.lat, source.lng, Number(station.lat), Number(station.lng));
   var rhypoKm = Math.sqrt(horizontalKm * horizontalKm + source.depthKm * source.depthKm);
-  var usesRrup = !!geometry && (model === 'si-midorikawa' || model === 'log-ff');
-  var distanceKm = usesRrup ? Physics.rrupDistance(station.lat, station.lng, geometry) : rhypoKm;
   var attA = opts.attA == null ? 0.42 : Number(opts.attA);
   var attB = opts.attB == null ? 1.34 : Number(opts.attB);
   var attC = opts.attC == null ? 0.31 : Number(opts.attC);
   var anelastic = opts.anelastic == null ? 0.001 : Number(opts.anelastic);
-
-  // Site-term convention (matches tools/scorecard-strong-motion.js predictStation
-  // and the app forecast path _predictPrefectureShindosFor): zhao2006/kanno2006
-  // carry native paper Vs30 site classes, so the station Vs30 is fed straight
-  // into the GMPE and NO external amplification is applied on top. The
-  // reference-site models (si-midorikawa / log) predict on a 760 m/s reference
-  // and take the external vs30Amplification factor below. The old mix (zhao at
-  // a 1200 m/s CH reference + a 760-anchored amp) double-referenced the site
-  // term and skewed zhao/kanno forecasts ~10-15%.
-  var nativeVsModel = (model === 'zhao2006' || model === 'kanno2006');
   var vs30 = Number(station.vs30) || 400;
-  var gmpeVs30 = nativeVsModel ? vs30 : (context.gmpeVs30 || 760);
-
-  function pointPga(distance) {
-    return Physics.calcPGA(source.mw, distance, model, source.depthKm, null, source.mw,
-      source.sourceType, attA, attB, attC, anelastic, gmpeVs30, source.rakeDeg);
-  }
-  function pointPgv(distance) {
-    return Physics.calcPGV(source.mw, distance, model, source.depthKm, null, source.mw,
-      source.sourceType, anelastic, gmpeVs30, source.rakeDeg);
-  }
-
-  var patches = [];
-  var referencePga, referencePgv;
   var cutoffKm = opts.finiteFaultCutoffKm == null ? 400 : Number(opts.finiteFaultCutoffKm);
-  if (geometry && geometry.subs && geometry.subs.length && distanceKm < cutoffKm) {
-    var pgaSquares = 0, pgvSquares = 0;
-    for (var i = 0; i < geometry.subs.length; i++) {
-      var sub = geometry.subs[i];
-      var patchHorizontal = Physics.haversineDist(station.lat, station.lng, sub.lat, sub.lng);
-      var patchDistance = Math.sqrt(patchHorizontal * patchHorizontal + sub.depth * sub.depth);
-      var weight = Math.sqrt(Math.max(0, Number(sub.momentFraction) || 0));
-      var patchPga = pointPga(patchDistance) * weight;
-      var patchPgv = pointPgv(patchDistance) * weight;
-      pgaSquares += patchPga * patchPga;
-      pgvSquares += patchPgv * patchPgv;
-      patches.push({source:sub, horizontalKm:patchHorizontal, distanceKm:patchDistance,
-        pga:patchPga, pgv:patchPgv});
-    }
-    referencePga = Math.sqrt(pgaSquares);
-    referencePgv = Math.sqrt(pgvSquares);
-  } else if (geometry && geometry.subs && geometry.subs.length) {
-    // Beyond the cutoff the full patch quadrature is not worth its cost — but
-    // a hard switch to the raw point source used to leave a step in the
-    // predicted field at exactly cutoffKm. Carry the SRSS/point ratio
-    // measured AT the cutoff distance outwards so the surface stays
-    // continuous (at great range the ratio tends to 1 anyway).
-    var pgaSqFar = 0, pgvSqFar = 0;
-    for (var ifr = 0; ifr < geometry.subs.length; ifr++) {
-      var subF = geometry.subs[ifr];
-      var phF = Physics.haversineDist(station.lat, station.lng, subF.lat, subF.lng);
-      var pdF = Math.sqrt(phF * phF + subF.depth * subF.depth);
-      var wF = Math.sqrt(Math.max(0, Number(subF.momentFraction) || 0));
-      var pF = pointPga(pdF) * wF, vF = pointPgv(pdF) * wF;
-      pgaSqFar += pF * pF; pgvSqFar += vF * vF;
-    }
-    var basePga = pointPga(cutoffKm), basePgv = pointPgv(cutoffKm);
-    referencePga = pointPga(distanceKm) * (basePga > 0 ? Math.sqrt(pgaSqFar) / basePga : 1);
-    referencePgv = pointPgv(distanceKm) * (basePgv > 0 ? Math.sqrt(pgvSqFar) / basePgv : 1);
-  } else {
-    referencePga = pointPga(distanceKm);
-    referencePgv = pointPgv(distanceKm);
-  }
-
   var stationFactor = opts.stationFactor == null ? 1 : Number(opts.stationFactor);
   if (!(stationFactor > 0)) stationFactor = 1;
+
+  // Per-model evaluation: distance convention, GMPE median (point source or
+  // finite-fault SRSS quadrature) and the site term. Extracted as a closure
+  // so the logic-tree mode can aggregate COMPLETE per-branch predictions —
+  // site conventions differ between native-Vs30 (zhao/kanno) and
+  // reference-rock (si-mid/log) models, so mixing before the site term
+  // would double-count site response.
+  function evaluateModel(m) {
+    var usesRrup = !!geometry && (m === 'si-midorikawa' || m === 'log-ff');
+    var distanceKm = usesRrup ? Physics.rrupDistance(station.lat, station.lng, geometry) : rhypoKm;
+
+    // Site-term convention (matches tools/scorecard-strong-motion.js predictStation
+    // and the app forecast path _predictPrefectureShindosFor): zhao2006/kanno2006
+    // carry native paper Vs30 site classes, so the station Vs30 is fed straight
+    // into the GMPE and NO external amplification is applied on top. The
+    // reference-site models (si-midorikawa / log) predict on a 760 m/s reference
+    // and take the external vs30Amplification factor below.
+    var nativeVsModel = (m === 'zhao2006' || m === 'kanno2006');
+    var gmpeVs30 = nativeVsModel ? vs30 : (context.gmpeVs30 || 760);
+
+    function pointPga(distance) {
+      return Physics.calcPGA(source.mw, distance, m, source.depthKm, null, source.mw,
+        source.sourceType, attA, attB, attC, anelastic, gmpeVs30, source.rakeDeg);
+    }
+    function pointPgv(distance) {
+      return Physics.calcPGV(source.mw, distance, m, source.depthKm, null, source.mw,
+        source.sourceType, anelastic, gmpeVs30, source.rakeDeg);
+    }
+
+    var patches = [];
+    var referencePga, referencePgv;
+    if (geometry && geometry.subs && geometry.subs.length && distanceKm < cutoffKm) {
+      var pgaSquares = 0, pgvSquares = 0;
+      for (var i = 0; i < geometry.subs.length; i++) {
+        var sub = geometry.subs[i];
+        var patchHorizontal = Physics.haversineDist(station.lat, station.lng, sub.lat, sub.lng);
+        var patchDistance = Math.sqrt(patchHorizontal * patchHorizontal + sub.depth * sub.depth);
+        var weight = Math.sqrt(Math.max(0, Number(sub.momentFraction) || 0));
+        var patchPga = pointPga(patchDistance) * weight;
+        var patchPgv = pointPgv(patchDistance) * weight;
+        pgaSquares += patchPga * patchPga;
+        pgvSquares += patchPgv * patchPgv;
+        patches.push({source:sub, horizontalKm:patchHorizontal, distanceKm:patchDistance,
+          pga:patchPga, pgv:patchPgv});
+      }
+      referencePga = Math.sqrt(pgaSquares);
+      referencePgv = Math.sqrt(pgvSquares);
+    } else if (geometry && geometry.subs && geometry.subs.length) {
+      // Beyond the cutoff the full patch quadrature is not worth its cost — but
+      // a hard switch to the raw point source used to leave a step in the
+      // predicted field at exactly cutoffKm. Carry the SRSS/point ratio
+      // measured AT the cutoff distance outwards so the surface stays
+      // continuous (at great range the ratio tends to 1 anyway).
+      var pgaSqFar = 0, pgvSqFar = 0;
+      for (var ifr = 0; ifr < geometry.subs.length; ifr++) {
+        var subF = geometry.subs[ifr];
+        var phF = Physics.haversineDist(station.lat, station.lng, subF.lat, subF.lng);
+        var pdF = Math.sqrt(phF * phF + subF.depth * subF.depth);
+        var wF = Math.sqrt(Math.max(0, Number(subF.momentFraction) || 0));
+        var pF = pointPga(pdF) * wF, vF = pointPgv(pdF) * wF;
+        pgaSqFar += pF * pF; pgvSqFar += vF * vF;
+      }
+      var basePga = pointPga(cutoffKm), basePgv = pointPgv(cutoffKm);
+      referencePga = pointPga(distanceKm) * (basePga > 0 ? Math.sqrt(pgaSqFar) / basePga : 1);
+      referencePgv = pointPgv(distanceKm) * (basePgv > 0 ? Math.sqrt(pgvSqFar) / basePgv : 1);
+    } else {
+      referencePga = pointPga(distanceKm);
+      referencePgv = pointPgv(distanceKm);
+    }
+
+    var siteModel = opts.siteModel || 'vs30';
+    var sitePga, sitePgv;
+    if (opts.siteAmplificationPga != null) {
+      sitePga = Number(opts.siteAmplificationPga);
+      sitePgv = opts.siteAmplificationPgv == null ? sitePga : Number(opts.siteAmplificationPgv);
+    } else if (nativeVsModel) {
+      // Native Vs30 site classes already applied inside the GMPE above — an
+      // external factor here would double-count site response.
+      sitePga = sitePgv = 1;
+    } else if (siteModel === 'eqlin-1d') {
+      // R2: 1D equivalent-linear site response (Darendeli curves +
+      // Thomson–Haskell iteration) over a synthesized or measured profile —
+      // the physical replacement for the SS14 scalar path. Native-Vs30
+      // models never reach this branch (site classes live inside the GMPE).
+      var prof = opts.siteProfile || station.siteProfile ||
+        Physics.synthSiteProfile(vs30, opts.siteBedrockDepthM);
+      var eq = prof && Physics.eqlinSiteFactor(prof, referencePga * stationFactor);
+      if (eq) { sitePga = eq.pga; sitePgv = eq.pgv; }
+      else {
+        sitePga = Physics.vs30Amplification(vs30, 'pga');
+        sitePgv = Physics.vs30Amplification(vs30, 'pgv');
+      }
+    } else if (siteModel === 'vs30') {
+      if (opts.siteNonlinear === 'ss14') {
+        sitePga = Physics.vs30AmplificationNL(vs30, 'pga', referencePga * stationFactor);
+        sitePgv = Physics.vs30AmplificationNL(vs30, 'pgv', referencePga * stationFactor);
+      } else {
+        sitePga = Physics.vs30Amplification(vs30, 'pga');
+        sitePgv = Physics.vs30Amplification(vs30, 'pgv');
+      }
+    } else if (siteModel === 'none') {
+      sitePga = sitePgv = opts.siteBase == null ? 1 : Number(opts.siteBase);
+    } else {
+      sitePga = sitePgv = station.siteFactor != null ? Number(station.siteFactor) : Physics.soilAmp(
+        station.lat, station.lng, siteModel, opts.siteBase == null ? 1 : Number(opts.siteBase),
+        opts.siteSoftMax == null ? 1.65 : Number(opts.siteSoftMax),
+        opts.siteHardMin == null ? 1 : Number(opts.siteHardMin), opts.soilProvinces || Physics.SOIL_PROVINCES);
+    }
+    return {
+      model:m, usesRrup:usesRrup, distanceKm:distanceKm, patches:patches,
+      referencePga:referencePga, referencePgv:referencePgv,
+      pointPga:pointPga(distanceKm), pointPgv:pointPgv(distanceKm),
+      sitePga:sitePga, sitePgv:sitePgv
+    };
+  }
+
   var directivityFactor = 1;
   if (opts.directivity === 'somerville1997' && geometry) {
     var ruptureAzimuth = source.strikeDeg * Math.PI / 180;
-    var stationAzimuth = Math.atan2(station.lng - source.lng, station.lat - source.lat);
+    var stationAzimuth = Physics.bearingRad(source.lat, source.lng, station.lat, station.lng);
     var cosine = Math.cos(Math.abs(stationAzimuth - ruptureAzimuth));
-    var coefficient = 0.15 + Math.max(0, source.mw - 5) * 0.05;
+    var coefficient = Physics.somervilleDirectivityCoefficient(source.mw);
     if (cosine > 0) directivityFactor = 1 + coefficient * cosine;
   }
 
-  var siteModel = opts.siteModel || 'vs30';
-  var sitePga, sitePgv;
-  if (opts.siteAmplificationPga != null) {
-    sitePga = Number(opts.siteAmplificationPga);
-    sitePgv = opts.siteAmplificationPgv == null ? sitePga : Number(opts.siteAmplificationPgv);
-  } else if (nativeVsModel) {
-    // Native Vs30 site classes already applied inside the GMPE above — an
-    // external factor here would double-count site response.
-    sitePga = sitePgv = 1;
-  } else if (siteModel === 'vs30') {
-    if (opts.siteNonlinear === 'ss14') {
-      sitePga = Physics.vs30AmplificationNL(vs30, 'pga', referencePga * stationFactor);
-      sitePgv = Physics.vs30AmplificationNL(vs30, 'pgv', referencePga * stationFactor);
-    } else {
-      sitePga = Physics.vs30Amplification(vs30, 'pga');
-      sitePgv = Physics.vs30Amplification(vs30, 'pgv');
+  var res, pga, pgv, logicTree = null;
+  if (model === 'logic-tree') {
+    // Weighted geometric mean over complete branch predictions; the
+    // between-branch spread (weights included) is the epistemic sigma.
+    var branches = Physics.logicTreeBranches(source.sourceType);
+    var evals = branches.map(function(b) { return evaluateModel(b.model); });
+    var lnPga = 0, lnPgv = 0, wsum = 0;
+    for (var bi = 0; bi < branches.length; bi++) {
+      var b = branches[bi];
+      var tp = evals[bi].referencePga * evals[bi].sitePga;
+      var tv = evals[bi].referencePgv * evals[bi].sitePgv;
+      lnPga += b.weight * Math.log(tp); lnPgv += b.weight * Math.log(tv);
+      wsum += b.weight;
     }
-  } else if (siteModel === 'none') {
-    sitePga = sitePgv = opts.siteBase == null ? 1 : Number(opts.siteBase);
+    var meanLnPga = lnPga / wsum, meanLnPgv = lnPgv / wsum;
+    var varPga = 0, varPgv = 0;
+    var branchRows = [];
+    for (var bj = 0; bj < branches.length; bj++) {
+      var bjw = branches[bj].weight;
+      var bjPga = evals[bj].referencePga * evals[bj].sitePga;
+      var bjPgv = evals[bj].referencePgv * evals[bj].sitePgv;
+      varPga += bjw * (Math.log(bjPga) - meanLnPga) * (Math.log(bjPga) - meanLnPga);
+      varPgv += bjw * (Math.log(bjPgv) - meanLnPgv) * (Math.log(bjPgv) - meanLnPgv);
+      branchRows.push({ model: branches[bj].model, weight: +branches[bj].weight.toFixed(4), pga: bjPga, pgv: bjPgv });
+    }
+    // Heaviest branch supplies the metadata (distance metric, patches).
+    var heaviest = 0;
+    for (var bk = 1; bk < branches.length; bk++) if (branches[bk].weight > branches[heaviest].weight) heaviest = bk;
+    res = evals[heaviest];
+    pga = Math.exp(meanLnPga) * stationFactor * directivityFactor;
+    pgv = Math.exp(meanLnPgv) * stationFactor;
+    logicTree = {
+      branches: branchRows,
+      sigmaEpistemicPga: Math.sqrt(varPga),
+      sigmaEpistemicPgv: Math.sqrt(varPgv)
+    };
   } else {
-    sitePga = sitePgv = station.siteFactor != null ? Number(station.siteFactor) : Physics.soilAmp(
-      station.lat, station.lng, siteModel, opts.siteBase == null ? 1 : Number(opts.siteBase),
-      opts.siteSoftMax == null ? 1.65 : Number(opts.siteSoftMax),
-      opts.siteHardMin == null ? 1 : Number(opts.siteHardMin), opts.soilProvinces || Physics.SOIL_PROVINCES);
+    res = evaluateModel(model);
+    pga = res.referencePga * res.sitePga * stationFactor * directivityFactor;
+    pgv = res.referencePgv * res.sitePgv * stationFactor;
   }
-  var pga = referencePga * stationFactor * sitePga * directivityFactor;
-  var pgv = referencePgv * stationFactor * sitePgv;
   var intensity = Physics.calcJmaIntensity(pga, pgv);
-  return {
-    model:model, distanceMetric:usesRrup ? 'Rrup' : 'Rhypo', distanceKm:distanceKm,
-    horizontalKm:horizontalKm, rhypoKm:rhypoKm, referencePga:referencePga,
-    referencePgv:referencePgv, pointPga:pointPga(distanceKm), pointPgv:pointPgv(distanceKm),
+  var out = {
+    model:model, distanceMetric:res.usesRrup ? 'Rrup' : 'Rhypo', distanceKm:res.distanceKm,
+    horizontalKm:horizontalKm, rhypoKm:rhypoKm, referencePga:res.referencePga,
+    referencePgv:res.referencePgv, pointPga:res.pointPga, pointPgv:res.pointPgv,
     pga:pga, pgv:pgv, intensity:intensity, shindo:Physics.intensityToShindo(intensity),
-    sitePga:sitePga, sitePgv:sitePgv, stationFactor:stationFactor,
-    directivityFactor:directivityFactor, patches:patches
+    sitePga:res.sitePga, sitePgv:res.sitePgv, stationFactor:stationFactor,
+    directivityFactor:directivityFactor, patches:res.patches
   };
+  if (logicTree) out.logicTree = logicTree;
+  return out;
 };
 
 // ================================================================
@@ -2902,6 +3806,12 @@ Physics.createNonlinearTsunamiSolver = function(grid, source, options) {
   var z=new Float32Array(n),h=new Float32Array(n),hu=new Float32Array(n),hv=new Float32Array(n);
   var hn=new Float32Array(n),hun=new Float32Array(n),hvn=new Float32Array(n);
   var maxEta=new Float32Array(n),maxAbsEta=new Float32Array(n),maxDepth=new Float32Array(n),maxSpeed=new Float32Array(n);
+  // Hydrodynamic-load tracking: maxLoad = max over time of the instantaneous
+  // depth×speed product (= |momentum| hu,hv magnitude, m²/s — the JMA
+  // 津波浸水想定 danger criterion), maxFroude = max |u|/sqrt(gh). These must
+  // be tracked per step: the product of the independent maxima of depth and
+  // speed is NOT the peak load (the two peaks occur at different times).
+  var maxLoad=new Float32Array(n),maxFroude=new Float32Array(n);
   var arrivalTime=new Float32Array(n),wetEver=new Uint8Array(n),coastDistanceM=new Float32Array(n);
   var estRunup=new Float32Array(n),estArrival=new Float32Array(n);
   var sEtaX=new Float32Array(n),sEtaY=new Float32Array(n),sHuX=new Float32Array(n),sHuY=new Float32Array(n),sHvX=new Float32Array(n),sHvY=new Float32Array(n);
@@ -3155,7 +4065,9 @@ Physics.createNonlinearTsunamiSolver = function(grid, source, options) {
     for(var i=0;i<n;i++){
       var eta=h[i]+z[i],inund=z[i]>=0?Math.max(0,h[i]):0;
       if(h[i]>dry&&eta>maxEta[i])maxEta[i]=eta;if(time>=peakStartTime&&h[i]>dry&&Math.abs(eta)>maxAbsEta[i])maxAbsEta[i]=Math.abs(eta);if(inund>maxDepth[i])maxDepth[i]=inund;
-      if(h[i]>dry){var speed=Math.sqrt(hu[i]*hu[i]+hv[i]*hv[i])/h[i];if(speed>maxSpeed[i])maxSpeed[i]=speed;}
+      if(h[i]>dry){var momMag=Math.sqrt(hu[i]*hu[i]+hv[i]*hv[i]),speed=momMag/h[i];if(speed>maxSpeed[i])maxSpeed[i]=speed;
+        if(momMag>maxLoad[i])maxLoad[i]=momMag;
+        var froude=speed/Math.sqrt(g*h[i]);if(froude>maxFroude[i])maxFroude[i]=froude;}
       if(arrivalTime[i]<0&&((z[i]<0&&Math.abs(eta)>=arrivalThreshold)||(z[i]>=0&&h[i]>dry)))arrivalTime[i]=time;
       if(z[i]>=0&&h[i]>dry)wetEver[i]=1;
     }
@@ -3172,7 +4084,7 @@ Physics.createNonlinearTsunamiSolver = function(grid, source, options) {
     var cell=Physics.findNearestWetCell(grid,lat,lng,radius);return cell?cell.index:-1;
   }
   function snapshot(stride){
-    stride=Math.max(1,Math.round(stride||1));var cells=[],maxRunup=0,maxInundation=0,maxSurfaceElevation=0,maxWaveHeight=0,maxFlowSpeed=0;
+    stride=Math.max(1,Math.round(stride||1));var cells=[],maxRunup=0,maxInundation=0,maxSurfaceElevation=0,maxWaveHeight=0,maxFlowSpeed=0,maxHydroLoad=0;
     var inundatedAreaM2=0,maxInundationDistanceM=0,zoneKm=Math.max(5,Number(options.visualAggregationKm)||15);
     var blockX=Math.max(1,Math.round(zoneKm*1000/dxRows[Math.floor(ny/2)])),blockY=Math.max(1,Math.round(zoneKm*1000/dy)),zoneMap=Object.create(null);
     // Shoreline run-up estimate for the inundation summary. Coastal ocean
@@ -3197,7 +4109,7 @@ Physics.createNonlinearTsunamiSolver = function(grid, source, options) {
     }
     for(var i=0;i<n;i++){
       if(isFinite(maxEta[i]))maxSurfaceElevation=Math.max(maxSurfaceElevation,maxEta[i]);
-      maxWaveHeight=Math.max(maxWaveHeight,maxAbsEta[i]);maxFlowSpeed=Math.max(maxFlowSpeed,maxSpeed[i]);
+      maxWaveHeight=Math.max(maxWaveHeight,maxAbsEta[i]);maxFlowSpeed=Math.max(maxFlowSpeed,maxSpeed[i]);maxHydroLoad=Math.max(maxHydroLoad,maxLoad[i]);
       if(z[i]>=0){
         if(isFinite(maxEta[i]))maxRunup=Math.max(maxRunup,maxEta[i]);
         if(estRunup[i]>maxRunup)maxRunup=estRunup[i];
@@ -3207,11 +4119,13 @@ Physics.createNonlinearTsunamiSolver = function(grid, source, options) {
           var zy=Math.floor(i/nx),zx=i-zy*nx,zoneKey=Math.floor(zx/blockX)+','+Math.floor(zy/blockY);
           inundatedAreaM2+=cellAreaRows[zy];maxInundationDistanceM=Math.max(maxInundationDistanceM,coastDistanceM[i]);
           var zone=zoneMap[zoneKey];
-          if(!zone)zone=zoneMap[zoneKey]={minX:zx,maxX:zx,minY:zy,maxY:zy,maxDepth:0,maxSurface:0,maxVelocity:0,arrivalTime:Infinity,areaM2:0,cells:0};
+          if(!zone)zone=zoneMap[zoneKey]={minX:zx,maxX:zx,minY:zy,maxY:zy,maxDepth:0,maxSurface:0,maxVelocity:0,maxLoad:0,maxFroude:0,arrivalTime:Infinity,areaM2:0,cells:0};
           zone.minX=Math.min(zone.minX,zx);zone.maxX=Math.max(zone.maxX,zx);zone.minY=Math.min(zone.minY,zy);zone.maxY=Math.max(zone.maxY,zy);
           zone.maxDepth=Math.max(zone.maxDepth,effectiveDepth);
           zone.maxSurface=Math.max(zone.maxSurface,isFinite(maxEta[i])?maxEta[i]:0,estRunup[i]);
           zone.maxVelocity=Math.max(zone.maxVelocity,maxSpeed[i]);
+          zone.maxLoad=Math.max(zone.maxLoad,maxLoad[i]);
+          zone.maxFroude=Math.max(zone.maxFroude,maxFroude[i]);
           var cellArrival=arrivalTime[i]>=0?arrivalTime[i]:estArrival[i];
           if(cellArrival>=0)zone.arrivalTime=Math.min(zone.arrivalTime,cellArrival);
           zone.areaM2+=cellAreaRows[zy];zone.cells++;
@@ -3220,14 +4134,14 @@ Physics.createNonlinearTsunamiSolver = function(grid, source, options) {
     }
     for(var y=0;y<ny;y+=stride)for(var x=0;x<nx;x+=stride){var i=y*nx+x;
       var eta=h[i]>dry?h[i]+z[i]:0,inund=z[i]>=0?Math.max(0,h[i]):0,est=z[i]>=0?Math.max(0,estRunup[i]-z[i]):0;
-      if((h[i]>dry&&Math.abs(eta)>0.015)||maxDepth[i]>0.03||est>0.03||inund>dry||arrivalTime[i]>=0)cells.push({x:x,y:y,lat:grid.origin[1]+y*grid.res,lng:grid.origin[0]+x*grid.res,res:grid.res,eta:eta,maxEta:isFinite(maxEta[i])?maxEta[i]:0,maxWave:maxAbsEta[i],maxDepth:maxDepth[i],estDepth:est,inundation:inund,maxVelocity:maxSpeed[i],arrivalTime:arrivalTime[i]>=0?arrivalTime[i]:null,terrain:z[i],wet:wetEver[i]===1});
+      if((h[i]>dry&&Math.abs(eta)>0.015)||maxDepth[i]>0.03||est>0.03||inund>dry||arrivalTime[i]>=0)cells.push({x:x,y:y,lat:grid.origin[1]+y*grid.res,lng:grid.origin[0]+x*grid.res,res:grid.res,eta:eta,maxEta:isFinite(maxEta[i])?maxEta[i]:0,maxWave:maxAbsEta[i],maxDepth:maxDepth[i],estDepth:est,inundation:inund,maxVelocity:maxSpeed[i],maxLoad:maxLoad[i],maxFroude:maxFroude[i],arrivalTime:arrivalTime[i]>=0?arrivalTime[i]:null,terrain:z[i],wet:wetEver[i]===1});
     }
     var inundationZones=Object.keys(zoneMap).map(function(key){var zone=zoneMap[key];return{
       id:key,
       bbox:[grid.origin[0]+(zone.minX-0.5)*grid.res,grid.origin[1]+(zone.minY-0.5)*grid.res,grid.origin[0]+(zone.maxX+0.5)*grid.res,grid.origin[1]+(zone.maxY+0.5)*grid.res],
-      maxDepth:zone.maxDepth,maxSurface:zone.maxSurface,maxVelocity:zone.maxVelocity,arrivalTime:isFinite(zone.arrivalTime)?zone.arrivalTime:null,areaKm2:zone.areaM2/1e6,cells:zone.cells};});
+      maxDepth:zone.maxDepth,maxSurface:zone.maxSurface,maxVelocity:zone.maxVelocity,maxLoad:zone.maxLoad,maxFroude:zone.maxFroude,arrivalTime:isFinite(zone.arrivalTime)?zone.arrivalTime:null,areaKm2:zone.areaM2/1e6,cells:zone.cells};});
     return{cells:cells,inundationZones:inundationZones,time:time,stride:stride,model:'nonlinearSWE',maxRunup:maxRunup,maxInundation:maxInundation,
-      maxEta:maxSurfaceElevation,maxSurfaceElevation:maxSurfaceElevation,maxWaveHeight:maxWaveHeight,maxVelocity:maxFlowSpeed,inundatedAreaKm2:inundatedAreaM2/1e6,
+      maxEta:maxSurfaceElevation,maxSurfaceElevation:maxSurfaceElevation,maxWaveHeight:maxWaveHeight,maxVelocity:maxFlowSpeed,maxHydroLoad:maxHydroLoad,inundatedAreaKm2:inundatedAreaM2/1e6,
       maxInundationDistanceKm:maxInundationDistanceM/1000,arrivalThreshold:arrivalThreshold,visualAggregationKm:zoneKm,
       deformation:deformation,deformationGrid:{origin:grid.origin,res:grid.res,nx:nx,ny:ny},quality:grid.meta&&grid.meta.quality||'unknown',diagnostics:diagnostics()};
   }
@@ -3482,6 +4396,7 @@ Physics.createNestedTsunamiSolver = function(coarseGrid, fineGrid, source, optio
         maxRunup:Math.max(fs.maxRunup,cs.maxRunup),maxInundation:Math.max(fs.maxInundation,cs.maxInundation),
         maxEta:Math.max(fs.maxEta,cs.maxEta),maxSurfaceElevation:Math.max(fs.maxSurfaceElevation,cs.maxSurfaceElevation),
         maxWaveHeight:Math.max(fs.maxWaveHeight,cs.maxWaveHeight),maxVelocity:Math.max(fs.maxVelocity,cs.maxVelocity),
+        maxHydroLoad:Math.max(fs.maxHydroLoad||0,cs.maxHydroLoad||0),
         inundatedAreaKm2:(fs.inundatedAreaKm2||0)+(cs.inundatedAreaKm2||0),
         maxInundationDistanceKm:Math.max(fs.maxInundationDistanceKm||0,cs.maxInundationDistanceKm||0),
         arrivalThreshold:fs.arrivalThreshold,visualAggregationKm:fs.visualAggregationKm,
@@ -3603,8 +4518,8 @@ Physics.createLinearTsunamiSolver = function(grid, source, options) {
     sampleWaterDepth:function(lat,lng){var idx=nearestWet(lat,lng);return idx>=0?Math.max(0,-grid.data[idx]):null;},
     getSnapshot:function(stride){stride=Math.max(1,Math.round(stride||1));var cells=[],maxSurfaceElevation=0,maxWaveHeight=0,maxFlowSpeed=0;
       for(var si=0;si<n;si++){maxSurfaceElevation=Math.max(maxSurfaceElevation,maxEta[si]);maxWaveHeight=Math.max(maxWaveHeight,maxAbsEta[si]);maxFlowSpeed=Math.max(maxFlowSpeed,maxSpeed[si]);}
-      for(var y=0;y<ny;y+=stride)for(var x=0;x<nx;x+=stride){var idx=y*nx+x;if(grid.data[idx]<0&&(Math.abs(eta[idx])>0.002||arrivalTime[idx]>=0))cells.push({x:x,y:y,eta:eta[idx],maxEta:maxEta[idx],maxWave:maxAbsEta[idx],maxDepth:0,inundation:0,maxVelocity:maxSpeed[idx],arrivalTime:arrivalTime[idx]>=0?arrivalTime[idx]:null,terrain:grid.data[idx],wet:true});}
-      return{cells:cells,inundationZones:[],time:time,stride:stride,model:'linearSWE',maxRunup:0,maxInundation:0,maxEta:maxSurfaceElevation,maxSurfaceElevation:maxSurfaceElevation,maxWaveHeight:maxWaveHeight,maxVelocity:maxFlowSpeed,
+      for(var y=0;y<ny;y+=stride)for(var x=0;x<nx;x+=stride){var idx=y*nx+x;if(grid.data[idx]<0&&(Math.abs(eta[idx])>0.002||arrivalTime[idx]>=0))cells.push({x:x,y:y,eta:eta[idx],maxEta:maxEta[idx],maxWave:maxAbsEta[idx],maxDepth:0,inundation:0,maxVelocity:maxSpeed[idx],maxLoad:0,maxFroude:0,arrivalTime:arrivalTime[idx]>=0?arrivalTime[idx]:null,terrain:grid.data[idx],wet:true});}
+      return{cells:cells,inundationZones:[],time:time,stride:stride,model:'linearSWE',maxRunup:0,maxInundation:0,maxEta:maxSurfaceElevation,maxSurfaceElevation:maxSurfaceElevation,maxWaveHeight:maxWaveHeight,maxVelocity:maxFlowSpeed,maxHydroLoad:0,
         inundatedAreaKm2:0,maxInundationDistanceKm:0,arrivalThreshold:arrivalThreshold,deformation:deformation,quality:grid.meta&&grid.meta.quality||'unknown'};},
     getTime:function(){return time;},stableDt:stableDt,sourceAmplitude:amp,
     initialSourceResidual:initialSourceResidual,deformation:deformation,model:'linearSWE',arrivalThreshold:arrivalThreshold};

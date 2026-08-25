@@ -5,15 +5,15 @@
 <script>/* align <html lang> with the saved language before first paint (applyLanguage keeps it in sync afterwards) */try{var __l=localStorage.getItem('qs-lang');if(__l==='ja'||__l==='en'||__l==='zh')document.documentElement.lang=__l;}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0a0e1a">
-<meta name="description" content="Earthquake Simulator Pro v5.5正式版，面向日本的可复现地震与海啸情景模拟器。包含多种GMPE、矩守恒有限断层、JMA逐站独立验证、非线性浅水方程、科研结果对比和SREV式实时TTS。">
+<meta name="description" content="Earthquake Simulator Pro v5.6，面向日本的可复现地震与海啸情景模拟器。包含多种GMPE、矩守恒有限断层、JMA逐站独立验证、非线性浅水方程、科研结果对比和SREV式实时TTS。">
 <meta name="keywords" content="earthquake simulator,地震模拟,震度,地震波,日本地震,GMPE,Shindo,JMA">
-<meta property="og:title" content="Earthquake Simulator Pro v5.5正式版 — 地震与海啸情景模拟">
+<meta property="og:title" content="Earthquake Simulator Pro v5.6 — 地震与海啸情景模拟">
 <meta property="og:description" content="Web-based earthquake simulation for Japan. Real physics engine with 6 GMPE models, finite fault editor, TTS bulletin broadcast, and real-time monitoring from 5 data sources.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://quake-sim.example.com/">
 <meta property="og:image" content="https://quake-sim.example.com/og-image.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Earthquake Simulator Pro v5.5正式版">
+<meta name="twitter:title" content="Earthquake Simulator Pro v5.6">
 <meta name="twitter:description" content="Real-time earthquake wave propagation simulator for Japan. 6 GMPE, TTS bulletin, PWA offline.">
 <meta name="twitter:image" content="https://quake-sim.example.com/og-image.png">
 <link rel="canonical" href="https://quake-sim.example.com/">
@@ -21,23 +21,23 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="QuakeSim">
-<link rel="manifest" href="manifest.json?v=ccd9d3">
+<link rel="manifest" href="manifest.json?v=b234c1">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
-<title>地震模拟器 v5.5正式版 | Earthquake Simulator Pro</title>
+<title>地震模拟器 v5.6 | Earthquake Simulator Pro</title>
 <link rel="stylesheet" href="leaflet/leaflet.css?v=f885c4">
 <link rel="stylesheet" href="style.css?v=4b8e8b">
 <link rel="preload" href="leaflet/leaflet.js?v=5a640f" as="script">
-<link rel="preload" href="app.js?v=4f2245" as="script">
+<link rel="preload" href="app.js?v=5ac47f" as="script">
 <link rel="preload" href="style.css?v=4b8e8b" as="style">
-<link rel="preload" href="config.js?v=22335e" as="script">
-<link rel="preload" href="physics.js?v=2a042c" as="script">
+<link rel="preload" href="config.js?v=55512e" as="script">
+<link rel="preload" href="physics.js?v=cf3c22" as="script">
 </head>
 <body>
 <a href="#map" class="skip-link" data-i18n="aria.skip">跳转到内容</a>
 <div id="app" role="application" aria-label="Earthquake Simulator">
   <div id="sidebar" role="complementary" aria-label="控制面板">
     <div id="sidebar-header">
-      <h1 data-i18n="app.title">地震模拟器 v5.5正式版</h1>
+      <h1 data-i18n="app.title">地震模拟器 v5.6</h1>
       <div id="build-ver" style="font-size:.65em;color:var(--text-secondary);opacity:.5;margin-top:-2px" data-sw="sw.js=v195080">(······)</div>
       <button id="btn-help" class="help-link" type="button" data-i18n="help.title">使用帮助</button>
       <button id="btn-formulas" class="help-link" type="button" data-i18n="formulas.title">公式原理</button>
@@ -272,6 +272,8 @@
           <div class="adv-title" data-i18n="adv.atten">衰减参数</div>
           <div class="gmp-note" data-i18n="adv.gmpNote">auto = 地壳 (≤30km) → log（近场饱和更好）· 板间 (30–60km) → log-FF（Rrup+源类型补正，擅巨大地震）。也可手动选择模型。</div>
           <div class="adv-row" data-cfg="gmpModel"><span data-i18n="adv.gmpModel">GMPE模型</span><select></select><span class="adv-val"></span><button class="adv-rst" title="Reset">&#8634;</button></div>
+          <div class="adv-row" data-cfg="subareaUncertainty"><span data-i18n="adv.uncertainty">不确定性描边</span><select></select><span class="adv-val"></span><button class="adv-rst" title="Reset">&#8634;</button></div>
+          <div class="adv-row" data-cfg="subareaUncertainty"><span data-i18n="adv.uncertainty">不确定性描边</span><select></select><span class="adv-val"></span><button class="adv-rst" title="Reset">&#8634;</button></div>
           <div class="adv-row" data-cfg="attA"><span data-i18n="adv.attA">系数 a (M)</span><input type="range"><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div>
           <div class="adv-row" data-cfg="attB"><span data-i18n="adv.attB">系数 b (logR)</span><input type="range"><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div>
           <div class="adv-row" data-cfg="attC"><span data-i18n="adv.attC">系数 c (常数)</span><input type="range"><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div>
@@ -690,15 +692,15 @@
 
 <script src="leaflet/leaflet.js?v=5a640f"></script>
 <script src="turf/turf.min.js?v=07f3b6"></script>
-<script src="config.js?v=22335e"></script>
+<script src="config.js?v=55512e"></script>
 <script src="sim-utils.js?v=58ccc5"></script>
 <script src="research.js?v=d9aad6"></script>
 <script src="data-catalog.js?v=bee20f"></script>
 <script src="grid-package.js?v=865d26"></script>
-<script src="i18n.js?v=1f5c1a"></script>
+<script src="i18n.js?v=d0ebfb"></script>
 <script src="dc3d.js?v=2865dd"></script>
-<script src="physics.js?v=2a042c"></script>
-<script src="tsunami-solver-host.js?v=21d342"></script>
+<script src="physics.js?v=cf3c22"></script>
+<script src="tsunami-solver-host.js?v=2432a8"></script>
 <script src="reference-backend.js?v=3ead82"></script>
 <script src="waveform-data.js?v=27c01f"></script>
 <script src="strong-motion-waveforms.js?v=4ab568"></script>
@@ -793,7 +795,7 @@ window._loadThreeJS = function(cb) {
     </div>
   </div>
 </div>
-<script src="app.js?v=4f2245"></script>
+<script src="app.js?v=5ac47f"></script>
 <script src="aftershock.js?v=e29837"></script>
 <script src="rt-data.js?v=b1aff5"></script>
 <script src="rt-kmoni.js?v=b581c5"></script>
@@ -802,7 +804,7 @@ window._loadThreeJS = function(cb) {
 <script src="rt-quakeinfo.js?v=b6b2bc"></script>
 <script src="rt-tsunami.js?v=d59204"></script>
 <script src="info-panel.js?v=b799dd"></script>
-<script src="renderer.js?v=20fa7b"></script>
+<script src="renderer.js?v=83b6c0"></script>
 <div id="help-overlay" class="help-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="help-dialog-title">
   <div class="help-panel" tabindex="-1">
     <div class="help-header"><span id="help-dialog-title" data-i18n="help.header">📖 使用帮助</span><button id="btn-help-close" class="help-close" data-i18n-aria="aria.close" aria-label="Close">&times;</button></div>
@@ -848,6 +850,19 @@ window._loadThreeJS = function(cb) {
       <h3 data-i18n="help.share">📎 URL分享</h3>
       <p data-i18n="help.share_text">点击Start按钮旁的🔗按钮可复制当前模拟的完整URL链接。将链接分享给他人，对方打开后自动加载相同的震中、震级、深度等参数。支持参数：lat/lng（震中）、mag（震级）、depth（深度）、strike（走向）、dip（倾角）、preset（预设场景）、lang（语言）、detect（检测模式）、aftershock（余震）、tsunami（海啸）。</p>
       <hr style="border-color:var(--border);margin:12px 0">
+      <h3 data-i18n="help.v56_release">━━ v5.6 更新 ━━</h3>
+      <h3 data-i18n="help.v56_uncertainty">不确定性与多模型量化</h3>
+      <p data-i18n="help.v56_uncertainty_text">GMPE 逻辑树按震源构造类三分支 LLH 定权聚合,同时报告认知 σ;τ/φ 事件间-事件内分量完成拟合;Jayaram–Baker 站间空间相关(日本数据实测范围 94/72.5 km)作用于集合残差;Monte Carlo 集合引擎输出细分区 P10–P90 描边图层(可开关,检测模式下禁用)。预登记验收:冻结 13 事件 1,633 站,68%/80% 区间覆盖率 0.696/0.811(偏差 ≤5pp)。可靠度曲线、Brier 技巧分(+0.40..0.54)与超越概率互验(mean|ΔP| 0.016)全部入报告。</p>
+      <h3 data-i18n="help.v56_site">1D 等效线性场地反应 (eqlin-1d)</h3>
+      <p data-i18n="help.v56_site_text">场地模型新增 eqlin-1d 档:基于 Darendeli(2001) G/Gmax–阻尼曲线的等效线性迭代(SH 传递矩阵),逐台站合成剖面由 J-SHIS Vs30 与 JIVSM 工程基岩深度构成,仅作用于参考场地 GMPE 路径(zhao/kanno 原生 Vs30 项不叠加,避免双重计)。vs30/ss14/合成/真实剖面四臂记分卡落盘 tools/data/site-response-report.json。</p>
+      <h3 data-i18n="help.v56_sb">KiK-net 地表/井下谱比标定</h3>
+      <p data-i18n="help.v56_sb_text">197 组 KiK-net 地表/井下水平谱比(Hann+FFT+Konno–Ohmachi 平滑)与 670 孔 PS 测井冻结为派生标定(NIED DOI 10.17598/NIED.0004,原始数据不入库)。经验 f0(Vs30) 关系(log10 f0 = -0.69 + 0.46·log10 Vs30)驱动两尺度合成剖面:浅共鸣块按经验 f0 定厚、过渡填充至 JIVSM 基岩。记分卡:强度 bias -0.154→-0.044、RMS 0.955→0.874,软土 (<200 m/s) RMS 1.30→0.99。</p>
+      <h3 data-i18n="help.v56_cs">条件谱与周期对相关</h3>
+      <p data-i18n="help.v56_cs_text">Jayaram et al.(2011) 附录周期对 ε 相关表(16 周期,地壳/海沟界面)经校验门转录冻结;Physics.conditionalSpectrum 标量锚高斯条件化;台站反应谱图新增 CS ±1σ 带。板内类暂用界面型表(原论文表 5 文本层解析为已文档化的待办)。</p>
+      <h3 data-i18n="help.v56_load">海啸荷载指标</h3>
+      <p data-i18n="help.v56_load_text">求解器逐格追踪瞬时 maxLoad=|hu,hv|(m²/s,水深×流速——非独立最大值之积)与 maxFroude;新增 hydroLoad 地图模式与分区详情行,对齐 JMA 津波浸水想定的荷载评价思路。</p>
+      <h3 data-i18n="help.v56_fix">科学修正与外部断言</h3>
+      <p data-i18n="help.v56_fix_text">Somerville 方向性方位角由平面 atan2 改大圆初始方位(东西分量曾按 1/cos(lat) 高估,46°N 最高约 39%,增益指向偏转 6–12.5°);Zhao2006 实现对 openquake.hazardlib 官方源码标量转录逐点断言(2,400 点,最大 |ΔlnA| 2.7×10⁻¹⁵);modelBias 留一事件验证发现小样本过拟合并如实标注。</p>
       <h3 data-i18n="help.v55_preview">━━ v5.5正式版 更新 ━━</h3>
       <h3 data-i18n="help.v55_asdetect">余震次级 EEW 再检测</h3>
       <p data-i18n="help.v55_asdetect_text">检测模式下,达到事件阈值(默认 M5.5)的余震(含手动余震)现在会像主震一样触发独立的 EEW 检测轨迹:网格搜索定位、震级反演、逐报播报。较小的余震保持位置三角标记。</p>
@@ -1014,7 +1029,7 @@ window._loadThreeJS = function(cb) {
       <h3 data-i18n="help.seafloor">海底测站与地形</h3>
       <p data-i18n="help.seafloor_text">203 个 DONET1/2 与 S-net 海底测站以方形标记显示。内置 0.15 度地形已修正日本陆海掩膜，但仍是合成演示数据，不是 ETOPO、GEBCO 或 GSI 产品；可替换为导入的高分辨率地形栅格。</p>
       <h3 data-i18n="help.science">科学计算引擎</h3>
-      <p data-i18n="help.science_text">v5.5正式版整合统一震源模型、解析Okada DC3D、时变破裂、分层走时、Newmark-beta PSA、JMA三分量处理、NLSWE、湿润/干涸、爬高与淹没显示、震源机制科研流程和SREV式实时TTS。公开基准和数据限制见“公式原理”；这些能力不等于业务预报。</p>
+      <p data-i18n="help.science_text">v5.6 版引入不确定性多模型量化(GMPE 逻辑树、τ/φ 抽样、站间空间相关、Monte Carlo 集合与 P10–P90 区间)与 1D 等效线性场地反应(Darendeli 2001 曲线、KiK-net 实测谱比标定、条件谱)。系统继续整合统一震源模型、解析Okada DC3D、时变破裂、分层走时、Newmark-beta PSA、JMA三分量处理、NLSWE、湿润/干涸、爬高与淹没显示、震源机制科研流程和SREV式实时TTS。公开基线和数据限制见“公式原理”;这些能力不等于业务预报。</p>
       <h3 data-i18n="help.theme">主题与快捷键</h3>
       <p data-i18n="help.theme_text">按T键或点击状态栏🌓按钮切换深色/浅色主题（偏好保存在本地）。按?键显示快捷键面板。右键点击地图可弹出快捷菜单（设置震中/添加多事件/查看坐标）。设置震中后显示最近城市名称。所有测站点击可查看详情并切换波形监测。</p>
       <h3 data-i18n="help.shindoreport">震度报告</h3>
@@ -1040,7 +1055,7 @@ window._loadThreeJS = function(cb) {
 <div id="formulas-overlay" class="help-overlay formula-mode-basic" style="display:none" role="dialog" aria-modal="true" aria-labelledby="formulas-title">
   <div class="help-panel formulas-panel" tabindex="-1">
     <div class="help-header formulas-header">
-      <div><span id="formulas-title" data-i18n="formulas.header">📐 科学公式与原理</span><small data-i18n="formulas.subtitle">与 v5.5正式版实际计算实现保持一致</small></div>
+      <div><span id="formulas-title" data-i18n="formulas.header">📐 科学公式与原理</span><small data-i18n="formulas.subtitle">与 v5.6 实际计算实现保持一致</small></div>
       <button id="btn-formulas-close" class="help-close" type="button" data-i18n-aria="aria.close" aria-label="Close">&times;</button>
     </div>
     <div class="formulas-toolbar">

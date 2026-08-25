@@ -1,0 +1,189 @@
+{
+ "meta": {
+  "generatedBy": "tools/crosscheck-exceedance.js",
+  "members": 200,
+  "thresholdsRel": [
+   0.5,
+   1,
+   2
+  ],
+  "thresholdsGal": [
+   80,
+   250
+  ]
+ },
+ "arms": {
+  "single-model": {
+   "config": "jitter OFF, one GMPE — member multipliers exactly lognormal(tau,phi); gated against the analytic CCDF",
+   "pooled": {
+    "nPoints": 8165,
+    "meanAbsDiff": 0.0159,
+    "maxAbsDiff": 0.1018,
+    "mcTolerance95": 0.0693
+   },
+   "worst": {
+    "threshold": 32.8,
+    "pEmp": 0.06,
+    "pAna": 0.1618,
+    "absDiff": 0.1018
+   },
+   "perEvent": [
+    {
+     "eventId": "tohoku2011",
+     "meanAbsDiff": 0.0173,
+     "n": 1000
+    },
+    {
+     "eventId": "kumamoto2016",
+     "meanAbsDiff": 0.0191,
+     "n": 555
+    },
+    {
+     "eventId": "tokachi2003",
+     "meanAbsDiff": 0.0169,
+     "n": 920
+    },
+    {
+     "eventId": "fukushima2022",
+     "meanAbsDiff": 0.0134,
+     "n": 1000
+    },
+    {
+     "eventId": "noto2024",
+     "meanAbsDiff": 0.015,
+     "n": 615
+    },
+    {
+     "eventId": "hyuganada2024",
+     "meanAbsDiff": 0.0155,
+     "n": 290
+    },
+    {
+     "eventId": "chuetsu2004",
+     "meanAbsDiff": 0.0183,
+     "n": 350
+    },
+    {
+     "eventId": "iwate2008",
+     "meanAbsDiff": 0.0161,
+     "n": 615
+    },
+    {
+     "eventId": "fukuoka2005",
+     "meanAbsDiff": 0.0167,
+     "n": 490
+    },
+    {
+     "eventId": "noto2007",
+     "meanAbsDiff": 0.0127,
+     "n": 600
+    },
+    {
+     "eventId": "fukushima2011",
+     "meanAbsDiff": 0.0176,
+     "n": 720
+    },
+    {
+     "eventId": "yamagata2019",
+     "meanAbsDiff": 0.0137,
+     "n": 385
+    },
+    {
+     "eventId": "iburihigashi2018",
+     "meanAbsDiff": 0.0153,
+     "n": 625
+    }
+   ],
+   "spread": {
+    "empiricalLn68HalfWidthMedian": 0.615,
+    "analyticLn68HalfWidthMedian": 0.702
+   }
+  },
+  "deployed": {
+   "config": "jitter ON + logic-tree — the shipped overlay config; spread widened by epistemic branches + M/depth/epicenter jitter (reported, not gated)",
+   "pooled": {
+    "nPoints": 8165,
+    "meanAbsDiff": 0.0194,
+    "maxAbsDiff": 0.1496,
+    "mcTolerance95": 0.0693
+   },
+   "worst": {
+    "threshold": 4.09,
+    "pEmp": 0.695,
+    "pAna": 0.8446,
+    "absDiff": 0.1496
+   },
+   "perEvent": [
+    {
+     "eventId": "tohoku2011",
+     "meanAbsDiff": 0.0194,
+     "n": 1000
+    },
+    {
+     "eventId": "kumamoto2016",
+     "meanAbsDiff": 0.0211,
+     "n": 555
+    },
+    {
+     "eventId": "tokachi2003",
+     "meanAbsDiff": 0.0192,
+     "n": 920
+    },
+    {
+     "eventId": "fukushima2022",
+     "meanAbsDiff": 0.0299,
+     "n": 1000
+    },
+    {
+     "eventId": "noto2024",
+     "meanAbsDiff": 0.0174,
+     "n": 615
+    },
+    {
+     "eventId": "hyuganada2024",
+     "meanAbsDiff": 0.0365,
+     "n": 290
+    },
+    {
+     "eventId": "chuetsu2004",
+     "meanAbsDiff": 0.0153,
+     "n": 350
+    },
+    {
+     "eventId": "iwate2008",
+     "meanAbsDiff": 0.0165,
+     "n": 615
+    },
+    {
+     "eventId": "fukuoka2005",
+     "meanAbsDiff": 0.0125,
+     "n": 490
+    },
+    {
+     "eventId": "noto2007",
+     "meanAbsDiff": 0.0146,
+     "n": 600
+    },
+    {
+     "eventId": "fukushima2011",
+     "meanAbsDiff": 0.019,
+     "n": 720
+    },
+    {
+     "eventId": "yamagata2019",
+     "meanAbsDiff": 0.0137,
+     "n": 385
+    },
+    {
+     "eventId": "iburihigashi2018",
+     "meanAbsDiff": 0.0145,
+     "n": 625
+    }
+   ],
+   "spread": {
+    "empiricalLn68HalfWidthMedian": 0.779,
+    "analyticLn68HalfWidthMedian": null
+   }
+  }
+ }
+}

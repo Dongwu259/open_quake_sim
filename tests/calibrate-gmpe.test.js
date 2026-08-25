@@ -3,28 +3,28 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const { buildCalibration, binIndex, preserveForeignBlocks } = require('../tools/calibrate-gmpe.js');
+const { buildCalibration, buildLoeoReport, binIndex, preserveForeignBlocks } = require('../tools/calibrate-gmpe.js');
 
 // 4 stations near a fake epicenter; intensity strings are level+100 chars.
 const STATIONS = [[35.0, 139.0], [35.1, 139.0], [35.0, 139.1], [35.1, 139.1]];
 const T0 = Date.parse('2026-08-12T01:00:00+09:00');
 
-function eewFrame(eventId, serial, dtMs, isFinal) {
+function eewFrame(eventId, serial, dtMs, isFinal, mag) {
   return {
     t: T0 + dtMs, type: 'wolfx_eew',
     event: {
       type: 'jma_eew', EventID: eventId, Serial: serial,
-      Latitude: 35.05, Longitude: 139.05, Magunitude: 3.1, Depth: 10,
+      Latitude: 35.05, Longitude: 139.05, Magunitude: mag != null ? mag : 3.1, Depth: 10,
       OriginTime: '2026/08/12 01:00:00', isFinal: !!isFinal
     }
   };
 }
-function eqFrame(eventId) {
+function eqFrame(eventId, mag) {
   return {
     t: T0 + 60000, type: 'wolfx_eq',
     event: {
       EventID: eventId, latitude: 35.05, longitude: 139.05,
-      magnitude: 3.1, depth: '10km', time_full: '2026/08/12 01:00:00'
+      magnitude: mag != null ? mag : 3.1, depth: '10km', time_full: '2026/08/12 01:00:00'
     }
   };
 }
@@ -98,4 +98,52 @@ test('preserveForeignBlocks: missing/invalid previous file is a no-op', () => {
   assert.equal(preserveForeignBlocks(null, next), next);
   assert.equal(preserveForeignBlocks(undefined, next), next);
   assert.deepEqual(next, { bins: [] });
+});
+
+// ============================================================
+//  Leave-one-event-out generalization report (R0-4)
+// ============================================================
+
+test('buildLoeoReport: two-event bin refits to zero for each fold (gate re-applied)', () => {
+  const report = buildLoeoReport(makeFrames(), STATIONS);
+  assert.equal(report.schema, 'quake-sim-gmpe-loeo-v1');
+  const b0 = report.bins[0];
+  assert.equal(b0.events, 2);
+  assert.ok(b0.deltaIDeployed < 0, 'deployed correction is active with 2 events');
+  for (const ev of b0.events_detail) {
+    assert.equal(ev.deltaIRefit, 0, '1 remaining event is below MIN_EVENTS -> fold correction is 0');
+    assert.equal(ev.rmsHeldOutRefit, ev.rmsUncorrected,
+      'held-out event is scored without any correction when the fold gate closes');
+  }
+  // Held-out RMS therefore equals the uncorrected RMS -> no overfitting claim possible either way.
+  assert.equal(b0.rmsHeldOutLOO, b0.rmsUncorrected);
+  assert.equal(b0.heldOutWorseThanUncorrected, false);
+  assert.ok(report.conclusion.includes('no leave-one-out evidence of overfitting'));
+});
+
+test('buildLoeoReport: three-event bin refits from the remaining two', () => {
+  const frames = [];
+  for (const [id, mag] of [['E1', 3.1], ['E2', 3.1], ['E3', 3.6]]) {
+    frames.push(eewFrame(id, 1, 5000, false, mag));
+    frames.push(eewFrame(id, 2, 20000, true, mag));
+    frames.push(eqFrame(id, mag));
+  }
+  for (let dt = -120000; dt <= 620000; dt += 60000) frames.push(kmoniFrame(dt, 6));
+  const report = buildLoeoReport(frames, STATIONS);
+  const b0 = report.bins[0];
+  assert.equal(b0.events, 3);
+  for (const ev of b0.events_detail) {
+    assert.ok(ev.deltaIRefit < 0 && ev.deltaIRefit >= -1.5,
+      `fold refit stays active and bounded, got ${ev.deltaIRefit}`);
+    assert.ok(ev.rmsHeldOutRefit < ev.rmsUncorrected,
+      `held-out correction should reduce RMS for overpredicted events: ${ev.rmsHeldOutRefit} vs ${ev.rmsUncorrected}`);
+  }
+  assert.ok(b0.rmsHeldOutLOO < b0.rmsUncorrected, 'bin-level LOO predictive RMS improves');
+  assert.equal(b0.heldOutWorseThanUncorrected, false);
+});
+
+test('buildLoeoReport: empty input reports nothing to test', () => {
+  const report = buildLoeoReport([], STATIONS);
+  assert.equal(report.conclusion, 'no scored events — nothing to test');
+  assert.ok(report.bins.every(b => b.events === 0));
 });

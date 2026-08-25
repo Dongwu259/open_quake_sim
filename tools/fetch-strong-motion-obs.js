@@ -34,6 +34,10 @@ const DEFAULT_MAX_STATIONS = 600;
 // offshore subduction-zone events -> interplate, deep slab event -> intraslab,
 // shallow inland events -> crustal. fukushima2022 is the Goldberg 2022
 // intraslab model in-app (preset depth 63 km -> intraslab band).
+// R1 expansion (2026-08-24): +7 crustal events with JMA hypocenters already
+// frozen in observed.json (kobe1995 had only 20 instrumented stations and
+// tottori2016 only 2 — both below the 100-station quality gate and stay out;
+// kushiro1993 has no shakemap stationlist at all).
 const EVENTS = [
   { key: 'tohoku2011',    name: '2011 Great Tohoku Earthquake (M9.1)',
     start: '2011-03-11T05:40:00Z', end: '2011-03-11T06:00:00Z', minMag: 8.5,
@@ -54,7 +58,29 @@ const EVENTS = [
     approx: [37.50, 137.27], sourceType: 'crustal' },
   { key: 'hyuganada2024', name: '2024 Hyuganada (M7.1)',
     start: '2024-08-08T07:38:00Z', end: '2024-08-08T07:58:00Z', minMag: 6.8,
-    approx: [31.72, 131.53], sourceType: 'interplate' }
+    approx: [31.72, 131.53], sourceType: 'interplate' },
+  // --- R1 expansion: crustal events, JMA hypocenters in observed.json ---
+  { key: 'chuetsu2004',   name: '2004 Niigata Chuetsu (M6.8)',
+    start: '2004-10-23T08:50:00Z', end: '2004-10-23T09:10:00Z', minMag: 6.0,
+    approx: [37.29, 138.87], sourceType: 'crustal' },
+  { key: 'iwate2008',     name: '2008 Iwate-Miyagi Nairiku (M7.2)',
+    start: '2008-06-13T23:35:00Z', end: '2008-06-14T00:00:00Z', minMag: 6.4,
+    approx: [39.03, 140.88], sourceType: 'crustal' },
+  { key: 'fukuoka2005',   name: '2005 Fukuoka-oki Genkai (M7.0)',
+    start: '2005-03-20T01:45:00Z', end: '2005-03-20T02:05:00Z', minMag: 6.0,
+    approx: [33.74, 130.18], sourceType: 'crustal' },
+  { key: 'noto2007',      name: '2007 Noto-oki (M6.9)',
+    start: '2007-03-25T00:35:00Z', end: '2007-03-25T00:55:00Z', minMag: 6.0,
+    approx: [37.22, 136.69], sourceType: 'crustal' },
+  { key: 'fukushima2011', name: '2011 Fukushima Hamadori (M7.0)',
+    start: '2011-04-11T08:10:00Z', end: '2011-04-11T08:30:00Z', minMag: 6.2,
+    approx: [36.95, 140.67], sourceType: 'crustal' },
+  { key: 'yamagata2019',  name: '2019 Yamagata-oki (M6.7)',
+    start: '2019-06-18T13:15:00Z', end: '2019-06-18T13:35:00Z', minMag: 6.0,
+    approx: [38.61, 139.53], sourceType: 'crustal' },
+  { key: 'iburihigashi2018', name: '2018 Hokkaido Iburi East (M6.7)',
+    start: '2018-09-05T18:00:00Z', end: '2018-09-05T18:25:00Z', minMag: 6.0,
+    approx: [42.69, 142.01], sourceType: 'crustal' }
 ];
 
 // Unit conversion tables, keyed by the exact units strings shakemap emits.

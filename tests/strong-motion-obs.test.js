@@ -6,14 +6,15 @@ const Scorecard=require('../tools/scorecard-strong-motion.js');
 
 const OBS=JSON.parse(fs.readFileSync('public/geojson/strong-motion-obs.json','utf8'));
 const CAL=JSON.parse(fs.readFileSync('public/geojson/gmpe-calibration.json','utf8'));
-const EVENT_IDS=['tohoku2011','kumamoto2016','tokachi2003','fukushima2022','noto2024','hyuganada2024'];
+const EVENT_IDS=['tohoku2011','kumamoto2016','tokachi2003','fukushima2022','noto2024','hyuganada2024',
+  'chuetsu2004','iwate2008','fukuoka2005','noto2007','fukushima2011','yamagata2019','iburihigashi2018'];
 
 test('frozen strong-motion file has all six events with stations and provenance',()=>{
   assert.equal(OBS.schema,'quake-sim-strong-motion-obs-v1');
   assert.deepEqual(OBS.events.map(e=>e.eventId).sort(),EVENT_IDS.slice().sort());
   for(const ev of OBS.events){
     assert.ok(ev.usgsId && ev.time && !isNaN(Date.parse(ev.time)),ev.eventId+' metadata');
-    assert.ok(isFinite(ev.lat)&&isFinite(ev.lng)&&ev.depthKm>0&&ev.mw>=6.5,ev.eventId+' hypocenter');
+    assert.ok(isFinite(ev.lat)&&isFinite(ev.lng)&&ev.depthKm>0&&ev.mw>=6.0,ev.eventId+' hypocenter (USGS Mw; JMA Mj differs)');
     assert.ok(['crustal','interplate','intraslab'].includes(ev.sourceType),ev.eventId+' sourceType');
     assert.ok(ev.provenance&&/^https:\/\//.test(ev.provenance.sourceUrl)&&ev.provenance.retrievedAt&&ev.provenance.license,ev.eventId+' provenance');
     assert.ok(ev.stations.length>100,ev.eventId+' station count');
@@ -71,7 +72,7 @@ test('scorecard report is deterministic',()=>{
   assert.deepEqual(a,b);
   assert.equal(a.overall.pga.n,OBS.events.reduce((n,e)=>n+e.stations.length,0));
   assert.ok(a.overall.intensity.rms>0&&a.overall.distanceBins.length===5);
-  assert.equal(a.correctionEvaluation.perEvent.length,6);
+  assert.equal(a.correctionEvaluation.perEvent.length,OBS.events.length);
   Physics.setGmpeCalibration(null); // leave global state clean for other test files
 });
 
@@ -197,5 +198,33 @@ test('shipped gmpe-calibration.json si-midorikawa/kanno2006 modelBias blocks are
       assert.ok(b.deltaI*b.measuredBias<=0,'deltaI opposes the measured bias: '+JSON.stringify(b));
       assert.ok(b.stations>0,'measured bin has stations (no extrapolation)');
     }
+  }
+});
+
+// R0-4 (2026-08-24): leave-one-event-out generalization of the modelBias
+// layer. Structure and honesty of the report are asserted; the current
+// frozen 6-event set genuinely degrades held-out RMS (documented in
+// tools/data/model-bias-loeo-report.json), so the test pins the mechanism,
+// not a wishful "improves" outcome.
+test('buildModelBiasLoeo: fold structure, gates and finite held-out statistics',()=>{
+  for(const model of ['zhao2006','si-midorikawa']){
+    const r=Scorecard.buildModelBiasLoeo(OBS,CAL,model);
+    assert.equal(r.schema,'quake-sim-model-bias-loeo-v1');
+    assert.equal(r.model,model);
+    assert.ok(r.events>=2,model+' needs at least two foldable events');
+    assert.equal(r.folds.length,r.events,'one fold per fitted event');
+    assert.ok(r.stations>500,model+' station pool');
+    assert.ok(Array.isArray(r.deployedDistBins)&&r.deployedDistBins.length>0);
+    for(const f of r.folds){
+      assert.ok(f.stations>100,f.eventId+' fold station count');
+      for(const k of ['rmsUncorrected','rmsHeldOutRefit','rmsDeployed']){
+        assert.ok(Number.isFinite(f[k])&&f[k]>0&&f[k]<5,`${model}/${f.eventId} ${k}=${f[k]}`);
+      }
+    }
+    assert.ok(Number.isFinite(r.rmsHeldOutLOO)&&Number.isFinite(r.rmsUncorrected));
+    assert.equal(typeof r.heldOutWorseThanUncorrected,'boolean');
+    assert.ok(/leave-one-out|generalize/.test(r.conclusion),model+' conclusion text: '+r.conclusion);
+    // The gate must mirror the deployed table (magnitude minM=7).
+    assert.equal(r.magnitudeGate.minM,7);
   }
 });

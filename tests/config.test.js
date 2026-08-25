@@ -45,7 +45,7 @@ test('v5 physics method options expose safe defaults', () => {
   assert.strictEqual(cfg.cfgGet('tsunamiAlertBias'), 0);
   assert.strictEqual(cfg.cfgGet('tsunamiMapMode'), 'cityInundation');
   assert.deepStrictEqual(cfg.CFG_DEFAULTS.tsunamiMapMode.opts,
-    ['off','waveField','maxSurface','arrivalTime','maxVelocity','maxInundation','cityInundation','seafloorDeformation']);
+    ['off','waveField','maxSurface','arrivalTime','maxVelocity','hydroLoad','maxInundation','cityInundation','seafloorDeformation']);
   assert.strictEqual(cfg.cfgGet('tsunamiCoriolis'), 'on');
 });
 

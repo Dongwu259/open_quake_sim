@@ -1,0 +1,98 @@
+{
+  "schema": "quake-sim-logic-tree-weights-v1",
+  "generatedAt": "2026-08-23T17:35:51.985Z",
+  "method": "Scherbaum et al. (2004) LLH on ln-PGA residuals with per-model fitted total sigma (tools/data/sigma-components-report.json, in-sample sigma caveat); Delavaud information weights w ∝ exp(-(LLH - LLH_min)); forced-model predictions on every event of the class; JMA-catalog hypocenters",
+  "classes": {
+    "interplate": {
+      "events": 3,
+      "stations": 1325,
+      "eventsUsed": [
+        "tohoku2011",
+        "tokachi2003",
+        "hyuganada2024"
+      ],
+      "branches": [
+        {
+          "model": "kanno2006",
+          "sigmaLnPga": 0.948,
+          "llh": 1.5779337642900013,
+          "weight": 0.3717
+        },
+        {
+          "model": "zhao2006",
+          "sigmaLnPga": 1.175,
+          "llh": 1.6174472890959788,
+          "weight": 0.3573
+        },
+        {
+          "model": "si-midorikawa",
+          "sigmaLnPga": 0.702,
+          "llh": 1.89392537722858,
+          "weight": 0.271
+        }
+      ]
+    },
+    "crustal": {
+      "events": 9,
+      "stations": 2962,
+      "eventsUsed": [
+        "kumamoto2016",
+        "noto2024",
+        "chuetsu2004",
+        "iwate2008",
+        "fukuoka2005",
+        "noto2007",
+        "fukushima2011",
+        "yamagata2019",
+        "iburihigashi2018"
+      ],
+      "branches": [
+        {
+          "model": "si-midorikawa",
+          "sigmaLnPga": 0.702,
+          "llh": 1.1049391428013027,
+          "weight": 0.3666
+        },
+        {
+          "model": "kanno2006",
+          "sigmaLnPga": 0.948,
+          "llh": 1.1875825994493592,
+          "weight": 0.3376
+        },
+        {
+          "model": "zhao2006",
+          "sigmaLnPga": 1.175,
+          "llh": 1.3196434031655189,
+          "weight": 0.2958
+        }
+      ]
+    },
+    "intraslab": {
+      "events": 1,
+      "stations": 600,
+      "eventsUsed": [
+        "fukushima2022"
+      ],
+      "branches": [
+        {
+          "model": "si-midorikawa",
+          "sigmaLnPga": 0.702,
+          "llh": 2.1668510141540196,
+          "weight": 0.3984
+        },
+        {
+          "model": "zhao2006",
+          "sigmaLnPga": 1.175,
+          "llh": 2.290898085749241,
+          "weight": 0.3519
+        },
+        {
+          "model": "kanno2006",
+          "sigmaLnPga": 0.948,
+          "llh": 2.6336505077173573,
+          "weight": 0.2498
+        }
+      ]
+    }
+  }
+}

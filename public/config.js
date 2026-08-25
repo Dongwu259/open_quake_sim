@@ -13,7 +13,11 @@ var CFG_DEFAULTS = {
   randomSeed:   { v:20260725, min:0, max:4294967295, step:1, fmt:'%.0f', cat:'source' },
 
   // Attenuation
-  gmpModel:     { v:'auto', opts:['auto','log','si-midorikawa','log-ff','kanno2006','zhao2006'], cat:'atten' },
+  gmpModel:     { v:'auto', opts:['auto','logic-tree','log','si-midorikawa','log-ff','kanno2006','zhao2006'], cat:'atten' },
+  // Subdivision uncertainty overlay: dashed outline whose width scales with
+  // the Monte Carlo ensemble spread (P10-P90)/2 — runs ensembleIntensityField
+  // on every forecast change while enabled (~0.5 s for 97 centroids x 40 members).
+  subareaUncertainty: { v:'off', opts:['off','on'], cat:'atten' },
   attA:         { v:0.42, min:0.10, max:1.50, step:0.01, fmt:'%.2f',      cat:'atten' },
   attB:         { v:1.34, min:0.50, max:2.50, step:0.01, fmt:'%.2f',      cat:'atten' },
   attC:         { v:0.31, min:-1.0, max:2.00, step:0.01, fmt:'%.2f',      cat:'atten' },
@@ -25,7 +29,7 @@ var CFG_DEFAULTS = {
   dsIntra:      { v:0.221,min:0.05, max:0.40, step:0.001,fmt:'%.3f',      cat:'atten' },
 
   // Site amplification
-  siteModel:    { v:'vs30', opts:['vs30','geo','none'], cat:'site' },
+  siteModel:    { v:'vs30', opts:['vs30','eqlin-1d','geo','none'], cat:'site' },
   intensityScale:{ v:'shindo', opts:['shindo','mmi','ems98'], cat:'display' },
   intensityMethod:{ v:'empirical', opts:['empirical','jma3c'], cat:'display' },
   directivity:  { v:'off', opts:['off','somerville1997'], cat:'atten' },
@@ -65,7 +69,7 @@ var CFG_DEFAULTS = {
   // JMA-style regional mode already applies an uncertainty envelope. Manual
   // uplift is opt-in so a small advisory is not universally promoted.
   tsunamiAlertBias:{ v:0,min:0,max:2,step:1,fmt:'%.0f', cat:'tsunami' },
-  tsunamiMapMode:{ v:'cityInundation', opts:['off','waveField','maxSurface','arrivalTime','maxVelocity','maxInundation','cityInundation','seafloorDeformation'], cat:'tsunami' },
+  tsunamiMapMode:{ v:'cityInundation', opts:['off','waveField','maxSurface','arrivalTime','maxVelocity','hydroLoad','maxInundation','cityInundation','seafloorDeformation'], cat:'tsunami' },
 
   // Display
   updateHz:     { v:1.0,  min:0.2, max:10.0, step:0.1, fmt:'%.1f Hz',   cat:'display' },

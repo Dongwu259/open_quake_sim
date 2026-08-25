@@ -806,6 +806,7 @@
     maxSurface:{key:'adv.opt.maxSurface',gradient:'linear-gradient(90deg,#55d8e5,#16a6ca 35%,#ffc33d 70%,#e53e45)',scale:['0.03 m','1 m','3+ m']},
     arrivalTime:{key:'adv.opt.arrivalTime',gradient:'linear-gradient(90deg,#ff4d62,#ffd447 45%,#426fe8)',scale:['0 min',Math.round(snapshot.time/120)+' min',Math.round(snapshot.time/60)+' min']},
     maxVelocity:{key:'adv.opt.maxVelocity',gradient:'linear-gradient(90deg,#53d1cb,#ffc83d 35%,#f57d30 70%,#d9364f)',scale:['0.03 m/s','1 m/s','3+ m/s']},
+    hydroLoad:{key:'adv.opt.hydroLoad',gradient:'linear-gradient(90deg,#6fd66f,#ffc83d 40%,#f57d30 72%,#d9364f)',scale:['0.1 m²/s','3 m²/s','10+ m²/s']},
     maxInundation:{key:'adv.opt.maxInundation',gradient:'linear-gradient(90deg,#55d8e5,#16a6ca 35%,#ffc33d 70%,#e53e45)',scale:['0.03 m','1 m','3+ m']},
     cityInundation:{key:'adv.opt.cityInundation',gradient:'linear-gradient(90deg,#55d8e5,#16a6ca 35%,#ffc33d 70%,#e53e45)',scale:['0.03 m','1 m','3+ m']},
     seafloorDeformation:{key:'adv.opt.seafloorDeformation',gradient:'linear-gradient(90deg,#367be8,#eef5ff 50%,#ef4353)',scale:['subsidence','0','uplift']}
@@ -817,7 +818,8 @@
       t('tsunami.stat.runup')+' '+Number(snapshot.maxRunup||0).toFixed(2)+' m · '+
       t('tsunami.stat.area')+' '+Number(snapshot.inundatedAreaKm2||0).toFixed(1)+' km² · '+
       t('tsunami.stat.inland')+' '+Number(snapshot.maxInundationDistanceKm||0).toFixed(1)+' km · '+
-      t('tsunami.stat.velocity')+' '+Number(snapshot.maxVelocity||0).toFixed(2)+' m/s';
+      t('tsunami.stat.velocity')+' '+Number(snapshot.maxVelocity||0).toFixed(2)+' m/s · '+
+      t('tsunami.stat.load')+' '+Number(snapshot.maxHydroLoad||0).toFixed(2)+' m²/s';
     if(stats&&mode==='cityInundation'){
       if(String(snapshot.model||'').indexOf('nonlinearSWE')!==0)stats.textContent+=' · '+t('tsunami.city.requires_nlswe');
       else if(!(snapshot.inundationZones&&snapshot.inundationZones.length))stats.textContent+=' · '+t('tsunami.city.pending');
@@ -835,7 +837,7 @@
     var scales=legend.querySelectorAll('.research-scale span');for(var si=0;si<scales.length;si++)scales[si].textContent=meta.scale[si]||'';
   }
   var cache=layerCache('researchTsunami');
-  var cacheKey=_renderRevision+'|'+mode+'|'+stride+'|'+Number(snapshot.time||0).toFixed(3)+'|'+Number(snapshot.maxRunup||0).toFixed(3)+'|'+Number(snapshot.maxVelocity||0).toFixed(3)+'|'+(_tsunamiSelectedZoneId||'')+'|'+(_tsunamiHoveredZoneId||'');
+  var cacheKey=_renderRevision+'|'+mode+'|'+stride+'|'+Number(snapshot.time||0).toFixed(3)+'|'+Number(snapshot.maxRunup||0).toFixed(3)+'|'+Number(snapshot.maxVelocity||0).toFixed(3)+'|'+Number(snapshot.maxHydroLoad||0).toFixed(3)+'|'+(_tsunamiSelectedZoneId||'')+'|'+(_tsunamiHoveredZoneId||'');
   if(cache.key===cacheKey){waveCtx.drawImage(cache.canvas,0,0);return;}
   var outputCtx=waveCtx;
   waveCtx=cache.ctx;
@@ -849,6 +851,7 @@
       return'hsla('+hue+',82%,56%,.66)';
     }
     if(kind==='velocity')return value<0.3?'rgba(83,209,203,'+a+')':value<1?'rgba(255,200,61,'+a+')':value<3?'rgba(245,125,48,'+a+')':'rgba(217,54,79,'+a+')';
+    if(kind==='load')return value<1?'rgba(111,214,111,'+a+')':value<3?'rgba(255,200,61,'+a+')':value<10?'rgba(245,125,48,'+a+')':'rgba(217,54,79,'+a+')';
     return value<0.2?'rgba(85,216,229,'+a+')':value<1?'rgba(22,166,202,'+a+')':value<3?'rgba(255,195,61,'+a+')':'rgba(229,62,69,'+a+')';
   }
   function cellRect(x,y,cellStride,fill,anchor) {
@@ -896,6 +899,7 @@
       else if(mode==='maxSurface'){value=c.maxEta;if(!(value>=0.03))continue;}
       else if(mode==='arrivalTime'){value=c.arrivalTime;kind='arrival';if(value==null)continue;}
       else if(mode==='maxVelocity'){value=c.maxVelocity;kind='velocity';if(!(value>=0.03))continue;}
+      else if(mode==='hydroLoad'){value=Number(c.maxLoad)||0;kind='load';if(!(value>=0.1))continue;}
       else {value=Math.max(c.maxDepth,c.estDepth||0);if(c.terrain<0||!(value>0.03))continue;}
       cellRect(c.x,c.y,stride,color(value,kind),c);
     }

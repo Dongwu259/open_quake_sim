@@ -14,6 +14,44 @@ test('NLSWE accepts an auditable analytic initial condition without an earthquak
   assert.ok(Number.isFinite(solver.sampleState(0.003,0.015).eta));
 });
 
+// R0-2 (2026-08-24): hydrodynamic-load metrics. The JMA 津波浸水想定 danger
+// criterion is the instantaneous depth×speed product (m²/s), which must be
+// tracked per time step — max(maxDepth)·max(maxSpeed) from independent maxima
+// is NOT the peak load because the two peaks occur at different instants.
+test('NLSWE tracks instantaneous hydrodynamic load (depth×speed) and Froude per cell',()=>{
+  const nx=81,ny=7,data=[];
+  for(let y=0;y<ny;y++)for(let x=0;x<nx;x++)data.push(y===0||y===ny-1?3:-4+7*x/(nx-1)); // gentle shelf beach, −4 m → +3 m
+  const grid={origin:[0,0],res:0.001,nx,ny,data,meta:{quality:'verification'}};
+  const solver=Physics.createNonlinearTsunamiSolver(grid,null,{initialState:cell=>({eta:cell.x<30?2:0}),manning:0.025,coriolis:false});
+  assert.ok(solver);
+  solver.advanceTo(700);
+  const snap=solver.getSnapshot(1);
+  assert.ok(snap.maxHydroLoad>0.05,`snapshot maxHydroLoad should be positive, got ${snap.maxHydroLoad}`);
+  const wetCells=snap.cells.filter(c=>c.maxVelocity>0.03);
+  assert.ok(wetCells.length>0,'no moving cells in the snapshot');
+  for(const c of snap.cells){
+    assert.ok(Number.isFinite(c.maxLoad)&&c.maxLoad>=0,`cell maxLoad must be finite/non-negative, got ${c.maxLoad}`);
+    assert.ok(Number.isFinite(c.maxFroude)&&c.maxFroude>=0,`cell maxFroude must be finite/non-negative, got ${c.maxFroude}`);
+    // load = max_t h(t)·u(t) ≤ max_t h(t) · max_t u(t): with h ≤ stillDepth+eta
+    // this bounds the tracked product by the independent maxima.
+    if(c.terrain<0&&c.maxVelocity>0.03){
+      const hMax=-c.terrain+Math.max(0,c.maxEta);
+      assert.ok(c.maxLoad<=hMax*c.maxVelocity*(1+1e-6),
+        `load ${c.maxLoad} exceeded h_max·u_max ${hMax*c.maxVelocity}`);
+    }
+  }
+  const flowing=snap.cells.filter(c=>c.maxLoad>0.05);
+  assert.ok(flowing.length>0,'no cell carried a meaningful load');
+  assert.ok(snap.cells.some(c=>c.maxFroude>0.05),'no cell reached Froude 0.05');
+  const zones=snap.inundationZones||[];
+  assert.ok(zones.length>0,'beach runup should aggregate inundation zones');
+  for(const z of zones){
+    assert.ok(Number.isFinite(z.maxLoad)&&z.maxLoad>=0,`zone maxLoad must be finite, got ${z.maxLoad}`);
+    assert.ok(Number.isFinite(z.maxFroude)&&z.maxFroude>=0,`zone maxFroude must be finite, got ${z.maxFroude}`);
+  }
+  assert.ok(zones.some(z=>z.maxLoad>0),'no zone recorded any load');
+});
+
 test('rupture source-time functions are bounded and complete',()=>{
   for(const stf of ['half-cosine','triangle','brune','boxcar']){
     const patch={ruptureTime:2,riseTime:4,sourceTimeFunction:stf};

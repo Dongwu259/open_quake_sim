@@ -486,7 +486,7 @@ function _httpGet(url, cb, timeoutMs) {
     called = true;
     cb(err, body, statusCode);
   }
-  var req = proto.get(url, { headers: { 'User-Agent': 'QuakeSim/5.5.1' }, agent: agent }, function(resp) {
+  var req = proto.get(url, { headers: { 'User-Agent': 'QuakeSim/5.6' }, agent: agent }, function(resp) {
     var body = '';
     resp.on('data', function(c) { body += c; if (body.length > 2097152) { req.destroy(); guard(new Error('Response too large')); } });
     resp.on('end', function() { req.setTimeout(0); guard(null, body, resp.statusCode); });
@@ -2072,7 +2072,7 @@ function _upstreamGet(url, cb) {
   }
   var req = https.get(url, {
     agent: _httpsAgent,
-    headers: { 'Accept-Encoding': 'identity', 'User-Agent': 'QuakeSim/5.5.1 Upstream Proxy' }
+    headers: { 'Accept-Encoding': 'identity', 'User-Agent': 'QuakeSim/5.6 Upstream Proxy' }
   }, function(r) {
     var chunks = [], bodyLen = 0;
     if (r.statusCode !== 200) { r.resume(); done(new Error('upstream ' + r.statusCode)); return; }
@@ -2099,7 +2099,7 @@ function _kmoniFetchSitelist(cb) {
   }
   var req = https.get(KMONI_BASE + '/SiteList/sitelist.json', {
     agent: _httpsAgent,
-    headers: { 'Accept-Encoding': 'identity', 'User-Agent': 'QuakeSim/5.5.1 Kmoni Proxy' }
+    headers: { 'Accept-Encoding': 'identity', 'User-Agent': 'QuakeSim/5.6 Kmoni Proxy' }
   }, function(r) {
     var chunks = [], bodyLen = 0;
     if (r.statusCode !== 200) { r.resume(); done(new Error('sitelist upstream ' + r.statusCode)); return; }
@@ -2180,7 +2180,7 @@ function _kmoniPollTick() {
   var https = require('https');
   var req = https.get(KMONI_BASE + '/RealTimeData/' + ts.date + '/' + ts.time + '.json', {
     agent: _httpsAgent,
-    headers: { 'Accept-Encoding': 'identity', 'User-Agent': 'QuakeSim/5.5.1 Kmoni Proxy' }
+    headers: { 'Accept-Encoding': 'identity', 'User-Agent': 'QuakeSim/5.6 Kmoni Proxy' }
   }, function(r) {
     var chunks = [], bodyLen = 0;
     r.on('data', function(c) { bodyLen += c.length; if (bodyLen <= 1048576) chunks.push(c); });
@@ -2235,7 +2235,7 @@ function _kmoniImgFetchHttp(url, cb) {
   function done2(err, buf) { clearTimeout(guard); done(err, buf); }
   var req = https.get(url, {
     agent: _httpsAgent,
-    headers: { 'Accept-Encoding': 'identity', 'User-Agent': 'QuakeSim/5.5.1 Kmoni Image Proxy' }
+    headers: { 'Accept-Encoding': 'identity', 'User-Agent': 'QuakeSim/5.6 Kmoni Image Proxy' }
   }, function(r) {
     var chunks = [], bodyLen = 0;
     if (r.statusCode !== 200) { r.resume(); done2(new Error('image upstream ' + r.statusCode)); return; }
@@ -2426,7 +2426,7 @@ function _proxyTtsSynthesis(clientReq, res, text, voice) {
   var settled = false;
   var upstreamReq = http.get(target, {
     agent: _httpAgent,
-    headers: Object.assign({ 'User-Agent': 'QuakeSim/5.5.1 TTS Proxy', 'Accept': 'audio/mpeg' }, keyHeaders)
+    headers: Object.assign({ 'User-Agent': 'QuakeSim/5.6 TTS Proxy', 'Accept': 'audio/mpeg' }, keyHeaders)
   }, function(upstreamRes) {
     var chunks = [];
     var total = 0;

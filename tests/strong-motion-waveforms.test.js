@@ -193,10 +193,16 @@ test('compareWithForecast pairs observed peaks with a GMPE-style forecast fn', (
 
 test('no bundled packages directory is committed — packages are fetched by the owner', () => {
   // tools/fetch-kyoshin-waveforms.js output is account-gated and intentionally
-  // NOT part of the repo; the panel falls back to the manual import when the
-  // index is absent (verified by app.js keeping the row hidden by default).
-  const fs = require('fs');
-  const dir = path.resolve(__dirname, '../public/geojson/strong-motion-waveforms');
-  assert.ok(!fs.existsSync(dir) || fs.readdirSync(dir).length === 0,
+  // NOT part of the repo. The guarantee is "nothing tracked by git": the
+  // owner's own machine legitimately holds fetched packages in the working
+  // tree (gitignored), so directory existence alone is not a violation.
+  const { execFileSync } = require('child_process');
+  const repoRoot = path.resolve(__dirname, '..');
+  let tracked = '';
+  try {
+    tracked = execFileSync('git', ['ls-files', '--', 'public/geojson/strong-motion-waveforms'],
+      { cwd: repoRoot, encoding: 'utf8', windowsHide: true });
+  } catch (e) { /* git unavailable — cannot verify tracking here */ }
+  assert.ok(!tracked.trim(),
     'unexpected committed waveform packages — data provenance must stay fetch-tool generated');
 });

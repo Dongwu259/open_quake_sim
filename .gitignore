@@ -39,3 +39,7 @@ tools/geoclaw-crosscheck/
 # data products and stay out of git.
 public/geojson/gsi/*.json
 tools/data/gsi-tiles/
+
+# K-NET/KiK-net waveform packages (account-gated NIED downloads; the portal
+# terms prohibit redistribution — regenerable via tools/fetch-kyoshin-waveforms.js)
+public/geojson/strong-motion-waveforms/

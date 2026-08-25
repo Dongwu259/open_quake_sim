@@ -190,6 +190,7 @@ var _regionalBathy = {};         // id -> grid (absent/false = not usable)
 var _regionalBathyLoading = {};  // id -> in-flight promise
 
 var _vs30Grid = null;     // optional J-SHIS/user research grid using the same raster schema
+var _jivsmBedrockGrid = null; // JIVSM engineering-bedrock depth grid (eqlin-1d site term)
 var _researchDataManifest = null, _researchCertification = null;
 var _strongMotionPackageReady = false, _tsunamiObservationsReady = false;
 var _historicalTsunamiData = null, _historicalTsunamiShow = false;
@@ -665,7 +666,10 @@ async function loadJapanGeoJSON() {
       fetch('/geojson/vs30.json').catch(function(){ return null; }),
       fetch('/geojson/jma_tsunami_forecast_areas.json').catch(function(){ return null; }),
       fetch('/geojson/research_data_manifest.json').catch(function(){ return null; }),
-      fetch('/geojson/historical_tsunami_observations.json').catch(function(){ return null; })
+      fetch('/geojson/historical_tsunami_observations.json').catch(function(){ return null; }),
+      fetch('/geojson/jivsm-bedrock.json').catch(function(){ return null; }),
+      fetch('/geojson/sb-spectral-ratio.json').catch(function(){ return null; }),
+      fetch('/geojson/jayaram2011-rho.json').catch(function(){ return null; })
     ];
     // Optional GMPE calibration table (magnitude-binned intensity bias from
     // tools/calibrate-gmpe.js over server recordings). Absent table = identity.
@@ -707,6 +711,40 @@ async function loadJapanGeoJSON() {
         if (vs30Check.valid) _vs30Grid = candidateVs30;
       }
     } catch(e) { _vs30Grid = null; }
+    try {
+      var jivsmResp = terrainResponses && terrainResponses[5];
+      if (jivsmResp && jivsmResp.ok) {
+        var candidateJivsm = await jivsmResp.json();
+        var jivsmCheck = Physics.validateResearchGrid(candidateJivsm, 'jivsm-bedrock');
+        if (jivsmCheck.valid) _jivsmBedrockGrid = candidateJivsm;
+      }
+    } catch(e) { _jivsmBedrockGrid = null; }
+    // S/B empirical prior for the eqlin-1d synth path (f0(Vs30) fit; the
+    // amplitude curves stay research-side) — absent file = null registry =
+    // legacy uniform-column factors (byte-identical)
+    try {
+      var sbResp = terrainResponses && terrainResponses[6];
+      if (sbResp && sbResp.ok) {
+        var sbDoc = await sbResp.json();
+        var sbEns = sbDoc && sbDoc.ensemble;
+        if (sbEns && Physics.setSbEnsemble(sbEns)) {
+          console.log('S/B ensemble loaded:', (sbEns.bins ? sbEns.bins.length + ' f0 bins, ' : '') +
+            (sbEns.f0Vs30Fit ? 'f0(Vs30) prior n=' + sbEns.f0Vs30Fit.n : '') + ', ' + sbEns.stations + ' KiK-net pairs');
+        }
+      }
+    } catch(e) { Physics.setSbEnsemble(null); }
+    // Cross-period epsilon correlation tables (Jayaram et al. 2011, Japan
+    // K-NET/KiK-net) — powers the conditional-spectrum band on the station
+    // response-spectrum chart; absent file = Eq.(6) fallback in physics
+    try {
+      var rhoResp = terrainResponses && terrainResponses[7];
+      if (rhoResp && rhoResp.ok) {
+        var rhoDoc = await rhoResp.json();
+        if (rhoDoc && Physics.setJayaram2011Rho(rhoDoc)) {
+          console.log('Jayaram2011 rho tables loaded:', Object.keys(rhoDoc.classes).join('/'));
+        }
+      }
+    } catch(e) { Physics.setJayaram2011Rho(null); }
     try {
       var tsunamiAreaResp = terrainResponses && terrainResponses[2];
       if (tsunamiAreaResp && tsunamiAreaResp.ok) _jmaTsunamiAreaData = await tsunamiAreaResp.json();
@@ -1029,13 +1067,15 @@ function renderTsunamiZoneDetails(zone,index) {
   if(!panel||!body||!zone)return;
   var bbox=zone.bbox||[0,0,0,0],centerLat=(Number(bbox[1])+Number(bbox[3]))/2,centerLng=(Number(bbox[0])+Number(bbox[2]))/2;
   var arrival=zone.arrivalTime==null?'—':Math.round(zone.arrivalTime)+' s ('+(Number(zone.arrivalTime)/60).toFixed(1)+' min)';
-  var signature=[tsunamiZoneId(zone,index),zone.maxDepth,zone.maxSurface,zone.maxVelocity,zone.arrivalTime,zone.areaKm2,zone.cells,cl].join('|');
+  var signature=[tsunamiZoneId(zone,index),zone.maxDepth,zone.maxSurface,zone.maxVelocity,zone.maxLoad,zone.maxFroude,zone.arrivalTime,zone.areaKm2,zone.cells,cl].join('|');
   if(_tsunamiZoneDetailSignature===signature&&!panel.hidden)return;
   _tsunamiZoneDetailSignature=signature;
   body.innerHTML=infoRow(escapeHTML(t('tsunami.zone.center')),centerLat.toFixed(3)+'°N '+centerLng.toFixed(3)+'°E')+
     infoRow(escapeHTML(t('tsunami.zone.max_depth')),Number(zone.maxDepth||0).toFixed(2)+' m')+
     infoRow(escapeHTML(t('tsunami.zone.max_surface')),Number(zone.maxSurface||0).toFixed(2)+' m')+
     infoRow(escapeHTML(t('tsunami.zone.max_velocity')),Number(zone.maxVelocity||0).toFixed(2)+' m/s')+
+    infoRow(escapeHTML(t('tsunami.zone.max_load')),Number(zone.maxLoad||0).toFixed(2)+' m²/s')+
+    infoRow(escapeHTML(t('tsunami.zone.max_froude')),Number(zone.maxFroude||0).toFixed(2))+
     infoRow(escapeHTML(t('tsunami.zone.arrival')),arrival)+
     infoRow(escapeHTML(t('tsunami.zone.area')),Number(zone.areaKm2||0).toFixed(2)+' km²')+
     infoRow(escapeHTML(t('tsunami.zone.cells')),Math.max(0,Number(zone.cells)||0));
@@ -1051,7 +1091,7 @@ function clearTsunamiZoneSelection(redraw) {
 }
 
 function tsunamiModeNeedsNonlinearSolver(mode) {
-  return mode === 'maxInundation' || mode === 'cityInundation';
+  return mode === 'maxInundation' || mode === 'cityInundation' || mode === 'hydroLoad';
 }
 
 function syncAdvancedSelectValue(key,value) {
@@ -1618,6 +1658,10 @@ function _externalVs30Lookup(lat, lng) {
   if (localValue && localValue > 0) return {value:localValue, source:(_vs30Grid.meta && _vs30Grid.meta.vs30SourceClass) || 'j-shis-grid', dataset:_vs30Grid.meta && _vs30Grid.meta.dataset};
   if (typeof window === 'undefined' || !window.VS30Grid || typeof window.VS30Grid.lookup !== 'function') return null;
   return window.VS30Grid.lookup(lat, lng);
+}
+// JIVSM engineering-bedrock depth (m) for the eqlin-1d site-term profiles
+function _jivsmBedrockDepthM(lat, lng) {
+  return Physics.lookupResearchGrid(_jivsmBedrockGrid, lat, lng);
 }
 function siteVs30Details(pt) {
   return Physics.lookupVs30Details(pt.lat, pt.lng, pt.vs30, _externalVs30Lookup, pt.vs30Source || 'station-estimate');
@@ -2979,6 +3023,9 @@ function preComputeArrivals(params) {
       motionOverrides.siteAmplificationPga = soilAmp(pt.lat, pt.lng, pt.isSeafloor, pt.siteFactor);
       motionOverrides.siteAmplificationPgv = motionOverrides.siteAmplificationPga;
     }
+    if (siteModel === 'eqlin-1d' && _jivsmBedrockGrid) {
+      motionOverrides.siteBedrockDepthM = _jivsmBedrockDepthM(pt.lat, pt.lng);
+    }
     var motion = Physics.predictStationMotion(groundMotionContext, {
       lat:pt.lat,lng:pt.lng,vs30:vs30Details.value,siteFactor:pt.siteFactor
     }, motionOverrides);
@@ -3109,6 +3156,55 @@ function _predictSubareaShindos() {
     parseFloat(strikeSlider.value), currentDip, epicenterSrc, eventMw, _liveMag,
     _subareaCentroids
   );
+}
+
+// --- Ensemble subdivision uncertainty overlay (R1) ---------------------------
+// Optional dashed outline on the live subdivision layer whose width scales
+// with the Monte Carlo ensemble spread sigma=(P90-P10)/2 — the fill stays the
+// deterministic forecast, the outline communicates uncertainty. Runs 40
+// members over every 2nd centroid (~0.3-0.6 s) only while the advanced toggle
+// is on, and never in detect mode (it would leak the true epicenter).
+var _subareaUncertainty = null;
+var _subareaUncertaintyKey = '';
+function _updateSubareaUncertainty(explicit) {
+  if (detectMode) { _subareaUncertainty = null; _subareaUncertaintyKey = ''; return; }
+  if (cfgGet('subareaUncertainty') !== 'on' || !_subareaCentroids || !Physics.ensembleIntensityField) {
+    _subareaUncertainty = null; _subareaUncertaintyKey = ''; return;
+  }
+  var lat = explicit ? explicit.lat : (epicenter ? epicenter.lat : null);
+  var lng = explicit ? explicit.lng : (epicenter ? epicenter.lng : null);
+  if (lat == null) { _subareaUncertainty = null; return; }
+  var mag = explicit ? (explicit.mag || explicit.mw) : _liveMag;
+  var depth = explicit ? explicit.depth : _liveDepth;
+  var srcType = explicit ? explicit.srcType : epicenterSrc;
+  var key = [lat.toFixed(3), lng.toFixed(3), mag, depth, parseFloat(strikeSlider.value),
+    currentDip, srcType || '', eventMw || '', cfgGet('gmpModel')].join('|');
+  if (key === _subareaUncertaintyKey) return;
+  _subareaUncertaintyKey = key;
+  try {
+    var picked = [];
+    for (var i = 0; i < _subareaCentroids.length; i += 2) picked.push(_subareaCentroids[i]);
+    var cents = picked.map(function(c) {
+      return { lat: c.lat, lng: c.lng, vs30: Physics.lookupVs30(c.lat, c.lng) };
+    });
+    var ctx = {
+      source: { lat: lat, lng: lng, mw: eventMw || mag, depthKm: depth, sourceType: srcType || 'crustal',
+        rakeDeg: parseFloat(rakeSlider.value) || 0 },
+      geometry: null, gmpModel: cfgGet('gmpModel'), options: {}
+    };
+    var r = Physics.ensembleIntensityField(ctx, cents, { members: 40, seed: 'live' });
+    _subareaUncertainty = {};
+    r.perStation.forEach(function(row, idx) {
+      var c = picked[idx];
+      if (!c) return;
+      _subareaUncertainty[c.id] = { sigma: (row.p90 - row.p10) / 2, p10: row.p10, p50: row.p50, p90: row.p90 };
+    });
+  } catch (e) { _subareaUncertainty = null; }
+}
+function _uncertaintyStyle(layer, pid) {
+  var u = _subareaUncertainty && _subareaUncertainty[pid];
+  if (!u || !(u.sigma > 0.35)) return;
+  layer.setStyle({ color: '#ffffff', weight: 1 + Math.min(3, u.sigma - 0.3), dashArray: '5 4', opacity: 0.55 });
 }
 
 // --- PLUM (Propagation of Local Undamped Motion) ---------------------------
@@ -3617,6 +3713,7 @@ function startCountdown() {
   if (!detectMode) {
     _predictedPrefectureShindos = _predictPrefectureShindos();
     _subareaForecast = _predictSubareaShindos();
+    _updateSubareaUncertainty();
     _predictedMaxShindo = 0;
     for (var pid in _predictedPrefectureShindos) {
       var psh = _predictedPrefectureShindos[pid].shindo;
@@ -4091,6 +4188,7 @@ function simLoop(timestamp) {
     _subareaForecast = _subareaCentroids ? _predictPrefectureShindosFor(
       fce.lat, fce.lng, fce.mag, fce.depth, fce.strike, fce.dip, fce.srcType, fce.mw, fce.mag,
       _subareaCentroids) : {};
+    _updateSubareaUncertainty(fce);
     _predictedMaxShindo = 0;
     _predictedMaxShindoI = -1;
     for (var fpid in _predictedPrefectureShindos) {
@@ -5630,6 +5728,7 @@ function _applyForecastToLivePrefLayer() {
     layer.setStyle(observed
       ? { fillColor: fill, fillOpacity: _shindoFillAlpha(sh, true), color: fill, weight: 1.2, opacity: 0.35 }
       : { fillColor: fill, fillOpacity: _shindoFillAlpha(sh, false), color: fill, weight: 1, opacity: 0.3 });
+    if (useAreas) _uncertaintyStyle(layer, pid);
   });
 }
 
@@ -5675,6 +5774,7 @@ function _updateLivePrefLayer() {
     } else {
       var fill = SHINDO_FILL[sh] || '#888';
       layer.setStyle({ fillColor: fill, fillOpacity: _shindoFillAlpha(sh, true), color: fill, weight: 1.2, opacity: 0.35 });
+      if (useAreas) _uncertaintyStyle(layer, pid);
     }
   });
 }
@@ -6301,7 +6401,7 @@ function resetSimulation() {
   _livePrefColors = {};
   _liveAreaColors = {}; _liveAreaShindos = {};
   // Reset EEW forecast state
-  _predictedPrefectureShindos = {}; _subareaForecast = {}; _predictedMaxShindo = 0; _predictedMaxShindoI = -1; _eewWarranted = false; _detectEEWTriggered = false;
+  _predictedPrefectureShindos = {}; _subareaForecast = {}; _subareaUncertainty = null; _subareaUncertaintyKey = ''; _predictedMaxShindo = 0; _predictedMaxShindoI = -1; _eewWarranted = false; _detectEEWTriggered = false;
   var pfcRst = document.getElementById('pref-forecast-card');
   if (pfcRst) pfcRst.style.display = 'none';
   var pftRst = document.getElementById('pref-forecast-table');
@@ -7441,14 +7541,14 @@ var ADV_RECOMMENDED = {
 var ADV_OPTION_LABELS = {
   auto:'adv.opt.auto',crustal:'adv.opt.crustal',interplate:'adv.opt.interplate',intraslab:'adv.opt.intraslab',
   log:'adv.opt.log','si-midorikawa':'adv.opt.si','log-ff':'adv.opt.logff',kanno2006:'adv.opt.kanno',zhao2006:'adv.opt.zhao',
-  vs30:'adv.opt.vs30',geo:'adv.opt.geo',none:'adv.opt.none',off:'adv.opt.off',on:'adv.opt.on',ss14:'adv.opt.ss14',
+  vs30:'adv.opt.vs30',geo:'adv.opt.geo',none:'adv.opt.none',off:'adv.opt.off',on:'adv.opt.on',ss14:'adv.opt.ss14','eqlin-1d':'adv.opt.eqlin',
   somerville1997:'adv.opt.somerville',pgaOnly:'adv.opt.pga',pgaPgv:'adv.opt.pgagv',exceedance:'adv.opt.exceedance',
   shindo:'intensity.shindo',mmi:'intensity.mmi',ems98:'intensity.ems98',bilateral:'ff.bilateral',unilateral:'ff.unilateral',
   empirical:'adv.opt.empirical',jma3c:'adv.opt.jma3c',nonlinearSWE:'adv.opt.nonlinearSWE',linearSWE:'adv.opt.linearSWE',travelTime:'adv.opt.travelTime',
   dc3d:'adv.opt.dc3d',legacy:'adv.opt.legacy',radiation:'adv.opt.radiation',wall:'adv.opt.wall',
   'slip-depth':'adv.opt.slipDepth',depth:'adv.opt.depthVelocity',constant:'adv.opt.constantVelocity',
   'half-cosine':'adv.opt.halfCosine',triangle:'adv.opt.triangle',brune:'adv.opt.brune',boxcar:'adv.opt.boxcar',
-  waveField:'adv.opt.waveField',maxSurface:'adv.opt.maxSurface',arrivalTime:'adv.opt.arrivalTime',maxVelocity:'adv.opt.maxVelocity',
+  waveField:'adv.opt.waveField',maxSurface:'adv.opt.maxSurface',arrivalTime:'adv.opt.arrivalTime',maxVelocity:'adv.opt.maxVelocity',hydroLoad:'adv.opt.hydroLoad',
   maxInundation:'adv.opt.maxInundation',cityInundation:'adv.opt.cityInundation',seafloorDeformation:'adv.opt.seafloorDeformation'
 };
 function advOptionText(value) { var key = ADV_OPTION_LABELS[value]; return key ? t(key) : value; }
@@ -8985,7 +9085,7 @@ var ScenarioManager = (function(){
       if (isFinite(+a.lat) && isFinite(+a.lng)) { e.lat = +a.lat; e.lng = +a.lng; }
       return e;
     });
-    return { schema:Research.SCENARIO_SCHEMA,name:name || tr('scn.untitled'),version:2,appVersion:'v5.5.1',
+    return { schema:Research.SCENARIO_SCHEMA,name:name || tr('scn.untitled'),version:2,appVersion:'v5.6',
              seed:Research.normalizeSeed(cfgGet('randomSeed')),events:events,flags:flags,config:JSON.parse(JSON.stringify(CFG)),
              faultOpts:FiniteFaultEditor.getState(),manualAftershocks:manAs,display:_researchDisplayState(),dataVersions:versions.data,modelVersions:versions.model,
              experiment:_currentExperiment,created:(function(){try{return new Date().toISOString();}catch(e){return '';}})() };
@@ -9462,6 +9562,35 @@ function drawResponseSpectrum() {
     if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
   }
   ctx.stroke();
+  // Conditional-spectrum ±1σ band: cross-period correlation (Jayaram et al.
+  // 2011 Japan tables; Eq.(6) fallback when the table failed to load)
+  // anchored at the PGA period with a median anchor — the band pinches at
+  // the anchor and widens toward uncorrelated periods.
+  try {
+    var srcType = (typeof epicenter !== 'undefined' && epicenter && epicenter.sourceType) || 'crustal';
+    var sigmaLn = Physics.getGmpSigma(cfgGet('gmpModel') || 'auto', srcType, 'pga', mag) * Math.LN10;
+    var csBand = Physics.conditionalSpectrum(periods,
+      psaVals.map(function(v) { return Math.log(Math.max(1e-9, v)); }),
+      psaVals.map(function() { return sigmaLn; }), 0.05, 0, srcType);
+    if (csBand) {
+      ctx.setLineDash([4, 3]);
+      ctx.strokeStyle = 'rgba(233,69,96,0.45)'; ctx.lineWidth = 1;
+      for (var sgn = -1; sgn <= 1; sgn += 2) {
+        ctx.beginPath();
+        for (var bi = 0; bi < periods.length; bi++) {
+          var vB = Math.exp(csBand.meanLnSa[bi] + sgn * csBand.sigmaLnSa[bi]);
+          var xB = 30 + (Math.log(periods[bi]) - Math.log(0.01)) / (Math.log(5.0) - Math.log(0.01)) * (W - 40);
+          var yB = (H - 20) - (vB / maxPSA) * (H - 30);
+          if (bi === 0) ctx.moveTo(xB, yB); else ctx.lineTo(xB, yB);
+        }
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+      ctx.fillStyle = 'rgba(233,69,96,0.6)'; ctx.textAlign = 'left';
+      ctx.fillText('CS ±1σ', 34, 12);
+      ctx.textAlign = 'center';
+    }
+  } catch(e) { /* band is decorative — chart still valid without it */ }
   // Labels
   ctx.fillStyle = '#888'; ctx.font = '8px monospace'; ctx.textAlign = 'center';
   ctx.fillText('0.01s', 32, H - 3); ctx.fillText('0.1s', 30 + (W-40)*0.33, H - 3);
@@ -9855,13 +9984,15 @@ function drawAzimuthDirectivity() {
   var isoR = R * 0.6;
   ctx.strokeStyle = 'rgba(150,170,200,0.5)'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
   ctx.beginPath(); ctx.arc(cx, cy, isoR, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
-  // directivity curve: factor 1 + 0.35*cos(az - strike)
+  // directivity curve: factor 1 + coef·cos(az − strike) — the same physics-side
+  // Somerville coefficient predictStationMotion uses (was hard-coded 0.35).
+  var azdCoef = Physics.somervilleDirectivityCoefficient(mag);
   ctx.strokeStyle = '#e94560'; ctx.lineWidth = 1.6;
   ctx.beginPath();
   for (var deg = 0; deg <= 360; deg += 3) {
     var az = deg * Math.PI / 180;
-    var fac = 1 + 0.35 * Math.cos(az - strike);
-    var rad = isoR * fac / 1.35; // normalize so max (~1.35) maps to isoR
+    var fac = 1 + azdCoef * Math.cos(az - strike);
+    var rad = isoR * fac / (1 + azdCoef); // normalize so max maps to isoR
     // 0° = North (up). Screen: x = cx + sin(az)*rad, y = cy - cos(az)*rad
     var x = cx + Math.sin(az) * rad;
     var y = cy - Math.cos(az) * rad;

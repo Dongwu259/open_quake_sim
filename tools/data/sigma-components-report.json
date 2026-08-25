@@ -1,0 +1,71 @@
+{
+  "schema": "quake-sim-sigma-components-v1",
+  "generatedAt": "2026-08-23T17:32:20.410Z",
+  "method": "one-way random-effects ANOVA (method of moments) per event on per-distance-bin-detrended frozen residuals; intensity in JMA units, lnPga in natural-log gal; JMA-catalog prediction hypocenters",
+  "obsSource": "public/geojson/strong-motion-obs.json",
+  "paperReference": {
+    "zhao2006": "Zhao et al. (2006) Table 6 tau/phi (kept as the deployed values; this fit is the cross-check)"
+  },
+  "models": {
+    "zhao2006": {
+      "model": "zhao2006",
+      "forcedFit": false,
+      "intensity": {
+        "events": 4,
+        "stations": 1925,
+        "tau": 0.5274482138541485,
+        "phi": 0.6441809306138118,
+        "sigmaT": 0.8325687296940765,
+        "grandBias": -4.724647801417809e-16
+      },
+      "lnPga": {
+        "events": 4,
+        "stations": 1925,
+        "tau": 0.7775013326000952,
+        "phi": 0.8815777286486302,
+        "sigmaT": 1.1754520891317526,
+        "grandBias": -5.905809751772261e-17
+      }
+    },
+    "si-midorikawa": {
+      "model": "si-midorikawa",
+      "forcedFit": false,
+      "intensity": {
+        "events": 9,
+        "stations": 2962,
+        "tau": 0.2421266124661556,
+        "phi": 0.5520124362121309,
+        "sigmaT": 0.6027794175294872,
+        "grandBias": 8.27607170281008e-17
+      },
+      "lnPga": {
+        "events": 9,
+        "stations": 2962,
+        "tau": 0.25646104188034446,
+        "phi": 0.6539704078152789,
+        "sigmaT": 0.7024596503005949,
+        "grandBias": 2.1589752268200207e-17
+      }
+    },
+    "kanno2006": {
+      "model": "kanno2006",
+      "forcedFit": true,
+      "intensity": {
+        "events": 13,
+        "stations": 4887,
+        "tau": 0.4062084169667549,
+        "phi": 0.5874764680223633,
+        "sigmaT": 0.7142365703985396,
+        "grandBias": -4.565386106582186e-16
+      },
+      "lnPga": {
+        "events": 13,
+        "stations": 4887,
+        "tau": 0.5510178834229746,
+        "phi": 0.7709093318123241,
+        "sigmaT": 0.9475874132380921,
+        "grandBias": 2.7915736702668145e-16
+      }
+    }
+  }
+}
