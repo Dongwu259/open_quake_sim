@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/) where practical.
 
+## [v6.0.1] — 2026-08-26
+
+Map interaction fixes (upstream quake_sim `737999e`…`d497ea9`). 地图交互修复。
+
+### Fixed
+- **Canvas overlay now tracks the basemap during pan/zoom** in every state: the drawn frame's view is recorded and the bitmap is glued via a translate+scale transform during gestures (idle, paused and running alike — no more one-frame rubber-banding), with a crisp redraw on settle; window resizes repaint immediately instead of leaving a blank overlay
+- **Intensity circles no longer twitch while dragging at mid zooms**: the declutter grid is now earth-fixed with cell size derived from a fixed reference latitude (36°N) and zoom only — the previous live-view-derived cell size breathed with Mercator's latitude scale and re-picked cell winners every pan frame (probe-measured 6.5 flips/frame → 0 inside the viewport); winner ordering uses the static peak instead of the jittering current shindo
+- **Intensity curve no longer reads "always too large"**: sampling was gated on the charts panel being visible, so opening it mid-event started the history at the current peak; per-second sampling now runs unconditionally from the sim loop (90 s rolling window)
+- Finite-fault info page now surfaces the `Physics.sourceBudget` physicality flags (radiation-efficiency, supershear, rise-time and slip-spike warnings), i18n ×3
+
 ## [v6.0.0] — 2026-08-26
 
 Research platform finale: dynamic rupture pipeline, dispersive tsunami, velocity structure. 研究平台收官：动力学破裂管线、频散海啸、速度结构（合并 v5.7 + v5.8 + v6.0 三个上游批次）。

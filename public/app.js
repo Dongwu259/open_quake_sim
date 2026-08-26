@@ -2589,17 +2589,32 @@ function initWaveCanvas() {
   // wiped the overlay every move and made it flicker. Size only changes on 'resize'.
   function rs() {
     var w = mapEl.clientWidth, h = mapEl.clientHeight;
-    if (waveCanvas.width !== w || waveCanvas.height !== h) { waveCanvas.width = w; waveCanvas.height = h; }
+    if (waveCanvas.width !== w || waveCanvas.height !== h) {
+      waveCanvas.width = w; waveCanvas.height = h;
+      // Resizing the backing bitmap clears it — repaint at once when the rAF
+      // loop is not going to.
+      if (!(isRunning && !isPaused) && typeof drawFrame === 'function') drawFrame();
+    }
   }
   window.addEventListener('resize', rs);
   map.on('resize', rs);
   map.on('move zoom resize', function() {
     if (typeof Renderer !== 'undefined' && Renderer.invalidateCaches) Renderer.invalidateCaches();
   });
-  // While a sim runs, the rAF loop redraws every frame. When idle, redraw once after
-  // the map settles so a finished simulation's overlay tracks zoom/pan instead of
-  // sticking at stale pixel positions.
-  map.on('moveend zoomend', function(){ if (!isRunning) drawFrame(); });
+  // Keep the canvas overlay glued to the basemap DURING pan/zoom gestures in
+  // EVERY state: the transform is computed from the view of the last drawn
+  // frame, so it never fights the rAF loop — drawFrame() clears it and
+  // repaints at the same view. While running this removes the one-frame
+  // rubber-banding (basemap moves with the gesture, canvas only on rAF);
+  // when idle or paused it replaces the stale bitmap until the crisp redraw
+  // on moveend/zoomend below.
+  map.on('move zoom', function() {
+    if (typeof Renderer !== 'undefined' && Renderer.syncOverlayTransform) Renderer.syncOverlayTransform();
+  });
+  // While a sim runs unpaused, the rAF loop redraws every frame. When idle or
+  // paused, redraw once after the map settles so the gesture-tracking
+  // transform is replaced by a crisp frame at the final view.
+  map.on('moveend zoomend', function(){ if (!(isRunning && !isPaused)) drawFrame(); });
 }
 
 // [toCanvas] moved to renderer.js (see window.toCanvas = Renderer.toCanvas)
@@ -4351,6 +4366,7 @@ function simLoop(timestamp) {
   drawFrame(); updateMaxPgaPanel(curMaxPga, curMaxSh);
   // Performance mode: lower the cadence of DOM and secondary canvas updates.
   var curSec2 = Math.floor(simElapsed);
+  sampleIntensityCurvePoint(curSec2);
   try {
     var infoIntervalMs = perfMode ? 1000 : 250;
     if (timestamp - _lastInfoRenderMs >= infoIntervalMs) {
@@ -6922,6 +6938,9 @@ function _renderFiniteFaultImport(model,error){
   // R6-1 source budget diagnostics (pure physics; absent on parse-error paths)
   var budget=null;
   try{budget=Physics.sourceBudget(model);}catch(e){budget=null;}
+  var SRC_FLAG_I18N={radiation_efficiency_gt_1:'info.srcflag.rad_eff_gt1',low_radiation_efficiency:'info.srcflag.low_rad_eff',
+    rupture_speed_supershear_vs_rigidity:'info.srcflag.supershear',rise_time_below_corner_period:'info.srcflag.short_rise',
+    slip_spike_ratio_gt_4:'info.srcflag.slip_spike'};
   out.innerHTML='<strong>'+escapeHTML(model.provenance.source||model.id)+' · '+escapeHTML(model.provenance.format||model.schema)+'</strong>'
     +(_observedFiniteFault===model?'<span class="finite-fault-active">'+escapeHTML(t('info.finite_fault_active'))+'</span>':'<span>'+escapeHTML(t('info.finite_fault_staged'))+'</span>')
     +'<span>'+escapeHTML(t('info.finite_fault_event'))+': '+escapeHTML(model.event.id||model.id)+'</span>'
@@ -6930,6 +6949,7 @@ function _renderFiniteFaultImport(model,error){
     +'<span>'+escapeHTML(t('info.finite_fault_slip'))+': '+g.averageSlipM.toFixed(3)+' / '+g.maxSlipM.toFixed(3)+' m</span>'
     +'<span>'+escapeHTML(t('info.finite_fault_duration'))+': '+duration.toFixed(2)+' s</span>'
     +(budget?'<span>'+escapeHTML(t('info.src_budget'))+': Δτ '+budget.stressDropMPa.toFixed(2)+' MPa · Er '+budget.radiatedEnergyJ.toExponential(2)+' J · η '+budget.radiationEfficiency.toFixed(2)+' · v<sub>r</sub> '+(budget.ruptureSpeedKmS!=null?budget.ruptureSpeedKmS.toFixed(2)+' km/s':'—')+'</span>':'')
+    +(budget&&budget.flags&&budget.flags.length?'<span class="finite-fault-flags">'+escapeHTML(t('info.src_budget_flags'))+': '+budget.flags.map(function(f){return escapeHTML(t(SRC_FLAG_I18N[f]||f));}).join(' · ')+'</span>':'')
     +'<span>'+escapeHTML(t('info.finite_fault_residual'))+': '+(model.suppliedMomentNm>0?(residual*100).toFixed(2)+'%':'—')+'</span>'
     +'<span>'+escapeHTML(t('info.finite_fault_quality'))+': '+escapeHTML(q.researchReady?t('info.finite_fault_research_ready'):t('info.finite_fault_degraded'))+' ('+escapeHTML(q.grade||'?')+')</span>'
     +'<span>'+escapeHTML(model.provenance.url||t('info.finite_fault_url_missing'))+'</span>'
@@ -8096,21 +8116,28 @@ function updatePrefForecastTable() {
 }
 
 // Intensity curve: real-time Shindo vs time for nearest station
+// Sample the waveform station's current shindo once per sim-second. Runs
+// unconditionally from simLoop so the 90 s history exists no matter when the
+// chart becomes visible; updateIntensityCurve() only renders the series.
+function sampleIntensityCurvePoint(curSec) {
+  if (intensitySamples.length !== 0 && intensitySamples[intensitySamples.length - 1].t >= curSec) return;
+  var curCircle = (wfStation && wfStation.id != null) ? _visibleCircleById[String(wfStation.id)] : null;
+  var curSh = curCircle ? curCircle.shindo : 0;
+  intensitySamples.push({ t: curSec, shindo: curSh });
+  // Keep last 90 seconds
+  while (intensitySamples.length > 0 && intensitySamples[0].t < curSec - 90) intensitySamples.shift();
+}
+
 function updateIntensityCurve() {
   if (!intensityCanvas) { intensityCanvas = document.getElementById('intensity-canvas'); if (!intensityCanvas) return; }
   if (!intensityCtx) { intensityCanvas.width = 320; intensityCanvas.height = 80; intensityCtx = intensityCanvas.getContext('2d'); if (!intensityCtx) return; }
   var W = intensityCanvas.width, H = intensityCanvas.height;
   if (!wfStation) { intensityCtx.fillStyle = '#000'; intensityCtx.fillRect(0, 0, W, H); intensityCtx.fillStyle = '#666'; intensityCtx.font = '10px monospace'; intensityCtx.fillText(window.t ? window.t('wave.no_station') : 'No station nearby', 10, H/2); return; }
 
-  // Sample current shindo for nearest station (once per sim-second)
-  var curSec = Math.floor(simElapsed);
-  if (intensitySamples.length === 0 || intensitySamples[intensitySamples.length - 1].t < curSec) {
-    var curCircle = wfStation.id != null ? _visibleCircleById[String(wfStation.id)] : null;
-    var curSh = curCircle ? curCircle.shindo : 0;
-    intensitySamples.push({ t: curSec, shindo: curSh });
-    // Keep last 90 seconds
-    while (intensitySamples.length > 0 && intensitySamples[0].t < curSec - 90) intensitySamples.shift();
-  }
+  // Rendering only — sampling lives in sampleIntensityCurvePoint() and runs
+  // from simLoop whether or not this chart is visible. (Sampling used to be
+  // gated on chartsVisible here, so opening the panel mid-event started the
+  // history at the current peak and the whole curve read "always too large".)
 
   // Draw
   intensityCtx.fillStyle = '#000'; intensityCtx.fillRect(0, 0, W, H);

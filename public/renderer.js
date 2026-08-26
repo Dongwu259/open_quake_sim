@@ -8,6 +8,10 @@
   var _kmScaleCache = new Map();
   var _renderRevision = 0;
   var _layerCaches = Object.create(null);
+  // View the current bitmap was drawn for (recorded by drawFrame). Used by
+  // syncOverlayTransform to keep the bitmap glued to the basemap during
+  // pan/zoom gestures without a redraw.
+  var _drawnViewZoom = null, _drawnViewCenter = null, _drawnViewPt = null;
 
   function layerCache(name) {
     var cache = _layerCaches[name];
@@ -37,6 +41,24 @@
     _kmScaleCache.clear();
     for (var name in _layerCaches) _layerCaches[name].key = '';
     if (typeof _tsuSegDirty !== 'undefined') _tsuSegDirty = true;
+  };
+
+  // Keep the already-drawn bitmap glued to the basemap during pan/zoom
+  // gestures without redrawing: a frame drawn for view V0 maps to any other
+  // view by a translate+scale (Web Mercator affinity), so CSS-transform the
+  // canvas during the gesture and redraw crisply when the map settles.
+  Renderer.syncOverlayTransform = function() {
+    if (!waveCanvas || _drawnViewPt == null) return;
+    var z1 = map.getZoom();
+    var s = Math.pow(2, z1 - _drawnViewZoom);
+    var p1 = map.latLngToContainerPoint(_drawnViewCenter);
+    var tx = p1.x - s * _drawnViewPt.x, ty = p1.y - s * _drawnViewPt.y;
+    if (Math.abs(tx) < 0.5 && Math.abs(ty) < 0.5 && Math.abs(s - 1) < 1e-4) {
+      if (waveCanvas.style.transform) waveCanvas.style.transform = '';
+      return;
+    }
+    waveCanvas.style.transformOrigin = '0 0';
+    waveCanvas.style.transform = 'translate(' + tx.toFixed(2) + 'px,' + ty.toFixed(2) + 'px) scale(' + s + ')';
   };
 
   // ---- Coordinate Helpers (bound to Renderer for external use) ----
@@ -69,6 +91,12 @@
   Renderer.drawFrame = function() {
   if (!waveCtx) return;
   waveCtx.clearRect(0, 0, waveCanvas.width, waveCanvas.height);
+  // A freshly drawn frame is glued to the CURRENT map view: drop any gesture
+  // tracking transform and record the view for syncOverlayTransform().
+  if (waveCanvas.style.transform) waveCanvas.style.transform = '';
+  _drawnViewZoom = map.getZoom();
+  _drawnViewCenter = map.getCenter();
+  _drawnViewPt = map.latLngToContainerPoint(_drawnViewCenter);
   // Show-all-stations layer renders even before an epicenter is set, so the
   // user can pick observation stations pre-simulation.
   drawAllStations();
@@ -972,17 +1000,32 @@
   // v5.5 declutter: dense networks (Kanto ~10-15 km spacing) make the circles
   // overlap into one solid dark blob at strong shindo — the "震度7 发光 /
   // 周围染色" report. Draw strongest first and keep one circle per ~2.2-radius
-  // screen cell (JQuake overview-style) at blob-prone zooms; compact mode
-  // already renders tiny dots, and zoom 10+ is sparse enough to overlap
-  // gracefully.
+  // cell (JQuake overview-style) at blob-prone zooms; compact mode already
+  // renders tiny dots, and zoom 10+ is sparse enough to overlap gracefully.
+  // Stability (v6.0 drag-twitch fix): the cell grid must be EARTH-FIXED
+  // (lat/lng), not screen-fixed — with screen cells every pan frame shifted
+  // every circle across cell boundaries and re-picked each cell's winner, so
+  // circles kept vanishing and reappearing at a neighbor's spot. The ordering
+  // must likewise use the STATIC peak (current shindo carries a 1 Hz jitter
+  // that flips near-ties even without any pan).
   var order = visibleCircles;
-  var dcGrid = null, dcCell = 0;
+  var dcGrid = null, dcLat = 0, dcLng = 0;
   if (!compactMode && zoom <= 9 && visibleCircles.length > 40) {
     order = visibleCircles.slice().sort(function(a, b) {
-      return Physics.shindoNum(b.shindo) - Physics.shindoNum(a.shindo);
+      return (b.peakPga || 0) - (a.peakPga || 0);
     });
     dcGrid = {};
-    dcCell = Math.max(28, CIR_R * 2.2);
+    var dcPx = Math.max(28, CIR_R * 2.2);
+    // Cell size in degrees from a FIXED reference latitude (36°N, mid-Japan):
+    // the grid then depends only on zoom. Deriving it from the live view lets
+    // Mercator's latitude scale (pixels/degree ~ 1/cos(lat)) breathe the grid
+    // on every N-S pan frame — floor(lat/dcLat) quotients sit at ~165, so a
+    // 0.03%/frame drift swept stations across integer cell boundaries and
+    // re-picked winners every frame (the residual drag-twitch: keymoved +
+    // cascading steals measured by probe).
+    var worldPx = 256 * Math.pow(2, zoom);
+    dcLng = dcPx * 360 / worldPx;
+    dcLat = dcPx * 360 * Math.cos(36 * Math.PI / 180) / worldPx;
   }
 
   for (var i = 0; i < order.length; i++) {
@@ -990,12 +1033,12 @@
     if (!_stationNetworkVisible(c)) continue;
     if (c.lat < bounds.getSouth()-pad || c.lat > bounds.getNorth()+pad ||
         c.lng < bounds.getWest()-pad || c.lng > bounds.getEast()+pad) continue;
-    var pt = toCanvas(c.lat, c.lng);
     if (dcGrid) {
-      var dcKey = Math.floor(pt.x / dcCell) + ',' + Math.floor(pt.y / dcCell);
+      var dcKey = Math.floor(c.lat / dcLat) + ',' + Math.floor(c.lng / dcLng);
       if (dcGrid[dcKey]) continue;
       dcGrid[dcKey] = 1;
     }
+    var pt = toCanvas(c.lat, c.lng);
 
     if (c.shindo === 0) {
       var r3 = Math.max(3, CIR_R*0.4);

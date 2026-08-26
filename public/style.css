@@ -132,6 +132,7 @@ body.as-pick-armed #map{cursor:crosshair}
 .finite-fault-result strong,.finite-fault-result small{grid-column:1/-1}.finite-fault-result strong{color:var(--accent)}
 .finite-fault-result span,.finite-fault-result small{color:var(--text-secondary);overflow-wrap:anywhere}
 .finite-fault-result .finite-fault-active{color:var(--success);font-weight:700}
+.finite-fault-result .finite-fault-flags{color:#ff9f43;font-weight:700}
 .polarity-inversion-import p{margin:0 0 .65em;color:var(--text-secondary);line-height:1.45}
 .polarity-inversion-import input[type=file]{max-width:100%;font-size:.85em}
 .polarity-inversion-options{display:flex;flex-wrap:wrap;gap:.65em;align-items:center;margin-top:.55em}
