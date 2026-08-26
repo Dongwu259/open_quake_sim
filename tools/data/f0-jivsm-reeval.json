@@ -1,0 +1,16 @@
+{
+ "schema": "quake-sim-f0-jivsm-reeval-v1",
+ "verdict": "not-improved",
+ "r2Halfspace": {
+  "n": 193,
+  "withinHalfOctavePct": 46.6,
+  "medianLogDiff": 0.372
+ },
+ "jivsmSplice": {
+  "n": 170,
+  "withinHalfOctavePct": 44.7,
+  "medianLogDiff": 0.415
+ },
+ "medianSpliceThicknessM": 2,
+ "method": "psLogToProfile baseline vs the same PS log spliced onto the JIVSM V4 column (deepest JIVSM layer as halfspace); empirical f0 = frozen S/B spectral-ratio peaks (sb-spectral-ratio.json); siteResponse1D rock PGA 0.05 g over the 0.3-15 Hz grid"
+}

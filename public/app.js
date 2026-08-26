@@ -193,6 +193,10 @@ var _vs30Grid = null;     // optional J-SHIS/user research grid using the same r
 var _jivsmBedrockGrid = null; // JIVSM engineering-bedrock depth grid (eqlin-1d site term)
 var _researchDataManifest = null, _researchCertification = null;
 var _strongMotionPackageReady = false, _tsunamiObservationsReady = false;
+// v5.8 R7-3: the frozen K-NET/KiK-net observed-peaks table (13 events) also
+// satisfies the strong-motion role's runtime gate — validated at boot by
+// schema + station coverage, same honesty rules as the manifest resource.
+var _strongMotionObsReady = false;
 var _historicalTsunamiData = null, _historicalTsunamiShow = false;
 var _renderHistoricalTsunamiValidationDataset = null;
 var _jmaTsunamiAreaData = null; // official JMA AreaTsunami forecast-area lines
@@ -669,7 +673,8 @@ async function loadJapanGeoJSON() {
       fetch('/geojson/historical_tsunami_observations.json').catch(function(){ return null; }),
       fetch('/geojson/jivsm-bedrock.json').catch(function(){ return null; }),
       fetch('/geojson/sb-spectral-ratio.json').catch(function(){ return null; }),
-      fetch('/geojson/jayaram2011-rho.json').catch(function(){ return null; })
+      fetch('/geojson/jayaram2011-rho.json').catch(function(){ return null; }),
+      fetch('/geojson/jivsm-columns.json').catch(function(){ return null; })
     ];
     // Optional GMPE calibration table (magnitude-binned intensity bias from
     // tools/calibrate-gmpe.js over server recordings). Absent table = identity.
@@ -745,6 +750,19 @@ async function loadJapanGeoJSON() {
         }
       }
     } catch(e) { Physics.setJayaram2011Rho(null); }
+    // JIVSM layered velocity columns (v5.7 R3) — power the station-side
+    // basin travel-time path when travelModel === 'jivsm'; absent file =
+    // null registry = legacy IASP91 stack (byte-identical)
+    try {
+      var jcolResp = terrainResponses && terrainResponses[8];
+      if (jcolResp && jcolResp.ok) {
+        var jcolDoc = await jcolResp.json();
+        if (jcolDoc && Physics.setJivsmColumns(jcolDoc)) {
+          console.log('JIVSM columns loaded:', Object.keys(jcolDoc.data).length,
+            'cells @', jcolDoc.res + '°,', jcolDoc.meta.statistics.meanDistinctLayers, 'layers mean');
+        }
+      }
+    } catch(e) { Physics.setJivsmColumns(null); }
     try {
       var tsunamiAreaResp = terrainResponses && terrainResponses[2];
       if (tsunamiAreaResp && tsunamiAreaResp.ok) _jmaTsunamiAreaData = await tsunamiAreaResp.json();
@@ -753,6 +771,15 @@ async function loadJapanGeoJSON() {
       var dataManifestResp = terrainResponses && terrainResponses[3];
       if (dataManifestResp && dataManifestResp.ok) _researchDataManifest = await dataManifestResp.json();
     } catch(e) { _researchDataManifest = null; }
+    try {
+      var smObsResp = await fetch('geojson/strong-motion-obs.json');
+      if (smObsResp && smObsResp.ok) {
+        var smObs = await smObsResp.json();
+        var smStations = 0;
+        for (var smKey in smObs.events || {}) smStations += ((smObs.events[smKey].stations) || []).length;
+        _strongMotionObsReady = smObs.schema === 'quake-sim-strong-motion-obs-v1' && smStations >= 2000;
+      }
+    } catch(e) { _strongMotionObsReady = false; }
     try {
       var historicalTsunamiResp = terrainResponses && terrainResponses[4];
       if (historicalTsunamiResp && historicalTsunamiResp.ok) {
@@ -1112,7 +1139,38 @@ function resetTsunamiSolverRuntime() {
 // physics while the UI claims otherwise.
 var TSU_RUNTIME_CFG_KEYS=['tsunamiManning','tsunamiDryTolerance','tsunamiArrivalThreshold',
   'tsunamiCoriolis','tsunamiAggregationKm','tsunamiBoundary','tsunamiDeformationModel',
-  'tsunamiHorizontalSlope','tsuSpeed'];
+  'tsunamiHorizontalSlope','tsunamiDispersion','tsunamiTideOffsetM','tsunamiRoughness','tsunamiDtopoTiming','tsuSpeed'];
+
+// v5.8 R5-4b: per-cell Manning roughness from the land-use pack
+// (geojson/landuse-manning.json, schema quake-sim-landuse-manning-v1:
+// {origin,res,nx,ny,data:[classId]}). Ocean cells keep the scalar; land cells
+// take the class Manning value. Returns null (scalar path) unless the pack is
+// loaded AND the roughness model selects it — an absent pack falls back to the
+// uniform scalar honestly instead of failing the solver.
+var _landuseManningPacks=null;
+var LANDUSE_MANNING_BY_CLASS={10:0.025,20:0.035,30:0.06,40:0.08,50:0.03,60:0.03,70:0.10,80:0.05,90:0.10,100:0.025};
+function _loadLanduseManningPack(){
+  if(_landuseManningPacks!==null)return;
+  _landuseManningPacks=false;
+  fetch('geojson/landuse-manning.json').then(function(r){return r.ok?r.json():null;}).then(function(doc){
+    if(!doc||doc._schema!=='quake-sim-landuse-manning-v1'||!Array.isArray(doc.data))return;
+    _landuseManningPacks=doc;
+  }).catch(function(){/* pack optional; scalar fallback */});
+}
+function _landuseManningField(grid){
+  if(cfgGet('tsunamiRoughness')!=='landuse'||!_landuseManningPacks||!grid)return null;
+  var pack=_landuseManningPacks;
+  if(pack.res!==grid.res)return null; // grid-specific packs only
+  var out=new Float32Array(grid.nx*grid.ny),base=Number(cfgGet('tsunamiManning'))||0.025;
+  for(var y=0;y<grid.ny;y++)for(var x=0;x<grid.nx;x++){
+    var i=y*grid.nx+x,cls=null;
+    var px=Math.round((grid.origin[0]+x*grid.res-pack.origin[0])/pack.res);
+    var py=Math.round((grid.origin[1]+y*grid.res-pack.origin[1])/pack.res);
+    if(px>=0&&px<pack.nx&&py>=0&&py<pack.ny)cls=pack.data[py*pack.nx+px];
+    out[i]=Number(grid.data[i])>=0&&LANDUSE_MANNING_BY_CLASS[cls]!=null?LANDUSE_MANNING_BY_CLASS[cls]:base;
+  }
+  return out;
+}
 function onTsunamiRuntimeConfigChanged() {
   resetTsunamiSolverRuntime();
   if(!isRunning)rebuildTsunamiResearchSnapshot();
@@ -2804,7 +2862,11 @@ function _tsuSolverForEvent(ev) {
     if (cfgGet('tsunamiSolver') === 'nonlinearSWE') {
       var grid=_tsuGridForEvent(ev),solverOpts={manning:cfgGet('tsunamiManning'),dryTolerance:cfgGet('tsunamiDryTolerance'),
         arrivalThreshold:cfgGet('tsunamiArrivalThreshold'),coriolis:cfgGet('tsunamiCoriolis')!=='off',visualAggregationKm:cfgGet('tsunamiAggregationKm'),
-        deformationModel:cfgGet('tsunamiDeformationModel'),horizontalSlopeCoupling:cfgGet('tsunamiHorizontalSlope')!=='off',boundary:cfgGet('tsunamiBoundary')};
+        deformationModel:cfgGet('tsunamiDeformationModel'),horizontalSlopeCoupling:cfgGet('tsunamiHorizontalSlope')!=='off',boundary:cfgGet('tsunamiBoundary'),
+        dispersion:cfgGet('tsunamiDispersion')==='boussinesq'?'boussinesq':'off',
+        tideOffsetM:Number(cfgGet('tsunamiTideOffsetM'))||0,
+        manningField:_landuseManningField(grid),
+        dtopoTiming:cfgGet('tsunamiDtopoTiming')==='per-patch'?'per-patch':'cumulative'};
       // Regional grid active -> run it as a fine level over the global grid
       // (two-way AMR) instead of a sealed single-grid box.
       // v5.5: stepping runs inside the tsunami worker when available
@@ -3036,8 +3098,8 @@ function preComputeArrivals(params) {
     var earliestP = Infinity, earliestS = Infinity, latestS = 0;
     for (var si = 0; si < motion.patches.length; si++) {
       var patch = motion.patches[si], s = patch.source;
-      var patchP = s.ruptureTime + Physics.pTravelTime(patch.horizontalKm, s.depth, cfgGet('pWaveSpeed'));
-      var patchS = s.ruptureTime + Physics.sTravelTime(patch.horizontalKm, s.depth, cfgGet('sWaveSpeed'));
+      var patchP = s.ruptureTime + Physics.pTravelTime(patch.horizontalKm, s.depth, cfgGet('pWaveSpeed'), pt.lat, pt.lng);
+      var patchS = s.ruptureTime + Physics.sTravelTime(patch.horizontalKm, s.depth, cfgGet('sWaveSpeed'), pt.lat, pt.lng);
       var patchEnd=patchS+(s.riseTime||0);
       patchPga.push({pArrive:patchP,sArrive:patchS,endArrive:patchEnd,riseTime:s.riseTime||1,
         sourceTimeFunction:s.sourceTimeFunction||'half-cosine',amp:patch.pga});
@@ -3046,14 +3108,14 @@ function preComputeArrivals(params) {
       earliestP=Math.min(earliestP,patchP);earliestS=Math.min(earliestS,patchS);latestS=Math.max(latestS,patchEnd);
     }
     var pointHorizontal = motion.horizontalKm;
-    var pA = patchPga.length ? earliestP : Physics.pTravelTime(pointHorizontal,depthKm,cfgGet('pWaveSpeed'));
-    var sA = patchPga.length ? earliestS : Physics.sTravelTime(pointHorizontal,depthKm,cfgGet('sWaveSpeed'));
+    var pA = patchPga.length ? earliestP : Physics.pTravelTime(pointHorizontal,depthKm,cfgGet('pWaveSpeed'), pt.lat, pt.lng);
+    var sA = patchPga.length ? earliestS : Physics.sTravelTime(pointHorizontal,depthKm,cfgGet('sWaveSpeed'), pt.lat, pt.lng);
     if (cfgGet('intensityMethod') === 'jma3c') {
       I = pga > 0 ? Math.max(0,jmaReferenceAtDistance(dist)+2*Math.log10(pga/100)) : 0;
     }
     var sh = Physics.intensityToShindo(I);
     if (sh !== 0 || pga >= 0.8) {
-      var lp = Physics.calcLPGM(mw, dist, pga, sa);
+      var lp = Physics.calcLPGM(mw, dist, pga, sa, { lat: pt.lat, lng: pt.lng });
       var cellIdx = stationToCell[pt.id];
       data.push({
         lat:pt.lat, lng:pt.lng, id:pt.id, name:pt.name, pArrive:pA, sArrive:sA,
@@ -3132,7 +3194,7 @@ function _predictPrefectureShindosFor(lat, lng, mag, depthKm, strDeg, dipDeg, sr
     var sh = Physics.intensityToShindo(I);
     // Long-period class rides the same forecast field (station path has its
     // own via calcLPGM): M-aware corner + Q-path on the forecast PGA.
-    var lp = Physics.calcLongPeriodSv ? Physics.calcLongPeriodSv(geometryMw, dist, pga).lpcClass : 0;
+    var lp = Physics.calcLongPeriodSv ? Physics.calcLongPeriodSv(geometryMw, dist, pga, { lat: pc.lat, lng: pc.lng }).lpcClass : 0;
     results[pc.id] = {id: pc.id, nam: pc.nam, nam_ja: pc.nam_ja, shindo: sh, i: I, lpgm: lp};
   }
   return results;
@@ -3166,6 +3228,7 @@ function _predictSubareaShindos() {
 // is on, and never in detect mode (it would leak the true epicenter).
 var _subareaUncertainty = null;
 var _subareaUncertaintyKey = '';
+var _subareaUncertaintyRunKey = ''; // v5.7: supersedes guard for async worker runs
 function _updateSubareaUncertainty(explicit) {
   if (detectMode) { _subareaUncertainty = null; _subareaUncertaintyKey = ''; return; }
   if (cfgGet('subareaUncertainty') !== 'on' || !_subareaCentroids || !Physics.ensembleIntensityField) {
@@ -3192,13 +3255,29 @@ function _updateSubareaUncertainty(explicit) {
         rakeDeg: parseFloat(rakeSlider.value) || 0 },
       geometry: null, gmpModel: cfgGet('gmpModel'), options: {}
     };
-    var r = Physics.ensembleIntensityField(ctx, cents, { members: 40, seed: 'live' });
-    _subareaUncertainty = {};
-    r.perStation.forEach(function(row, idx) {
-      var c = picked[idx];
-      if (!c) return;
-      _subareaUncertainty[c.id] = { sigma: (row.p90 - row.p10) / 2, p10: row.p10, p50: row.p50, p90: row.p90 };
-    });
+    // v5.7 tail: >=100 members run in a Worker (measured 423 ms at 97x200 on
+    // the main thread — above the pre-registered 150 ms threshold); the
+    // default 40 stays synchronous (87 ms, param-keyed cache)
+    var members = Math.max(10, Math.round(cfgGet('ensembleMembers') || 40));
+    var runKey = key;
+    function applyRows(r) {
+      _subareaUncertainty = {};
+      r.perStation.forEach(function(row, idx) {
+        var c = picked[idx];
+        if (!c) return;
+        _subareaUncertainty[c.id] = { sigma: (row.p90 - row.p10) / 2, p10: row.p10, p50: row.p50, p90: row.p90 };
+      });
+    }
+    if (members >= 100 && typeof EnsembleSolverHost !== 'undefined') {
+      _subareaUncertaintyRunKey = runKey;
+      EnsembleSolverHost.run(ctx, cents, { members: members, seed: 'live' }).then(function(r) {
+        if (_subareaUncertaintyRunKey !== runKey) return; // a newer request superseded this run
+        applyRows(r);
+        if (typeof _updateLivePrefLayer === 'function') { try { _updateLivePrefLayer(); } catch (e) {} }
+      }).catch(function() { if (_subareaUncertaintyRunKey === runKey) _subareaUncertainty = null; });
+    } else {
+      applyRows(Physics.ensembleIntensityField(ctx, cents, { members: members, seed: 'live' }));
+    }
   } catch (e) { _subareaUncertainty = null; }
 }
 function _uncertaintyStyle(layer, pid) {
@@ -6840,6 +6919,9 @@ function _renderFiniteFaultImport(model,error){
   if(!model){out.textContent='';return;}
   var g=model.geometry,q=model.quality||{},warnings=q.warnings||[],duration=(g.maxRuptureTime||0)+(model.patches.reduce(function(v,p){return Math.max(v,Number(p.riseTime)||0);},0));
   var residual=q.momentResidualFraction;
+  // R6-1 source budget diagnostics (pure physics; absent on parse-error paths)
+  var budget=null;
+  try{budget=Physics.sourceBudget(model);}catch(e){budget=null;}
   out.innerHTML='<strong>'+escapeHTML(model.provenance.source||model.id)+' · '+escapeHTML(model.provenance.format||model.schema)+'</strong>'
     +(_observedFiniteFault===model?'<span class="finite-fault-active">'+escapeHTML(t('info.finite_fault_active'))+'</span>':'<span>'+escapeHTML(t('info.finite_fault_staged'))+'</span>')
     +'<span>'+escapeHTML(t('info.finite_fault_event'))+': '+escapeHTML(model.event.id||model.id)+'</span>'
@@ -6847,6 +6929,7 @@ function _renderFiniteFaultImport(model,error){
     +'<span>Mw '+model.mw.toFixed(3)+' · M0 '+model.totalMomentNm.toExponential(4)+' Nm</span>'
     +'<span>'+escapeHTML(t('info.finite_fault_slip'))+': '+g.averageSlipM.toFixed(3)+' / '+g.maxSlipM.toFixed(3)+' m</span>'
     +'<span>'+escapeHTML(t('info.finite_fault_duration'))+': '+duration.toFixed(2)+' s</span>'
+    +(budget?'<span>'+escapeHTML(t('info.src_budget'))+': Δτ '+budget.stressDropMPa.toFixed(2)+' MPa · Er '+budget.radiatedEnergyJ.toExponential(2)+' J · η '+budget.radiationEfficiency.toFixed(2)+' · v<sub>r</sub> '+(budget.ruptureSpeedKmS!=null?budget.ruptureSpeedKmS.toFixed(2)+' km/s':'—')+'</span>':'')
     +'<span>'+escapeHTML(t('info.finite_fault_residual'))+': '+(model.suppliedMomentNm>0?(residual*100).toFixed(2)+'%':'—')+'</span>'
     +'<span>'+escapeHTML(t('info.finite_fault_quality'))+': '+escapeHTML(q.researchReady?t('info.finite_fault_research_ready'):t('info.finite_fault_degraded'))+' ('+escapeHTML(q.grade||'?')+')</span>'
     +'<span>'+escapeHTML(model.provenance.url||t('info.finite_fault_url_missing'))+'</span>'
@@ -7237,6 +7320,7 @@ function fallbackCopy(value, onDone) {
   try { if (document.execCommand('copy')) onDone(); } catch(e) {}
   document.body.removeChild(area);
 }
+_loadLanduseManningPack();
 if (!bindHelpModal()) window.addEventListener('DOMContentLoaded', bindHelpModal);
 if (!bindFormulaModal()) window.addEventListener('DOMContentLoaded', bindFormulaModal);
 if (!bindErrorOverlay()) window.addEventListener('DOMContentLoaded', bindErrorOverlay);
@@ -7544,6 +7628,8 @@ var ADV_OPTION_LABELS = {
   vs30:'adv.opt.vs30',geo:'adv.opt.geo',none:'adv.opt.none',off:'adv.opt.off',on:'adv.opt.on',ss14:'adv.opt.ss14','eqlin-1d':'adv.opt.eqlin',
   somerville1997:'adv.opt.somerville',pgaOnly:'adv.opt.pga',pgaPgv:'adv.opt.pgagv',exceedance:'adv.opt.exceedance',
   shindo:'intensity.shindo',mmi:'intensity.mmi',ems98:'intensity.ems98',bilateral:'ff.bilateral',unilateral:'ff.unilateral',
+  iasp91:'adv.opt.iasp91',jivsm:'adv.opt.jivsm',boussinesq:'adv.opt.boussinesq',
+  landuse:'adv.opt.landuse','per-patch':'adv.opt.perPatch',cumulative:'adv.opt.cumulative',
   empirical:'adv.opt.empirical',jma3c:'adv.opt.jma3c',nonlinearSWE:'adv.opt.nonlinearSWE',linearSWE:'adv.opt.linearSWE',travelTime:'adv.opt.travelTime',
   dc3d:'adv.opt.dc3d',legacy:'adv.opt.legacy',radiation:'adv.opt.radiation',wall:'adv.opt.wall',
   'slip-depth':'adv.opt.slipDepth',depth:'adv.opt.depthVelocity',constant:'adv.opt.constantVelocity',
@@ -7559,7 +7645,7 @@ function advDependencyEnabled(key) {
   if (key === 'sigmaOverride') return cfgGet('sigmaDisplay') !== 'off';
   if (['siteSoftMax','siteHardMin','siteBase','siteNonlinear'].indexOf(key) >= 0) return cfgGet('siteModel') !== 'none';
   if (key === 'etasAlpha' || key === 'catalogCap') return Number(cfgGet('etasEnable')) === 1;
-  if (['tsunamiManning','tsunamiDryTolerance','tsunamiArrivalThreshold','tsunamiCoriolis','tsunamiAggregationKm','tsunamiBoundary','tsunamiNested'].indexOf(key)>=0) return cfgGet('tsunamiSolver') === 'nonlinearSWE';
+  if (['tsunamiManning','tsunamiDryTolerance','tsunamiArrivalThreshold','tsunamiCoriolis','tsunamiAggregationKm','tsunamiBoundary','tsunamiNested','tsunamiDispersion','tsunamiTideOffsetM','tsunamiRoughness','tsunamiDtopoTiming'].indexOf(key)>=0) return cfgGet('tsunamiSolver') === 'nonlinearSWE';
   if (['tsunamiDeformationModel','tsunamiHorizontalSlope'].indexOf(key)>=0) return cfgGet('tsunamiSolver') !== 'travelTime';
   return true;
 }
@@ -8752,7 +8838,7 @@ async function init() {
   initMobileToggle();
   // Register service worker for offline PWA support (non-critical)
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js?v=195080').catch(function(e) {
+    navigator.serviceWorker.register('sw.js?v=269175').catch(function(e) {
       console.warn('SW registration failed (non-critical):', e);
     });
   }
@@ -8975,7 +9061,7 @@ function _updateResearchDataCertification() {
     _researchCertification={valid:false,researchReady:false,certification:'degraded',blockers:['manifest']};
   } else {
     _researchCertification=ResearchDataCatalog.assessRuntime(_researchDataManifest, {
-      terrain:_bathyGrid,vs30:_vs30Grid,strongMotionReady:_strongMotionPackageReady,tsunamiObservationsReady:_tsunamiObservationsReady
+      terrain:_bathyGrid,vs30:_vs30Grid,strongMotionReady:_strongMotionPackageReady||_strongMotionObsReady,tsunamiObservationsReady:_tsunamiObservationsReady
     });
   }
   var badge=document.getElementById('research-certification-badge'),out=document.getElementById('research-data-status');
@@ -9085,7 +9171,7 @@ var ScenarioManager = (function(){
       if (isFinite(+a.lat) && isFinite(+a.lng)) { e.lat = +a.lat; e.lng = +a.lng; }
       return e;
     });
-    return { schema:Research.SCENARIO_SCHEMA,name:name || tr('scn.untitled'),version:2,appVersion:'v5.6',
+    return { schema:Research.SCENARIO_SCHEMA,name:name || tr('scn.untitled'),version:2,appVersion:'v6.0',
              seed:Research.normalizeSeed(cfgGet('randomSeed')),events:events,flags:flags,config:JSON.parse(JSON.stringify(CFG)),
              faultOpts:FiniteFaultEditor.getState(),manualAftershocks:manAs,display:_researchDisplayState(),dataVersions:versions.data,modelVersions:versions.model,
              experiment:_currentExperiment,created:(function(){try{return new Date().toISOString();}catch(e){return '';}})() };
@@ -9465,6 +9551,7 @@ var _geoCities = [
 ];
 // --- Brune ω² waveform cache ---
 var _bruneCache = {stationId: null, freqs: [], amps: [], phases: []};
+var _lastSpectrumExport = null; // v5.7 R4-3: CSV stash for the spectrum chart
 
 // Shared Brune ω² carrier synthesis (used by updateWaveform, _mwfComputeSamples, aftershock fallback)
 function _bruneSynthesize(t, mag, addNoiseFloor) {
@@ -9512,6 +9599,32 @@ function _computeBruneCache(station) {
   _bruneCache.duration = Physics.physicalDuration(mag, dist, sd);
   var synth = Physics.synthesizeWaveform3C(mag, dist, sd, sa, _bruneCache.duration, 50,
     Research.normalizeSeed(cfgGet('randomSeed')) ^ Math.floor((station.lat*1000 + station.lng*1000 + mag*100) * 100));
+  // v5.7 R4-2: near-fault directivity pulse — Shahi & Baker (2013/15)
+  // probability from the current fault geometry, Mavroeidis injection into
+  // the horizontal carrier (fault-normal) when P >= 0.5 (deterministic
+  // threshold; Bernoulli sampling belongs to the PSHA layer we do not run)
+  _bruneCache.pulse = null;
+  if (cfgGet('directivity') === 'somerville1997' && mag >= 6.5 && epicenter) {
+    try {
+      var pctx = Physics.createGroundMotionContext({
+        lat: epicenter.lat, lng: epicenter.lng, mw: mag, mag: mag, depthKm: _liveDepth,
+        strikeDeg: parseFloat(strikeSlider.value) || 0,
+        dipDeg: parseFloat((typeof dipSlider !== 'undefined' && dipSlider) ? dipSlider.value : 60) || 60
+      }, { finiteFault: true });
+      if (pctx && pctx.geometry) {
+        var pgeo = Physics.baylessSomervilleGeometry(pctx.source, pctx.geometry, station.lat, station.lng);
+        if (pgeo && (pgeo.faultKind === 'strike' || pgeo.faultKind === 'dip')) {
+          var pProb = Physics.pulseProbability(pgeo.faultKind === 'strike'
+            ? { rKm: pgeo.rrupKm, sKm: pgeo.sKm }
+            : { rKm: pgeo.rrupKm, dKm: pgeo.dKm, thetaDeg: pgeo.thetaRad * 180 / Math.PI });
+          var pm = Physics.predictStationMotion(pctx, { lat: station.lat, lng: station.lng, vs30: 400 }, {});
+          var fnAz = ((parseFloat(strikeSlider.value) || 0) + 90) * Math.PI / 180;
+          Physics.injectDirectivityPulse(synth, { prob: pProb, mw: mag, pgvCms: pm ? pm.pgv : 0, faultNormalAzRad: fnAz });
+          _bruneCache.pulse = synth.pulse || null;
+        }
+      }
+    } catch (e) { _bruneCache.pulse = null; }
+  }
   _bruneCache.components = synth;
 }
 
@@ -9532,10 +9645,13 @@ function drawResponseSpectrum() {
   var sc = wfStation.id != null ? (_visibleCircleById[String(wfStation.id)] || null) : null;
   var pga = sc ? sc.displayPga : 100;
   var sa = soilAmp(wfStation.lat, wfStation.lng, wfStation.isSeafloor);
-  // Compute PSA at periods 0.01 to 5.0s
+  // Compute PSA at periods 0.05 to 10 s (v5.7 R4-3: full-period output —
+  // 40 log-spaced points covering the engineering range incl. long periods)
+  var T_MIN = 0.05, T_MAX = 10, T_N = 40;
+  var logTMin = Math.log(T_MIN), logTMax = Math.log(T_MAX);
   var periods = [], psaVals = [], maxPSA = 0;
-  for (var i = 0; i < 30; i++) {
-    var T = Math.exp(Math.log(0.01) + (Math.log(5.0) - Math.log(0.01)) * i / 29);
+  for (var i = 0; i < T_N; i++) {
+    var T = Math.exp(logTMin + (logTMax - logTMin) * i / (T_N - 1));
     periods.push(T);
   }
   var response = [];
@@ -9551,13 +9667,16 @@ function drawResponseSpectrum() {
     if (psa > maxPSA) maxPSA = psa;
   }
   if (maxPSA <= 0) return;
+  function specX(T) { return 30 + (Math.log(T) - logTMin) / (logTMax - logTMin) * (W - 40); }
+  // stash for the CSV export (v5.7 R4-3)
+  _lastSpectrumExport = { station: wfStation.name || String(wfStation.id), periods: periods.slice(), psaGal: psaVals.slice() };
   // Draw axes
   ctx.strokeStyle = '#333'; ctx.lineWidth = 0.5;
   ctx.beginPath(); ctx.moveTo(30, 5); ctx.lineTo(30, H - 15); ctx.lineTo(W - 5, H - 15); ctx.stroke();
   // Draw spectrum curve
   ctx.beginPath(); ctx.strokeStyle = '#e94560'; ctx.lineWidth = 2;
-  for (var i = 0; i < 30; i++) {
-    var x = 30 + (Math.log(periods[i]) - Math.log(0.01)) / (Math.log(5.0) - Math.log(0.01)) * (W - 40);
+  for (var i = 0; i < periods.length; i++) {
+    var x = specX(periods[i]);
     var y = (H - 20) - (psaVals[i] / maxPSA) * (H - 30);
     if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
   }
@@ -9573,13 +9692,16 @@ function drawResponseSpectrum() {
       psaVals.map(function(v) { return Math.log(Math.max(1e-9, v)); }),
       psaVals.map(function() { return sigmaLn; }), 0.05, 0, srcType);
     if (csBand) {
+      _lastSpectrumExport.csMeanGal = csBand.meanLnSa.map(function(v) { return Math.exp(v); });
+      _lastSpectrumExport.csSigmaLn = csBand.sigmaLnSa.slice();
+      _lastSpectrumExport.csAnchorSec = csBand.anchorPeriod;
       ctx.setLineDash([4, 3]);
       ctx.strokeStyle = 'rgba(233,69,96,0.45)'; ctx.lineWidth = 1;
       for (var sgn = -1; sgn <= 1; sgn += 2) {
         ctx.beginPath();
         for (var bi = 0; bi < periods.length; bi++) {
           var vB = Math.exp(csBand.meanLnSa[bi] + sgn * csBand.sigmaLnSa[bi]);
-          var xB = 30 + (Math.log(periods[bi]) - Math.log(0.01)) / (Math.log(5.0) - Math.log(0.01)) * (W - 40);
+          var xB = specX(periods[bi]);
           var yB = (H - 20) - (vB / maxPSA) * (H - 30);
           if (bi === 0) ctx.moveTo(xB, yB); else ctx.lineTo(xB, yB);
         }
@@ -9593,11 +9715,19 @@ function drawResponseSpectrum() {
   } catch(e) { /* band is decorative — chart still valid without it */ }
   // Labels
   ctx.fillStyle = '#888'; ctx.font = '8px monospace'; ctx.textAlign = 'center';
-  ctx.fillText('0.01s', 32, H - 3); ctx.fillText('0.1s', 30 + (W-40)*0.33, H - 3);
-  ctx.fillText('1s', 30 + (W-40)*0.66, H - 3); ctx.fillText('5s', W - 8, H - 3);
+  [[0.05, '0.05s'], [0.2, '0.2s'], [1, '1s'], [4, '4s'], [10, '10s']].forEach(function(lab) {
+    ctx.fillText(lab[1], specX(lab[0]), H - 3);
+  });
   ctx.textAlign = 'left'; ctx.fillStyle = '#aaa'; ctx.font = '9px monospace';
   ctx.fillText('PSA(T) ' + Math.round(maxPSA) + ' gal', 34, 12);
   ctx.fillText('5% damping', W - 70, 12);
+  // Near-fault directivity pulse marker (v5.7 R4-2): the carrier carries an
+  // injected Mavroeidis pulse when Shahi & Baker P(pulse) >= 0.5 — tag it
+  if (_bruneCache.pulse) {
+    ctx.fillStyle = '#ff9f43'; ctx.font = '9px monospace'; ctx.textAlign = 'center';
+    ctx.fillText('\u26A1 ' + (window.t ? window.t('spectrum.pulse_tag', { p: _bruneCache.pulse.probability, tp: _bruneCache.pulse.tpSec })
+      : 'Directivity pulse P=' + _bruneCache.pulse.probability + ' Tp=' + _bruneCache.pulse.tpSec + 's'), W / 2, 12);
+  }
 }
 
 // --- Info-page charts: attenuation, source spectrum, travel-time, azimuth directivity ---
@@ -9644,6 +9774,24 @@ function infoChartsVisible() {
     });
   });
 document.querySelectorAll('.chart-download').forEach(function(btn) {
+  // spectrum chart carries a data export (v5.7 R4-3): full-period PSA +
+  // conditional-spectrum columns instead of the PNG
+  if (btn.dataset.canvas === 'spectrum-canvas' && _lastSpectrumExport && _lastSpectrumExport.periods.length) {
+    try {
+      var ex = _lastSpectrumExport;
+      var rows = ['period_sec,psa_gal' + (ex.csMeanGal ? ',cs_mean_gal,cs_sigma_ln' : '')];
+      for (var ei = 0; ei < ex.periods.length; ei++) {
+        var r = [ex.periods[ei].toFixed(3), ex.psaGal[ei].toFixed(2)];
+        if (ex.csMeanGal) r.push(ex.csMeanGal[ei].toFixed(2), ex.csSigmaLn[ei].toFixed(3));
+        rows.push(r.join(','));
+      }
+      var blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+      var a2 = document.createElement('a'); a2.href = URL.createObjectURL(blob);
+      a2.download = 'quake-sim-spectrum-' + (ex.station || 'station') + '.csv'; a2.click();
+      setTimeout(function() { URL.revokeObjectURL(a2.href); }, 5000);
+      return;
+    } catch (e) { /* fall through to PNG */ }
+  }
     btn.addEventListener('click', function() {
       var canvas = document.getElementById(btn.dataset.canvas); if (!canvas) return;
       try { var a=document.createElement('a'); a.href=canvas.toDataURL('image/png'); a.download='quake-sim-'+btn.dataset.canvas+'.png'; a.click(); } catch(e) {}
@@ -9984,19 +10132,39 @@ function drawAzimuthDirectivity() {
   var isoR = R * 0.6;
   ctx.strokeStyle = 'rgba(150,170,200,0.5)'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
   ctx.beginPath(); ctx.arc(cx, cy, isoR, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
-  // directivity curve: factor 1 + coef·cos(az − strike) — the same physics-side
-  // Somerville coefficient predictStationMotion uses (was hard-coded 0.35).
-  var azdCoef = Physics.somervilleDirectivityCoefficient(mag);
+  // directivity curve: the FULL Bayless & Somerville (2013) angular sweep —
+  // the same physics-side model predictStationMotion applies (PGA row is
+  // zero by calibration, so the polar plot shows the PGV/1 s correction).
+  // Reference geometry: M-scaled Wells & Coppersmith plane, strike-slip,
+  // site ring at 30 km.
+  var dims = Physics.faultDimensions(mag, 'crustal') || { L: 20, W: 12 };
+  var fpAzd = {
+    lat: epicenter.lat, lng: epicenter.lng, L: dims.L, W: dims.W,
+    depth: (_azd ? _azd.depth : parseFloat(depthSlider ? depthSlider.value : 10)) || 10,
+    strikeDeg: (strike * 180 / Math.PI), dipDeg: 90, hypocenterFrac: 0.5
+  };
+  var bsMax = 1, bsVals = [];
+  for (var dAz = 0; dAz < 360; dAz += 3) {
+    var azRad = dAz * Math.PI / 180;
+    var staLat = epicenter.lat + 30 / 110.57 * Math.cos(azRad);
+    var staLng = epicenter.lng + 30 / (111.32 * Math.cos(epicenter.lat * Math.PI / 180)) * Math.sin(azRad);
+    var bs = Physics.baylessSomervilleGeometry({ mw: mag, rakeDeg: 180 }, fpAzd, staLat, staLng);
+    var v = 1;
+    if (bs && (bs.faultKind === 'strike' || bs.faultKind === 'dip')) {
+      v = Math.exp(Physics.baylessSomervilleFD(bs, bs.faultKind, 'rotD50', 1.0).fD);
+    }
+    bsVals.push(v);
+    bsMax = Math.max(bsMax, v);
+  }
   ctx.strokeStyle = '#e94560'; ctx.lineWidth = 1.6;
   ctx.beginPath();
-  for (var deg = 0; deg <= 360; deg += 3) {
-    var az = deg * Math.PI / 180;
-    var fac = 1 + azdCoef * Math.cos(az - strike);
-    var rad = isoR * fac / (1 + azdCoef); // normalize so max maps to isoR
+  for (var i2 = 0; i2 < bsVals.length; i2++) {
+    var az2 = i2 * 3 * Math.PI / 180;
+    var rad2 = isoR * Math.pow(bsVals[i2] / bsMax, 0.6); // compress so the lobes stay visible
     // 0° = North (up). Screen: x = cx + sin(az)*rad, y = cy - cos(az)*rad
-    var x = cx + Math.sin(az) * rad;
-    var y = cy - Math.cos(az) * rad;
-    if (deg === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    var x2 = cx + Math.sin(az2) * rad2;
+    var y2 = cy - Math.cos(az2) * rad2;
+    if (i2 === 0) ctx.moveTo(x2, y2); else ctx.lineTo(x2, y2);
   }
   ctx.closePath(); ctx.stroke();
   // strike direction arrow

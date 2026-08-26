@@ -106,7 +106,11 @@ function runEvent(event) {
     manning: dflt('tsunamiManning'), dryTolerance: dflt('tsunamiDryTolerance'),
     arrivalThreshold: dflt('tsunamiArrivalThreshold'),
     coriolis: dflt('tsunamiCoriolis') !== 'off',
-    boundary: dflt('tsunamiBoundary') === 'radiation' ? 'radiation' : 'wall'
+    boundary: dflt('tsunamiBoundary') === 'radiation' ? 'radiation' : 'wall',
+    // v5.8 R5-2 A/B: --dispersion=boussinesq runs the dispersive arm;
+    // --dtopo=per-patch runs the per-subfault timing arm
+    dispersion: process.argv.find(a => a.startsWith('--dispersion='))?.split('=')[1] === 'boussinesq' ? 'boussinesq' : 'off',
+    dtopoTiming: process.argv.find(a => a.startsWith('--dtopo='))?.split('=')[1] === 'per-patch' ? 'per-patch' : 'cumulative'
   };
   // Two-level AMR: regional-grid events run as a fine level over the global
   // grid (mirrors the app's tsunamiNested:'auto' path); --nested=off restores
@@ -119,11 +123,32 @@ function runEvent(event) {
   }
   if (!solver) solver = Physics.createNonlinearTsunamiSolver(grid, source, solverOpts);
   if (!solver) throw new Error('solver unavailable for ' + event.id);
-  solver.advanceTo(HORIZON_S);
-  const observations = (event.observations || []).map(obs => ({
-    id: obs.id,
-    peakHeightM: Math.abs(Physics.tsunamiCoastalHeight(solver, obs.lat, obs.lng, 10, 5))
-  }));
+  // v5.8 R5-6: track first-arrival times (|eta| past the arrival threshold)
+  // at 60 s resolution while advancing, so the report can score arrival
+  // residuals once curated observations carry arrivalTime fields.
+  const arrivals = (event.observations || []).map(() => null);
+  const arrivalGate = 1.5 * dflt('tsunamiArrivalThreshold');
+  let tNow = 0;
+  while (tNow < HORIZON_S) {
+    const tNext = Math.min(tNow + 60, HORIZON_S);
+    solver.advanceTo(tNext);
+    tNow = tNext;
+    (event.observations || []).forEach((obs, oi) => {
+      if (arrivals[oi] !== null) return;
+      const st = solver.sampleState(obs.lat, obs.lng);
+      if (st && Math.abs(st.eta) >= arrivalGate) arrivals[oi] = tNow;
+    });
+  }
+  const observations = (event.observations || []).map((obs, oi) => {
+    const row = {
+      id: obs.id,
+      peakHeightM: Math.abs(Physics.tsunamiCoastalHeight(solver, obs.lat, obs.lng, 10, 5))
+    };
+    if (arrivals[oi] !== null && event.originTime) {
+      row.arrivalTime = new Date(Date.parse(event.originTime) + arrivals[oi] * 1000).toISOString();
+    }
+    return row;
+  });
   const forecastAreas = predictForecastAreas(event, solver);
   return {
     id: event.id,

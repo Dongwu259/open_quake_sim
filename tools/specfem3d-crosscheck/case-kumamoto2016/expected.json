@@ -1,0 +1,568 @@
+{
+ "schema": "quake-sim-specfem-crosscheck-v1",
+ "source": {
+  "lat": 32.753,
+  "lng": 130.762,
+  "mw": 7.3,
+  "depthKm": 12,
+  "strike": 226,
+  "dip": 65,
+  "rake": -10
+ },
+ "momentTensorNm": {
+  "Mrr": -14925338742199020000,
+  "Mtt": -92360397548398620000,
+  "Mpp": 107285736290597630000,
+  "Mrt": 41448165008692314000,
+  "Mrp": -24892046570396373000,
+  "Mtp": 10953116508523686000,
+  "M0": 112201845430195600000
+ },
+ "note": "compare offline SPECFEM3D synthetics: (1) P/S arrival times vs pIasp91S/pJivsmS (bandpassed onset), (2) observed S-P from frozen Kyoshin picks where present. NOTHING here is a browser/CI artefact.",
+ "stations": [
+  {
+   "id": "KMMH16",
+   "distKm": 7.27,
+   "pIasp91S": 2.419,
+   "sIasp91S": 4.176,
+   "pJivsmS": 2.59,
+   "sJivsmS": 4.67,
+   "observedSpSec": null
+  },
+  {
+   "id": "KMM008",
+   "distKm": 12.12,
+   "pIasp91S": 2.94,
+   "sIasp91S": 5.076,
+   "pJivsmS": 3.099,
+   "sJivsmS": 5.563,
+   "observedSpSec": null
+  },
+  {
+   "id": "KMM006",
+   "distKm": 4.71,
+   "pIasp91S": 2.223,
+   "sIasp91S": 3.837,
+   "pJivsmS": 2.386,
+   "sJivsmS": 4.317,
+   "observedSpSec": null
+  },
+  {
+   "id": "KMM009",
+   "distKm": 22.21,
+   "pIasp91S": 4.353,
+   "sIasp91S": 7.514,
+   "pJivsmS": 4.428,
+   "sJivsmS": 7.67,
+   "observedSpSec": 3.05
+  },
+  {
+   "id": "KMMH03",
+   "distKm": 28.02,
+   "pIasp91S": 5.255,
+   "sIasp91S": 9.071,
+   "pJivsmS": 5.428,
+   "sJivsmS": 9.496,
+   "observedSpSec": 4.25
+  },
+  {
+   "id": "KMM011",
+   "distKm": 17.9,
+   "pIasp91S": 3.715,
+   "sIasp91S": 6.413,
+   "pJivsmS": 3.769,
+   "sJivsmS": 6.512,
+   "observedSpSec": 3.6
+  },
+  {
+   "id": "OIT009",
+   "distKm": 78.02,
+   "pIasp91S": 13.609,
+   "sIasp91S": 23.492,
+   "pJivsmS": 13.943,
+   "sJivsmS": 24.225,
+   "observedSpSec": null
+  },
+  {
+   "id": "KMMH02",
+   "distKm": 49.72,
+   "pIasp91S": 8.819,
+   "sIasp91S": 15.222,
+   "pJivsmS": 9.1,
+   "sJivsmS": 15.853,
+   "observedSpSec": 3.85
+  },
+  {
+   "id": "KMM005",
+   "distKm": 17.41,
+   "pIasp91S": 3.645,
+   "sIasp91S": 6.293,
+   "pJivsmS": 3.876,
+   "sJivsmS": 6.865,
+   "observedSpSec": null
+  },
+  {
+   "id": "KMMH14",
+   "distKm": 13.21,
+   "pIasp91S": 3.077,
+   "sIasp91S": 5.311,
+   "pJivsmS": 3.157,
+   "sJivsmS": 5.524,
+   "observedSpSec": null
+  },
+  {
+   "id": "OITH11",
+   "distKm": 72.46,
+   "pIasp91S": 12.663,
+   "sIasp91S": 21.859,
+   "pJivsmS": 13.018,
+   "sJivsmS": 22.643,
+   "observedSpSec": null
+  },
+  {
+   "id": "KMM007",
+   "distKm": 34.67,
+   "pIasp91S": 6.326,
+   "sIasp91S": 10.92,
+   "pJivsmS": 6.326,
+   "sJivsmS": 10.92,
+   "observedSpSec": 3.3
+  },
+  {
+   "id": "KMM004",
+   "distKm": 38.93,
+   "pIasp91S": 7.024,
+   "sIasp91S": 12.125,
+   "pJivsmS": 7.024,
+   "sJivsmS": 12.125,
+   "observedSpSec": 4
+  },
+  {
+   "id": "KMMH01",
+   "distKm": 40.07,
+   "pIasp91S": 7.211,
+   "sIasp91S": 12.448,
+   "pJivsmS": 7.211,
+   "sJivsmS": 12.448,
+   "observedSpSec": 4
+  },
+  {
+   "id": "KMMH09",
+   "distKm": 32.14,
+   "pIasp91S": 5.915,
+   "sIasp91S": 10.21,
+   "pJivsmS": 6.006,
+   "sJivsmS": 10.378,
+   "observedSpSec": 3.9
+  },
+  {
+   "id": "KMM001",
+   "distKm": 49.96,
+   "pIasp91S": 8.858,
+   "sIasp91S": 15.291,
+   "pJivsmS": 9.14,
+   "sJivsmS": 15.922,
+   "observedSpSec": null
+  },
+  {
+   "id": "KMM003",
+   "distKm": 28.35,
+   "pIasp91S": 5.308,
+   "sIasp91S": 9.162,
+   "pJivsmS": 5.41,
+   "sJivsmS": 9.392,
+   "observedSpSec": 4.1
+  },
+  {
+   "id": "MYZ001",
+   "distKm": 51.41,
+   "pIasp91S": 9.102,
+   "sIasp91S": 15.711,
+   "pJivsmS": 9.191,
+   "sJivsmS": 15.865,
+   "observedSpSec": null
+  },
+  {
+   "id": "FKO015",
+   "distKm": 56.44,
+   "pIasp91S": 9.949,
+   "sIasp91S": 17.173,
+   "pJivsmS": 10.202,
+   "sJivsmS": 17.85,
+   "observedSpSec": null
+  },
+  {
+   "id": "MYZ002",
+   "distKm": 86.4,
+   "pIasp91S": 15.04,
+   "sIasp91S": 25.961,
+   "pJivsmS": 15.664,
+   "sJivsmS": 26.905,
+   "observedSpSec": null
+  },
+  {
+   "id": "KMMH12",
+   "distKm": 60.94,
+   "pIasp91S": 10.708,
+   "sIasp91S": 18.484,
+   "pJivsmS": 11.027,
+   "sJivsmS": 19.168,
+   "observedSpSec": null
+  },
+  {
+   "id": "KMM012",
+   "distKm": 31.09,
+   "pIasp91S": 5.746,
+   "sIasp91S": 9.919,
+   "pJivsmS": 5.842,
+   "sJivsmS": 10.117,
+   "observedSpSec": 3.65
+  },
+  {
+   "id": "KMM002",
+   "distKm": 30.44,
+   "pIasp91S": 5.641,
+   "sIasp91S": 9.737,
+   "pJivsmS": 5.641,
+   "sJivsmS": 9.737,
+   "observedSpSec": 3.55
+  },
+  {
+   "id": "OIT006",
+   "distKm": 90.53,
+   "pIasp91S": 15.745,
+   "sIasp91S": 27.178,
+   "pJivsmS": 15.977,
+   "sJivsmS": 27.669,
+   "observedSpSec": null
+  },
+  {
+   "id": "KMMH10",
+   "distKm": 73.05,
+   "pIasp91S": 12.764,
+   "sIasp91S": 22.033,
+   "pJivsmS": 12.937,
+   "sJivsmS": 22.415,
+   "observedSpSec": null
+  },
+  {
+   "id": "MYZ020",
+   "distKm": 48.94,
+   "pIasp91S": 8.687,
+   "sIasp91S": 14.996,
+   "pJivsmS": 8.857,
+   "sJivsmS": 15.273,
+   "observedSpSec": null
+  },
+  {
+   "id": "NGS014",
+   "distKm": 56.27,
+   "pIasp91S": 9.92,
+   "sIasp91S": 17.124,
+   "pJivsmS": 10.21,
+   "sJivsmS": 17.771,
+   "observedSpSec": null
+  },
+  {
+   "id": "KMMH06",
+   "distKm": 32.35,
+   "pIasp91S": 5.949,
+   "sIasp91S": 10.269,
+   "pJivsmS": 5.949,
+   "sJivsmS": 10.269,
+   "observedSpSec": 3.65
+  },
+  {
+   "id": "FKO013",
+   "distKm": 55.78,
+   "pIasp91S": 9.837,
+   "sIasp91S": 16.981,
+   "pJivsmS": 9.932,
+   "sJivsmS": 17.17,
+   "observedSpSec": null
+  },
+  {
+   "id": "MYZH04",
+   "distKm": 59.67,
+   "pIasp91S": 10.493,
+   "sIasp91S": 18.114,
+   "pJivsmS": 10.678,
+   "sJivsmS": 18.406,
+   "observedSpSec": null
+  },
+  {
+   "id": "OIT005",
+   "distKm": 84.51,
+   "pIasp91S": 14.717,
+   "sIasp91S": 25.404,
+   "pJivsmS": 14.988,
+   "sJivsmS": 25.989,
+   "observedSpSec": null
+  },
+  {
+   "id": "MYZ008",
+   "distKm": 93.22,
+   "pIasp91S": 16.206,
+   "sIasp91S": 27.974,
+   "pJivsmS": 17.131,
+   "sJivsmS": 29.652,
+   "observedSpSec": null
+  },
+  {
+   "id": "KMM013",
+   "distKm": 49.29,
+   "pIasp91S": 8.747,
+   "sIasp91S": 15.099,
+   "pJivsmS": 8.843,
+   "sJivsmS": 15.276,
+   "observedSpSec": null
+  },
+  {
+   "id": "KMM014",
+   "distKm": 40.15,
+   "pIasp91S": 7.226,
+   "sIasp91S": 12.473,
+   "pJivsmS": 7.314,
+   "sJivsmS": 12.625,
+   "observedSpSec": null
+  },
+  {
+   "id": "FKO016",
+   "distKm": 41.46,
+   "pIasp91S": 7.441,
+   "sIasp91S": 12.845,
+   "pJivsmS": 7.575,
+   "sJivsmS": 13.184,
+   "observedSpSec": 3.15
+  },
+  {
+   "id": "OIT015",
+   "distKm": 64.41,
+   "pIasp91S": 11.296,
+   "sIasp91S": 19.5,
+   "pJivsmS": 11.487,
+   "sJivsmS": 19.903,
+   "observedSpSec": null
+  },
+  {
+   "id": "KMM018",
+   "distKm": 53,
+   "pIasp91S": 9.369,
+   "sIasp91S": 16.173,
+   "pJivsmS": 9.481,
+   "sJivsmS": 16.399,
+   "observedSpSec": null
+  },
+  {
+   "id": "KGS001",
+   "distKm": 82.9,
+   "pIasp91S": 14.442,
+   "sIasp91S": 24.93,
+   "pJivsmS": 14.629,
+   "sJivsmS": 25.337,
+   "observedSpSec": null
+  },
+  {
+   "id": "SAGH04",
+   "distKm": 75.8,
+   "pIasp91S": 13.233,
+   "sIasp91S": 22.842,
+   "pJivsmS": 13.401,
+   "sJivsmS": 23.26,
+   "observedSpSec": null
+  },
+  {
+   "id": "MYZH08",
+   "distKm": 93.83,
+   "pIasp91S": 16.309,
+   "sIasp91S": 28.153,
+   "pJivsmS": 16.309,
+   "sJivsmS": 28.153,
+   "observedSpSec": null
+  },
+  {
+   "id": "MYZ006",
+   "distKm": 93.07,
+   "pIasp91S": 16.179,
+   "sIasp91S": 27.928,
+   "pJivsmS": 16.665,
+   "sJivsmS": 28.692,
+   "observedSpSec": null
+  },
+  {
+   "id": "MYZH05",
+   "distKm": 65.4,
+   "pIasp91S": 11.464,
+   "sIasp91S": 19.788,
+   "pJivsmS": 12.117,
+   "sJivsmS": 20.682,
+   "observedSpSec": null
+  },
+  {
+   "id": "OIT016",
+   "distKm": 109.38,
+   "pIasp91S": 18.973,
+   "sIasp91S": 32.75,
+   "pJivsmS": 19.081,
+   "sJivsmS": 32.947,
+   "observedSpSec": null
+  },
+  {
+   "id": "FKOH03",
+   "distKm": 91.97,
+   "pIasp91S": 15.991,
+   "sIasp91S": 27.603,
+   "pJivsmS": 16.101,
+   "sJivsmS": 27.799,
+   "observedSpSec": null
+  },
+  {
+   "id": "FKO014",
+   "distKm": 44.41,
+   "pIasp91S": 7.932,
+   "sIasp91S": 13.692,
+   "pJivsmS": 8.114,
+   "sJivsmS": 14.084,
+   "observedSpSec": null
+  },
+  {
+   "id": "FKO011",
+   "distKm": 67.61,
+   "pIasp91S": 11.839,
+   "sIasp91S": 20.436,
+   "pJivsmS": 11.994,
+   "sJivsmS": 20.808,
+   "observedSpSec": null
+  },
+  {
+   "id": "SAG007",
+   "distKm": 71.15,
+   "pIasp91S": 12.441,
+   "sIasp91S": 21.476,
+   "pJivsmS": 12.669,
+   "sJivsmS": 22.072,
+   "observedSpSec": null
+  },
+  {
+   "id": "KMM010",
+   "distKm": 30.03,
+   "pIasp91S": 5.576,
+   "sIasp91S": 9.625,
+   "pJivsmS": 5.7,
+   "sJivsmS": 9.909,
+   "observedSpSec": 3.3
+  },
+  {
+   "id": "OIT010",
+   "distKm": 94.05,
+   "pIasp91S": 16.347,
+   "sIasp91S": 28.218,
+   "pJivsmS": 16.347,
+   "sJivsmS": 28.218,
+   "observedSpSec": null
+  },
+  {
+   "id": "MYZ004",
+   "distKm": 67.16,
+   "pIasp91S": 11.763,
+   "sIasp91S": 20.306,
+   "pJivsmS": 12.35,
+   "sJivsmS": 21.186,
+   "observedSpSec": null
+  },
+  {
+   "id": "FKO004",
+   "distKm": 111.82,
+   "pIasp91S": 19.389,
+   "sIasp91S": 33.47,
+   "pJivsmS": 19.519,
+   "sJivsmS": 33.742,
+   "observedSpSec": null
+  },
+  {
+   "id": "KMM015",
+   "distKm": 68.41,
+   "pIasp91S": 11.975,
+   "sIasp91S": 20.671,
+   "pJivsmS": 12.258,
+   "sJivsmS": 21.286,
+   "observedSpSec": null
+  },
+  {
+   "id": "FKO005",
+   "distKm": 100.15,
+   "pIasp91S": 17.391,
+   "sIasp91S": 30.02,
+   "pJivsmS": 17.516,
+   "sJivsmS": 30.234,
+   "observedSpSec": null
+  },
+  {
+   "id": "KGS006",
+   "distKm": 94.35,
+   "pIasp91S": 16.398,
+   "sIasp91S": 28.307,
+   "pJivsmS": 16.398,
+   "sJivsmS": 28.307,
+   "observedSpSec": null
+  },
+  {
+   "id": "NGS019",
+   "distKm": 76.86,
+   "pIasp91S": 13.413,
+   "sIasp91S": 23.153,
+   "pJivsmS": 13.708,
+   "sJivsmS": 23.798,
+   "observedSpSec": null
+  },
+  {
+   "id": "MYZH15",
+   "distKm": 88.71,
+   "pIasp91S": 15.434,
+   "sIasp91S": 26.641,
+   "pJivsmS": 15.916,
+   "sJivsmS": 27.4,
+   "observedSpSec": null
+  },
+  {
+   "id": "NGS010",
+   "distKm": 82.84,
+   "pIasp91S": 14.432,
+   "sIasp91S": 24.912,
+   "pJivsmS": 14.603,
+   "sJivsmS": 25.255,
+   "observedSpSec": null
+  },
+  {
+   "id": "KMM022",
+   "distKm": 92.79,
+   "pIasp91S": 16.132,
+   "sIasp91S": 27.847,
+   "pJivsmS": 16.335,
+   "sJivsmS": 28.3,
+   "observedSpSec": null
+  },
+  {
+   "id": "KMMH13",
+   "distKm": 60.76,
+   "pIasp91S": 10.679,
+   "sIasp91S": 18.434,
+   "pJivsmS": 10.881,
+   "sJivsmS": 18.827,
+   "observedSpSec": null
+  },
+  {
+   "id": "OIT012",
+   "distKm": 66.84,
+   "pIasp91S": 11.709,
+   "sIasp91S": 20.212,
+   "pJivsmS": 12.083,
+   "sJivsmS": 21.05,
+   "observedSpSec": null
+  }
+ ],
+ "provenance": {
+  "waveforms": "NIED K-NET/KiK-net station coordinates from the frozen package (DOI 10.17598/NIED.0004)",
+  "jivsm": "J-SHIS JIVSM V4 (public/geojson/jivsm-columns.json derived grid)"
+ }
+}

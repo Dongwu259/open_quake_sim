@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+message: >-
+  If this software or its bundled frozen datasets contributed to your work,
+  please cite both the software release and the dataset sources listed in
+  public/data-catalog.js (NIED K-NET/KiK-net DOI 10.17598/NIED.0004,
+  J-SHIS, JMA, GSI, GEBCO 2025 doi:10.5285/37c52e96-24ea-67ce-e063-7086abc05f29).
+title: Earthquake Simulator Pro
+abstract: >-
+  Web-based research-oriented earthquake and tsunami simulation platform for
+  Japan: faithful Zhao et al. (2006) GMPE with calibrated bias tables, 1D
+  equivalent-linear site response, ensemble uncertainty fields, kinematic
+  finite-fault sources (DC3D), two-way AMR nonlinear shallow-water tsunami
+  solver with optional Peregrine-type Boussinesq dispersion, EEW inversion
+  rehearsal and a real-time monitoring suite. All validation results,
+  including negative ones, are frozen in PHYSICS_BENCHMARKS.md.
+type: software
+authors:
+  - name: Dongwu259
+    alias: Dongwu259
+repository-code: 'https://github.com/Dongwu259/open_quake_sim'
+url: 'https://github.com/Dongwu259/open_quake_sim'
+keywords:
+  - earthquake
+  - tsunami
+  - GMPE
+  - site response
+  - EEW
+  - Japan
+  - simulation
+license: MIT
+commit: v5.8

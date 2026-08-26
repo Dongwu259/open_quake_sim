@@ -1,6 +1,6 @@
 {
   "schema": "quake-sim-tsunami-validation-report-v1",
-  "createdAt": "2026-08-16T16:41:48.657Z",
+  "createdAt": "2026-08-26T06:18:08.348Z",
   "datasetResearchReady": false,
   "confusionMatrix": {
     "labels": [
@@ -23,9 +23,9 @@
         0
       ],
       [
-        9,
+        8,
         0,
-        2,
+        3,
         0
       ],
       [
@@ -38,24 +38,24 @@
   },
   "classification": {
     "total": 16,
-    "hits": 7,
-    "misses": 9,
+    "hits": 8,
+    "misses": 8,
     "falseAlarms": 0,
-    "hitRate": 0.4375,
+    "hitRate": 0.5,
     "falseAlarmRate": 0
   },
   "heightByType": {
     "runup": {
       "count": 7,
-      "bias": -12.70579004112338,
-      "rms": 15.806819328508077,
-      "mae": 12.70579004112338
+      "bias": -12.726171999108692,
+      "rms": 15.810961196845618,
+      "mae": 12.726171999108692
     },
     "tide-gauge": {
       "count": 3,
-      "bias": -0.6739693164825441,
-      "rms": 0.7025417788505259,
-      "mae": 0.6739693164825441
+      "bias": -0.6747860590616863,
+      "rms": 0.7036016832001413,
+      "mae": 0.6747860590616863
     }
   },
   "arrivalMinutes": {

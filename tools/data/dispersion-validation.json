@@ -1,0 +1,137 @@
+{
+  "schema": "quake-sim-dispersion-validation-v1",
+  "generatedAt": "2026-08-26T06:56:11.508Z",
+  "cases": [
+    {
+      "case": "C-2011-tohoku-nested-nearfield",
+      "coastalPeaks": [
+        {
+          "id": "ofunato",
+          "peakM": {
+            "swe": 2.677,
+            "boussinesq": 2.722
+          },
+          "change": 0.017
+        },
+        {
+          "id": "kamaishi",
+          "peakM": {
+            "swe": 6.046,
+            "boussinesq": 6.072
+          },
+          "change": 0.0044
+        },
+        {
+          "id": "sendai",
+          "peakM": {
+            "swe": 1.3,
+            "boussinesq": 1.3
+          },
+          "change": 0
+        }
+      ],
+      "worstCoastalPeakChange": 0.017,
+      "pass": true
+    },
+    {
+      "case": "A-synthetic-flat-4000m",
+      "probeKm": 1000,
+      "khContentMax": 4,
+      "rmseVsExactNormalized": {
+        "swe": 0.2438,
+        "boussinesq": 0.1569
+      },
+      "errorReductionRatio": 1.55,
+      "nearFieldPeak": {
+        "swe": 0.499,
+        "boussinesq": 0.499,
+        "change": 0
+      },
+      "pass": true
+    },
+    {
+      "case": "B-1960-chile-transoceanic",
+      "grid": "tools/data/grids/pacific-1960.json (GEBCO 2025, 0.25°, wrapped lng 135..292.5)",
+      "source": "synthetic M9.5 Valdivia (assumed mechanism strike10/dip20/rake90 — no bundled finite-fault model)",
+      "horizonS": 93600,
+      "solverSeconds": 1806,
+      "probes": [
+        {
+          "id": "chile-coast",
+          "arrivalS": {
+            "swe": 720,
+            "boussinesq": 720
+          },
+          "arrivalShiftMin": 0,
+          "peakM": {
+            "swe": 33.058,
+            "boussinesq": 33.058
+          },
+          "peakChange": 0,
+          "dominantPeriodMin": {
+            "swe": null,
+            "boussinesq": null
+          }
+        },
+        {
+          "id": "mid-pacific",
+          "arrivalS": {
+            "swe": 42000,
+            "boussinesq": 42000
+          },
+          "arrivalShiftMin": 0,
+          "peakM": {
+            "swe": 0.498,
+            "boussinesq": 0.499
+          },
+          "peakChange": 0.002,
+          "dominantPeriodMin": {
+            "swe": null,
+            "boussinesq": null
+          }
+        },
+        {
+          "id": "hawaii",
+          "arrivalS": {
+            "swe": 49920,
+            "boussinesq": 49920
+          },
+          "arrivalShiftMin": 0,
+          "peakM": {
+            "swe": 0.169,
+            "boussinesq": 0.171
+          },
+          "peakChange": 0.0119,
+          "dominantPeriodMin": {
+            "swe": null,
+            "boussinesq": null
+          }
+        },
+        {
+          "id": "ofunato",
+          "arrivalS": {
+            "swe": null,
+            "boussinesq": 85560
+          },
+          "arrivalShiftMin": null,
+          "peakM": {
+            "swe": 0.047,
+            "boussinesq": 0.052
+          },
+          "peakChange": 0.1096,
+          "dominantPeriodMin": {
+            "swe": null,
+            "boussinesq": null
+          }
+        }
+      ],
+      "massResidualFraction": {
+        "swe": -0.00000656774019918475,
+        "boussinesq": -0.000006579153454046029
+      },
+      "nearFieldPeakChange": 0,
+      "pass": true
+    }
+  ],
+  "allPass": true
+}

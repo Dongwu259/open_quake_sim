@@ -1,0 +1,27 @@
+{
+  "title": "Earthquake Simulator Pro (quake_sim)",
+  "description": "<p>Web-based research-oriented earthquake and tsunami simulation platform for Japan. v5.8 features: faithful Zhao et al. (2006) GMPE with frozen calibration tables, 1D equivalent-linear site response (Thomson–Haskell + Darendeli curves, SHAKE-91 external benchmark), ensemble uncertainty fields with logic-tree weights, kinematic finite-fault sources (Okada DC3D), recursive multi-level two-way AMR nonlinear shallow-water tsunami solver with optional Peregrine-type Boussinesq dispersion (1960 Chile trans-oceanic validation), hydrodynamic-load hazard metrics, JMA long-period class prediction, EEW detection rehearsal, and a real-time monitoring suite (JMA/Kmoni/EEW/tsunami). All validation results including negative ones are frozen in PHYSICS_BENCHMARKS.md; per-dataset provenance and licences in public/data-catalog.js.</p><p>Bundled derived datasets: J-SHIS Vs30 derived grid (J-SHIS terms), JIVSM derived bedrock/column grids (J-SHIS terms), KiK-net surface/borehole derived spectral-ratio statistics (NIED DOI 10.17598/NIED.0004, derived quantities only), GEBCO 2025 resample (doi:10.5285/37c52e96-24ea-67ce-e063-7086abc05f29), JMA observation data (気象庁, government open work).</p>",
+  "license": "MIT",
+  "creators": [
+    {
+      "name": "Dongwu259",
+      "affiliation": "Independent researcher"
+    }
+  ],
+  "keywords": [
+    "earthquake",
+    "tsunami",
+    "GMPE",
+    "site response",
+    "EEW",
+    "early warning",
+    "Japan",
+    "numerical simulation",
+    "shallow water equations",
+    "Boussinesq dispersion"
+  ],
+  "access_right": "open",
+  "upload_type": "software",
+  "language": "eng",
+  "notes": "Source repository: https://github.com/Dongwu259/open_quake_sim (MIT). This record archives the tagged release; the research manifest (public/data-catalog.js) is the authoritative per-dataset provenance record."
+}

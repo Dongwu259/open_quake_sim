@@ -1,0 +1,232 @@
+{
+ "schema": "quake-sim-experiment-manifest-v1",
+ "generated": "2026-08-26T12:12:15.399Z",
+ "identityRule": "qsx1-<sha256[:16] of file bytes>; manifest excluded from its own listing",
+ "entries": [
+  {
+   "id": "qsx1-3b5294b6dec04848",
+   "name": "autosim-scorecard-report.json",
+   "bytes": 7628,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-08-21T16:19:07.493Z"
+  },
+  {
+   "id": "qsx1-ccf6289f3e630e25",
+   "name": "dispersion-validation.json",
+   "bytes": 3261,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-08-26T11:54:16.905Z"
+  },
+  {
+   "id": "qsx1-57f6cda4efda105b",
+   "name": "dynamic-rupture-report.json",
+   "bytes": 118979,
+   "kind": "experiment",
+   "track": "R6",
+   "gate": "tests/dynamic-rupture-report.test.js A10",
+   "mtime": "2026-08-26T11:54:17.031Z"
+  },
+  {
+   "id": "qsx1-7495c366b71614a2",
+   "name": "eew-mag-bias-report.json",
+   "bytes": 582035,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-08-21T16:19:07.612Z"
+  },
+  {
+   "id": "qsx1-5f55852971222720",
+   "name": "ensemble-reliability-report.json",
+   "bytes": 4457,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-08-25T05:05:11.150Z"
+  },
+  {
+   "id": "qsx1-d7fe8172bebb5147",
+   "name": "etas-calibration-report.json",
+   "bytes": 3080,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-08-21T16:19:07.722Z"
+  },
+  {
+   "id": "qsx1-86658fc6009b2092",
+   "name": "exceedance-crosscheck-report.json",
+   "bytes": 3457,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-08-25T05:05:11.189Z"
+  },
+  {
+   "id": "qsx1-266b262a803c3b3b",
+   "name": "f0-jivsm-reeval.json",
+   "bytes": 537,
+   "kind": "experiment",
+   "track": "v5.7 tail",
+   "gate": null,
+   "mtime": "2026-08-26T11:54:17.275Z"
+  },
+  {
+   "id": "qsx1-e4b36bf24d5ee7ae",
+   "name": "frozen-drift-report.json",
+   "bytes": 2416,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-08-26T11:54:17.388Z"
+  },
+  {
+   "id": "qsx1-cc52637e196055c7",
+   "name": "geoclaw-crosscheck-report.json",
+   "bytes": 1028,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-08-26T12:09:53.303Z"
+  },
+  {
+   "id": "qsx1-510ca39ab96dbe19",
+   "name": "gmpe-fixtures-zhao2006.json",
+   "bytes": 407411,
+   "kind": "fixture",
+   "track": "R0-3",
+   "gate": "tests/gmpe-benchmarks.test.js",
+   "mtime": "2026-08-26T12:09:53.419Z"
+  },
+  {
+   "id": "qsx1-bf7231c8999bc8e5",
+   "name": "gmpe-loeo-report.json",
+   "bytes": 1611,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-08-25T05:05:11.113Z"
+  },
+  {
+   "id": "qsx1-4f0a3b6bf344fcd4",
+   "name": "kyoshin-eqid-map.json",
+   "bytes": 4367,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-08-25T05:05:11.226Z"
+  },
+  {
+   "id": "qsx1-1da6a49e497dc19d",
+   "name": "logic-tree-weights.json",
+   "bytes": 2430,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-08-25T05:16:39.990Z"
+  },
+  {
+   "id": "qsx1-00ef48c730dbbb2a",
+   "name": "model-bias-loeo-report.json",
+   "bytes": 5207,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-08-25T05:05:11.078Z"
+  },
+  {
+   "id": "qsx1-56d691a8bfa0a3ea",
+   "name": "sb-spectral-ratio-report.json",
+   "bytes": 50385,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-08-26T12:09:53.533Z"
+  },
+  {
+   "id": "qsx1-b8438e14075fc9b9",
+   "name": "shake91-benchmark-case.json",
+   "bytes": 2408,
+   "kind": "fixture",
+   "track": "v5.7 tail",
+   "gate": "tests/shake91-benchmark.test.js",
+   "mtime": "2026-08-26T11:54:17.505Z"
+  },
+  {
+   "id": "qsx1-bf4ebdcaf50c4f7d",
+   "name": "sigma-components-report.json",
+   "bytes": 2118,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-08-25T05:16:40.027Z"
+  },
+  {
+   "id": "qsx1-ba43cb6fd6d64f1c",
+   "name": "site-response-report.json",
+   "bytes": 39787,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-08-26T12:09:53.649Z"
+  },
+  {
+   "id": "qsx1-7bc3f861bd4a0a1e",
+   "name": "spatial-correlation-report.json",
+   "bytes": 2927,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-08-25T05:16:40.064Z"
+  },
+  {
+   "id": "qsx1-3dae28efb9fbe1c2",
+   "name": "strong-motion-report.json",
+   "bytes": 140907,
+   "kind": "scorecard",
+   "track": "GMPE",
+   "gate": "tests/scientific-tripwires.test.js",
+   "mtime": "2026-08-26T12:09:53.767Z"
+  },
+  {
+   "id": "qsx1-25434a5c3e795655",
+   "name": "travel-time-picks.json",
+   "bytes": 29623,
+   "kind": "observed-picks",
+   "track": "R3-2",
+   "gate": "tests/jivsm-columns.test.js",
+   "mtime": "2026-08-26T11:54:17.638Z"
+  },
+  {
+   "id": "qsx1-8addeada8555c54e",
+   "name": "tsunami-scorecard-predictions.json",
+   "bytes": 4068,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-08-26T11:54:17.754Z"
+  },
+  {
+   "id": "qsx1-f9198cd782580424",
+   "name": "tsunami-scorecard-report.json",
+   "bytes": 1139,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-08-26T11:54:17.872Z"
+  },
+  {
+   "id": "qsx1-df7f7448101f6d6b",
+   "name": "version-report.json",
+   "bytes": 5955,
+   "kind": "envelope",
+   "track": "R7-5",
+   "gate": "tuning-read audit",
+   "mtime": "2026-08-26T11:54:18.004Z"
+  }
+ ]
+}

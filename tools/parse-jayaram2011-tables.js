@@ -92,9 +92,39 @@ function recipeC(t, M, expect) {
   }
 }
 
+// Table 5's layout: full-width rows 0.08/0.05/0.10, the 16-row T2 label
+// column, an 8-column sub-table header (0.15..1.50), a NINTH header 2.00
+// (the overflowing last column label), then a 16-row x 9-value block
+// (every T2 row over columns 0.15..2.00 — rows that already appeared full
+// width DUPLICATE their values, which this recipe asserts must agree), then
+// the four full-width trailing rows 2.50..5.00. The remaining triangle is
+// mirrored exactly like the other tables.
+function recipeD(t, M, expect, readRow) {
+  readRow(0.08); readRow(0.05);
+  const labels = [];
+  for (const p of PERIODS) { expect(p, 'T2 row-label column'); labels.push(p); }
+  readRow(0.10);
+  for (let k = 3; k < 11; k++) expect(PERIODS[k], 'col header ' + PERIODS[k]);
+  expect(2.00, 'ninth column header 2.00');
+  const dup = [];
+  for (const p of labels) {
+    const r = PERIODS.indexOf(p);
+    for (let k = 3; k < 12; k++) {
+      const v = t.next();
+      if (isFinite(M[r][k])) dup.push([p, PERIODS[k], M[r][k], v]);
+      M[r][k] = v;
+    }
+  }
+  for (const [p, c, was, now] of dup) {
+    if (Math.abs(was - now) > 1e-9) throw new Error(
+      'Table 5 duplicate disagreement at T2=' + p + ' T1=' + c + ': ' + was + ' vs ' + now);
+  }
+  readRow(2.50); readRow(3.00); readRow(4.00); readRow(5.00);
+}
+
 function parseTable(txt, tableNo) {
   const raw = sectionTokens(txt, tableNo);
-  const recipes = { A: recipeA, B: recipeB, C: recipeC };
+  const recipes = { A: recipeA, B: recipeB, C: recipeC, D: recipeD };
   let lastErr = null;
   for (const [name, fn] of Object.entries(recipes)) {
     const t = { arr: raw.slice(), i: 0, next() { return this.arr[this.i++]; } };
@@ -139,12 +169,10 @@ function parseTable(txt, tableNo) {
 
 function main() {
   const txt = fs.readFileSync(SRC, 'utf8');
-  // Table 5 (slab) is deliberately NOT frozen yet: its PDF text layer
-  // interleaves the 16x8 block with the T2=2.00 row's overflow columns in a
-  // way none of the recipes reconstruct unambiguously (validation-gated
-  // parser refuses to guess). Until it is decoded, the runtime routes the
-  // slab class to the interface table (documented fallback).
-  const classes = { crustal: 3, interface: 4 };
+  // Table 5 (slab) decoded 2026-08-25 (v5.7 tail): recipe D reconstructs the
+  // 16x9 block with the overflowing ninth column header and cross-checks the
+  // duplicate copies of the full-width rows before mirroring the rest.
+  const classes = { crustal: 3, interface: 4, slab: 5 };
   const out = {};
   for (const [cls, no] of Object.entries(classes)) out[cls] = { table: no, ...parseTable(txt, no) };
   const doc = {
@@ -152,11 +180,10 @@ function main() {
     meta: {
       source: 'Jayaram, N., Baker, J. W., Okano, H., Ishida, H., McCann, M. W., Jr., and Mihara, Y. (2011). ' +
         '"Correlation of response spectral values in Japanese ground motions." Earthquakes and Structures, 2(4), 357-376 — ' +
-        'appendix Tables 3 (active shallow crustal) and 4 (subduction interface).',
+        'appendix Tables 3 (active shallow crustal), 4 (subduction interface) and 5 (subduction slab).',
       archive: '.cache/papers/Jayaram_et_al_(2011)_Japan_Correlations,_E&S.pdf (local-only)',
       generatedBy: 'tools/parse-jayaram2011-tables.js',
-      note: 'epsilon(T1)-epsilon(T2) correlation from K-NET/KiK-net Japanese ground motions; values symmetrized to kill table rounding. ' +
-        'Table 5 (subduction slab) not yet transcribed — the slab class falls back to the interface table.',
+      note: 'epsilon(T1)-epsilon(T2) correlation from K-NET/KiK-net Japanese ground motions; values symmetrized to kill table rounding.',
       validation: Object.fromEntries(Object.entries(out).map(([k, v]) => [k, 'recipe ' + v.recipe + ', max asymmetry ' + v.maxAsymmetry]))
     },
     periods: PERIODS,

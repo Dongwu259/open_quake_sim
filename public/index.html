@@ -5,15 +5,15 @@
 <script>/* align <html lang> with the saved language before first paint (applyLanguage keeps it in sync afterwards) */try{var __l=localStorage.getItem('qs-lang');if(__l==='ja'||__l==='en'||__l==='zh')document.documentElement.lang=__l;}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0a0e1a">
-<meta name="description" content="Earthquake Simulator Pro v5.6，面向日本的可复现地震与海啸情景模拟器。包含多种GMPE、矩守恒有限断层、JMA逐站独立验证、非线性浅水方程、科研结果对比和SREV式实时TTS。">
+<meta name="description" content="Earthquake Simulator Pro v6.0，面向日本的可复现地震与海啸情景模拟器。包含多种GMPE、矩守恒有限断层、JMA逐站独立验证、非线性浅水方程、科研结果对比和SREV式实时TTS。">
 <meta name="keywords" content="earthquake simulator,地震模拟,震度,地震波,日本地震,GMPE,Shindo,JMA">
-<meta property="og:title" content="Earthquake Simulator Pro v5.6 — 地震与海啸情景模拟">
+<meta property="og:title" content="Earthquake Simulator Pro v6.0 — 地震与海啸情景模拟">
 <meta property="og:description" content="Web-based earthquake simulation for Japan. Real physics engine with 6 GMPE models, finite fault editor, TTS bulletin broadcast, and real-time monitoring from 5 data sources.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://quake-sim.example.com/">
 <meta property="og:image" content="https://quake-sim.example.com/og-image.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Earthquake Simulator Pro v5.6">
+<meta name="twitter:title" content="Earthquake Simulator Pro v6.0">
 <meta name="twitter:description" content="Real-time earthquake wave propagation simulator for Japan. 6 GMPE, TTS bulletin, PWA offline.">
 <meta name="twitter:image" content="https://quake-sim.example.com/og-image.png">
 <link rel="canonical" href="https://quake-sim.example.com/">
@@ -21,24 +21,24 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="QuakeSim">
-<link rel="manifest" href="manifest.json?v=b234c1">
+<link rel="manifest" href="manifest.json?v=f1148e">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
-<title>地震模拟器 v5.6 | Earthquake Simulator Pro</title>
+<title>地震模拟器 v6.0 | Earthquake Simulator Pro</title>
 <link rel="stylesheet" href="leaflet/leaflet.css?v=f885c4">
 <link rel="stylesheet" href="style.css?v=4b8e8b">
 <link rel="preload" href="leaflet/leaflet.js?v=5a640f" as="script">
-<link rel="preload" href="app.js?v=5ac47f" as="script">
+<link rel="preload" href="app.js?v=3e52d8" as="script">
 <link rel="preload" href="style.css?v=4b8e8b" as="style">
-<link rel="preload" href="config.js?v=55512e" as="script">
-<link rel="preload" href="physics.js?v=cf3c22" as="script">
+<link rel="preload" href="config.js?v=148820" as="script">
+<link rel="preload" href="physics.js?v=1260cd" as="script">
 </head>
 <body>
 <a href="#map" class="skip-link" data-i18n="aria.skip">跳转到内容</a>
 <div id="app" role="application" aria-label="Earthquake Simulator">
   <div id="sidebar" role="complementary" aria-label="控制面板">
     <div id="sidebar-header">
-      <h1 data-i18n="app.title">地震模拟器 v5.6</h1>
-      <div id="build-ver" style="font-size:.65em;color:var(--text-secondary);opacity:.5;margin-top:-2px" data-sw="sw.js=v195080">(······)</div>
+      <h1 data-i18n="app.title">地震模拟器 v6.0</h1>
+      <div id="build-ver" style="font-size:.65em;color:var(--text-secondary);opacity:.5;margin-top:-2px" data-sw="sw.js=v269175">(······)</div>
       <button id="btn-help" class="help-link" type="button" data-i18n="help.title">使用帮助</button>
       <button id="btn-formulas" class="help-link" type="button" data-i18n="formulas.title">公式原理</button>
       <button id="btn-settings" class="help-link" type="button" data-i18n="settings.title">设置</button>
@@ -266,6 +266,7 @@
           <div class="adv-row" data-cfg="ruptureVelocityModel"><span data-i18n="adv.ruptureVelocityModel">破裂速度场</span><select></select><span class="adv-val"></span><button class="adv-rst" title="Reset">&#8634;</button></div>
           <div class="adv-row" data-cfg="sourceTimeFunction"><span data-i18n="adv.sourceTimeFunction">震源时间函数</span><select></select><span class="adv-val"></span><button class="adv-rst" title="Reset">&#8634;</button></div>
           <div class="adv-row" data-cfg="sourceTypeOverride"><span data-i18n="adv.sourceType">震源类型覆盖</span><select></select><span class="adv-val"></span><button class="adv-rst" title="Reset">&#8634;</button></div>
+          <div class="adv-row" data-cfg="travelModel"><span data-i18n="adv.travelModel">走时模型</span><select></select><span class="adv-val"></span><button class="adv-rst" title="Reset">&#8634;</button></div>
           <div class="adv-row" data-cfg="randomSeed"><span data-i18n="adv.randomSeed">随机种子</span><input type="number" inputmode="numeric"><span class="adv-val"></span><button class="adv-rst" title="Reset">&#8634;</button></div>
         </div>
         <div class="adv-section">
@@ -273,7 +274,7 @@
           <div class="gmp-note" data-i18n="adv.gmpNote">auto = 地壳 (≤30km) → log（近场饱和更好）· 板间 (30–60km) → log-FF（Rrup+源类型补正，擅巨大地震）。也可手动选择模型。</div>
           <div class="adv-row" data-cfg="gmpModel"><span data-i18n="adv.gmpModel">GMPE模型</span><select></select><span class="adv-val"></span><button class="adv-rst" title="Reset">&#8634;</button></div>
           <div class="adv-row" data-cfg="subareaUncertainty"><span data-i18n="adv.uncertainty">不确定性描边</span><select></select><span class="adv-val"></span><button class="adv-rst" title="Reset">&#8634;</button></div>
-          <div class="adv-row" data-cfg="subareaUncertainty"><span data-i18n="adv.uncertainty">不确定性描边</span><select></select><span class="adv-val"></span><button class="adv-rst" title="Reset">&#8634;</button></div>
+          <div class="adv-row" data-cfg="ensembleMembers"><span data-i18n="adv.ensembleMembers">集合成员数</span><input type="range"><span class="adv-val"></span><button class="adv-rst" title="Reset">&#8634;</button></div>
           <div class="adv-row" data-cfg="attA"><span data-i18n="adv.attA">系数 a (M)</span><input type="range"><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div>
           <div class="adv-row" data-cfg="attB"><span data-i18n="adv.attB">系数 b (logR)</span><input type="range"><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div>
           <div class="adv-row" data-cfg="attC"><span data-i18n="adv.attC">系数 c (常数)</span><input type="range"><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div>
@@ -313,6 +314,10 @@
           <div class="adv-row" data-cfg="tsunamiHorizontalSlope"><span data-i18n="adv.tsunamiHorizontalSlope">水平位移坡度耦合</span><select></select><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div>
           <div class="adv-row" data-cfg="tsunamiBoundary"><span data-i18n="adv.tsunamiBoundary">外边界</span><select></select><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div>
           <div class="adv-row" data-cfg="tsunamiNested"><span data-i18n="adv.tsunamiNested">嵌套网格（两级 AMR）</span><select></select><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div>
+          <div class="adv-row" data-cfg="tsunamiDispersion"><span data-i18n="adv.tsunamiDispersion">频散修正（Boussinesq）</span><select></select><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div>
+          <div class="adv-row" data-cfg="tsunamiTideOffsetM"><span data-i18n="adv.tsunamiTideOffsetM">潮位偏移</span><input type="range"><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div>
+          <div class="adv-row" data-cfg="tsunamiRoughness"><span data-i18n="adv.tsunamiRoughness">糙率模型</span><select></select><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div>
+          <div class="adv-row" data-cfg="tsunamiDtopoTiming"><span data-i18n="adv.tsunamiDtopoTiming">海底形变时序</span><select></select><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div>
           <div class="adv-row" data-cfg="tsunamiManning"><span data-i18n="adv.tsunamiManning">Manning 糙率</span><input type="range"><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div>
           <div class="adv-row" data-cfg="tsunamiDryTolerance"><span data-i18n="adv.tsunamiDryTolerance">湿润/干涸阈值</span><input type="range"><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div>
           <div class="adv-row" data-cfg="tsunamiArrivalThreshold"><span data-i18n="adv.tsunamiArrivalThreshold">首次到达判定水位</span><input type="range"><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div>
@@ -692,15 +697,16 @@
 
 <script src="leaflet/leaflet.js?v=5a640f"></script>
 <script src="turf/turf.min.js?v=07f3b6"></script>
-<script src="config.js?v=55512e"></script>
+<script src="config.js?v=148820"></script>
 <script src="sim-utils.js?v=b2aa4c"></script>
 <script src="research.js?v=d9aad6"></script>
 <script src="data-catalog.js?v=bee20f"></script>
 <script src="grid-package.js?v=865d26"></script>
-<script src="i18n.js?v=d0ebfb"></script>
+<script src="i18n.js?v=3ebe15"></script>
 <script src="dc3d.js?v=2865dd"></script>
-<script src="physics.js?v=cf3c22"></script>
+<script src="physics.js?v=1260cd"></script>
 <script src="tsunami-solver-host.js?v=2432a8"></script>
+<script src="ensemble-solver-host.js?v=153d61"></script>
 <script src="reference-backend.js?v=3ead82"></script>
 <script src="waveform-data.js?v=27c01f"></script>
 <script src="strong-motion-waveforms.js?v=4ab568"></script>
@@ -795,7 +801,7 @@ window._loadThreeJS = function(cb) {
     </div>
   </div>
 </div>
-<script src="app.js?v=5ac47f"></script>
+<script src="app.js?v=3e52d8"></script>
 <script src="aftershock.js?v=e29837"></script>
 <script src="rt-data.js?v=cc4e9a"></script>
 <script src="rt-kmoni.js?v=b581c5"></script>
@@ -850,6 +856,37 @@ window._loadThreeJS = function(cb) {
       <h3 data-i18n="help.share">📎 URL分享</h3>
       <p data-i18n="help.share_text">点击Start按钮旁的🔗按钮可复制当前模拟的完整URL链接。将链接分享给他人，对方打开后自动加载相同的震中、震级、深度等参数。支持参数：lat/lng（震中）、mag（震级）、depth（深度）、strike（走向）、dip（倾角）、preset（预设场景）、lang（语言）、detect（检测模式）、aftershock（余震）、tsunami（海啸）。</p>
       <hr style="border-color:var(--border);margin:12px 0">
+      <h3 data-i18n="help.v60_release">━━ v6.0 更新 ━━</h3>
+      <h3 data-i18n="help.v60_dyn_t">动力学破裂求解器</h3>
+      <p data-i18n="help.v60_dyn_d">tools/dynamic-rupture 离线套件:2D 速度-应力交错网格 + 分裂节点滑移弱化自发破裂(SH 反平面与面内双模式)。解析锚验证:辐射阻尼 μ/2cs 收敛至 0.03%、静态位错核、能量闭合 <0.5%、分辨率自收敛;SCEC TPV5 官方参数反平面约化全流程运行。</p>
+      <h3 data-i18n="help.v60_diag_t">震源收支诊断</h3>
+      <p data-i18n="help.v60_diag_d">有限断层信息页新增应力降(Eshelby)、辐射能量、视应力、辐射效率与破裂速度拟合;矩/滑移矛盾、超剪切破裂速度等物理性旗标自动提示。</p>
+      <h3 data-i18n="help.v60_reimport_t">动力学源回导</h3>
+      <p data-i18n="help.v60_reimport_d">破裂结果导出 finite-fault-v1 契约,GMPE 预报、海啸 dtopo 与动画路径零改动直接消费动力学滑移与破裂时序;round-trip 与收支诊断入回归。</p>
+      <h3 data-i18n="help.v60_platform_t">科研平台收官</h3>
+      <p data-i18n="help.v60_platform_d">冻结实验/报告工件获得内容哈希不可变标识(qsx1-*),清单新鲜度入回归;方法文档、插件契约与端到端复现手册(docs/METHODS·PLUGIN-CONTRACTS·REPRODUCE)随行;CVWS 官方参考解对比与 Zenodo DOI 发布为记录在册的用户动作。</p>
+      <h3 data-i18n="help.v60_bounds_t">科学边界</h3>
+      <p data-i18n="help.v60_bounds_d">PSV 超剪切转换阈值未校准、倾斜断层与 P-SV 自由面未实现、TPV5-AP 为非官方 2D 约化——全部公开记录于 PHYSICS_BENCHMARKS,不做超限声明。</p>
+      <h3 data-i18n="help.v58_release">━━ v5.8 更新 ━━</h3>
+      <h3 data-i18n="help.v58_disp_t">Boussinesq 频散修正</h3>
+      <p data-i18n="help.v58_disp_d">远洋海啸相位误差以 Peregrine 型 [0,2] Padé 频散修正(ADI/Helmholtz 求解)。对平坦海底精确 Fourier 解远场 RMSE 降低 36%;1960 智利越洋案与 2011 三陆近场双重验证。默认非频散(字节兼容)。</p>
+      <h3 data-i18n="help.v58_amr_t">三级递归 AMR</h3>
+      <p data-i18n="help.v58_amr_d">嵌套求解器泛化为任意层数(0.15/0.025/0.005° 链,比 6/5 实测健康)。第二道缝同样精确保持静水;街区级 5–20 m 维持离线声明。</p>
+      <h3 data-i18n="help.v58_src_t">海啸源、潮位与糙率</h3>
+      <p data-i18n="help.v58_src_d">逐子断层时变 dtopo、常潮位偏移、土地利用 Manning 糙率场机制(数据包待获取,自动回退标量)。</p>
+      <h3 data-i18n="help.v58_eng_t">科研工程化</h3>
+      <p data-i18n="help.v58_eng_d">冻结数据月度刷新 + 漂移检测、Zenodo DOI 准备、数据角色 4/5 认证、6 条科学 tripwire 并入回归。</p>
+      <h3 data-i18n="help.v58_rep_t">版本精度报告</h3>
+      <p data-i18n="help.v58_rep_d">19 份冻结报告聚合为单一信封,调参读取分割入审计;预报区命中率维持 50%(3 事件,扩容待可达观测源)。</p>
+      <h3 data-i18n="help.v57_release">━━ v5.7 更新 ━━</h3>
+      <h3 data-i18n="help.v57_travel_t">JIVSM 速度柱走时</h3>
+      <p data-i18n="help.v57_travel_d">Snell 组合走时(travelModel A/B);S−P 验证为诚实负结果,默认保持 IASP91。</p>
+      <h3 data-i18n="help.v57_dir_t">Bayless-Somerville 全式方向性</h3>
+      <p data-i18n="help.v57_dir_d">PEER 2013/09 完整方向性模型(式 2.1–2.10)。</p>
+      <h3 data-i18n="help.v57_pulse_t">Shahi-Baker 速度脉冲</h3>
+      <p data-i18n="help.v57_pulse_d">脉冲概率/周期/方位按 PEER 2013/15 逐字实现,Mavroeidis 脉冲注入;反应谱 0.05–10 s + CSV。</p>
+      <h3 data-i18n="help.v57_tail_t">外部验证扩充</h3>
+      <p data-i18n="help.v57_tail_d">Jayaram T5 解码、集合 Worker 化、SHAKE-91 算例一致、SPECFEM3D 对照资产。</p>
       <h3 data-i18n="help.v56_release">━━ v5.6 更新 ━━</h3>
       <h3 data-i18n="help.v56_uncertainty">不确定性与多模型量化</h3>
       <p data-i18n="help.v56_uncertainty_text">GMPE 逻辑树按震源构造类三分支 LLH 定权聚合,同时报告认知 σ;τ/φ 事件间-事件内分量完成拟合;Jayaram–Baker 站间空间相关(日本数据实测范围 94/72.5 km)作用于集合残差;Monte Carlo 集合引擎输出细分区 P10–P90 描边图层(可开关,检测模式下禁用)。预登记验收:冻结 13 事件 1,633 站,68%/80% 区间覆盖率 0.696/0.811(偏差 ≤5pp)。可靠度曲线、Brier 技巧分(+0.40..0.54)与超越概率互验(mean|ΔP| 0.016)全部入报告。</p>
@@ -1029,7 +1066,7 @@ window._loadThreeJS = function(cb) {
       <h3 data-i18n="help.seafloor">海底测站与地形</h3>
       <p data-i18n="help.seafloor_text">203 个 DONET1/2 与 S-net 海底测站以方形标记显示。内置 0.15 度地形已修正日本陆海掩膜，但仍是合成演示数据，不是 ETOPO、GEBCO 或 GSI 产品；可替换为导入的高分辨率地形栅格。</p>
       <h3 data-i18n="help.science">科学计算引擎</h3>
-      <p data-i18n="help.science_text">v5.6 版引入不确定性多模型量化(GMPE 逻辑树、τ/φ 抽样、站间空间相关、Monte Carlo 集合与 P10–P90 区间)与 1D 等效线性场地反应(Darendeli 2001 曲线、KiK-net 实测谱比标定、条件谱)。系统继续整合统一震源模型、解析Okada DC3D、时变破裂、分层走时、Newmark-beta PSA、JMA三分量处理、NLSWE、湿润/干涸、爬高与淹没显示、震源机制科研流程和SREV式实时TTS。公开基线和数据限制见“公式原理”;这些能力不等于业务预报。</p>
+      <p data-i18n="help.science_text">v6.0 版引入离线动力学破裂求解器、震源收支诊断与科研平台化收官;v5.8 版引入频散海啸修正、三级递归 AMR、逐子断层时变 dtopo 与科研工程化;v5.6 版引入不确定性多模型量化(GMPE 逻辑树、τ/φ 抽样、站间空间相关、Monte Carlo 集合与 P10–P90 区间)与 1D 等效线性场地反应(Darendeli 2001 曲线、KiK-net 实测谱比标定、条件谱)。系统继续整合统一震源模型、解析Okada DC3D、时变破裂、分层走时、Newmark-beta PSA、JMA三分量处理、NLSWE、湿润/干涸、爬高与淹没显示、震源机制科研流程和SREV式实时TTS。公开基线和数据限制见“公式原理”;这些能力不等于业务预报。</p>
       <h3 data-i18n="help.theme">主题与快捷键</h3>
       <p data-i18n="help.theme_text">按T键或点击状态栏🌓按钮切换深色/浅色主题（偏好保存在本地）。按?键显示快捷键面板。右键点击地图可弹出快捷菜单（设置震中/添加多事件/查看坐标）。设置震中后显示最近城市名称。所有测站点击可查看详情并切换波形监测。</p>
       <h3 data-i18n="help.shindoreport">震度报告</h3>
@@ -1055,7 +1092,7 @@ window._loadThreeJS = function(cb) {
 <div id="formulas-overlay" class="help-overlay formula-mode-basic" style="display:none" role="dialog" aria-modal="true" aria-labelledby="formulas-title">
   <div class="help-panel formulas-panel" tabindex="-1">
     <div class="help-header formulas-header">
-      <div><span id="formulas-title" data-i18n="formulas.header">📐 科学公式与原理</span><small data-i18n="formulas.subtitle">与 v5.6 实际计算实现保持一致</small></div>
+      <div><span id="formulas-title" data-i18n="formulas.header">📐 科学公式与原理</span><small data-i18n="formulas.subtitle">与 v6.0 实际计算实现保持一致</small></div>
       <button id="btn-formulas-close" class="help-close" type="button" data-i18n-aria="aria.close" aria-label="Close">&times;</button>
     </div>
     <div class="formulas-toolbar">

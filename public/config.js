@@ -10,6 +10,10 @@ var CFG_DEFAULTS = {
   ruptureVelocityModel:{v:'slip-depth',opts:['slip-depth','depth','constant'],cat:'source'},
   sourceTimeFunction:{v:'half-cosine',opts:['half-cosine','triangle','brune','boxcar'],cat:'source'},
   sourceTypeOverride:{ v:'auto', opts:['auto','crustal','interplate','intraslab'], cat:'source' },
+  // Travel-time model (v5.7 R3): jivsm = station-side JIVSM velocity columns
+  // composed onto the IASP91 stack (basin delays; needs jivsm-columns.json),
+  // iasp91 = legacy layered stack everywhere.
+  travelModel:  { v:'iasp91', opts:['iasp91','jivsm'], cat:'source' },
   randomSeed:   { v:20260725, min:0, max:4294967295, step:1, fmt:'%.0f', cat:'source' },
 
   // Attenuation
@@ -18,6 +22,10 @@ var CFG_DEFAULTS = {
   // the Monte Carlo ensemble spread (P10-P90)/2 — runs ensembleIntensityField
   // on every forecast change while enabled (~0.5 s for 97 centroids x 40 members).
   subareaUncertainty: { v:'off', opts:['off','on'], cat:'atten' },
+  // Monte Carlo members for the subdivision uncertainty overlay (v5.7 tail):
+  // 40 = synchronous main thread (~90 ms, param-keyed cache); >=100 runs in
+  // a Worker (ensemble-solver-host.js; measured 423 ms at 97x200 main-thread)
+  ensembleMembers: { v:40, min:10, max:500, step:10, fmt:'%.0f', cat:'atten' },
   attA:         { v:0.42, min:0.10, max:1.50, step:0.01, fmt:'%.2f',      cat:'atten' },
   attB:         { v:1.34, min:0.50, max:2.50, step:0.01, fmt:'%.2f',      cat:'atten' },
   attC:         { v:0.31, min:-1.0, max:2.00, step:0.01, fmt:'%.2f',      cat:'atten' },
@@ -61,6 +69,21 @@ var CFG_DEFAULTS = {
   // engages it whenever a regional grid is active and the device has >=4
   // cores; 'on' forces it, 'off' restores the single-grid regional run.
   tsunamiNested:{v:'auto',opts:['auto','on','off'],cat:'tsunami'},
+  // v5.8 R5-2: optional Peregrine-type Boussinesq dispersion (exact [0,2]
+  // Padé phase speed c²=gh/(1+(kh)²/3) via an ADI Helmholtz correction).
+  // 'off' (default) keeps the non-dispersive SWE path byte-identical; the
+  // correction matters for trans-oceanic propagation on the coarse grid.
+  tsunamiDispersion:{v:'off',opts:['off','boussinesq'],cat:'tsunami'},
+  // v5.8 R5-4a: constant tide offset in metres (datum shift; positive tide
+  // pre-wets land below that elevation). 0 = mean sea level, byte-identical.
+  tsunamiTideOffsetM:{v:0,min:-1,max:2,step:0.1,fmt:'%.1f m',cat:'tsunami'},
+  // v5.8 R5-4b: per-cell roughness from the land-use pack
+  // (geojson/landuse-manning.json); falls back to the scalar when absent.
+  tsunamiRoughness:{v:'uniform',opts:['uniform','landuse'],cat:'tsunami'},
+  // v5.8 R5-5: 'per-patch' applies each subfault's DC3D field over its own
+  // rupture window; 'cumulative' (default) keeps the legacy whole-field
+  // moment-fraction scaling.
+  tsunamiDtopoTiming:{v:'cumulative',opts:['cumulative','per-patch'],cat:'tsunami'},
   tsunamiManning:{ v:0.025,min:0.010,max:0.080,step:0.005,fmt:'%.3f', cat:'tsunami' },
   tsunamiDryTolerance:{ v:0.05,min:0.01,max:0.50,step:0.01,fmt:'%.2f m', cat:'tsunami' },
   tsunamiArrivalThreshold:{ v:0.03,min:0.01,max:0.50,step:0.01,fmt:'%.2f m', cat:'tsunami' },

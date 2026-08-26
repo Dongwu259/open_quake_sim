@@ -1,0 +1,34 @@
+{
+  "schema": "quake-sim-shake91-benchmark-v1",
+  "source": "Itasca Software 9.6 documentation, 'Comparison of FLAC2D to SHAKE for a Layered, Linear-Elastic Soil Deposit' (https://docs.itascasoftware.com/itasca960/flac3d/zone/test2d/Dynamic/F2ShakeLinearElasticCase/F2ShakeLinearElasticCase.html) — case derived from the SHAKE-91 distribution (Idriss & Sun 1992; NISEE https://nisee.berkeley.edu/elibrary/software.html)",
+  "published": {
+    "shake91SurfacePeakG": 0.156,
+    "flac2dSurfacePeakG": 0.16,
+    "differencePct": 2.6,
+    "note": "surface peak acceleration; published agreement between the two external codes"
+  },
+  "linear": {
+    "layers": [
+      { "material": 1, "thicknessM": 12.192, "shearModulusPa": 150e6, "densityKgM3": 1800 },
+      { "material": 2, "thicknessM": 12.192, "shearModulusPa": 300e6, "densityKgM3": 2000 },
+      { "material": 1, "thicknessM": 24.384, "shearModulusPa": 150e6, "densityKgM3": 1800 }
+    ],
+    "halfspace": { "shearModulusPa": 2700e6, "densityKgM3": 2000, "note": "3x-Vs elastic stand-in for the driven base (Itasca drives a fixed base; elastic-bedrock outcrop reproduces the published peak within tolerance)" },
+    "dampingFraction": 0.1,
+    "input": {
+      "form": "a(t) = sqrt(beta*exp(-alpha*t)*t^gamma)*sin(2*pi*f*t)",
+      "alpha": 2.2, "beta": 0.375, "gamma": 8.0, "fHz": 3,
+      "calibrationG": 0.2,
+      "calibrationNote": "peak of the analytic form at t=3.75 s corresponds to 0.2 g per the Itasca page"
+    }
+  },
+  "nonlinearTenLayer": {
+    "note": "the FLAC3D nonlinear-elastic page documents the SHAKE-91 10-layer example deposit (150 ft, clay/sand G-Gmax curves, Loma Prieta DIAM.ACC input) — reserved for the R7 continuous-regression protocol (requires the NISEE input record)",
+    "layersGPaM2": [186, 150, 168, 186, 225, 327, 379, 435, 495, 627],
+    "densityKgM3": [2000, 2000, 2000, 2000, 2000, 2082, 2082, 2082, 2082, 2082],
+    "locationFt": [[1, 5], [5, 20], [20, 30], [30, 50], [50, 70], [70, 90], [90, 110], [110, 130], [130, 140], [140, 150]],
+    "source": "https://docs.itascacg.com/itasca920/flac3d/zone/test3d/Dynamic/F3ShakeNonLinearElasticCase/F3ShakeNonLinearElasticCase.html"
+  },
+  "ourResult": { "surfacePeakG": 0.16, "method": "analytic input x Physics.shTransferFunction (Thomson-Haskell, 10% hysteretic damping), inverse DFT peak; measured 2026-08-25" },
+  "frozenBy": "tests/shake91-benchmark.test.js"
+}

@@ -1,8 +1,8 @@
 // ============================================================
-//  QuakeSim Service Worker — PWA shell (v5.5 release, cache-first)
+//  QuakeSim Service Worker — PWA shell (v5.6, cache-first)
 //  Bump CACHE_VERSION when changing SW behavior to purge old caches.
 // ============================================================
-var CACHE_VERSION = 'qs-cache-v195080';
+var CACHE_VERSION = 'qs-cache-v269175';
 var CORE_CACHE    = CACHE_VERSION + '-core';
 
 // v4.2: Slim precache — app shell + critical JS/CSS only.
@@ -25,6 +25,8 @@ var PRECACHE_URLS = [
   'tsunami-validation.js',
   'tsunami-solver-host.js',
   'tsunami-worker.js',
+  'ensemble-solver-host.js',
+  'ensemble-worker.js',
   'moment-tensor.js',
   'finite-fault.js',
   'observed-fault-models.js',

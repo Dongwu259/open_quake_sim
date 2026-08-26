@@ -1,0 +1,15 @@
+# depth_km Vp_km/s Vs_km/s rho_kg_m3  (JIVSM V4 column at 32.753,130.762 + IASP91 continuation)
+# built by tools/export-specfem-case.js — same composition rule as Physics.composedTravelSegments
+0.00 1.831 0.532 1909
+0.09 2.400 0.950 2100
+0.18 2.600 1.200 2150
+0.42 4.000 2.100 2400
+0.81 5.000 2.700 2500
+1.19 5.500 3.200 2650
+2.09 5.800 3.360 2700
+20.00 6.500 3.750 2800
+35.00 8.040 4.480 2900
+120.00 8.300 4.510 3000
+210.00 8.900 4.770 3100
+410.00 10.000 5.370 3200
+660.00 10.750 5.950 3300

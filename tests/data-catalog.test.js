@@ -6,15 +6,20 @@ const DataCatalog = require('../public/data-catalog.js');
 
 const manifest = JSON.parse(fs.readFileSync('public/geojson/research_data_manifest.json', 'utf8'));
 
-test('bundled research manifest is valid but honestly degraded', () => {
+test('bundled research manifest is valid with v5.8 role unlocks, tsunami observations honestly degraded', () => {
   const result = DataCatalog.validateManifest(manifest);
   assert.equal(result.valid, true);
   assert.equal(result.researchReady, false);
-  // terrain is certified (GEBCO 2025 resample); the remaining roles still block.
+  // v5.8 R7-3: terrain (GEBCO), vs30 (J-SHIS derived grid) and strong-motion
+  // (frozen K-NET/KiK-net observed peaks) are certified at manifest level;
+  // coastal-elevation passes at runtime via the continuous main grid, and
+  // tsunami-observations stays degraded until R5-6 curation (no arrival
+  // fields, preview-quality areas) — 4/5 roles ready.
   assert.ok(!result.blockingRoles.includes('terrain'));
+  assert.ok(!result.blockingRoles.includes('vs30'));
+  assert.ok(!result.blockingRoles.includes('strong-motion'));
   assert.ok(result.blockingRoles.includes('coastal-elevation'));
-  assert.ok(result.blockingRoles.includes('vs30'));
-  assert.ok(result.blockingRoles.includes('strong-motion'));
+  assert.ok(result.blockingRoles.includes('tsunami-observations'));
 });
 
 test('runtime certification requires continuous verified terrain and every v5.1 dataset', () => {

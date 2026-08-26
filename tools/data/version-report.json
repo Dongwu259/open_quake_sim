@@ -1,0 +1,190 @@
+{
+  "schema": "quake-sim-version-report-v1",
+  "appVersion": "6.0.0",
+  "generatedAt": "2026-08-26T09:31:43.252Z",
+  "gitHead": "6f2835e63055378ac649867d756a6dddcdc88a54",
+  "reports": {
+    "strong-motion-report.json": {
+      "present": true,
+      "schema": "quake-sim-strong-motion-scorecard-v2",
+      "generatedAt": null
+    },
+    "tsunami-scorecard-report.json": {
+      "present": true,
+      "schema": "quake-sim-tsunami-validation-report-v1",
+      "generatedAt": "2026-08-26T06:18:08.348Z"
+    },
+    "tsunami-scorecard-predictions.json": {
+      "present": true,
+      "schema": "quake-sim-tsunami-predictions-v1",
+      "generatedAt": "2026-08-26T06:15:55.031Z"
+    },
+    "site-response-report.json": {
+      "present": true,
+      "schema": null,
+      "generatedAt": null
+    },
+    "sb-spectral-ratio-report.json": {
+      "present": true,
+      "schema": null,
+      "generatedAt": null
+    },
+    "etas-calibration-report.json": {
+      "present": true,
+      "schema": "quake-sim-etas-calibration-v1",
+      "generatedAt": "2026-08-17T05:15:18.211Z"
+    },
+    "logic-tree-weights.json": {
+      "present": true,
+      "schema": "quake-sim-logic-tree-weights-v1",
+      "generatedAt": "2026-08-23T17:35:51.985Z"
+    },
+    "sigma-components-report.json": {
+      "present": true,
+      "schema": "quake-sim-sigma-components-v1",
+      "generatedAt": "2026-08-23T17:32:20.410Z"
+    },
+    "spatial-correlation-report.json": {
+      "present": true,
+      "schema": "quake-sim-spatial-correlation-v1",
+      "generatedAt": "2026-08-23T17:44:26.437Z"
+    },
+    "ensemble-reliability-report.json": {
+      "present": true,
+      "schema": "quake-sim-ensemble-reliability-v1",
+      "generatedAt": "2026-08-24T02:55:53.800Z"
+    },
+    "exceedance-crosscheck-report.json": {
+      "present": true,
+      "schema": null,
+      "generatedAt": null
+    },
+    "model-bias-loeo-report.json": {
+      "present": true,
+      "schema": "quake-sim-model-bias-loeo-bundle-v1",
+      "generatedAt": "2026-08-23T17:22:29.797Z"
+    },
+    "gmpe-loeo-report.json": {
+      "present": true,
+      "schema": "quake-sim-gmpe-loeo-v1",
+      "generatedAt": "2026-08-23T16:58:56.918Z"
+    },
+    "geoclaw-crosscheck-report.json": {
+      "present": true,
+      "schema": "quake-sim-geoclaw-crosscheck-v1",
+      "generatedAt": null
+    },
+    "dispersion-validation.json": {
+      "present": true,
+      "schema": "quake-sim-dispersion-validation-v1",
+      "generatedAt": "2026-08-26T06:56:11.508Z"
+    },
+    "shake91-benchmark-case.json": {
+      "present": true,
+      "schema": "quake-sim-shake91-benchmark-v1",
+      "generatedAt": null
+    },
+    "f0-jivsm-reeval.json": {
+      "present": true,
+      "schema": "quake-sim-f0-jivsm-reeval-v1",
+      "generatedAt": null
+    },
+    "travel-time-picks.json": {
+      "present": true,
+      "schema": "quake-sim-travel-picks-v1",
+      "generatedAt": null
+    },
+    "frozen-drift-report.json": {
+      "present": true,
+      "schema": "quake-sim-frozen-drift-report-v1",
+      "generatedAt": "2026-08-26T06:46:00.971Z"
+    }
+  },
+  "tuningReads": [
+    {
+      "report": "strong-motion-report.json",
+      "calibration": "per-model distance-binned modelBias + magnitude bins",
+      "reads": "6 frozen calibration events (train split, strong-motion-obs.json)",
+      "blindSplitRead": false,
+      "note": "LOEO report (model-bias-loeo-report.json) measured held-out degradation; treated as 6-event empirical alignment only"
+    },
+    {
+      "report": "gmpe-loeo-report.json",
+      "calibration": "leave-one-event-out refits of modelBias",
+      "reads": "same 6 frozen events, rotated",
+      "blindSplitRead": false,
+      "note": "documents non-generalisation honestly (zhao 0.899->0.931 held-out)"
+    },
+    {
+      "report": "logic-tree-weights.json",
+      "calibration": "LLH weights over the frozen 2,626-station set",
+      "reads": "13-event frozen set (train+tune, no independent events)",
+      "blindSplitRead": false
+    },
+    {
+      "report": "tsunami-scorecard-report.json",
+      "calibration": "none in this report (physics baseline); Green-law shoreline factor uses published form",
+      "reads": "3 curated events (preview set)",
+      "blindSplitRead": false,
+      "note": "arrival residuals count=0 until R5-6 curation lands"
+    },
+    {
+      "report": "site-response-report.json",
+      "calibration": "S/B f0(Vs30) prior + two-scale synthetic profiles",
+      "reads": "KiK-net surface/borehole pairs (197 stations, derived quantities)",
+      "blindSplitRead": false
+    },
+    {
+      "report": "etas-calibration-report.json",
+      "calibration": "AFTERSHOCK_PRODUCTIVITY_LOG10 LSQ slope",
+      "reads": "Kumamoto-2016 / Noto-2024 / Tohoku-2011 USGS 90-day counts",
+      "blindSplitRead": false
+    },
+    {
+      "report": "dispersion-validation.json",
+      "calibration": "none (physics verification: analytic flat-bed reference + A/B)",
+      "reads": "no observation data — synthetic + bundled bathymetry only",
+      "blindSplitRead": false
+    },
+    {
+      "report": "shake91-benchmark-case.json",
+      "calibration": "none (external published case assertion)",
+      "reads": "Itasca public documentation case",
+      "blindSplitRead": false
+    }
+  ],
+  "tuningAudit": {
+    "violations": []
+  },
+  "summary": {
+    "strongMotion": {
+      "intensityBias": -0.0459,
+      "intensityRms": 0.6945,
+      "n": 4887
+    },
+    "tsunami": {
+      "hitRate": 0.5,
+      "falseAlarmRate": 0,
+      "runupBias": -12.726171999108692,
+      "arrivalResidualCount": 0
+    },
+    "dispersion": {
+      "allPass": true,
+      "cases": [
+        {
+          "case": "C-2011-tohoku-nested-nearfield",
+          "pass": true
+        },
+        {
+          "case": "A-synthetic-flat-4000m",
+          "pass": true
+        },
+        {
+          "case": "B-1960-chile-transoceanic",
+          "pass": true
+        }
+      ]
+    },
+    "reportsPresent": "19/19"
+  }
+}

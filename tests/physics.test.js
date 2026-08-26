@@ -282,6 +282,26 @@ test('shindoScore — numeric values', () => {
   assert.strictEqual(Physics.shindoScore(7), 6.75);
 });
 
+test('shindoToMMI/shindoToEMS — numeric and label inputs never throw (shindoLabel regression)', () => {
+  // numeric fractional intensities previously hit the missing Physics.shindoLabel
+  assert.strictEqual(Physics.shindoToMMI(4.8), 7);   // 4.8 → '5-' → MMI 7
+  assert.strictEqual(Physics.shindoToMMI(5.3), 8);   // 5.3 → '5+' → MMI 8
+  assert.strictEqual(Physics.shindoToMMI(6.2), 10);  // 6.2 → '6+' → MMI 10
+  assert.strictEqual(Physics.shindoToMMI(6.8), 11);  // 6.8 → 7 → MMI 11
+  assert.strictEqual(Physics.shindoToMMI(0.3), 1);
+  assert.strictEqual(Physics.shindoToMMI(3.0), 5);
+  // label strings pass straight through
+  assert.strictEqual(Physics.shindoToMMI('5-'), 7);
+  assert.strictEqual(Physics.shindoToMMI('6+'), 10);
+  assert.strictEqual(Physics.shindoToEMS(4.8), 7);
+  assert.strictEqual(Physics.shindoToEMS('6-'), 9);
+  // convertIntensity routing
+  assert.strictEqual(Physics.convertIntensity(5.3, 'mmi'), 8);
+  assert.strictEqual(Physics.convertIntensity(5.3, 'ems98'), 8);
+  assert.strictEqual(Physics.convertIntensity(5.3, 'shindo'), 5.3);
+  assert.strictEqual(Physics.convertIntensity('5+', 'mmi'), 8);
+});
+
 // ================================================================
 //  FAULT SCALING
 // ================================================================
@@ -872,24 +892,80 @@ test('bearingRad — great-circle initial bearing (not planar atan2)', () => {
   assert.ok(Math.abs(deg(Physics.bearingRad(lat0, lng0, lat0 + dLat, lng0 + dLng)) - 45) < 0.3);
 });
 
-test('somerville directivity — station on the strike azimuth gets the full factor', () => {
-  const lat0 = 44, lng0 = 142, d = 0.2; // high latitude: max planar-azimuth bias
+test('somerville directivity — full Bayless & Somerville (2013) replaces the PGA-only simplification', () => {
+  const lat0 = 44, lng0 = 142, d = 0.2;
   const ctx = {
-    source: { lat: lat0, lng: lng0, mw: 7, depthKm: 10, strikeDeg: 45, sourceType: 'crustal' },
-    geometry: {}, gmpModel: 'zhao2006',
+    source: { lat: lat0, lng: lng0, mw: 7, depthKm: 10, strikeDeg: 45, rakeDeg: 180, sourceType: 'crustal' },
+    geometry: { lat: lat0, lng: lng0, L: 50, W: 20, depth: 10, strikeDeg: 45, dipDeg: 90, hypocenterFrac: 0.5 },
+    gmpModel: 'zhao2006',
     options: { directivity: 'somerville1997', siteModel: 'none' }
   };
   const dLat = d * Math.SQRT1_2, dLng = d * Math.SQRT1_2 / Math.cos(lat0 * Math.PI / 180);
   const along = Physics.predictStationMotion(ctx, { lat: lat0 + dLat, lng: lng0 + dLng }, {});
   assert.ok(along, 'predictStationMotion returned null');
-  // Old planar azimuth (~54.3° vs strike 45°) lost ~0.004 of the factor here.
-  assert.ok(Math.abs(along.directivityFactor - (1 + Physics.somervilleDirectivityCoefficient(7))) < 0.002,
-    `directivityFactor ${along.directivityFactor} should be ${1 + Physics.somervilleDirectivityCoefficient(7)}`);
+  // PGA anchors at the T=0.5 s row — zero by calibration
+  assert.strictEqual(along.directivityFactor, 1, 'PGA row is zero in the coefficient table');
+  // PGV at the T=1 s row: (C0 + C1*log10(s)*cos^2(theta)) * tapers — hand value
+  const g = Physics.baylessSomervilleGeometry(ctx.source, ctx.geometry, lat0 + dLat, lng0 + dLng);
+  assert.strictEqual(g.faultKind, 'strike', 'rake 180 routes strike-slip');
+  assert.ok(Math.abs(g.sKm - 25) < 1e-9, 'bilateral centered rupture: s = L/2');
+  const expect = -0.12 + 0.075 * Math.log10(25); // theta ~0 along strike
+  assert.ok(Math.abs(along.pgvDirectivityFactor - Math.exp(expect)) < 0.01,
+    `pgvDirectivityFactor ${along.pgvDirectivityFactor} vs exp(${expect.toFixed(4)})`);
   const back = Physics.predictStationMotion(ctx, { lat: lat0 - dLat, lng: lng0 - dLng }, {});
-  assert.strictEqual(back.directivityFactor, 1, 'anti-parallel azimuth must not reduce PGA');
+  // anti-parallel: theta ~0 again (cos^2 is symmetric), same factor — the
+  // azimuthal lobes are double-ended under cos^2(theta)
+  assert.ok(Math.abs(back.pgvDirectivityFactor - along.pgvDirectivityFactor) < 0.02);
   const across = Physics.predictStationMotion(ctx, { lat: lat0 + dLat, lng: lng0 - dLng }, {});
-  assert.ok(Math.abs(across.directivityFactor - 1) < 0.005,
-    'perpendicular azimuth must stay near unity');
+  // perpendicular: cos^2(90°)=0 -> only C0 remains
+  assert.ok(Math.abs(across.pgvDirectivityFactor - Math.exp(-0.12)) < 0.01,
+    'perpendicular keeps the C0 baseline only');
+});
+
+test('baylessSomervilleFD — frozen coefficients, tapers, geometry routing', () => {
+  const T = Physics.BAYLESS_SOMMERVILLE_2013.periods;
+  assert.deepEqual(T, [0.5, 0.75, 1, 1.5, 2, 3, 4, 5, 7.5, 10]);
+  const ss = Physics.BAYLESS_SOMMERVILLE_2013.strikeSlip.rotD50;
+  assert.strictEqual(ss.c0[2], -0.12);   // Table 2.1 @1s
+  assert.strictEqual(ss.c1[2], 0.075);
+  assert.strictEqual(ss.c0[9], -0.30);   // @10s
+  const ds = Physics.BAYLESS_SOMMERVILLE_2013.dipSlip.rotD50;
+  assert.strictEqual(ds.c1[4], 0.034);   // Table 2.2 @2s — first nonzero
+  assert.strictEqual(ds.c0[9], -0.176);  // @10s
+  // coefficient interpolation between rows
+  const mid = Physics._bsCoefficients('strike', 'rotD50', 1.25);
+  assert.ok(Math.abs(mid.c0 - (-0.1475)) < 1e-12 && Math.abs(mid.c1 - 0.0825) < 1e-12);
+  // geometric predictor: strike-slip cos^2(theta), s floor e
+  const f0 = Physics.baylessSomervilleFD({ sKm: 100, thetaRad: 0, L: 200, W: 20, rrupKm: 30, mw: 7 }, 'strike', 'rotD50', 1);
+  assert.ok(Math.abs(f0.geo - 2) < 1e-12, 'log10(100)*(0.5cos0+0.5)');
+  const f90 = Physics.baylessSomervilleFD({ sKm: 100, thetaRad: Math.PI / 2, L: 200, W: 20, rrupKm: 30, mw: 7 }, 'strike', 'rotD50', 1);
+  assert.strictEqual(f90.geo, 0, 'cos^2(90°) kills the geometry term');
+  const fFloor = Physics.baylessSomervilleFD({ sKm: 0.5, thetaRad: 0, L: 200, W: 20, rrupKm: 30, mw: 7 }, 'strike', 'rotD50', 1);
+  assert.ok(Math.abs(fFloor.geo - Math.log10(Math.E)) < 1e-12, 's floor = exp(1)');
+  // dip-slip: cos(Rx/W as angle) and the sin^2(Az) taper
+  const fd = Physics.baylessSomervilleFD({ dKm: 100, rxOverW: 0, azRad: Math.PI / 2, W: 20, rrupKm: 25, mw: 7 }, 'dip', 'rotD50', 2);
+  assert.ok(Math.abs(fd.geo - 2) < 1e-12 && Math.abs(fd.tAz - 1) < 1e-12, 'broadside dip-slip');
+  const fdEnd = Physics.baylessSomervilleFD({ dKm: 100, rxOverW: 0, azRad: 0, W: 20, rrupKm: 25, mw: 7 }, 'dip', 'rotD50', 2);
+  assert.strictEqual(fdEnd.tAz, 0, 'off-the-end azimuth taper');
+  const fdClamp = Physics.baylessSomervilleFD({ dKm: 100, rxOverW: -5, azRad: Math.PI / 2, W: 20, rrupKm: 25, mw: 7 }, 'dip', 'rotD50', 2);
+  assert.ok(Math.abs(fdClamp.geo) < 1e-12, 'Rx/W clamped to -pi/2 -> cos = 0');
+  // tapers: distance piecewise + magnitude
+  const far = Physics.baylessSomervilleFD({ sKm: 100, thetaRad: 0, L: 100, W: 20, rrupKm: 150, mw: 7 }, 'strike', 'rotD50', 1);
+  assert.strictEqual(far.tDist, 0, 'Rrup > L kills directivity');
+  const small = Physics.baylessSomervilleFD({ sKm: 100, thetaRad: 0, L: 200, W: 20, rrupKm: 30, mw: 4.5 }, 'strike', 'rotD50', 1);
+  assert.strictEqual(small.tMag, 0, 'M < 5 kills directivity');
+  const mid5 = Physics.baylessSomervilleFD({ sKm: 100, thetaRad: 0, L: 200, W: 20, rrupKm: 30, mw: 5.75 }, 'strike', 'rotD50', 1);
+  assert.ok(Math.abs(mid5.tMag - 0.5) < 1e-12, 'linear magnitude taper');
+  // geometry routing incl. oblique
+  const src = { lat: 35, lng: 140, mw: 7.5, depthKm: 10, strikeDeg: 0, dipDeg: 30 };
+  const fp = { lat: 35, lng: 140, L: 100, W: 30, depth: 10, strikeDeg: 0, dipDeg: 30, hypocenterFrac: 0.5 };
+  assert.strictEqual(Physics.baylessSomervilleGeometry({ ...src, rakeDeg: 90 }, fp, 35.3, 140).faultKind, 'dip');
+  assert.strictEqual(Physics.baylessSomervilleGeometry({ ...src, rakeDeg: 45 }, fp, 35.3, 140).faultKind, null, 'oblique blends');
+  // oblique blend: 45° rake = half dip + half strike
+  const blend = Physics.baylessSomervilleLn({ ...src, rakeDeg: 45 }, fp, 35.3, 140);
+  const pureS = Physics.baylessSomervilleLn({ ...src, rakeDeg: 0 }, fp, 35.3, 140);
+  const pureD = Physics.baylessSomervilleLn({ ...src, rakeDeg: 90 }, fp, 35.3, 140);
+  assert.ok(Math.abs(blend.lnPgv - 0.5 * (pureS.lnPgv + pureD.lnPgv)) < 1e-9, 'rake-weighted blend');
 });
 
 test('zhao2006 — PGV within reasonable range at M7 50km', () => {

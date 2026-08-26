@@ -5,109 +5,109 @@
   "calibrationApplied": true,
   "overall": {
     "pga": {
-      "n": 2626,
-      "bias": -0.2536,
-      "rms": 0.557
+      "n": 4887,
+      "bias": -0.1282,
+      "rms": 0.4628
     },
     "pgv": {
-      "n": 2626,
-      "bias": -0.0694,
-      "rms": 0.3224
+      "n": 4887,
+      "bias": -0.0646,
+      "rms": 0.3185
     },
     "intensity": {
-      "n": 2626,
-      "bias": 0,
-      "rms": 0.7388
+      "n": 4887,
+      "bias": -0.0459,
+      "rms": 0.6945
     },
     "distanceBins": [
       {
         "rangeKm": "<50",
         "pga": {
-          "n": 37,
-          "bias": -0.0496,
-          "rms": 0.2682
+          "n": 121,
+          "bias": -0.0782,
+          "rms": 0.2776
         },
         "pgv": {
-          "n": 37,
-          "bias": -0.1366,
-          "rms": 0.319
+          "n": 121,
+          "bias": -0.1054,
+          "rms": 0.3182
         },
         "intensity": {
-          "n": 37,
-          "bias": 0.0003,
-          "rms": 0.5846
+          "n": 121,
+          "bias": -0.1313,
+          "rms": 0.6155
         }
       },
       {
         "rangeKm": "50-100",
         "pga": {
-          "n": 151,
-          "bias": 0.0357,
-          "rms": 0.3143
+          "n": 442,
+          "bias": 0.0056,
+          "rms": 0.3136
         },
         "pgv": {
-          "n": 151,
-          "bias": 0.0282,
-          "rms": 0.2826
+          "n": 442,
+          "bias": 0.0295,
+          "rms": 0.2914
         },
         "intensity": {
-          "n": 151,
-          "bias": 0.0001,
-          "rms": 0.6788
+          "n": 442,
+          "bias": 0.0018,
+          "rms": 0.6848
         }
       },
       {
         "rangeKm": "100-200",
         "pga": {
-          "n": 535,
-          "bias": -0.1046,
-          "rms": 0.4642
+          "n": 1449,
+          "bias": 0.0157,
+          "rms": 0.3849
         },
         "pgv": {
-          "n": 535,
-          "bias": -0.0512,
-          "rms": 0.298
+          "n": 1449,
+          "bias": -0.0083,
+          "rms": 0.297
         },
         "intensity": {
-          "n": 535,
-          "bias": -0.0004,
-          "rms": 0.7936
+          "n": 1449,
+          "bias": 0.0527,
+          "rms": 0.6985
         }
       },
       {
         "rangeKm": "200-400",
         "pga": {
-          "n": 1372,
-          "bias": -0.2123,
-          "rms": 0.4922
+          "n": 2280,
+          "bias": -0.1266,
+          "rms": 0.4249
         },
         "pgv": {
-          "n": 1372,
-          "bias": -0.0509,
-          "rms": 0.3034
+          "n": 2280,
+          "bias": -0.0843,
+          "rms": 0.3086
         },
         "intensity": {
-          "n": 1372,
-          "bias": -0.0001,
-          "rms": 0.725
+          "n": 2280,
+          "bias": -0.1043,
+          "rms": 0.6777
         }
       },
       {
         "rangeKm": ">=400",
         "pga": {
-          "n": 531,
-          "bias": -0.6068,
-          "rms": 0.8113
+          "n": 595,
+          "bias": -0.5946,
+          "rms": 0.7858
         },
         "pgv": {
-          "n": 531,
-          "bias": -0.1586,
-          "rms": 0.3963
+          "n": 595,
+          "bias": -0.188,
+          "rms": 0.4118
         },
         "intensity": {
-          "n": 531,
-          "bias": 0.0003,
-          "rms": 0.7428
+          "n": 595,
+          "bias": -0.0804,
+          "rms": 0.7672
         }
       }
     ]
@@ -116,19 +116,19 @@
     {
       "model": "si-midorikawa",
       "pga": {
-        "n": 701,
-        "bias": 0.059,
-        "rms": 0.3057
+        "n": 2962,
+        "bias": 0.0272,
+        "rms": 0.3168
       },
       "pgv": {
-        "n": 701,
-        "bias": -0.0682,
-        "rms": 0.3146
+        "n": 2962,
+        "bias": -0.0612,
+        "rms": 0.314
       },
       "intensity": {
-        "n": 701,
-        "bias": -0.0001,
-        "rms": 0.5993
+        "n": 2962,
+        "bias": -0.0757,
+        "rms": 0.6301
       }
     },
     {
@@ -152,17 +152,17 @@
   ],
   "correctionEvaluation": {
     "type": "blanket magnitude-bin (M>=6.5) additive intensity shift, evaluated as a reference; the shipped calibration may additionally carry a modelBias block keyed by routed model and hypocentral distance, which the prediction path applies through calibrateIntensity(I, mag, {model, distKm})",
-    "fittedShift": 0,
+    "fittedShift": 0.0459,
     "overall": {
       "before": {
-        "n": 2626,
-        "bias": 0,
-        "rms": 0.7388
+        "n": 4887,
+        "bias": -0.0459,
+        "rms": 0.6945
       },
       "after": {
-        "n": 2626,
+        "n": 4887,
         "bias": 0,
-        "rms": 0.7388
+        "rms": 0.693
       }
     },
     "perEvent": [
@@ -172,17 +172,17 @@
         "n": 600,
         "biasBefore": -0.2588,
         "rmsBefore": 0.709,
-        "biasAfter": -0.2587,
-        "rmsAfter": 0.7089
+        "biasAfter": -0.2129,
+        "rmsAfter": 0.6935
       },
       {
         "eventId": "kumamoto2016",
         "model": "si-midorikawa",
         "n": 333,
-        "biasBefore": -0.0608,
-        "rmsBefore": 0.5518,
-        "biasAfter": -0.0608,
-        "rmsAfter": 0.5518
+        "biasBefore": -0.0135,
+        "rmsBefore": 0.5502,
+        "biasAfter": 0.0324,
+        "rmsAfter": 0.551
       },
       {
         "eventId": "tokachi2003",
@@ -190,8 +190,8 @@
         "n": 552,
         "biasBefore": 0.4376,
         "rmsBefore": 0.7209,
-        "biasAfter": 0.4377,
-        "rmsAfter": 0.7209
+        "biasAfter": 0.4835,
+        "rmsAfter": 0.7496
       },
       {
         "eventId": "fukushima2022",
@@ -199,17 +199,17 @@
         "n": 600,
         "biasBefore": -0.4038,
         "rmsBefore": 0.8141,
-        "biasAfter": -0.4038,
-        "rmsAfter": 0.8141
+        "biasAfter": -0.3579,
+        "rmsAfter": 0.7923
       },
       {
         "eventId": "noto2024",
         "model": "si-midorikawa",
         "n": 368,
-        "biasBefore": 0.0548,
-        "rmsBefore": 0.6393,
-        "biasAfter": 0.0549,
-        "rmsAfter": 0.6393
+        "biasBefore": 0.093,
+        "rmsBefore": 0.6459,
+        "biasAfter": 0.1389,
+        "rmsAfter": 0.6541
       },
       {
         "eventId": "hyuganada2024",
@@ -217,8 +217,71 @@
         "n": 173,
         "biasBefore": 0.9014,
         "rmsBefore": 1.0629,
-        "biasAfter": 0.9015,
-        "rmsAfter": 1.0629
+        "biasAfter": 0.9473,
+        "rmsAfter": 1.1021
+      },
+      {
+        "eventId": "chuetsu2004",
+        "model": "si-midorikawa",
+        "n": 209,
+        "biasBefore": 0.762,
+        "rmsBefore": 0.968,
+        "biasAfter": 0.8079,
+        "rmsAfter": 1.0045
+      },
+      {
+        "eventId": "iwate2008",
+        "model": "si-midorikawa",
+        "n": 367,
+        "biasBefore": -0.2956,
+        "rmsBefore": 0.6969,
+        "biasAfter": -0.2497,
+        "rmsAfter": 0.6787
+      },
+      {
+        "eventId": "fukuoka2005",
+        "model": "si-midorikawa",
+        "n": 294,
+        "biasBefore": -0.1371,
+        "rmsBefore": 0.4878,
+        "biasAfter": -0.0912,
+        "rmsAfter": 0.477
+      },
+      {
+        "eventId": "noto2007",
+        "model": "si-midorikawa",
+        "n": 358,
+        "biasBefore": -0.0603,
+        "rmsBefore": 0.5231,
+        "biasAfter": -0.0144,
+        "rmsAfter": 0.5198
+      },
+      {
+        "eventId": "fukushima2011",
+        "model": "si-midorikawa",
+        "n": 430,
+        "biasBefore": -0.2953,
+        "rmsBefore": 0.5661,
+        "biasAfter": -0.2493,
+        "rmsAfter": 0.5436
+      },
+      {
+        "eventId": "yamagata2019",
+        "model": "si-midorikawa",
+        "n": 230,
+        "biasBefore": -0.2286,
+        "rmsBefore": 0.5481,
+        "biasAfter": -0.1827,
+        "rmsAfter": 0.5306
+      },
+      {
+        "eventId": "iburihigashi2018",
+        "model": "si-midorikawa",
+        "n": 373,
+        "biasBefore": -0.17,
+        "rmsBefore": 0.6802,
+        "biasAfter": -0.1241,
+        "rmsAfter": 0.6702
       }
     ]
   },
@@ -391,8 +454,8 @@
       },
       "intensity": {
         "n": 333,
-        "bias": -0.0608,
-        "rms": 0.5518
+        "bias": -0.0135,
+        "rms": 0.5502
       },
       "distanceBins": [
         {
@@ -409,8 +472,8 @@
           },
           "intensity": {
             "n": 19,
-            "bias": 0.2411,
-            "rms": 0.5903
+            "bias": 0.2821,
+            "rms": 0.6082
           }
         },
         {
@@ -427,8 +490,8 @@
           },
           "intensity": {
             "n": 86,
-            "bias": 0.1145,
-            "rms": 0.5718
+            "bias": 0.2165,
+            "rms": 0.6006
           }
         },
         {
@@ -445,8 +508,8 @@
           },
           "intensity": {
             "n": 106,
-            "bias": 0.1527,
-            "rms": 0.4881
+            "bias": 0.1647,
+            "rms": 0.492
           }
         },
         {
@@ -463,8 +526,8 @@
           },
           "intensity": {
             "n": 117,
-            "bias": -0.4044,
-            "rms": 0.5743
+            "bias": -0.3724,
+            "rms": 0.5522
           }
         },
         {
@@ -481,14 +544,14 @@
           },
           "intensity": {
             "n": 5,
-            "bias": -0.708,
-            "rms": 0.7516
+            "bias": -0.473,
+            "rms": 0.5361
           }
         }
       ],
       "crossScaleMmiReference": {
         "n": 333,
-        "meanPredJmaMinusMmi": -0.6536
+        "meanPredJmaMinusMmi": -0.6064
       }
     },
     {
@@ -793,8 +856,8 @@
       },
       "intensity": {
         "n": 368,
-        "bias": 0.0548,
-        "rms": 0.6393
+        "bias": 0.093,
+        "rms": 0.6459
       },
       "distanceBins": [
         {
@@ -811,8 +874,8 @@
           },
           "intensity": {
             "n": 8,
-            "bias": -0.5715,
-            "rms": 0.7256
+            "bias": -0.5305,
+            "rms": 0.6938
           }
         },
         {
@@ -829,8 +892,8 @@
           },
           "intensity": {
             "n": 19,
-            "bias": -0.5171,
-            "rms": 0.8341
+            "bias": -0.4151,
+            "rms": 0.7751
           }
         },
         {
@@ -847,8 +910,8 @@
           },
           "intensity": {
             "n": 98,
-            "bias": -0.1657,
-            "rms": 0.7261
+            "bias": -0.1537,
+            "rms": 0.7234
           }
         },
         {
@@ -865,8 +928,8 @@
           },
           "intensity": {
             "n": 229,
-            "bias": 0.2065,
-            "rms": 0.5838
+            "bias": 0.2385,
+            "rms": 0.5959
           }
         },
         {
@@ -883,14 +946,14 @@
           },
           "intensity": {
             "n": 14,
-            "bias": 0.2525,
-            "rms": 0.4821
+            "bias": 0.4875,
+            "rms": 0.6375
           }
         }
       ],
       "crossScaleMmiReference": {
         "n": 368,
-        "meanPredJmaMinusMmi": -0.4595
+        "meanPredJmaMinusMmi": -0.4213
       }
     },
     {
@@ -1026,9 +1089,971 @@
         "n": 173,
         "meanPredJmaMinusMmi": 0.2064
       }
+    },
+    {
+      "eventId": "chuetsu2004",
+      "usgsId": "usp000d6vn",
+      "mw": 6.6,
+      "depthKm": 13,
+      "sourceType": "crustal",
+      "model": "si-midorikawa",
+      "predictionHypocenter": {
+        "mode": "jma",
+        "lat": 37.29,
+        "lng": 138.87,
+        "depthKm": 13,
+        "mw": 6.6,
+        "source": "public/geojson/observed.json#chuetsu",
+        "usgs": {
+          "lat": 37.318,
+          "lng": 138.816,
+          "depthKm": 10.5,
+          "mw": 6.1
+        }
+      },
+      "stations": 209,
+      "pga": {
+        "n": 209,
+        "bias": 0.3701,
+        "rms": 0.4604
+      },
+      "pgv": {
+        "n": 209,
+        "bias": 0.4255,
+        "rms": 0.5084
+      },
+      "intensity": {
+        "n": 209,
+        "bias": 0.762,
+        "rms": 0.968
+      },
+      "distanceBins": [
+        {
+          "rangeKm": "<50",
+          "pga": {
+            "n": 8,
+            "bias": 0.3726,
+            "rms": 0.4261
+          },
+          "pgv": {
+            "n": 8,
+            "bias": 0.4317,
+            "rms": 0.477
+          },
+          "intensity": {
+            "n": 8,
+            "bias": 0.8309,
+            "rms": 0.9503
+          }
+        },
+        {
+          "rangeKm": "50-100",
+          "pga": {
+            "n": 48,
+            "bias": 0.3261,
+            "rms": 0.4551
+          },
+          "pgv": {
+            "n": 48,
+            "bias": 0.4567,
+            "rms": 0.5312
+          },
+          "intensity": {
+            "n": 48,
+            "bias": 0.7201,
+            "rms": 1.0017
+          }
+        },
+        {
+          "rangeKm": "100-200",
+          "pga": {
+            "n": 138,
+            "bias": 0.3917,
+            "rms": 0.4727
+          },
+          "pgv": {
+            "n": 138,
+            "bias": 0.4407,
+            "rms": 0.5195
+          },
+          "intensity": {
+            "n": 138,
+            "bias": 0.8138,
+            "rms": 0.9924
+          }
+        },
+        {
+          "rangeKm": "200-400",
+          "pga": {
+            "n": 15,
+            "bias": 0.3107,
+            "rms": 0.3714
+          },
+          "pgv": {
+            "n": 15,
+            "bias": 0.1816,
+            "rms": 0.3057
+          },
+          "intensity": {
+            "n": 15,
+            "bias": 0.3825,
+            "rms": 0.5505
+          }
+        },
+        {
+          "rangeKm": ">=400",
+          "pga": {
+            "n": 0,
+            "bias": null,
+            "rms": null
+          },
+          "pgv": {
+            "n": 0,
+            "bias": null,
+            "rms": null
+          },
+          "intensity": {
+            "n": 0,
+            "bias": null,
+            "rms": null
+          }
+        }
+      ],
+      "crossScaleMmiReference": {
+        "n": 209,
+        "meanPredJmaMinusMmi": 0.3235
+      }
+    },
+    {
+      "eventId": "iwate2008",
+      "usgsId": "usp000g9h6",
+      "mw": 6.9,
+      "depthKm": 8,
+      "sourceType": "crustal",
+      "model": "si-midorikawa",
+      "predictionHypocenter": {
+        "mode": "jma",
+        "lat": 39.03,
+        "lng": 140.88,
+        "depthKm": 8,
+        "mw": 6.9,
+        "source": "public/geojson/observed.json#iwate2008",
+        "usgs": {
+          "lat": 39.03,
+          "lng": 140.881,
+          "depthKm": 7.8,
+          "mw": 6.9
+        }
+      },
+      "stations": 367,
+      "pga": {
+        "n": 367,
+        "bias": -0.0386,
+        "rms": 0.313
+      },
+      "pgv": {
+        "n": 367,
+        "bias": -0.1679,
+        "rms": 0.3592
+      },
+      "intensity": {
+        "n": 367,
+        "bias": -0.2956,
+        "rms": 0.6969
+      },
+      "distanceBins": [
+        {
+          "rangeKm": "<50",
+          "pga": {
+            "n": 22,
+            "bias": -0.0877,
+            "rms": 0.2019
+          },
+          "pgv": {
+            "n": 22,
+            "bias": -0.0402,
+            "rms": 0.2206
+          },
+          "intensity": {
+            "n": 22,
+            "bias": -0.1955,
+            "rms": 0.4501
+          }
+        },
+        {
+          "rangeKm": "50-100",
+          "pga": {
+            "n": 63,
+            "bias": 0.0727,
+            "rms": 0.2612
+          },
+          "pgv": {
+            "n": 63,
+            "bias": 0.0717,
+            "rms": 0.2235
+          },
+          "intensity": {
+            "n": 63,
+            "bias": 0.1234,
+            "rms": 0.5379
+          }
+        },
+        {
+          "rangeKm": "100-200",
+          "pga": {
+            "n": 118,
+            "bias": 0.0125,
+            "rms": 0.2954
+          },
+          "pgv": {
+            "n": 118,
+            "bias": -0.0796,
+            "rms": 0.2244
+          },
+          "intensity": {
+            "n": 118,
+            "bias": -0.1141,
+            "rms": 0.5551
+          }
+        },
+        {
+          "rangeKm": "200-400",
+          "pga": {
+            "n": 149,
+            "bias": -0.0828,
+            "rms": 0.3448
+          },
+          "pgv": {
+            "n": 149,
+            "bias": -0.3178,
+            "rms": 0.4581
+          },
+          "intensity": {
+            "n": 149,
+            "bias": -0.5626,
+            "rms": 0.826
+          }
+        },
+        {
+          "rangeKm": ">=400",
+          "pga": {
+            "n": 15,
+            "bias": -0.3965,
+            "rms": 0.4278
+          },
+          "pgv": {
+            "n": 15,
+            "bias": -0.5681,
+            "rms": 0.6286
+          },
+          "intensity": {
+            "n": 15,
+            "bias": -0.9772,
+            "rms": 1.0812
+          }
+        }
+      ],
+      "crossScaleMmiReference": {
+        "n": 367,
+        "meanPredJmaMinusMmi": -0.7546
+      }
+    },
+    {
+      "eventId": "fukuoka2005",
+      "usgsId": "usp000djku",
+      "mw": 6.6,
+      "depthKm": 9,
+      "sourceType": "crustal",
+      "model": "si-midorikawa",
+      "predictionHypocenter": {
+        "mode": "jma",
+        "lat": 33.74,
+        "lng": 130.18,
+        "depthKm": 9,
+        "mw": 6.6,
+        "source": "public/geojson/observed.json#fukuoka2005",
+        "usgs": {
+          "lat": 33.807,
+          "lng": 130.131,
+          "depthKm": 10,
+          "mw": 6.6
+        }
+      },
+      "stations": 294,
+      "pga": {
+        "n": 294,
+        "bias": 0.0243,
+        "rms": 0.2547
+      },
+      "pgv": {
+        "n": 294,
+        "bias": -0.1121,
+        "rms": 0.2277
+      },
+      "intensity": {
+        "n": 294,
+        "bias": -0.1371,
+        "rms": 0.4878
+      },
+      "distanceBins": [
+        {
+          "rangeKm": "<50",
+          "pga": {
+            "n": 15,
+            "bias": -0.0898,
+            "rms": 0.1865
+          },
+          "pgv": {
+            "n": 15,
+            "bias": -0.0451,
+            "rms": 0.1638
+          },
+          "intensity": {
+            "n": 15,
+            "bias": -0.2002,
+            "rms": 0.4159
+          }
+        },
+        {
+          "rangeKm": "50-100",
+          "pga": {
+            "n": 44,
+            "bias": -0.0737,
+            "rms": 0.269
+          },
+          "pgv": {
+            "n": 44,
+            "bias": -0.0527,
+            "rms": 0.191
+          },
+          "intensity": {
+            "n": 44,
+            "bias": -0.1707,
+            "rms": 0.5944
+          }
+        },
+        {
+          "rangeKm": "100-200",
+          "pga": {
+            "n": 125,
+            "bias": 0.0956,
+            "rms": 0.2921
+          },
+          "pgv": {
+            "n": 125,
+            "bias": -0.0836,
+            "rms": 0.217
+          },
+          "intensity": {
+            "n": 125,
+            "bias": 0.0311,
+            "rms": 0.4672
+          }
+        },
+        {
+          "rangeKm": "200-400",
+          "pga": {
+            "n": 109,
+            "bias": 0.0004,
+            "rms": 0.2062
+          },
+          "pgv": {
+            "n": 109,
+            "bias": -0.1749,
+            "rms": 0.2562
+          },
+          "intensity": {
+            "n": 109,
+            "bias": -0.3019,
+            "rms": 0.4686
+          }
+        },
+        {
+          "rangeKm": ">=400",
+          "pga": {
+            "n": 1,
+            "bias": -0.2626,
+            "rms": 0.2626
+          },
+          "pgv": {
+            "n": 1,
+            "bias": -0.4523,
+            "rms": 0.4523
+          },
+          "intensity": {
+            "n": 1,
+            "bias": -0.7779,
+            "rms": 0.7779
+          }
+        }
+      ],
+      "crossScaleMmiReference": {
+        "n": 294,
+        "meanPredJmaMinusMmi": -0.6805
+      }
+    },
+    {
+      "eventId": "noto2007",
+      "usgsId": "usp000f7b5",
+      "mw": 6.7,
+      "depthKm": 11,
+      "sourceType": "crustal",
+      "model": "si-midorikawa",
+      "predictionHypocenter": {
+        "mode": "jma",
+        "lat": 37.22,
+        "lng": 136.69,
+        "depthKm": 11,
+        "mw": 6.7,
+        "source": "public/geojson/observed.json#noto2007",
+        "usgs": {
+          "lat": 37.336,
+          "lng": 136.588,
+          "depthKm": 8,
+          "mw": 6.7
+        }
+      },
+      "stations": 358,
+      "pga": {
+        "n": 358,
+        "bias": 0.051,
+        "rms": 0.3123
+      },
+      "pgv": {
+        "n": 358,
+        "bias": -0.0295,
+        "rms": 0.2505
+      },
+      "intensity": {
+        "n": 358,
+        "bias": -0.0603,
+        "rms": 0.5231
+      },
+      "distanceBins": [
+        {
+          "rangeKm": "<50",
+          "pga": {
+            "n": 5,
+            "bias": -0.2755,
+            "rms": 0.3117
+          },
+          "pgv": {
+            "n": 5,
+            "bias": -0.3476,
+            "rms": 0.3853
+          },
+          "intensity": {
+            "n": 5,
+            "bias": -0.6145,
+            "rms": 0.695
+          }
+        },
+        {
+          "rangeKm": "50-100",
+          "pga": {
+            "n": 19,
+            "bias": -0.1662,
+            "rms": 0.2246
+          },
+          "pgv": {
+            "n": 19,
+            "bias": -0.1055,
+            "rms": 0.2409
+          },
+          "intensity": {
+            "n": 19,
+            "bias": -0.3706,
+            "rms": 0.5009
+          }
+        },
+        {
+          "rangeKm": "100-200",
+          "pga": {
+            "n": 116,
+            "bias": 0.1053,
+            "rms": 0.3556
+          },
+          "pgv": {
+            "n": 116,
+            "bias": 0.0211,
+            "rms": 0.2252
+          },
+          "intensity": {
+            "n": 116,
+            "bias": 0.065,
+            "rms": 0.5936
+          }
+        },
+        {
+          "rangeKm": "200-400",
+          "pga": {
+            "n": 203,
+            "bias": 0.0878,
+            "rms": 0.2722
+          },
+          "pgv": {
+            "n": 203,
+            "bias": -0.0258,
+            "rms": 0.2551
+          },
+          "intensity": {
+            "n": 203,
+            "bias": -0.0567,
+            "rms": 0.472
+          }
+        },
+        {
+          "rangeKm": ">=400",
+          "pga": {
+            "n": 15,
+            "bias": -0.4844,
+            "rms": 0.5006
+          },
+          "pgv": {
+            "n": 15,
+            "bias": -0.2681,
+            "rms": 0.3191
+          },
+          "intensity": {
+            "n": 15,
+            "bias": -0.5012,
+            "rms": 0.559
+          }
+        }
+      ],
+      "crossScaleMmiReference": {
+        "n": 358,
+        "meanPredJmaMinusMmi": -0.6777
+      }
+    },
+    {
+      "eventId": "fukushima2011",
+      "usgsId": "usp000hzq8",
+      "mw": 6.7,
+      "depthKm": 6,
+      "sourceType": "crustal",
+      "model": "si-midorikawa",
+      "predictionHypocenter": {
+        "mode": "jma",
+        "lat": 36.95,
+        "lng": 140.67,
+        "depthKm": 6,
+        "mw": 6.7,
+        "source": "public/geojson/observed.json#fukushima2011",
+        "usgs": {
+          "lat": 37.001,
+          "lng": 140.401,
+          "depthKm": 11,
+          "mw": 6.6
+        }
+      },
+      "stations": 430,
+      "pga": {
+        "n": 430,
+        "bias": -0.0685,
+        "rms": 0.2604
+      },
+      "pgv": {
+        "n": 430,
+        "bias": -0.1518,
+        "rms": 0.2909
+      },
+      "intensity": {
+        "n": 430,
+        "bias": -0.2953,
+        "rms": 0.5661
+      },
+      "distanceBins": [
+        {
+          "rangeKm": "<50",
+          "pga": {
+            "n": 19,
+            "bias": -0.1045,
+            "rms": 0.2621
+          },
+          "pgv": {
+            "n": 19,
+            "bias": -0.1024,
+            "rms": 0.2318
+          },
+          "intensity": {
+            "n": 19,
+            "bias": -0.2331,
+            "rms": 0.5844
+          }
+        },
+        {
+          "rangeKm": "50-100",
+          "pga": {
+            "n": 52,
+            "bias": -0.2193,
+            "rms": 0.303
+          },
+          "pgv": {
+            "n": 52,
+            "bias": -0.1225,
+            "rms": 0.2307
+          },
+          "intensity": {
+            "n": 52,
+            "bias": -0.489,
+            "rms": 0.6756
+          }
+        },
+        {
+          "rangeKm": "100-200",
+          "pga": {
+            "n": 196,
+            "bias": -0.0634,
+            "rms": 0.2347
+          },
+          "pgv": {
+            "n": 196,
+            "bias": -0.1406,
+            "rms": 0.2673
+          },
+          "intensity": {
+            "n": 196,
+            "bias": -0.2268,
+            "rms": 0.4904
+          }
+        },
+        {
+          "rangeKm": "200-400",
+          "pga": {
+            "n": 159,
+            "bias": -0.013,
+            "rms": 0.27
+          },
+          "pgv": {
+            "n": 159,
+            "bias": -0.1643,
+            "rms": 0.3152
+          },
+          "intensity": {
+            "n": 159,
+            "bias": -0.2954,
+            "rms": 0.5728
+          }
+        },
+        {
+          "rangeKm": ">=400",
+          "pga": {
+            "n": 4,
+            "bias": -0.3936,
+            "rms": 0.4145
+          },
+          "pgv": {
+            "n": 4,
+            "bias": -0.8246,
+            "rms": 0.8365
+          },
+          "intensity": {
+            "n": 4,
+            "bias": -1.4184,
+            "rms": 1.4388
+          }
+        }
+      ],
+      "crossScaleMmiReference": {
+        "n": 430,
+        "meanPredJmaMinusMmi": -0.8204
+      }
+    },
+    {
+      "eventId": "yamagata2019",
+      "usgsId": "us600042fx",
+      "mw": 6.4,
+      "depthKm": 14,
+      "sourceType": "crustal",
+      "model": "si-midorikawa",
+      "predictionHypocenter": {
+        "mode": "jma",
+        "lat": 38.61,
+        "lng": 139.53,
+        "depthKm": 14,
+        "mw": 6.4,
+        "source": "public/geojson/observed.json#yamagata2019",
+        "usgs": {
+          "lat": 38.6391,
+          "lng": 139.4769,
+          "depthKm": 12,
+          "mw": 6.4
+        }
+      },
+      "stations": 230,
+      "pga": {
+        "n": 230,
+        "bias": -0.0457,
+        "rms": 0.2405
+      },
+      "pgv": {
+        "n": 230,
+        "bias": -0.0742,
+        "rms": 0.2602
+      },
+      "intensity": {
+        "n": 230,
+        "bias": -0.2286,
+        "rms": 0.5481
+      },
+      "distanceBins": [
+        {
+          "rangeKm": "<50",
+          "pga": {
+            "n": 7,
+            "bias": -0.0617,
+            "rms": 0.1802
+          },
+          "pgv": {
+            "n": 7,
+            "bias": -0.1344,
+            "rms": 0.1576
+          },
+          "intensity": {
+            "n": 7,
+            "bias": -0.1375,
+            "rms": 0.4018
+          }
+        },
+        {
+          "rangeKm": "50-100",
+          "pga": {
+            "n": 19,
+            "bias": -0.0462,
+            "rms": 0.2603
+          },
+          "pgv": {
+            "n": 19,
+            "bias": -0.0312,
+            "rms": 0.1671
+          },
+          "intensity": {
+            "n": 19,
+            "bias": -0.1051,
+            "rms": 0.5773
+          }
+        },
+        {
+          "rangeKm": "100-200",
+          "pga": {
+            "n": 91,
+            "bias": -0.1034,
+            "rms": 0.2673
+          },
+          "pgv": {
+            "n": 91,
+            "bias": -0.069,
+            "rms": 0.219
+          },
+          "intensity": {
+            "n": 91,
+            "bias": -0.2606,
+            "rms": 0.5645
+          }
+        },
+        {
+          "rangeKm": "200-400",
+          "pga": {
+            "n": 113,
+            "bias": 0.0019,
+            "rms": 0.2162
+          },
+          "pgv": {
+            "n": 113,
+            "bias": -0.082,
+            "rms": 0.3048
+          },
+          "intensity": {
+            "n": 113,
+            "bias": -0.2293,
+            "rms": 0.5375
+          }
+        },
+        {
+          "rangeKm": ">=400",
+          "pga": {
+            "n": 0,
+            "bias": null,
+            "rms": null
+          },
+          "pgv": {
+            "n": 0,
+            "bias": null,
+            "rms": null
+          },
+          "intensity": {
+            "n": 0,
+            "bias": null,
+            "rms": null
+          }
+        }
+      ],
+      "crossScaleMmiReference": {
+        "n": 230,
+        "meanPredJmaMinusMmi": -0.7415
+      }
+    },
+    {
+      "eventId": "iburihigashi2018",
+      "usgsId": "us2000h8ty",
+      "mw": 6.6,
+      "depthKm": 37,
+      "sourceType": "crustal",
+      "model": "si-midorikawa",
+      "predictionHypocenter": {
+        "mode": "jma",
+        "lat": 42.69,
+        "lng": 142.01,
+        "depthKm": 37,
+        "mw": 6.6,
+        "source": "public/geojson/observed.json#iburihigashi",
+        "usgs": {
+          "lat": 42.6861,
+          "lng": 141.9294,
+          "depthKm": 35,
+          "mw": 6.6
+        }
+      },
+      "stations": 373,
+      "pga": {
+        "n": 373,
+        "bias": -0.0251,
+        "rms": 0.3842
+      },
+      "pgv": {
+        "n": 373,
+        "bias": -0.0933,
+        "rms": 0.291
+      },
+      "intensity": {
+        "n": 373,
+        "bias": -0.17,
+        "rms": 0.6802
+      },
+      "distanceBins": [
+        {
+          "rangeKm": "<50",
+          "pga": {
+            "n": 8,
+            "bias": -0.4421,
+            "rms": 0.4714
+          },
+          "pgv": {
+            "n": 8,
+            "bias": -0.6208,
+            "rms": 0.6382
+          },
+          "intensity": {
+            "n": 8,
+            "bias": -0.986,
+            "rms": 1.0512
+          }
+        },
+        {
+          "rangeKm": "50-100",
+          "pga": {
+            "n": 46,
+            "bias": -0.0971,
+            "rms": 0.2992
+          },
+          "pgv": {
+            "n": 46,
+            "bias": -0.1384,
+            "rms": 0.2461
+          },
+          "intensity": {
+            "n": 46,
+            "bias": -0.2241,
+            "rms": 0.6569
+          }
+        },
+        {
+          "rangeKm": "100-200",
+          "pga": {
+            "n": 130,
+            "bias": 0.1602,
+            "rms": 0.3462
+          },
+          "pgv": {
+            "n": 130,
+            "bias": 0.0447,
+            "rms": 0.2318
+          },
+          "intensity": {
+            "n": 130,
+            "bias": 0.2461,
+            "rms": 0.6405
+          }
+        },
+        {
+          "rangeKm": "200-400",
+          "pga": {
+            "n": 160,
+            "bias": -0.0355,
+            "rms": 0.379
+          },
+          "pgv": {
+            "n": 160,
+            "bias": -0.1123,
+            "rms": 0.2679
+          },
+          "intensity": {
+            "n": 160,
+            "bias": -0.3335,
+            "rms": 0.6398
+          }
+        },
+        {
+          "rangeKm": ">=400",
+          "pga": {
+            "n": 29,
+            "bias": -0.5689,
+            "rms": 0.6048
+          },
+          "pgv": {
+            "n": 29,
+            "bias": -0.3902,
+            "rms": 0.4936
+          },
+          "intensity": {
+            "n": 29,
+            "bias": -0.822,
+            "rms": 0.93
+          }
+        }
+      ],
+      "crossScaleMmiReference": {
+        "n": 373,
+        "meanPredJmaMinusMmi": -0.7599
+      }
     }
   ],
   "jmaHypocenters": [
+    {
+      "eventId": "chuetsu2004",
+      "lat": 37.29,
+      "lng": 138.87,
+      "depthKm": 13,
+      "mw": 6.6,
+      "source": "public/geojson/observed.json#chuetsu"
+    },
+    {
+      "eventId": "fukuoka2005",
+      "lat": 33.74,
+      "lng": 130.18,
+      "depthKm": 9,
+      "mw": 6.6,
+      "source": "public/geojson/observed.json#fukuoka2005"
+    },
+    {
+      "eventId": "fukushima2011",
+      "lat": 36.95,
+      "lng": 140.67,
+      "depthKm": 6,
+      "mw": 6.7,
+      "source": "public/geojson/observed.json#fukushima2011"
+    },
     {
       "eventId": "fukushima2022",
       "lat": 37.7,
@@ -1046,12 +2071,36 @@
       "source": "public/app.js PRESETS.hyuganada2024"
     },
     {
+      "eventId": "iburihigashi2018",
+      "lat": 42.69,
+      "lng": 142.01,
+      "depthKm": 37,
+      "mw": 6.6,
+      "source": "public/geojson/observed.json#iburihigashi"
+    },
+    {
+      "eventId": "iwate2008",
+      "lat": 39.03,
+      "lng": 140.88,
+      "depthKm": 8,
+      "mw": 6.9,
+      "source": "public/geojson/observed.json#iwate2008"
+    },
+    {
       "eventId": "kumamoto2016",
       "lat": 32.75,
       "lng": 130.76,
       "depthKm": 12,
       "mw": 7,
       "source": "public/geojson/observed.json#kumamoto"
+    },
+    {
+      "eventId": "noto2007",
+      "lat": 37.22,
+      "lng": 136.69,
+      "depthKm": 11,
+      "mw": 6.7,
+      "source": "public/geojson/observed.json#noto2007"
     },
     {
       "eventId": "noto2024",
@@ -1076,6 +2125,14 @@
       "depthKm": 42,
       "mw": 8.3,
       "source": "public/geojson/observed.json#tokachi2003"
+    },
+    {
+      "eventId": "yamagata2019",
+      "lat": 38.61,
+      "lng": 139.53,
+      "depthKm": 14,
+      "mw": 6.4,
+      "source": "public/geojson/observed.json#yamagata2019"
     }
   ],
   "preModelBiasRun": {
@@ -1085,109 +2142,109 @@
     "calibrationApplied": true,
     "overall": {
       "pga": {
-        "n": 2626,
-        "bias": -0.2536,
-        "rms": 0.557
+        "n": 4887,
+        "bias": -0.1282,
+        "rms": 0.4628
       },
       "pgv": {
-        "n": 2626,
-        "bias": -0.0694,
-        "rms": 0.3224
+        "n": 4887,
+        "bias": -0.0646,
+        "rms": 0.3185
       },
       "intensity": {
-        "n": 2626,
-        "bias": -0.337,
-        "rms": 0.8355
+        "n": 4887,
+        "bias": -0.233,
+        "rms": 0.7508
       },
       "distanceBins": [
         {
           "rangeKm": "<50",
           "pga": {
-            "n": 37,
-            "bias": -0.0496,
-            "rms": 0.2682
+            "n": 121,
+            "bias": -0.0782,
+            "rms": 0.2776
           },
           "pgv": {
-            "n": 37,
-            "bias": -0.1366,
-            "rms": 0.319
+            "n": 121,
+            "bias": -0.1054,
+            "rms": 0.3182
           },
           "intensity": {
-            "n": 37,
-            "bias": -0.1106,
-            "rms": 0.598
+            "n": 121,
+            "bias": -0.1744,
+            "rms": 0.6192
           }
         },
         {
           "rangeKm": "50-100",
           "pga": {
-            "n": 151,
-            "bias": 0.0357,
-            "rms": 0.3143
+            "n": 442,
+            "bias": 0.0056,
+            "rms": 0.3136
           },
           "pgv": {
-            "n": 151,
-            "bias": 0.0282,
-            "rms": 0.2826
+            "n": 442,
+            "bias": 0.0295,
+            "rms": 0.2914
           },
           "intensity": {
-            "n": 151,
-            "bias": 0.0628,
-            "rms": 0.6847
+            "n": 442,
+            "bias": -0.0011,
+            "rms": 0.685
           }
         },
         {
           "rangeKm": "100-200",
           "pga": {
-            "n": 535,
-            "bias": -0.1046,
-            "rms": 0.4642
+            "n": 1449,
+            "bias": 0.0157,
+            "rms": 0.3849
           },
           "pgv": {
-            "n": 535,
-            "bias": -0.0512,
-            "rms": 0.298
+            "n": 1449,
+            "bias": -0.0083,
+            "rms": 0.297
           },
           "intensity": {
-            "n": 535,
-            "bias": -0.3442,
-            "rms": 0.9314
+            "n": 1449,
+            "bias": -0.076,
+            "rms": 0.7587
           }
         },
         {
           "rangeKm": "200-400",
           "pga": {
-            "n": 1372,
-            "bias": -0.2123,
-            "rms": 0.4922
+            "n": 2280,
+            "bias": -0.1266,
+            "rms": 0.4249
           },
           "pgv": {
-            "n": 1372,
-            "bias": -0.0509,
-            "rms": 0.3034
+            "n": 2280,
+            "bias": -0.0843,
+            "rms": 0.3086
           },
           "intensity": {
-            "n": 1372,
-            "bias": -0.3639,
-            "rms": 0.8149
+            "n": 2280,
+            "bias": -0.3281,
+            "rms": 0.7365
           }
         },
         {
           "rangeKm": ">=400",
           "pga": {
-            "n": 531,
-            "bias": -0.6068,
-            "rms": 0.8113
+            "n": 595,
+            "bias": -0.5946,
+            "rms": 0.7858
           },
           "pgv": {
-            "n": 531,
-            "bias": -0.1586,
-            "rms": 0.3963
+            "n": 595,
+            "bias": -0.188,
+            "rms": 0.4118
           },
           "intensity": {
-            "n": 531,
-            "bias": -0.3894,
-            "rms": 0.839
+            "n": 595,
+            "bias": -0.4357,
+            "rms": 0.8501
           }
         }
       ]
@@ -1196,19 +2253,19 @@
       {
         "model": "si-midorikawa",
         "pga": {
-          "n": 701,
-          "bias": 0.059,
-          "rms": 0.3057
+          "n": 2962,
+          "bias": 0.0272,
+          "rms": 0.3168
         },
         "pgv": {
-          "n": 701,
-          "bias": -0.0682,
-          "rms": 0.3146
+          "n": 2962,
+          "bias": -0.0612,
+          "rms": 0.314
         },
         "intensity": {
-          "n": 701,
-          "bias": -0.0896,
-          "rms": 0.6306
+          "n": 2962,
+          "bias": -0.107,
+          "rms": 0.6366
         }
       },
       {
@@ -1232,17 +2289,17 @@
     ],
     "correctionEvaluation": {
       "type": "blanket magnitude-bin (M>=6.5) additive intensity shift, evaluated as a reference; the shipped calibration may additionally carry a modelBias block keyed by routed model and hypocentral distance, which the prediction path applies through calibrateIntensity(I, mag, {model, distKm})",
-      "fittedShift": 0.337,
+      "fittedShift": 0.233,
       "overall": {
         "before": {
-          "n": 2626,
-          "bias": -0.337,
-          "rms": 0.8355
+          "n": 4887,
+          "bias": -0.233,
+          "rms": 0.7508
         },
         "after": {
-          "n": 2626,
+          "n": 4887,
           "bias": 0,
-          "rms": 0.7646
+          "rms": 0.7137
         }
       },
       "perEvent": [
@@ -1252,8 +2309,8 @@
           "n": 600,
           "biasBefore": -0.6735,
           "rmsBefore": 0.9518,
-          "biasAfter": -0.3365,
-          "rmsAfter": 0.7521
+          "biasAfter": -0.4404,
+          "rmsAfter": 0.804
         },
         {
           "eventId": "kumamoto2016",
@@ -1261,8 +2318,8 @@
           "n": 333,
           "biasBefore": -0.1001,
           "rmsBefore": 0.6495,
-          "biasAfter": 0.2368,
-          "rmsAfter": 0.6841
+          "biasAfter": 0.1329,
+          "rmsAfter": 0.6554
         },
         {
           "eventId": "tokachi2003",
@@ -1270,8 +2327,8 @@
           "n": 552,
           "biasBefore": 0.0166,
           "rmsBefore": 0.6048,
-          "biasAfter": 0.3535,
-          "rmsAfter": 0.7003
+          "biasAfter": 0.2496,
+          "rmsAfter": 0.6541
         },
         {
           "eventId": "fukushima2022",
@@ -1279,8 +2336,8 @@
           "n": 600,
           "biasBefore": -0.8472,
           "rmsBefore": 1.1051,
-          "biasAfter": -0.5102,
-          "rmsAfter": 0.874
+          "biasAfter": -0.6141,
+          "rmsAfter": 0.9385
         },
         {
           "eventId": "noto2024",
@@ -1288,8 +2345,8 @@
           "n": 368,
           "biasBefore": -0.0801,
           "rmsBefore": 0.613,
-          "biasAfter": 0.2568,
-          "rmsAfter": 0.6598
+          "biasAfter": 0.1529,
+          "rmsAfter": 0.6267
         },
         {
           "eventId": "hyuganada2024",
@@ -1297,8 +2354,71 @@
           "n": 173,
           "biasBefore": 0.4693,
           "rmsBefore": 0.6632,
-          "biasAfter": 0.8063,
-          "rmsAfter": 0.9325
+          "biasAfter": 0.7024,
+          "rmsAfter": 0.8443
+        },
+        {
+          "eventId": "chuetsu2004",
+          "model": "si-midorikawa",
+          "n": 209,
+          "biasBefore": 0.762,
+          "rmsBefore": 0.968,
+          "biasAfter": 0.995,
+          "rmsAfter": 1.1604
+        },
+        {
+          "eventId": "iwate2008",
+          "model": "si-midorikawa",
+          "n": 367,
+          "biasBefore": -0.2956,
+          "rmsBefore": 0.6969,
+          "biasAfter": -0.0625,
+          "rmsAfter": 0.6342
+        },
+        {
+          "eventId": "fukuoka2005",
+          "model": "si-midorikawa",
+          "n": 294,
+          "biasBefore": -0.1371,
+          "rmsBefore": 0.4878,
+          "biasAfter": 0.096,
+          "rmsAfter": 0.4779
+        },
+        {
+          "eventId": "noto2007",
+          "model": "si-midorikawa",
+          "n": 358,
+          "biasBefore": -0.0603,
+          "rmsBefore": 0.5231,
+          "biasAfter": 0.1727,
+          "rmsAfter": 0.5476
+        },
+        {
+          "eventId": "fukushima2011",
+          "model": "si-midorikawa",
+          "n": 430,
+          "biasBefore": -0.2953,
+          "rmsBefore": 0.5661,
+          "biasAfter": -0.0622,
+          "rmsAfter": 0.487
+        },
+        {
+          "eventId": "yamagata2019",
+          "model": "si-midorikawa",
+          "n": 230,
+          "biasBefore": -0.2286,
+          "rmsBefore": 0.5481,
+          "biasAfter": 0.0044,
+          "rmsAfter": 0.4982
+        },
+        {
+          "eventId": "iburihigashi2018",
+          "model": "si-midorikawa",
+          "n": 373,
+          "biasBefore": -0.17,
+          "rmsBefore": 0.6802,
+          "biasAfter": 0.0631,
+          "rmsAfter": 0.6617
         }
       ]
     },
@@ -2106,6 +3226,944 @@
           "n": 173,
           "meanPredJmaMinusMmi": -0.2257
         }
+      },
+      {
+        "eventId": "chuetsu2004",
+        "usgsId": "usp000d6vn",
+        "mw": 6.6,
+        "depthKm": 13,
+        "sourceType": "crustal",
+        "model": "si-midorikawa",
+        "predictionHypocenter": {
+          "mode": "jma",
+          "lat": 37.29,
+          "lng": 138.87,
+          "depthKm": 13,
+          "mw": 6.6,
+          "source": "public/geojson/observed.json#chuetsu",
+          "usgs": {
+            "lat": 37.318,
+            "lng": 138.816,
+            "depthKm": 10.5,
+            "mw": 6.1
+          }
+        },
+        "stations": 209,
+        "pga": {
+          "n": 209,
+          "bias": 0.3701,
+          "rms": 0.4604
+        },
+        "pgv": {
+          "n": 209,
+          "bias": 0.4255,
+          "rms": 0.5084
+        },
+        "intensity": {
+          "n": 209,
+          "bias": 0.762,
+          "rms": 0.968
+        },
+        "distanceBins": [
+          {
+            "rangeKm": "<50",
+            "pga": {
+              "n": 8,
+              "bias": 0.3726,
+              "rms": 0.4261
+            },
+            "pgv": {
+              "n": 8,
+              "bias": 0.4317,
+              "rms": 0.477
+            },
+            "intensity": {
+              "n": 8,
+              "bias": 0.8309,
+              "rms": 0.9503
+            }
+          },
+          {
+            "rangeKm": "50-100",
+            "pga": {
+              "n": 48,
+              "bias": 0.3261,
+              "rms": 0.4551
+            },
+            "pgv": {
+              "n": 48,
+              "bias": 0.4567,
+              "rms": 0.5312
+            },
+            "intensity": {
+              "n": 48,
+              "bias": 0.7201,
+              "rms": 1.0017
+            }
+          },
+          {
+            "rangeKm": "100-200",
+            "pga": {
+              "n": 138,
+              "bias": 0.3917,
+              "rms": 0.4727
+            },
+            "pgv": {
+              "n": 138,
+              "bias": 0.4407,
+              "rms": 0.5195
+            },
+            "intensity": {
+              "n": 138,
+              "bias": 0.8138,
+              "rms": 0.9924
+            }
+          },
+          {
+            "rangeKm": "200-400",
+            "pga": {
+              "n": 15,
+              "bias": 0.3107,
+              "rms": 0.3714
+            },
+            "pgv": {
+              "n": 15,
+              "bias": 0.1816,
+              "rms": 0.3057
+            },
+            "intensity": {
+              "n": 15,
+              "bias": 0.3825,
+              "rms": 0.5505
+            }
+          },
+          {
+            "rangeKm": ">=400",
+            "pga": {
+              "n": 0,
+              "bias": null,
+              "rms": null
+            },
+            "pgv": {
+              "n": 0,
+              "bias": null,
+              "rms": null
+            },
+            "intensity": {
+              "n": 0,
+              "bias": null,
+              "rms": null
+            }
+          }
+        ],
+        "crossScaleMmiReference": {
+          "n": 209,
+          "meanPredJmaMinusMmi": 0.3235
+        }
+      },
+      {
+        "eventId": "iwate2008",
+        "usgsId": "usp000g9h6",
+        "mw": 6.9,
+        "depthKm": 8,
+        "sourceType": "crustal",
+        "model": "si-midorikawa",
+        "predictionHypocenter": {
+          "mode": "jma",
+          "lat": 39.03,
+          "lng": 140.88,
+          "depthKm": 8,
+          "mw": 6.9,
+          "source": "public/geojson/observed.json#iwate2008",
+          "usgs": {
+            "lat": 39.03,
+            "lng": 140.881,
+            "depthKm": 7.8,
+            "mw": 6.9
+          }
+        },
+        "stations": 367,
+        "pga": {
+          "n": 367,
+          "bias": -0.0386,
+          "rms": 0.313
+        },
+        "pgv": {
+          "n": 367,
+          "bias": -0.1679,
+          "rms": 0.3592
+        },
+        "intensity": {
+          "n": 367,
+          "bias": -0.2956,
+          "rms": 0.6969
+        },
+        "distanceBins": [
+          {
+            "rangeKm": "<50",
+            "pga": {
+              "n": 22,
+              "bias": -0.0877,
+              "rms": 0.2019
+            },
+            "pgv": {
+              "n": 22,
+              "bias": -0.0402,
+              "rms": 0.2206
+            },
+            "intensity": {
+              "n": 22,
+              "bias": -0.1955,
+              "rms": 0.4501
+            }
+          },
+          {
+            "rangeKm": "50-100",
+            "pga": {
+              "n": 63,
+              "bias": 0.0727,
+              "rms": 0.2612
+            },
+            "pgv": {
+              "n": 63,
+              "bias": 0.0717,
+              "rms": 0.2235
+            },
+            "intensity": {
+              "n": 63,
+              "bias": 0.1234,
+              "rms": 0.5379
+            }
+          },
+          {
+            "rangeKm": "100-200",
+            "pga": {
+              "n": 118,
+              "bias": 0.0125,
+              "rms": 0.2954
+            },
+            "pgv": {
+              "n": 118,
+              "bias": -0.0796,
+              "rms": 0.2244
+            },
+            "intensity": {
+              "n": 118,
+              "bias": -0.1141,
+              "rms": 0.5551
+            }
+          },
+          {
+            "rangeKm": "200-400",
+            "pga": {
+              "n": 149,
+              "bias": -0.0828,
+              "rms": 0.3448
+            },
+            "pgv": {
+              "n": 149,
+              "bias": -0.3178,
+              "rms": 0.4581
+            },
+            "intensity": {
+              "n": 149,
+              "bias": -0.5626,
+              "rms": 0.826
+            }
+          },
+          {
+            "rangeKm": ">=400",
+            "pga": {
+              "n": 15,
+              "bias": -0.3965,
+              "rms": 0.4278
+            },
+            "pgv": {
+              "n": 15,
+              "bias": -0.5681,
+              "rms": 0.6286
+            },
+            "intensity": {
+              "n": 15,
+              "bias": -0.9772,
+              "rms": 1.0812
+            }
+          }
+        ],
+        "crossScaleMmiReference": {
+          "n": 367,
+          "meanPredJmaMinusMmi": -0.7546
+        }
+      },
+      {
+        "eventId": "fukuoka2005",
+        "usgsId": "usp000djku",
+        "mw": 6.6,
+        "depthKm": 9,
+        "sourceType": "crustal",
+        "model": "si-midorikawa",
+        "predictionHypocenter": {
+          "mode": "jma",
+          "lat": 33.74,
+          "lng": 130.18,
+          "depthKm": 9,
+          "mw": 6.6,
+          "source": "public/geojson/observed.json#fukuoka2005",
+          "usgs": {
+            "lat": 33.807,
+            "lng": 130.131,
+            "depthKm": 10,
+            "mw": 6.6
+          }
+        },
+        "stations": 294,
+        "pga": {
+          "n": 294,
+          "bias": 0.0243,
+          "rms": 0.2547
+        },
+        "pgv": {
+          "n": 294,
+          "bias": -0.1121,
+          "rms": 0.2277
+        },
+        "intensity": {
+          "n": 294,
+          "bias": -0.1371,
+          "rms": 0.4878
+        },
+        "distanceBins": [
+          {
+            "rangeKm": "<50",
+            "pga": {
+              "n": 15,
+              "bias": -0.0898,
+              "rms": 0.1865
+            },
+            "pgv": {
+              "n": 15,
+              "bias": -0.0451,
+              "rms": 0.1638
+            },
+            "intensity": {
+              "n": 15,
+              "bias": -0.2002,
+              "rms": 0.4159
+            }
+          },
+          {
+            "rangeKm": "50-100",
+            "pga": {
+              "n": 44,
+              "bias": -0.0737,
+              "rms": 0.269
+            },
+            "pgv": {
+              "n": 44,
+              "bias": -0.0527,
+              "rms": 0.191
+            },
+            "intensity": {
+              "n": 44,
+              "bias": -0.1707,
+              "rms": 0.5944
+            }
+          },
+          {
+            "rangeKm": "100-200",
+            "pga": {
+              "n": 125,
+              "bias": 0.0956,
+              "rms": 0.2921
+            },
+            "pgv": {
+              "n": 125,
+              "bias": -0.0836,
+              "rms": 0.217
+            },
+            "intensity": {
+              "n": 125,
+              "bias": 0.0311,
+              "rms": 0.4672
+            }
+          },
+          {
+            "rangeKm": "200-400",
+            "pga": {
+              "n": 109,
+              "bias": 0.0004,
+              "rms": 0.2062
+            },
+            "pgv": {
+              "n": 109,
+              "bias": -0.1749,
+              "rms": 0.2562
+            },
+            "intensity": {
+              "n": 109,
+              "bias": -0.3019,
+              "rms": 0.4686
+            }
+          },
+          {
+            "rangeKm": ">=400",
+            "pga": {
+              "n": 1,
+              "bias": -0.2626,
+              "rms": 0.2626
+            },
+            "pgv": {
+              "n": 1,
+              "bias": -0.4523,
+              "rms": 0.4523
+            },
+            "intensity": {
+              "n": 1,
+              "bias": -0.7779,
+              "rms": 0.7779
+            }
+          }
+        ],
+        "crossScaleMmiReference": {
+          "n": 294,
+          "meanPredJmaMinusMmi": -0.6805
+        }
+      },
+      {
+        "eventId": "noto2007",
+        "usgsId": "usp000f7b5",
+        "mw": 6.7,
+        "depthKm": 11,
+        "sourceType": "crustal",
+        "model": "si-midorikawa",
+        "predictionHypocenter": {
+          "mode": "jma",
+          "lat": 37.22,
+          "lng": 136.69,
+          "depthKm": 11,
+          "mw": 6.7,
+          "source": "public/geojson/observed.json#noto2007",
+          "usgs": {
+            "lat": 37.336,
+            "lng": 136.588,
+            "depthKm": 8,
+            "mw": 6.7
+          }
+        },
+        "stations": 358,
+        "pga": {
+          "n": 358,
+          "bias": 0.051,
+          "rms": 0.3123
+        },
+        "pgv": {
+          "n": 358,
+          "bias": -0.0295,
+          "rms": 0.2505
+        },
+        "intensity": {
+          "n": 358,
+          "bias": -0.0603,
+          "rms": 0.5231
+        },
+        "distanceBins": [
+          {
+            "rangeKm": "<50",
+            "pga": {
+              "n": 5,
+              "bias": -0.2755,
+              "rms": 0.3117
+            },
+            "pgv": {
+              "n": 5,
+              "bias": -0.3476,
+              "rms": 0.3853
+            },
+            "intensity": {
+              "n": 5,
+              "bias": -0.6145,
+              "rms": 0.695
+            }
+          },
+          {
+            "rangeKm": "50-100",
+            "pga": {
+              "n": 19,
+              "bias": -0.1662,
+              "rms": 0.2246
+            },
+            "pgv": {
+              "n": 19,
+              "bias": -0.1055,
+              "rms": 0.2409
+            },
+            "intensity": {
+              "n": 19,
+              "bias": -0.3706,
+              "rms": 0.5009
+            }
+          },
+          {
+            "rangeKm": "100-200",
+            "pga": {
+              "n": 116,
+              "bias": 0.1053,
+              "rms": 0.3556
+            },
+            "pgv": {
+              "n": 116,
+              "bias": 0.0211,
+              "rms": 0.2252
+            },
+            "intensity": {
+              "n": 116,
+              "bias": 0.065,
+              "rms": 0.5936
+            }
+          },
+          {
+            "rangeKm": "200-400",
+            "pga": {
+              "n": 203,
+              "bias": 0.0878,
+              "rms": 0.2722
+            },
+            "pgv": {
+              "n": 203,
+              "bias": -0.0258,
+              "rms": 0.2551
+            },
+            "intensity": {
+              "n": 203,
+              "bias": -0.0567,
+              "rms": 0.472
+            }
+          },
+          {
+            "rangeKm": ">=400",
+            "pga": {
+              "n": 15,
+              "bias": -0.4844,
+              "rms": 0.5006
+            },
+            "pgv": {
+              "n": 15,
+              "bias": -0.2681,
+              "rms": 0.3191
+            },
+            "intensity": {
+              "n": 15,
+              "bias": -0.5012,
+              "rms": 0.559
+            }
+          }
+        ],
+        "crossScaleMmiReference": {
+          "n": 358,
+          "meanPredJmaMinusMmi": -0.6777
+        }
+      },
+      {
+        "eventId": "fukushima2011",
+        "usgsId": "usp000hzq8",
+        "mw": 6.7,
+        "depthKm": 6,
+        "sourceType": "crustal",
+        "model": "si-midorikawa",
+        "predictionHypocenter": {
+          "mode": "jma",
+          "lat": 36.95,
+          "lng": 140.67,
+          "depthKm": 6,
+          "mw": 6.7,
+          "source": "public/geojson/observed.json#fukushima2011",
+          "usgs": {
+            "lat": 37.001,
+            "lng": 140.401,
+            "depthKm": 11,
+            "mw": 6.6
+          }
+        },
+        "stations": 430,
+        "pga": {
+          "n": 430,
+          "bias": -0.0685,
+          "rms": 0.2604
+        },
+        "pgv": {
+          "n": 430,
+          "bias": -0.1518,
+          "rms": 0.2909
+        },
+        "intensity": {
+          "n": 430,
+          "bias": -0.2953,
+          "rms": 0.5661
+        },
+        "distanceBins": [
+          {
+            "rangeKm": "<50",
+            "pga": {
+              "n": 19,
+              "bias": -0.1045,
+              "rms": 0.2621
+            },
+            "pgv": {
+              "n": 19,
+              "bias": -0.1024,
+              "rms": 0.2318
+            },
+            "intensity": {
+              "n": 19,
+              "bias": -0.2331,
+              "rms": 0.5844
+            }
+          },
+          {
+            "rangeKm": "50-100",
+            "pga": {
+              "n": 52,
+              "bias": -0.2193,
+              "rms": 0.303
+            },
+            "pgv": {
+              "n": 52,
+              "bias": -0.1225,
+              "rms": 0.2307
+            },
+            "intensity": {
+              "n": 52,
+              "bias": -0.489,
+              "rms": 0.6756
+            }
+          },
+          {
+            "rangeKm": "100-200",
+            "pga": {
+              "n": 196,
+              "bias": -0.0634,
+              "rms": 0.2347
+            },
+            "pgv": {
+              "n": 196,
+              "bias": -0.1406,
+              "rms": 0.2673
+            },
+            "intensity": {
+              "n": 196,
+              "bias": -0.2268,
+              "rms": 0.4904
+            }
+          },
+          {
+            "rangeKm": "200-400",
+            "pga": {
+              "n": 159,
+              "bias": -0.013,
+              "rms": 0.27
+            },
+            "pgv": {
+              "n": 159,
+              "bias": -0.1643,
+              "rms": 0.3152
+            },
+            "intensity": {
+              "n": 159,
+              "bias": -0.2954,
+              "rms": 0.5728
+            }
+          },
+          {
+            "rangeKm": ">=400",
+            "pga": {
+              "n": 4,
+              "bias": -0.3936,
+              "rms": 0.4145
+            },
+            "pgv": {
+              "n": 4,
+              "bias": -0.8246,
+              "rms": 0.8365
+            },
+            "intensity": {
+              "n": 4,
+              "bias": -1.4184,
+              "rms": 1.4388
+            }
+          }
+        ],
+        "crossScaleMmiReference": {
+          "n": 430,
+          "meanPredJmaMinusMmi": -0.8204
+        }
+      },
+      {
+        "eventId": "yamagata2019",
+        "usgsId": "us600042fx",
+        "mw": 6.4,
+        "depthKm": 14,
+        "sourceType": "crustal",
+        "model": "si-midorikawa",
+        "predictionHypocenter": {
+          "mode": "jma",
+          "lat": 38.61,
+          "lng": 139.53,
+          "depthKm": 14,
+          "mw": 6.4,
+          "source": "public/geojson/observed.json#yamagata2019",
+          "usgs": {
+            "lat": 38.6391,
+            "lng": 139.4769,
+            "depthKm": 12,
+            "mw": 6.4
+          }
+        },
+        "stations": 230,
+        "pga": {
+          "n": 230,
+          "bias": -0.0457,
+          "rms": 0.2405
+        },
+        "pgv": {
+          "n": 230,
+          "bias": -0.0742,
+          "rms": 0.2602
+        },
+        "intensity": {
+          "n": 230,
+          "bias": -0.2286,
+          "rms": 0.5481
+        },
+        "distanceBins": [
+          {
+            "rangeKm": "<50",
+            "pga": {
+              "n": 7,
+              "bias": -0.0617,
+              "rms": 0.1802
+            },
+            "pgv": {
+              "n": 7,
+              "bias": -0.1344,
+              "rms": 0.1576
+            },
+            "intensity": {
+              "n": 7,
+              "bias": -0.1375,
+              "rms": 0.4018
+            }
+          },
+          {
+            "rangeKm": "50-100",
+            "pga": {
+              "n": 19,
+              "bias": -0.0462,
+              "rms": 0.2603
+            },
+            "pgv": {
+              "n": 19,
+              "bias": -0.0312,
+              "rms": 0.1671
+            },
+            "intensity": {
+              "n": 19,
+              "bias": -0.1051,
+              "rms": 0.5773
+            }
+          },
+          {
+            "rangeKm": "100-200",
+            "pga": {
+              "n": 91,
+              "bias": -0.1034,
+              "rms": 0.2673
+            },
+            "pgv": {
+              "n": 91,
+              "bias": -0.069,
+              "rms": 0.219
+            },
+            "intensity": {
+              "n": 91,
+              "bias": -0.2606,
+              "rms": 0.5645
+            }
+          },
+          {
+            "rangeKm": "200-400",
+            "pga": {
+              "n": 113,
+              "bias": 0.0019,
+              "rms": 0.2162
+            },
+            "pgv": {
+              "n": 113,
+              "bias": -0.082,
+              "rms": 0.3048
+            },
+            "intensity": {
+              "n": 113,
+              "bias": -0.2293,
+              "rms": 0.5375
+            }
+          },
+          {
+            "rangeKm": ">=400",
+            "pga": {
+              "n": 0,
+              "bias": null,
+              "rms": null
+            },
+            "pgv": {
+              "n": 0,
+              "bias": null,
+              "rms": null
+            },
+            "intensity": {
+              "n": 0,
+              "bias": null,
+              "rms": null
+            }
+          }
+        ],
+        "crossScaleMmiReference": {
+          "n": 230,
+          "meanPredJmaMinusMmi": -0.7415
+        }
+      },
+      {
+        "eventId": "iburihigashi2018",
+        "usgsId": "us2000h8ty",
+        "mw": 6.6,
+        "depthKm": 37,
+        "sourceType": "crustal",
+        "model": "si-midorikawa",
+        "predictionHypocenter": {
+          "mode": "jma",
+          "lat": 42.69,
+          "lng": 142.01,
+          "depthKm": 37,
+          "mw": 6.6,
+          "source": "public/geojson/observed.json#iburihigashi",
+          "usgs": {
+            "lat": 42.6861,
+            "lng": 141.9294,
+            "depthKm": 35,
+            "mw": 6.6
+          }
+        },
+        "stations": 373,
+        "pga": {
+          "n": 373,
+          "bias": -0.0251,
+          "rms": 0.3842
+        },
+        "pgv": {
+          "n": 373,
+          "bias": -0.0933,
+          "rms": 0.291
+        },
+        "intensity": {
+          "n": 373,
+          "bias": -0.17,
+          "rms": 0.6802
+        },
+        "distanceBins": [
+          {
+            "rangeKm": "<50",
+            "pga": {
+              "n": 8,
+              "bias": -0.4421,
+              "rms": 0.4714
+            },
+            "pgv": {
+              "n": 8,
+              "bias": -0.6208,
+              "rms": 0.6382
+            },
+            "intensity": {
+              "n": 8,
+              "bias": -0.986,
+              "rms": 1.0512
+            }
+          },
+          {
+            "rangeKm": "50-100",
+            "pga": {
+              "n": 46,
+              "bias": -0.0971,
+              "rms": 0.2992
+            },
+            "pgv": {
+              "n": 46,
+              "bias": -0.1384,
+              "rms": 0.2461
+            },
+            "intensity": {
+              "n": 46,
+              "bias": -0.2241,
+              "rms": 0.6569
+            }
+          },
+          {
+            "rangeKm": "100-200",
+            "pga": {
+              "n": 130,
+              "bias": 0.1602,
+              "rms": 0.3462
+            },
+            "pgv": {
+              "n": 130,
+              "bias": 0.0447,
+              "rms": 0.2318
+            },
+            "intensity": {
+              "n": 130,
+              "bias": 0.2461,
+              "rms": 0.6405
+            }
+          },
+          {
+            "rangeKm": "200-400",
+            "pga": {
+              "n": 160,
+              "bias": -0.0355,
+              "rms": 0.379
+            },
+            "pgv": {
+              "n": 160,
+              "bias": -0.1123,
+              "rms": 0.2679
+            },
+            "intensity": {
+              "n": 160,
+              "bias": -0.3335,
+              "rms": 0.6398
+            }
+          },
+          {
+            "rangeKm": ">=400",
+            "pga": {
+              "n": 29,
+              "bias": -0.5689,
+              "rms": 0.6048
+            },
+            "pgv": {
+              "n": 29,
+              "bias": -0.3902,
+              "rms": 0.4936
+            },
+            "intensity": {
+              "n": 29,
+              "bias": -0.822,
+              "rms": 0.93
+            }
+          }
+        ],
+        "crossScaleMmiReference": {
+          "n": 373,
+          "meanPredJmaMinusMmi": -0.7599
+        }
       }
     ],
     "note": "same hypocenter mode as the primary report, calibration table without the modelBias block"
@@ -2117,109 +4175,109 @@
     "calibrationApplied": true,
     "overall": {
       "pga": {
-        "n": 2626,
-        "bias": -0.2596,
-        "rms": 0.5574
+        "n": 4887,
+        "bias": -0.1474,
+        "rms": 0.4571
       },
       "pgv": {
-        "n": 2626,
-        "bias": -0.0754,
-        "rms": 0.3185
+        "n": 4887,
+        "bias": -0.0863,
+        "rms": 0.3072
       },
       "intensity": {
-        "n": 2626,
-        "bias": -0.3462,
-        "rms": 0.8186
+        "n": 4887,
+        "bias": -0.2729,
+        "rms": 0.7277
       },
       "distanceBins": [
         {
           "rangeKm": "<50",
           "pga": {
-            "n": 41,
-            "bias": -0.0441,
-            "rms": 0.2751
+            "n": 126,
+            "bias": -0.0869,
+            "rms": 0.2709
           },
           "pgv": {
-            "n": 41,
-            "bias": -0.1226,
-            "rms": 0.3249
+            "n": 126,
+            "bias": -0.1159,
+            "rms": 0.3112
           },
           "intensity": {
-            "n": 41,
-            "bias": -0.0984,
-            "rms": 0.6136
+            "n": 126,
+            "bias": -0.1938,
+            "rms": 0.6041
           }
         },
         {
           "rangeKm": "50-100",
           "pga": {
-            "n": 170,
-            "bias": 0.0039,
-            "rms": 0.3264
+            "n": 465,
+            "bias": -0.0318,
+            "rms": 0.3041
           },
           "pgv": {
-            "n": 170,
-            "bias": 0.0198,
-            "rms": 0.2795
+            "n": 465,
+            "bias": -0.0061,
+            "rms": 0.2622
           },
           "intensity": {
-            "n": 170,
-            "bias": -0.01,
-            "rms": 0.713
+            "n": 465,
+            "bias": -0.0846,
+            "rms": 0.6646
           }
         },
         {
           "rangeKm": "100-200",
           "pga": {
-            "n": 588,
-            "bias": -0.1112,
-            "rms": 0.458
+            "n": 1481,
+            "bias": -0.0242,
+            "rms": 0.3681
           },
           "pgv": {
-            "n": 588,
-            "bias": -0.0381,
-            "rms": 0.3027
+            "n": 1481,
+            "bias": -0.0404,
+            "rms": 0.2721
           },
           "intensity": {
-            "n": 588,
-            "bias": -0.3469,
-            "rms": 0.9154
+            "n": 1481,
+            "bias": -0.1578,
+            "rms": 0.7238
           }
         },
         {
           "rangeKm": "200-400",
           "pga": {
-            "n": 1338,
-            "bias": -0.2222,
-            "rms": 0.4915
+            "n": 2262,
+            "bias": -0.1368,
+            "rms": 0.4216
           },
           "pgv": {
-            "n": 1338,
-            "bias": -0.0599,
-            "rms": 0.3001
+            "n": 2262,
+            "bias": -0.0986,
+            "rms": 0.3084
           },
           "intensity": {
-            "n": 1338,
-            "bias": -0.3638,
-            "rms": 0.79
+            "n": 2262,
+            "bias": -0.3407,
+            "rms": 0.7202
           }
         },
         {
           "rangeKm": ">=400",
           "pga": {
-            "n": 489,
-            "bias": -0.6499,
-            "rms": 0.8437
+            "n": 553,
+            "bias": -0.6319,
+            "rms": 0.8135
           },
           "pgv": {
-            "n": 489,
-            "bias": -0.1919,
-            "rms": 0.3898
+            "n": 553,
+            "bias": -0.2201,
+            "rms": 0.4081
           },
           "intensity": {
-            "n": 489,
-            "bias": -0.435,
-            "rms": 0.8218
+            "n": 553,
+            "bias": -0.4803,
+            "rms": 0.8369
           }
         }
       ]
@@ -2228,19 +4286,19 @@
       {
         "model": "si-midorikawa",
         "pga": {
-          "n": 701,
-          "bias": 0.053,
-          "rms": 0.3061
+          "n": 2962,
+          "bias": -0.0005,
+          "rms": 0.3023
         },
         "pgv": {
-          "n": 701,
-          "bias": -0.0763,
-          "rms": 0.3135
+          "n": 2962,
+          "bias": -0.0936,
+          "rms": 0.2983
         },
         "intensity": {
-          "n": 701,
-          "bias": -0.1028,
-          "rms": 0.6313
+          "n": 2962,
+          "bias": -0.1676,
+          "rms": 0.6114
         }
       },
       {
@@ -2264,17 +4322,17 @@
     ],
     "correctionEvaluation": {
       "type": "blanket magnitude-bin (M>=6.5) additive intensity shift, evaluated as a reference; the shipped calibration may additionally carry a modelBias block keyed by routed model and hypocentral distance, which the prediction path applies through calibrateIntensity(I, mag, {model, distKm})",
-      "fittedShift": 0.3462,
+      "fittedShift": 0.2729,
       "overall": {
         "before": {
-          "n": 2626,
-          "bias": -0.3462,
-          "rms": 0.8186
+          "n": 4887,
+          "bias": -0.2729,
+          "rms": 0.7277
         },
         "after": {
-          "n": 2626,
+          "n": 4887,
           "bias": 0,
-          "rms": 0.7418
+          "rms": 0.6746
         }
       },
       "perEvent": [
@@ -2284,8 +4342,8 @@
           "n": 600,
           "biasBefore": -0.5151,
           "rmsBefore": 0.846,
-          "biasAfter": -0.1689,
-          "rmsAfter": 0.6921
+          "biasAfter": -0.2422,
+          "rmsAfter": 0.7136
         },
         {
           "eventId": "kumamoto2016",
@@ -2293,8 +4351,8 @@
           "n": 333,
           "biasBefore": -0.1041,
           "rmsBefore": 0.6431,
-          "biasAfter": 0.2421,
-          "rmsAfter": 0.6792
+          "biasAfter": 0.1687,
+          "rmsAfter": 0.6566
         },
         {
           "eventId": "tokachi2003",
@@ -2302,8 +4360,8 @@
           "n": 552,
           "biasBefore": -0.1697,
           "rmsBefore": 0.6279,
-          "biasAfter": 0.1765,
-          "rmsAfter": 0.6297
+          "biasAfter": 0.1031,
+          "rmsAfter": 0.6133
         },
         {
           "eventId": "fukushima2022",
@@ -2311,8 +4369,8 @@
           "n": 600,
           "biasBefore": -0.8666,
           "rmsBefore": 1.12,
-          "biasAfter": -0.5204,
-          "rmsAfter": 0.8799
+          "biasAfter": -0.5937,
+          "rmsAfter": 0.9251
         },
         {
           "eventId": "noto2024",
@@ -2320,8 +4378,8 @@
           "n": 368,
           "biasBefore": -0.1017,
           "rmsBefore": 0.6204,
-          "biasAfter": 0.2446,
-          "rmsAfter": 0.6591
+          "biasAfter": 0.1712,
+          "rmsAfter": 0.6355
         },
         {
           "eventId": "hyuganada2024",
@@ -2329,8 +4387,71 @@
           "n": 173,
           "biasBefore": 0.495,
           "rmsBefore": 0.6829,
-          "biasAfter": 0.8412,
-          "rmsAfter": 0.9638
+          "biasAfter": 0.7679,
+          "rmsAfter": 0.9005
+        },
+        {
+          "eventId": "chuetsu2004",
+          "model": "si-midorikawa",
+          "n": 209,
+          "biasBefore": 0.1972,
+          "rmsBefore": 0.6411,
+          "biasAfter": 0.4701,
+          "rmsAfter": 0.7701
+        },
+        {
+          "eventId": "iwate2008",
+          "model": "si-midorikawa",
+          "n": 367,
+          "biasBefore": -0.297,
+          "rmsBefore": 0.6973,
+          "biasAfter": -0.0241,
+          "rmsAfter": 0.6314
+        },
+        {
+          "eventId": "fukuoka2005",
+          "model": "si-midorikawa",
+          "n": 294,
+          "biasBefore": -0.1942,
+          "rmsBefore": 0.4936,
+          "biasAfter": 0.0787,
+          "rmsAfter": 0.4606
+        },
+        {
+          "eventId": "noto2007",
+          "model": "si-midorikawa",
+          "n": 358,
+          "biasBefore": -0.1947,
+          "rmsBefore": 0.5422,
+          "biasAfter": 0.0782,
+          "rmsAfter": 0.512
+        },
+        {
+          "eventId": "fukushima2011",
+          "model": "si-midorikawa",
+          "n": 430,
+          "biasBefore": -0.2364,
+          "rmsBefore": 0.5813,
+          "biasAfter": 0.0365,
+          "rmsAfter": 0.5323
+        },
+        {
+          "eventId": "yamagata2019",
+          "model": "si-midorikawa",
+          "n": 230,
+          "biasBefore": -0.2689,
+          "rmsBefore": 0.5622,
+          "biasAfter": 0.0039,
+          "rmsAfter": 0.4937
+        },
+        {
+          "eventId": "iburihigashi2018",
+          "model": "si-midorikawa",
+          "n": 373,
+          "biasBefore": -0.1779,
+          "rmsBefore": 0.6727,
+          "biasAfter": 0.095,
+          "rmsAfter": 0.6556
         }
       ]
     },
@@ -3137,6 +5258,944 @@
         "crossScaleMmiReference": {
           "n": 173,
           "meanPredJmaMinusMmi": -0.2
+        }
+      },
+      {
+        "eventId": "chuetsu2004",
+        "usgsId": "usp000d6vn",
+        "mw": 6.1,
+        "depthKm": 10.5,
+        "sourceType": "crustal",
+        "model": "si-midorikawa",
+        "predictionHypocenter": {
+          "mode": "usgs",
+          "lat": 37.318,
+          "lng": 138.816,
+          "depthKm": 10.5,
+          "mw": 6.1,
+          "source": "frozen obs file (USGS)",
+          "usgs": {
+            "lat": 37.318,
+            "lng": 138.816,
+            "depthKm": 10.5,
+            "mw": 6.1
+          }
+        },
+        "stations": 209,
+        "pga": {
+          "n": 209,
+          "bias": 0.1167,
+          "rms": 0.3019
+        },
+        "pgv": {
+          "n": 209,
+          "bias": 0.1252,
+          "rms": 0.3078
+        },
+        "intensity": {
+          "n": 209,
+          "bias": 0.1972,
+          "rms": 0.6411
+        },
+        "distanceBins": [
+          {
+            "rangeKm": "<50",
+            "pga": {
+              "n": 8,
+              "bias": 0.1693,
+              "rms": 0.282
+            },
+            "pgv": {
+              "n": 8,
+              "bias": 0.1655,
+              "rms": 0.2571
+            },
+            "intensity": {
+              "n": 8,
+              "bias": 0.3776,
+              "rms": 0.6289
+            }
+          },
+          {
+            "rangeKm": "50-100",
+            "pga": {
+              "n": 45,
+              "bias": 0.0941,
+              "rms": 0.3405
+            },
+            "pgv": {
+              "n": 45,
+              "bias": 0.1782,
+              "rms": 0.324
+            },
+            "intensity": {
+              "n": 45,
+              "bias": 0.2021,
+              "rms": 0.7456
+            }
+          },
+          {
+            "rangeKm": "100-200",
+            "pga": {
+              "n": 134,
+              "bias": 0.1361,
+              "rms": 0.3023
+            },
+            "pgv": {
+              "n": 134,
+              "bias": 0.153,
+              "rms": 0.3022
+            },
+            "intensity": {
+              "n": 134,
+              "bias": 0.2524,
+              "rms": 0.6248
+            }
+          },
+          {
+            "rangeKm": "200-400",
+            "pga": {
+              "n": 22,
+              "bias": 0.0255,
+              "rms": 0.2082
+            },
+            "pgv": {
+              "n": 22,
+              "bias": -0.1671,
+              "rms": 0.3243
+            },
+            "intensity": {
+              "n": 22,
+              "bias": -0.2148,
+              "rms": 0.4964
+            }
+          },
+          {
+            "rangeKm": ">=400",
+            "pga": {
+              "n": 0,
+              "bias": null,
+              "rms": null
+            },
+            "pgv": {
+              "n": 0,
+              "bias": null,
+              "rms": null
+            },
+            "intensity": {
+              "n": 0,
+              "bias": null,
+              "rms": null
+            }
+          }
+        ],
+        "crossScaleMmiReference": {
+          "n": 209,
+          "meanPredJmaMinusMmi": -0.2414
+        }
+      },
+      {
+        "eventId": "iwate2008",
+        "usgsId": "usp000g9h6",
+        "mw": 6.9,
+        "depthKm": 7.8,
+        "sourceType": "crustal",
+        "model": "si-midorikawa",
+        "predictionHypocenter": {
+          "mode": "usgs",
+          "lat": 39.03,
+          "lng": 140.881,
+          "depthKm": 7.8,
+          "mw": 6.9,
+          "source": "frozen obs file (USGS)",
+          "usgs": {
+            "lat": 39.03,
+            "lng": 140.881,
+            "depthKm": 7.8,
+            "mw": 6.9
+          }
+        },
+        "stations": 367,
+        "pga": {
+          "n": 367,
+          "bias": -0.0393,
+          "rms": 0.313
+        },
+        "pgv": {
+          "n": 367,
+          "bias": -0.1686,
+          "rms": 0.3596
+        },
+        "intensity": {
+          "n": 367,
+          "bias": -0.297,
+          "rms": 0.6973
+        },
+        "distanceBins": [
+          {
+            "rangeKm": "<50",
+            "pga": {
+              "n": 22,
+              "bias": -0.0876,
+              "rms": 0.2013
+            },
+            "pgv": {
+              "n": 22,
+              "bias": -0.04,
+              "rms": 0.2201
+            },
+            "intensity": {
+              "n": 22,
+              "bias": -0.1953,
+              "rms": 0.4489
+            }
+          },
+          {
+            "rangeKm": "50-100",
+            "pga": {
+              "n": 63,
+              "bias": 0.0722,
+              "rms": 0.2608
+            },
+            "pgv": {
+              "n": 63,
+              "bias": 0.071,
+              "rms": 0.2234
+            },
+            "intensity": {
+              "n": 63,
+              "bias": 0.1221,
+              "rms": 0.537
+            }
+          },
+          {
+            "rangeKm": "100-200",
+            "pga": {
+              "n": 118,
+              "bias": 0.0118,
+              "rms": 0.2953
+            },
+            "pgv": {
+              "n": 118,
+              "bias": -0.0804,
+              "rms": 0.2247
+            },
+            "intensity": {
+              "n": 118,
+              "bias": -0.1157,
+              "rms": 0.5552
+            }
+          },
+          {
+            "rangeKm": "200-400",
+            "pga": {
+              "n": 149,
+              "bias": -0.0836,
+              "rms": 0.3449
+            },
+            "pgv": {
+              "n": 149,
+              "bias": -0.3186,
+              "rms": 0.4586
+            },
+            "intensity": {
+              "n": 149,
+              "bias": -0.5642,
+              "rms": 0.827
+            }
+          },
+          {
+            "rangeKm": ">=400",
+            "pga": {
+              "n": 15,
+              "bias": -0.3973,
+              "rms": 0.4285
+            },
+            "pgv": {
+              "n": 15,
+              "bias": -0.5689,
+              "rms": 0.6293
+            },
+            "intensity": {
+              "n": 15,
+              "bias": -0.9785,
+              "rms": 1.0824
+            }
+          }
+        ],
+        "crossScaleMmiReference": {
+          "n": 367,
+          "meanPredJmaMinusMmi": -0.7561
+        }
+      },
+      {
+        "eventId": "fukuoka2005",
+        "usgsId": "usp000djku",
+        "mw": 6.6,
+        "depthKm": 10,
+        "sourceType": "crustal",
+        "model": "si-midorikawa",
+        "predictionHypocenter": {
+          "mode": "usgs",
+          "lat": 33.807,
+          "lng": 130.131,
+          "depthKm": 10,
+          "mw": 6.6,
+          "source": "frozen obs file (USGS)",
+          "usgs": {
+            "lat": 33.807,
+            "lng": 130.131,
+            "depthKm": 10,
+            "mw": 6.6
+          }
+        },
+        "stations": 294,
+        "pga": {
+          "n": 294,
+          "bias": -0.0019,
+          "rms": 0.2484
+        },
+        "pgv": {
+          "n": 294,
+          "bias": -0.1341,
+          "rms": 0.2377
+        },
+        "intensity": {
+          "n": 294,
+          "bias": -0.1942,
+          "rms": 0.4936
+        },
+        "distanceBins": [
+          {
+            "rangeKm": "<50",
+            "pga": {
+              "n": 11,
+              "bias": -0.1261,
+              "rms": 0.2064
+            },
+            "pgv": {
+              "n": 11,
+              "bias": -0.0851,
+              "rms": 0.2138
+            },
+            "intensity": {
+              "n": 11,
+              "bias": -0.2812,
+              "rms": 0.4602
+            }
+          },
+          {
+            "rangeKm": "50-100",
+            "pga": {
+              "n": 45,
+              "bias": -0.1277,
+              "rms": 0.2836
+            },
+            "pgv": {
+              "n": 45,
+              "bias": -0.0904,
+              "rms": 0.2023
+            },
+            "intensity": {
+              "n": 45,
+              "bias": -0.2863,
+              "rms": 0.6313
+            }
+          },
+          {
+            "rangeKm": "100-200",
+            "pga": {
+              "n": 121,
+              "bias": 0.0523,
+              "rms": 0.2685
+            },
+            "pgv": {
+              "n": 121,
+              "bias": -0.1084,
+              "rms": 0.2293
+            },
+            "intensity": {
+              "n": 121,
+              "bias": -0.039,
+              "rms": 0.4571
+            }
+          },
+          {
+            "rangeKm": "200-400",
+            "pga": {
+              "n": 116,
+              "bias": 0.0042,
+              "rms": 0.2129
+            },
+            "pgv": {
+              "n": 116,
+              "bias": -0.1797,
+              "rms": 0.2577
+            },
+            "intensity": {
+              "n": 116,
+              "bias": -0.307,
+              "rms": 0.4686
+            }
+          },
+          {
+            "rangeKm": ">=400",
+            "pga": {
+              "n": 1,
+              "bias": -0.2629,
+              "rms": 0.2629
+            },
+            "pgv": {
+              "n": 1,
+              "bias": -0.4514,
+              "rms": 0.4514
+            },
+            "intensity": {
+              "n": 1,
+              "bias": -0.7764,
+              "rms": 0.7764
+            }
+          }
+        ],
+        "crossScaleMmiReference": {
+          "n": 294,
+          "meanPredJmaMinusMmi": -0.7376
+        }
+      },
+      {
+        "eventId": "noto2007",
+        "usgsId": "usp000f7b5",
+        "mw": 6.7,
+        "depthKm": 8,
+        "sourceType": "crustal",
+        "model": "si-midorikawa",
+        "predictionHypocenter": {
+          "mode": "usgs",
+          "lat": 37.336,
+          "lng": 136.588,
+          "depthKm": 8,
+          "mw": 6.7,
+          "source": "frozen obs file (USGS)",
+          "usgs": {
+            "lat": 37.336,
+            "lng": 136.588,
+            "depthKm": 8,
+            "mw": 6.7
+          }
+        },
+        "stations": 358,
+        "pga": {
+          "n": 358,
+          "bias": -0.0147,
+          "rms": 0.2999
+        },
+        "pgv": {
+          "n": 358,
+          "bias": -0.086,
+          "rms": 0.2595
+        },
+        "intensity": {
+          "n": 358,
+          "bias": -0.1947,
+          "rms": 0.5422
+        },
+        "distanceBins": [
+          {
+            "rangeKm": "<50",
+            "pga": {
+              "n": 2,
+              "bias": -0.4061,
+              "rms": 0.407
+            },
+            "pgv": {
+              "n": 2,
+              "bias": -0.5807,
+              "rms": 0.5816
+            },
+            "intensity": {
+              "n": 2,
+              "bias": -0.9056,
+              "rms": 0.9076
+            }
+          },
+          {
+            "rangeKm": "50-100",
+            "pga": {
+              "n": 17,
+              "bias": -0.2837,
+              "rms": 0.3212
+            },
+            "pgv": {
+              "n": 17,
+              "bias": -0.2584,
+              "rms": 0.3283
+            },
+            "intensity": {
+              "n": 17,
+              "bias": -0.6327,
+              "rms": 0.7162
+            }
+          },
+          {
+            "rangeKm": "100-200",
+            "pga": {
+              "n": 98,
+              "bias": -0.0266,
+              "rms": 0.3428
+            },
+            "pgv": {
+              "n": 98,
+              "bias": -0.0738,
+              "rms": 0.2255
+            },
+            "intensity": {
+              "n": 98,
+              "bias": -0.2016,
+              "rms": 0.6259
+            }
+          },
+          {
+            "rangeKm": "200-400",
+            "pga": {
+              "n": 226,
+              "bias": 0.0454,
+              "rms": 0.2563
+            },
+            "pgv": {
+              "n": 226,
+              "bias": -0.0616,
+              "rms": 0.2582
+            },
+            "intensity": {
+              "n": 226,
+              "bias": -0.1317,
+              "rms": 0.4784
+            }
+          },
+          {
+            "rangeKm": ">=400",
+            "pga": {
+              "n": 15,
+              "bias": -0.485,
+              "rms": 0.4998
+            },
+            "pgv": {
+              "n": 15,
+              "bias": -0.2719,
+              "rms": 0.3217
+            },
+            "intensity": {
+              "n": 15,
+              "bias": -0.5077,
+              "rms": 0.5639
+            }
+          }
+        ],
+        "crossScaleMmiReference": {
+          "n": 358,
+          "meanPredJmaMinusMmi": -0.8121
+        }
+      },
+      {
+        "eventId": "fukushima2011",
+        "usgsId": "usp000hzq8",
+        "mw": 6.6,
+        "depthKm": 11,
+        "sourceType": "crustal",
+        "model": "si-midorikawa",
+        "predictionHypocenter": {
+          "mode": "usgs",
+          "lat": 37.001,
+          "lng": 140.401,
+          "depthKm": 11,
+          "mw": 6.6,
+          "source": "frozen obs file (USGS)",
+          "usgs": {
+            "lat": 37.001,
+            "lng": 140.401,
+            "depthKm": 11,
+            "mw": 6.6
+          }
+        },
+        "stations": 430,
+        "pga": {
+          "n": 430,
+          "bias": -0.0403,
+          "rms": 0.2748
+        },
+        "pgv": {
+          "n": 430,
+          "bias": -0.1406,
+          "rms": 0.3017
+        },
+        "intensity": {
+          "n": 430,
+          "bias": -0.2364,
+          "rms": 0.5813
+        },
+        "distanceBins": [
+          {
+            "rangeKm": "<50",
+            "pga": {
+              "n": 24,
+              "bias": -0.0834,
+              "rms": 0.2526
+            },
+            "pgv": {
+              "n": 24,
+              "bias": -0.0437,
+              "rms": 0.2317
+            },
+            "intensity": {
+              "n": 24,
+              "bias": -0.1859,
+              "rms": 0.5632
+            }
+          },
+          {
+            "rangeKm": "50-100",
+            "pga": {
+              "n": 62,
+              "bias": -0.1247,
+              "rms": 0.2972
+            },
+            "pgv": {
+              "n": 62,
+              "bias": -0.0579,
+              "rms": 0.2658
+            },
+            "intensity": {
+              "n": 62,
+              "bias": -0.2781,
+              "rms": 0.6627
+            }
+          },
+          {
+            "rangeKm": "100-200",
+            "pga": {
+              "n": 199,
+              "bias": -0.0178,
+              "rms": 0.2505
+            },
+            "pgv": {
+              "n": 199,
+              "bias": -0.1341,
+              "rms": 0.2708
+            },
+            "intensity": {
+              "n": 199,
+              "bias": -0.1504,
+              "rms": 0.4906
+            }
+          },
+          {
+            "rangeKm": "200-400",
+            "pga": {
+              "n": 141,
+              "bias": -0.0172,
+              "rms": 0.2945
+            },
+            "pgv": {
+              "n": 141,
+              "bias": -0.1824,
+              "rms": 0.3356
+            },
+            "intensity": {
+              "n": 141,
+              "bias": -0.313,
+              "rms": 0.6174
+            }
+          },
+          {
+            "rangeKm": ">=400",
+            "pga": {
+              "n": 4,
+              "bias": -0.4087,
+              "rms": 0.4308
+            },
+            "pgv": {
+              "n": 4,
+              "bias": -0.8512,
+              "rms": 0.8631
+            },
+            "intensity": {
+              "n": 4,
+              "bias": -1.464,
+              "rms": 1.4846
+            }
+          }
+        ],
+        "crossScaleMmiReference": {
+          "n": 430,
+          "meanPredJmaMinusMmi": -0.7615
+        }
+      },
+      {
+        "eventId": "yamagata2019",
+        "usgsId": "us600042fx",
+        "mw": 6.4,
+        "depthKm": 12,
+        "sourceType": "crustal",
+        "model": "si-midorikawa",
+        "predictionHypocenter": {
+          "mode": "usgs",
+          "lat": 38.6391,
+          "lng": 139.4769,
+          "depthKm": 12,
+          "mw": 6.4,
+          "source": "frozen obs file (USGS)",
+          "usgs": {
+            "lat": 38.6391,
+            "lng": 139.4769,
+            "depthKm": 12,
+            "mw": 6.4
+          }
+        },
+        "stations": 230,
+        "pga": {
+          "n": 230,
+          "bias": -0.0644,
+          "rms": 0.2434
+        },
+        "pgv": {
+          "n": 230,
+          "bias": -0.0916,
+          "rms": 0.2646
+        },
+        "intensity": {
+          "n": 230,
+          "bias": -0.2689,
+          "rms": 0.5622
+        },
+        "distanceBins": [
+          {
+            "rangeKm": "<50",
+            "pga": {
+              "n": 5,
+              "bias": -0.0721,
+              "rms": 0.2109
+            },
+            "pgv": {
+              "n": 5,
+              "bias": -0.1759,
+              "rms": 0.1901
+            },
+            "intensity": {
+              "n": 5,
+              "bias": -0.1608,
+              "rms": 0.4704
+            }
+          },
+          {
+            "rangeKm": "50-100",
+            "pga": {
+              "n": 21,
+              "bias": -0.083,
+              "rms": 0.2521
+            },
+            "pgv": {
+              "n": 21,
+              "bias": -0.0675,
+              "rms": 0.1712
+            },
+            "intensity": {
+              "n": 21,
+              "bias": -0.1871,
+              "rms": 0.5596
+            }
+          },
+          {
+            "rangeKm": "100-200",
+            "pga": {
+              "n": 92,
+              "bias": -0.1226,
+              "rms": 0.2728
+            },
+            "pgv": {
+              "n": 92,
+              "bias": -0.0869,
+              "rms": 0.2222
+            },
+            "intensity": {
+              "n": 92,
+              "bias": -0.303,
+              "rms": 0.5803
+            }
+          },
+          {
+            "rangeKm": "200-400",
+            "pga": {
+              "n": 112,
+              "bias": -0.0128,
+              "rms": 0.2159
+            },
+            "pgv": {
+              "n": 112,
+              "bias": -0.0963,
+              "rms": 0.31
+            },
+            "intensity": {
+              "n": 112,
+              "bias": -0.2611,
+              "rms": 0.5511
+            }
+          },
+          {
+            "rangeKm": ">=400",
+            "pga": {
+              "n": 0,
+              "bias": null,
+              "rms": null
+            },
+            "pgv": {
+              "n": 0,
+              "bias": null,
+              "rms": null
+            },
+            "intensity": {
+              "n": 0,
+              "bias": null,
+              "rms": null
+            }
+          }
+        ],
+        "crossScaleMmiReference": {
+          "n": 230,
+          "meanPredJmaMinusMmi": -0.7818
+        }
+      },
+      {
+        "eventId": "iburihigashi2018",
+        "usgsId": "us2000h8ty",
+        "mw": 6.6,
+        "depthKm": 35,
+        "sourceType": "crustal",
+        "model": "si-midorikawa",
+        "predictionHypocenter": {
+          "mode": "usgs",
+          "lat": 42.6861,
+          "lng": 141.9294,
+          "depthKm": 35,
+          "mw": 6.6,
+          "source": "frozen obs file (USGS)",
+          "usgs": {
+            "lat": 42.6861,
+            "lng": 141.9294,
+            "depthKm": 35,
+            "mw": 6.6
+          }
+        },
+        "stations": 373,
+        "pga": {
+          "n": 373,
+          "bias": -0.0286,
+          "rms": 0.3789
+        },
+        "pgv": {
+          "n": 373,
+          "bias": -0.0976,
+          "rms": 0.2908
+        },
+        "intensity": {
+          "n": 373,
+          "bias": -0.1779,
+          "rms": 0.6727
+        },
+        "distanceBins": [
+          {
+            "rangeKm": "<50",
+            "pga": {
+              "n": 13,
+              "bias": -0.3082,
+              "rms": 0.3983
+            },
+            "pgv": {
+              "n": 13,
+              "bias": -0.4607,
+              "rms": 0.5283
+            },
+            "intensity": {
+              "n": 13,
+              "bias": -0.6873,
+              "rms": 0.8883
+            }
+          },
+          {
+            "rangeKm": "50-100",
+            "pga": {
+              "n": 42,
+              "bias": -0.0992,
+              "rms": 0.276
+            },
+            "pgv": {
+              "n": 42,
+              "bias": -0.1239,
+              "rms": 0.2259
+            },
+            "intensity": {
+              "n": 42,
+              "bias": -0.2294,
+              "rms": 0.604
+            }
+          },
+          {
+            "rangeKm": "100-200",
+            "pga": {
+              "n": 131,
+              "bias": 0.1606,
+              "rms": 0.3406
+            },
+            "pgv": {
+              "n": 131,
+              "bias": 0.0497,
+              "rms": 0.2325
+            },
+            "intensity": {
+              "n": 131,
+              "bias": 0.2479,
+              "rms": 0.6296
+            }
+          },
+          {
+            "rangeKm": "200-400",
+            "pga": {
+              "n": 158,
+              "bias": -0.0444,
+              "rms": 0.3771
+            },
+            "pgv": {
+              "n": 158,
+              "bias": -0.1287,
+              "rms": 0.2705
+            },
+            "intensity": {
+              "n": 158,
+              "bias": -0.3562,
+              "rms": 0.6461
+            }
+          },
+          {
+            "rangeKm": ">=400",
+            "pga": {
+              "n": 29,
+              "bias": -0.5698,
+              "rms": 0.6056
+            },
+            "pgv": {
+              "n": 29,
+              "bias": -0.3931,
+              "rms": 0.4956
+            },
+            "intensity": {
+              "n": 29,
+              "bias": -0.8269,
+              "rms": 0.9342
+            }
+          }
+        ],
+        "crossScaleMmiReference": {
+          "n": 373,
+          "meanPredJmaMinusMmi": -0.7679
         }
       }
     ],
