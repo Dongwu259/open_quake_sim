@@ -1128,6 +1128,71 @@ Physics.shTransferComplex = function(profile, freqs) {
   return { re: complex.map(function(c) { return c.re; }), im: complex.map(function(c) { return c.im; }) };
 };
 
+// Public alias of the tabulated-curve interpolation for research tooling
+// (frozen external benchmarks interpolate the case's own curve tables).
+Physics.interpolateLayerCurve = function(curve, strainPct) { return _interpLayerCurve(curve, strainPct); };
+
+// Per-layer shear-strain transfer, SHAKE-style full frequency-domain strain:
+// γ_m(f) = T_m(f)·F(f), where F is the halfspace-outcrop acceleration
+// spectrum in g and T_m maps it to layer-m mid-depth shear strain (decimal).
+// Derivation: the propagator state (u dimensionless, τ ~ Zω) gives
+// γ_rel = τ/μ* per unit surface displacement; the surface/outcrop
+// normalization A(f) = 1/(u_b + τ_b/(iZ_bω)) and the displacement spectrum
+// D_in = -F·9.81/ω² combine to T_m = -(9.81/ω²)·A·γ_rel,m.
+// Research path for the external benchmark ladder; production
+// siteResponse1D keeps its bounded single-frequency strain proxy.
+// Returns an array of nLayers {re, im} arrays, or null.
+Physics.shStrainTransfers = function(profile, freqs) {
+  if (!profile || profile.length < 2 || !freqs || !freqs.length) return null;
+  var layers = [];
+  for (var i = 0; i < profile.length; i++) {
+    var p = profile[i];
+    var vs = Number(p.vs);
+    if (!(vs > 0)) return null;
+    var zeta = p.damping == null ? 0.02 : Number(p.damping);
+    var rho = p.density == null ? Physics.densityFromVs(vs) : Number(p.density);
+    if (!(rho > 0)) return null;
+    layers.push({ vsC: { re: vs, im: vs * zeta }, rho: rho, thickness: Number(p.thickness) });
+  }
+  var bed = layers[layers.length - 1];
+  var Zb = cScale(bed.vsC, bed.rho);
+  var nSoil = layers.length - 1;
+  var out = [];
+  for (var m = 0; m < nSoil; m++) out.push({ re: [], im: [] });
+  for (var k = 0; k < freqs.length; k++) {
+    var w = 2 * Math.PI * freqs[k];
+    if (!(w > 0)) return null;
+    var u = { re: 1, im: 0 }, tau = { re: 0, im: 0 };
+    for (var m2 = 0; m2 < nSoil; m2++) {
+      var L = layers[m2];
+      if (!(L.thickness > 0)) continue; // zero-thickness layer: identity
+      var Zm = cScale(L.vsC, L.rho);
+      var mu = cMul(L.vsC, cScale(L.vsC, L.rho)); // mu* = rho * Vs*^2
+      var aHalf = cDiv(cScale({ re: w * L.thickness / 2, im: 0 }, 1), L.vsC);
+      var ca = cCos(aHalf), sa = cSin(aHalf);
+      // mid-layer state: propagate h/2 from the layer top
+      var uMid = cAdd(cMul(u, ca), cDiv(cMul(tau, sa), cScale(Zm, w)));
+      var tauMid = cAdd(cMul(tau, ca), cNeg(cMul(cScale(Zm, w), cMul(u, sa))));
+      var gRel = cDiv(tauMid, mu); // strain per unit surface displacement
+      // continue to the layer bottom (same step again, from the mid state)
+      u = cAdd(cMul(uMid, ca), cDiv(cMul(tauMid, sa), cScale(Zm, w)));
+      tau = cAdd(cMul(tauMid, ca), cNeg(cMul(cScale(Zm, w), cMul(uMid, sa))));
+      out[m2]._uBottom = u; out[m2]._tauBottom = tau; // stash for A below
+      out[m2]._gRel = gRel;
+    }
+    // normalization: A(f) for unit outcrop input (state at halfspace top)
+    var denom = cAdd(u, cDiv(tau, cMul(cScale(Zb, w), { re: 0, im: 1 })));
+    var A = cDiv({ re: 1, im: 0 }, denom);
+    var amp2acc = -9.81 / (w * w); // displacement-per-acceleration + sign
+    for (var m3 = 0; m3 < nSoil; m3++) {
+      var t = cMul(cScale(out[m3]._gRel, amp2acc), A);
+      out[m3].re.push(t.re); out[m3].im.push(t.im);
+      delete out[m3]._gRel; delete out[m3]._uBottom; delete out[m3]._tauBottom;
+    }
+  }
+  return out;
+};
+
 // ================================================================
 //  Site response — Darendeli (2001) curves + equivalent-linear 1D
 //  (R2 engine; curve coefficients cross-checked against the reference

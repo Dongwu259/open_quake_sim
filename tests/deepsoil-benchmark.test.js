@@ -17,7 +17,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
-const { runCase, CASE_PATH } = require('../tools/run-deepsoil-benchmark.js');
+const { runCase, runCaseSpectral, CASE_PATH } = require('../tools/run-deepsoil-benchmark.js');
 
 const CASE = JSON.parse(fs.readFileSync(CASE_PATH, 'utf8'));
 
@@ -77,4 +77,50 @@ test('EERA 10-layer case: nonlinear deamplification trend and frozen-result trip
   // first-run result (any physics.js change that shifts the benchmark trips)
   assert.ok(Math.abs(r.peakOut - CASE.ourResult.surfacePeakG) / CASE.ourResult.surfacePeakG < 0.005,
     `live surface peak ${r.peakOut.toFixed(6)} drifted from frozen ${CASE.ourResult.surfacePeakG}`);
+});
+
+test('EERA 10-layer case: spectral (full frequency-domain) strain path', () => {
+  const rs = runCaseSpectral(CASE, 0.1);
+  assert.ok(rs.res.converged, `spectral EQL must converge (iter ${rs.res.iter})`);
+  // pre-registered ±10%: full frequency-domain strain; the published 0.1904 g
+  // sits between the proxy (-5.3%) and this path (+5.3%)
+  assert.ok(rs.peakOut >= 0.171 && rs.peakOut <= 0.209,
+    `spectral surface peak ${rs.peakOut.toFixed(4)} g outside ±10% of published 0.190411 g`);
+  assert.ok(Math.abs(rs.tPeak - CASE.published.surfacePeakTimeSec) <= 0.1,
+    `spectral peak time ${rs.tPeak.toFixed(2)} s vs published ${CASE.published.surfacePeakTimeSec} s`);
+  // converged modulus degradation matches the published final iteration on
+  // every sublayer (the proxy's documented top-sublayer 25x strain overshoot
+  // surfaced as G/Gmax deviations up to 0.39; the spectral path closes it)
+  for (let i = 0; i < 16; i++) {
+    assert.ok(Math.abs(rs.res.ggmax[i] - CASE.published.converged[i].ggmax) <= 0.05,
+      `sublayer ${i + 1} spectral G/Gmax ${rs.res.ggmax[i].toFixed(3)} vs published ${CASE.published.converged[i].ggmax.toFixed(3)}`);
+  }
+  // drift tripwire on the frozen spectral result
+  assert.ok(CASE.ourResultSpectral && CASE.ourResultSpectral.surfacePeakG > 0, 'ourResultSpectral frozen');
+  assert.ok(Math.abs(rs.peakOut - CASE.ourResultSpectral.surfacePeakG) / CASE.ourResultSpectral.surfacePeakG < 0.005,
+    `live spectral peak ${rs.peakOut.toFixed(6)} drifted from frozen ${CASE.ourResultSpectral.surfacePeakG}`);
+});
+
+test('EERA 10-layer case: Itasca 9-level scaling ladder', () => {
+  const ladder = CASE.ladder;
+  assert.equal(ladder.length, 9, 'nine frozen ladder levels');
+  // amplification must not increase with input level (nonlinear deamplifying
+  // deposit) in EITHER strain mode; 1e-3 tolerance for numerical wiggle
+  for (let i = 1; i < ladder.length; i++) {
+    assert.ok(ladder[i].ampProxy <= ladder[i - 1].ampProxy + 1e-3,
+      `proxy amp rose ${ladder[i - 1].ampProxy} → ${ladder[i].ampProxy} at ${ladder[i].inputG} g`);
+    assert.ok(ladder[i].ampSpectral <= ladder[i - 1].ampSpectral + 1e-3,
+      `spectral amp rose ${ladder[i - 1].ampSpectral} → ${ladder[i].ampSpectral} at ${ladder[i].inputG} g`);
+  }
+  // linear limit: 0.0001 g sits within 5% of the 0.001 g value (still linear)
+  assert.ok(Math.abs(ladder[0].ampSpectral - ladder[2].ampSpectral) / ladder[2].ampSpectral < 0.05,
+    'linear-limit amplification inconsistent');
+  // the two strain modes converge at strong input (softening dominates the
+  // strain-estimate difference)
+  assert.ok(Math.abs(ladder[7].ampProxy - ladder[7].ampSpectral) < 0.05 && Math.abs(ladder[8].ampProxy - ladder[8].ampSpectral) < 0.05,
+    `modes failed to converge at strong input: 0.5 g ${ladder[7].ampProxy}/${ladder[7].ampSpectral}, 1 g ${ladder[8].ampProxy}/${ladder[8].ampSpectral}`);
+  // published-level bracket: EERA 1.904 amplification sits between the modes
+  const pubAmp = CASE.published.surfacePeakG / 0.1;
+  assert.ok(ladder[6].ampProxy <= pubAmp + 1e-3 && ladder[6].ampSpectral >= pubAmp - 1e-3,
+    `published amplification ${pubAmp.toFixed(3)} not bracketed by [${ladder[6].ampProxy}, ${ladder[6].ampSpectral}]`);
 });
