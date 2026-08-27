@@ -1,6 +1,6 @@
 {
  "schema": "quake-sim-experiment-manifest-v1",
- "generated": "2026-08-26T12:12:15.399Z",
+ "generated": "2026-08-27T15:17:10.210Z",
  "identityRule": "qsx1-<sha256[:16] of file bytes>; manifest excluded from its own listing",
  "entries": [
   {
@@ -11,6 +11,15 @@
    "track": null,
    "gate": null,
    "mtime": "2026-08-21T16:19:07.493Z"
+  },
+  {
+   "id": "qsx1-a06159acd3f2d1c1",
+   "name": "deepsoil-benchmark-case.json",
+   "bytes": 36743,
+   "kind": "fixture",
+   "track": "R7",
+   "gate": "tests/deepsoil-benchmark.test.js",
+   "mtime": "2026-08-27T15:16:56.833Z"
   },
   {
    "id": "qsx1-ccf6289f3e630e25",

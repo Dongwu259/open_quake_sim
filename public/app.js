@@ -1172,6 +1172,7 @@ function _landuseManningField(grid){
   return out;
 }
 function onTsunamiRuntimeConfigChanged() {
+  if (cfgGet('tsunamiRoughness') === 'landuse') _loadLanduseManningPack();
   resetTsunamiSolverRuntime();
   if(!isRunning)rebuildTsunamiResearchSnapshot();
   if(typeof drawFrame==='function')drawFrame();
@@ -1448,6 +1449,12 @@ map.on('click', function(e) {
   }
 });
 
+// Explain the disabled start button when no epicenter is set — the only
+// disabled state whose cause is not already visible in the UI.
+function _syncStartBtnHint(){
+  if (!btnStart) return;
+  btnStart.title = (btnStart.disabled && !epicenter) ? t('btn.start.need_epicenter') : '';
+}
 function setEpicenter(lat, lng) {
   _deactivateObservedFiniteFault('event-parameter-change');
   if (epicenterMarker) map.removeLayer(epicenterMarker);
@@ -1476,6 +1483,7 @@ function setEpicenter(lat, lng) {
   if (typeof _redrawInfoCharts === 'function') _redrawInfoCharts();
   if(typeof FiniteFaultEditor!=='undefined'&&FiniteFaultEditor.drawPreview)FiniteFaultEditor.drawPreview();
   btnStart.disabled = false;
+  _syncStartBtnHint();
 }
 
 function updateEpicenterInfo() {
@@ -6510,6 +6518,11 @@ function resetSimulation() {
   // Hide aftershock timeline
   var atl = document.getElementById('aftershock-timeline');
   if (atl) atl.style.display = 'none';
+  // A selected preset survives reset — re-apply it so the app returns to the
+  // ready-to-run state (epicenter, sliders, fault model) instead of a dead
+  // disabled start button that only a preset round-trip could revive.
+  if (currentPreset && PRESETS[currentPreset]) applyPresetSelection(currentPreset);
+  _syncStartBtnHint();
 }
 
 // -- Events --
@@ -6590,8 +6603,16 @@ var PRESETS = {
 };
 document.getElementById('preset').addEventListener('change', function(){
   _deactivateObservedFiniteFault('event-parameter-change');
-  currentPreset = this.value;
-  var p = PRESETS[this.value];
+  applyPresetSelection(this.value);
+});
+// Shared by the preset <select> change handler and resetSimulation: applies a
+// preset's epicenter/slider/fault-model state. reset re-applies the selected
+// preset because wiping the epicenter there left the start button disabled
+// (not-allowed cursor) with the preset still selected — the only recovery was
+// switching presets and back.
+function applyPresetSelection(value){
+  currentPreset = value;
+  var p = PRESETS[value];
   if (!p) {
     // Custom: reset dip/rake to defaults
     currentDip = 60; currentRake = 0; _dipExplicit = false; _rakeExplicit = false;
@@ -6601,14 +6622,14 @@ document.getElementById('preset').addEventListener('change', function(){
     return;
   }
   setEpicenter(p.lat, p.lng);
-  epicenterSrc = (OBSERVED && OBSERVED[this.value] && OBSERVED[this.value].src) || p.src || null;
-  eventMw = (OBSERVED && OBSERVED[this.value] && OBSERVED[this.value].mw != null) ? OBSERVED[this.value].mw : null;
+  epicenterSrc = (OBSERVED && OBSERVED[value] && OBSERVED[value].src) || p.src || null;
+  eventMw = (OBSERVED && OBSERVED[value] && OBSERVED[value].mw != null) ? OBSERVED[value].mw : null;
   // Read dip/rake from observed.json if available
-  if (OBSERVED && OBSERVED[this.value]) {
-    currentDip = (OBSERVED[this.value].dip != null) ? OBSERVED[this.value].dip : Physics.recommendedFaultDip(activeSrcType());
-    currentRake = (OBSERVED[this.value].rake != null) ? OBSERVED[this.value].rake : 0;
-    _dipExplicit = OBSERVED[this.value].dip != null;
-    _rakeExplicit = OBSERVED[this.value].rake != null;
+  if (OBSERVED && OBSERVED[value]) {
+    currentDip = (OBSERVED[value].dip != null) ? OBSERVED[value].dip : Physics.recommendedFaultDip(activeSrcType());
+    currentRake = (OBSERVED[value].rake != null) ? OBSERVED[value].rake : 0;
+    _dipExplicit = OBSERVED[value].dip != null;
+    _rakeExplicit = OBSERVED[value].rake != null;
   } else {
     currentDip = Physics.recommendedFaultDip(activeSrcType()); currentRake = 0; _dipExplicit = false; _rakeExplicit = false;
   }
@@ -6625,7 +6646,7 @@ document.getElementById('preset').addEventListener('change', function(){
   map.setView([p.lat, p.lng], 7);
   updateEpicenterInfo();
   if (typeof FiniteFaultEditor !== 'undefined' && FiniteFaultEditor.updateVisibility) FiniteFaultEditor.updateVisibility();
-});
+}
 btnStart.addEventListener('click', startCountdown);
 btnReset.addEventListener('click', resetSimulation);
 document.getElementById('detect-mode').addEventListener('change', function(){
@@ -7340,7 +7361,12 @@ function fallbackCopy(value, onDone) {
   try { if (document.execCommand('copy')) onDone(); } catch(e) {}
   document.body.removeChild(area);
 }
-_loadLanduseManningPack();
+// Warm the optional land-use Manning pack only when it can be used — the
+// pack is intentionally not shipped, so an unconditional boot fetch 404'd on
+// every page load (console noise for default-config users; scalar fallback
+// was already in place). Config switches to 'landuse' load it via
+// onTsunamiRuntimeConfigChanged.
+if (cfgGet('tsunamiRoughness') === 'landuse') _loadLanduseManningPack();
 if (!bindHelpModal()) window.addEventListener('DOMContentLoaded', bindHelpModal);
 if (!bindFormulaModal()) window.addEventListener('DOMContentLoaded', bindFormulaModal);
 if (!bindErrorOverlay()) window.addEventListener('DOMContentLoaded', bindErrorOverlay);

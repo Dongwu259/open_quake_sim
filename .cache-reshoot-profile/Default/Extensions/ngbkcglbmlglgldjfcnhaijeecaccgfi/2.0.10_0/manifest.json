@@ -1,0 +1,33 @@
+{
+   "action": {
+      "default_popup": "index.html#/popup"
+   },
+   "background": {
+      "service_worker": "background.js"
+   },
+   "content_scripts": [ {
+      "exclude_matches": [ "*://*.kdocs.cn/*", "*://*.wps.cn/*" ],
+      "js": [ "lib/link.umd.min.js", "lib/translator.umd.min.js", "lib/ocr.umd.min.js" ],
+      "matches": [ "\u003Call_urls>" ],
+      "run_at": "document_end"
+   }, {
+      "js": [ "lib/translator.umd.min.js", "lib/ocr.umd.min.js", "lib/introduce.umd.min.js" ],
+      "matches": [ "https://tool.kdocs.cn/*", "https://dev.ext.wps.cn/*" ],
+      "run_at": "document_end"
+   } ],
+   "description": "在线查看、编辑、转换PDF，支持Word、PPT、Excel 在线浏览，新增网页翻译、图片提取字&收藏，更多功能等您体验。",
+   "host_permissions": [ "\u003Call_urls>" ],
+   "icons": {
+      "128": "icons/wps_logo_128.png",
+      "16": "icons/wps_logo_16.png",
+      "48": "icons/wps_logo_48.png"
+   },
+   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAycjdqYbw66I7JK1CeT6re2d2Vx0casueYA/ootMKbLDycVpOaDE8w8b+DV3X87gCevEVxvleU8hWZx3g3bXK2t4R3ze7z7YcyobhGXRgfwZHAXxdp160YXJ1rqCHg/Cif5qh0qEo1LrpGsllGXITFzNLN7SlGb/bZZufELrJqMU0qL6xzzSmsWnuSNTjpYATRnXSLEoe89nj6EOlqqYZpNYjjbPhP6uxi0SuZbrTgwp1deZod0cXsjA7zX3s3awgClaLlZVJnUreM21lxfA77wS/bmAM5+OhWTSIG8TuNsKJZdUZ9ItFLhnx0rHwLCST9zmAxQ5ezJb+bb9ROXFi1QIDAQAB",
+   "manifest_version": 3,
+   "name": "WPS 浏览器助手：文档在线看、网页文本翻译、图片提取文字&收藏！",
+   "optional_permissions": [ "history" ],
+   "options_page": "index.html#/options",
+   "permissions": [ "webRequest", "downloads", "storage", "tabs", "cookies", "nativeMessaging", "declarativeNetRequest", "gcm", "contextMenus" ],
+   "update_url": "https://edge.microsoft.com/extensionwebstorebase/v1/crx",
+   "version": "2.0.10"
+}

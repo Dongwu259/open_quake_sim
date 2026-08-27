@@ -21,6 +21,7 @@ const ROLES = {
   'strong-motion-report.json': { kind: 'scorecard', track: 'GMPE', gate: 'tests/scientific-tripwires.test.js' },
   'gmpe-fixtures-zhao2006.json': { kind: 'fixture', track: 'R0-3', gate: 'tests/gmpe-benchmarks.test.js' },
   'shake91-benchmark-case.json': { kind: 'fixture', track: 'v5.7 tail', gate: 'tests/shake91-benchmark.test.js' },
+  'deepsoil-benchmark-case.json': { kind: 'fixture', track: 'R7', gate: 'tests/deepsoil-benchmark.test.js' },
   'travel-time-picks.json': { kind: 'observed-picks', track: 'R3-2', gate: 'tests/jivsm-columns.test.js' },
   'f0-jivsm-reeval.json': { kind: 'experiment', track: 'v5.7 tail', gate: null },
   'version-report.json': { kind: 'envelope', track: 'R7-5', gate: 'tuning-read audit' },

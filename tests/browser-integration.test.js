@@ -130,7 +130,7 @@ async function setSelect(cdp, selector, value) {
 function installDiagnostics(cdp) {
   const errors = [];
   const requests = new Map();
-  const optionalResource = /\/geojson\/vs30\.json(?:\?|$)|\/favicon\.ico(?:\?|$)/;
+  const optionalResource = /\/geojson\/vs30\.json(?:\?|$)|\/geojson\/landuse-manning\.json(?:\?|$)|\/favicon\.ico(?:\?|$)/;
   const add = value => { if (value && !errors.includes(value)) errors.push(value); };
   cdp.on('Runtime.exceptionThrown', event => add(`exception: ${event.exceptionDetails?.exception?.description || event.exceptionDetails?.text}`));
   cdp.on('Runtime.consoleAPICalled', event => {
@@ -169,7 +169,6 @@ async function preparePage(cdp, viewport) {
 }
 
 async function commonChecks(cdp) {
-  await waitFor(cdp, `document.getElementById('promo-visit-count').textContent!=='—' && document.getElementById('promo-uptime').textContent!=='—'`, 5000, 'site visit and uptime statistics');
   const basics = await cdp.evaluate(`(() => ({
     title:document.title,
     duplicateIds:[...document.querySelectorAll('[id]')].map(x=>x.id).filter((id,i,a)=>a.indexOf(id)!==i),
@@ -179,15 +178,11 @@ async function commonChecks(cdp) {
     mechanismOpen:document.getElementById('source-mechanism-panel').open,
     mapLoaded:Boolean(window.map && map._loaded),
     stationCount:Array.isArray(window.rawLandGrid)?window.rawLandGrid.length:0,
-    promoLinks:[...document.querySelectorAll('#promo-overlay .promo-links a')].map(a=>({href:a.href,url:(a.querySelector('small')||{}).textContent||''})),
-    promoCount:document.getElementById('promo-visit-count').textContent,
-    sidebarCount:document.getElementById('visit-count').textContent,
-    promoUptime:document.getElementById('promo-uptime').textContent,
-    promoVisible:getComputedStyle(document.getElementById('promo-overlay')).display!=='none',
+    promoAbsent:!document.getElementById('promo-overlay') && !document.getElementById('btn-promo-close'),
     mapA11y:{tabIndex:document.getElementById('map').tabIndex,busy:document.getElementById('map').getAttribute('aria-busy'),name:document.getElementById('map').getAttribute('aria-label')},
     canvasA11y:[...document.querySelectorAll('canvas:not([aria-hidden="true"])')].map(c=>({id:c.id,role:c.getAttribute('role'),name:c.getAttribute('aria-label'),description:c.getAttribute('aria-describedby')}))
   }))()`);
-  assert(/v5\.4预览版/.test(basics.title), `Unexpected release title: ${basics.title}`);
+  assert(/v6\.0/.test(basics.title), `Unexpected release title: ${basics.title}`);
   assert(basics.duplicateIds.length === 0, `Duplicate DOM ids: ${basics.duplicateIds.join(', ')}`);
   assert(basics.missingButtonNames === 0, `${basics.missingButtonNames} buttons lack accessible names`);
   assert(basics.sidebarPointer !== 'none' && Number(basics.sidebarOpacity) > 0.5, 'Sidebar is blocked or visually disabled');
@@ -196,12 +191,8 @@ async function commonChecks(cdp) {
   assert(basics.mapA11y.tabIndex === 0 && basics.mapA11y.busy === 'false' && basics.mapA11y.name, `Map accessibility state is incomplete: ${JSON.stringify(basics.mapA11y)}`);
   assert(basics.canvasA11y.length >= 15 && basics.canvasA11y.every(c => c.role === 'img' && c.name), `Canvas accessibility names are incomplete: ${JSON.stringify(basics.canvasA11y)}`);
   assert(basics.canvasA11y.filter(c => !c.id.startsWith('realtime-wf') && !c.id.startsWith('mwf-canvas')).every(c => c.description), 'Scenario canvases lack text descriptions');
-  assert(basics.promoVisible && basics.promoLinks.length === 4, 'Related-sites dialog did not open with four links');
-  assert(basics.promoCount === basics.sidebarCount && /^\d[\d,]*$/.test(basics.promoCount), `Site visit count did not load consistently: ${basics.promoCount}/${basics.sidebarCount}`);
-  assert(/\d{2}:\d{2}:\d{2}$/.test(basics.promoUptime), `Site uptime did not load: ${basics.promoUptime}`);
-  for (const link of basics.promoLinks) assert(link.href.replace(/\/$/,'') === link.url.replace(/\/$/,''), `Promo URL text mismatch: ${link.href} / ${link.url}`);
-  await click(cdp, '#btn-promo-close');
-  await waitFor(cdp, `getComputedStyle(document.getElementById('promo-overlay')).display==='none'`, 3000, 'promo close');
+  // scrub contract: the related-sites promo dialog must stay out of the open build
+  assert(basics.promoAbsent, 'Promo dialog leaked back into the open build');
 
   const menuAudit = await cdp.evaluate(`(() => { const m=document.getElementById('map');m.focus();m.dispatchEvent(new KeyboardEvent('keydown',{key:'F10',shiftKey:true,bubbles:true}));const menu=document.getElementById('ctx-menu');return {open:getComputedStyle(menu).display!=='none',focused:document.activeElement&&document.activeElement.getAttribute('role'),names:[...menu.querySelectorAll('[role="menuitem"]')].map(x=>x.textContent.trim())}; })()`);
   assert(menuAudit.open && menuAudit.focused === 'menuitem' && menuAudit.names.length === 3 && menuAudit.names.every(Boolean), `Keyboard map menu failed: ${JSON.stringify(menuAudit)}`);
@@ -237,9 +228,9 @@ async function commonChecks(cdp) {
   await click(cdp, '#btn-formulas-close');
 
   await setSelect(cdp, '#lang-select', 'en');
-  assert(/Earthquake Simulator v5\.4 Preview/.test(await cdp.evaluate(`document.querySelector('#sidebar-header h1').textContent`)), 'English release identity failed');
+  assert(/Earthquake Simulator v6\.0/.test(await cdp.evaluate(`document.querySelector('#sidebar-header h1').textContent`)), 'English release identity failed');
   await setSelect(cdp, '#lang-select', 'zh');
-  assert(/v5\.4预览版/.test(await cdp.evaluate(`document.querySelector('#sidebar-header h1').textContent`)), 'Chinese release identity failed');
+  assert(/地震模拟器 v6\.0/.test(await cdp.evaluate(`document.querySelector('#sidebar-header h1').textContent`)), 'Chinese release identity failed');
 
   const beforeZoom = await cdp.evaluate('map.getZoom()');
   await cdp.evaluate('map.setZoom(map.getZoom()+1); true');
@@ -391,7 +382,9 @@ async function desktopWorkflow(cdp) {
       diagnostics:diag.textContent,quality:diag.className};
   })()`);
   assert(faultPreview.visible && faultPreview.colored > 100, `Finite-fault preview is blank: ${JSON.stringify(faultPreview)}`);
-  assert(/Wells|Strasser/.test(faultPreview.diagnostics) && /patch/i.test(faultPreview.diagnostics), `Finite-fault diagnostics are incomplete: ${faultPreview.diagnostics}`);
+  // Observed-model presets (tokachi2003 → Hayes 2014) defer to the imported
+  // model's provenance line instead of the synthetic Wells/Strasser relation.
+  assert(/Wells|Strasser|USGS|NEIC|Goldberg/.test(faultPreview.diagnostics) && /(patch|子断层|パッチ)/i.test(faultPreview.diagnostics), `Finite-fault diagnostics are incomplete: ${faultPreview.diagnostics}`);
   await setSelect(cdp, '#sound-mode', 'off');
   await cdp.evaluate(`document.getElementById('tts-enable').checked=false;document.getElementById('tsunami-enable').checked=false;document.getElementById('shindo-report-enable').checked=false`);
   await click(cdp, '.speed-btn[data-speed="10"]');
@@ -442,7 +435,15 @@ async function desktopWorkflow(cdp) {
     requestAnimationFrame(tick);
   })`);
   assert(perf.fps >= 15, `Simulation render rate is too low: ${perf.fps.toFixed(1)} fps`);
-  assert(!perf.heap || perf.heap < 256 * 1024 * 1024, `JS heap exceeds release baseline: ${(perf.heap/1048576).toFixed(1)} MiB`);
+  // Transient heap before collection swings with GC timing (v5.6+ data
+  // registries legitimately peak >256 MiB mid-run); the leak signal is the
+  // retained floor after a forced GC — measured 136-140 MiB mid-run on the
+  // tokachi2003 scenario, ~135 MiB after end (boot: 98 MiB).
+  assert(!perf.heap || perf.heap < 512 * 1024 * 1024, `Transient JS heap is runaway: ${(perf.heap/1048576).toFixed(1)} MiB`);
+  await cdp.send('HeapProfiler.enable').catch(() => {});
+  await cdp.send('HeapProfiler.collectGarbage').catch(() => {});
+  const retained = await cdp.evaluate(`(performance.memory||{}).usedJSHeapSize||0`);
+  assert(!retained || retained < 192 * 1024 * 1024, `Retained JS heap exceeds leak baseline: ${(retained/1048576).toFixed(1)} MiB`);
 
   await click(cdp, '#tab-btn-info');
   await waitFor(cdp, `document.getElementById('info-summary-pga').textContent!=='—'`, 8000, 'live information metrics');
@@ -452,7 +453,9 @@ async function desktopWorkflow(cdp) {
   const fault3d = await cdp.evaluate(`(() => { const c=document.getElementById('canvas-3d'),gl=c.getContext('webgl2')||c.getContext('webgl'); if(!gl)return {context:false,pixels:0}; const p=new Uint8Array(c.width*c.height*4);gl.readPixels(0,0,c.width,c.height,gl.RGBA,gl.UNSIGNED_BYTE,p);let varied=0;for(let i=0;i<p.length;i+=16)if(p[i]>8||p[i+1]>8||p[i+2]>18)varied++;return {context:true,pixels:varied,width:c.width,height:c.height}; })()`);
   assert(fault3d.context && fault3d.pixels > 100, `3-D fault/terrain canvas is blank: ${JSON.stringify(fault3d)}`);
   const sim = await cdp.evaluate(`({running:window.isRunning,points:window.landPoints.length,gmpe:window.landPoints[0]&&window.landPoints[0].gmpeModel,distance:window.landPoints[0]&&window.landPoints[0].distanceMetric})`);
-  assert(sim.running && sim.points > 0 && sim.gmpe === 'si-midorikawa', `Unexpected simulation state ${JSON.stringify(sim)}`);
+  // Class-based auto routing since v5.4: interplate megathrusts (tokachi2003)
+  // route to zhao2006, crustal events to si-midorikawa.
+  assert(sim.running && sim.points > 0 && ['si-midorikawa','zhao2006'].includes(sim.gmpe), `Unexpected simulation state ${JSON.stringify(sim)}`);
   const completedGrid = await cdp.evaluate(`(() => { activeGridCells[0]='5+';const before=Object.keys(activeGridCells).length;endSimulation();map.setZoom(map.getZoom()+1,{animate:false});drawFrame();return {before,after:Object.keys(activeGridCells).length}; })()`);
   assert(completedGrid.before > 0 && completedGrid.after === 0, `Completed shaking grid survived map zoom: ${JSON.stringify(completedGrid)}`);
   await waitFor(cdp, `window.isRunning===false && getComputedStyle(document.getElementById('btn-replay')).display!=='none'`, 3000, 'simulation completion and replay availability');
@@ -462,7 +465,10 @@ async function desktopWorkflow(cdp) {
   await waitFor(cdp, `window._replayMode===false`, 3000, 'timeline replay exit');
   await click(cdp, '#tab-btn-basic');
   await click(cdp, '#btn-reset');
-  await waitFor(cdp, `window.isRunning===false && window._replayData.length===0 && window.landPoints.length===0 && window.epicenter===null`, 5000, 'simulation reset and state cleanup');
+  // Reset contract (2026-08-27 fix): a selected preset is re-applied — the
+  // epicenter returns and Start stays usable instead of a dead disabled
+  // button (the pre-fix state this test used to assert as normal).
+  await waitFor(cdp, `window.isRunning===false && window._replayData.length===0 && window.landPoints.length===0 && window.epicenter && !document.getElementById('btn-start').disabled`, 5000, 'simulation reset and state cleanup');
 
   await setSelect(cdp, '#preset', 'tokachi2003');
   await waitFor(cdp, `window.epicenter && !document.getElementById('btn-start').disabled`, 5000, 'repeat scenario selection');

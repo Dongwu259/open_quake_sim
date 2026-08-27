@@ -884,10 +884,13 @@
   }
   function cellRect(x,y,cellStride,fill,anchor) {
     // anchor (absolute cell centre + resolution) lets mixed-grid snapshots
-    // draw correctly; the _bathyGrid fallback covers legacy single-grid runs.
+    // draw correctly; the _bathyGrid fallback covers legacy single-grid runs
+    // (and cells whose schema predates absolute coordinates — a truthy anchor
+    // without finite lat/lng used to feed Leaflet NaN and throw).
     var r=anchor&&anchor.res||_bathyGrid.res;
-    var lat0=anchor?anchor.lat-0.5*r:_bathyGrid.origin[1]+(y-0.5)*_bathyGrid.res;
-    var lng0=anchor?anchor.lng-0.5*r:_bathyGrid.origin[0]+(x-0.5)*_bathyGrid.res;
+    var anchored=anchor&&isFinite(anchor.lat)&&isFinite(anchor.lng);
+    var lat0=anchored?anchor.lat-0.5*r:_bathyGrid.origin[1]+(y-0.5)*_bathyGrid.res;
+    var lng0=anchored?anchor.lng-0.5*r:_bathyGrid.origin[0]+(x-0.5)*_bathyGrid.res;
     var lat1=lat0+r*cellStride,lng1=lng0+r*cellStride;
     var p0=toCanvas(lat0,lng0),p1=toCanvas(lat1,lng1);
     waveCtx.fillStyle=fill;waveCtx.fillRect(Math.min(p0.x,p1.x),Math.min(p0.y,p1.y),Math.max(1,Math.abs(p1.x-p0.x)+1),Math.max(1,Math.abs(p1.y-p0.y)+1));

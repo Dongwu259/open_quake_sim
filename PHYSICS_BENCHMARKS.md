@@ -135,3 +135,18 @@ Kanno 2006 无开源独立实现，采用 8 点冻结回归锁（ PGA/PGV × 浅
 2. 倾斜断层(TPV10/11-2D 的 60° 正断层类)与 P-SV 自由面**未实现**(需要浸入式分裂节点或曲线网格,ROADMAP 6.9 记录);
 3. TPV5-AP 是**非官方 2D 约化**:官方 TPV5 为 3D,其沿走向应力补丁(±7.5 km 的 78/62 MPa 块)在 (法向,深度) 平面内不可表示,已从配置中如实排除;站点序列与 3D 官方参考解只做定性对比(手册第 3 步);
 4. Kostrov 自相似裂纹解析解**未**用作锚(公式无法从记忆可靠复原,拒绝半记忆公式入回归——如需,按 Freund 1990 教材逐字转录后再加)。
+
+## 场地反应外部基准:SHAKE 谱系两级阶梯(2026-08-27)
+
+**第一级 — 线弹性(SHAKE-91/Itasca, v5.7 收尾已冻结)**:Itasca FLAC3D 文档公开的 3 层线弹性算例,解析 3 Hz 输入 × Thomson–Haskell 传递 → 地表峰值 **0.160 g vs 发表 SHAKE-91 0.156 / FLAC2D 0.160 g**(`tools/data/shake91-benchmark-case.json` + `tests/shake91-benchmark.test.js`,预登记区间 [0.140, 0.175])。
+
+**第二级 — 十层非线性等效线性(EERA 手册算例, 2026-08-27)**:经典 150 英尺 SHAKE-91 示例剖面,以 EERA 手册(SHAKE 谱系免费后继,Bardet/Ichii/Lin 2000)完整数值算例运行——"Diam @ 0.1 g":
+
+- **输入**:DIAM.ACC(1989 Loma Prieta Diamond Heights 台站 H1_90 分量;2000 点 @ 0.02 s,原始峰值 0.112895 g,缩放至 0.1 g)。NISEE 的 SHAKE-91 软件下载需登录(软件目录 500),记录取自 EERA 官方发行包(孟菲斯大学 ce.memphis.edu,免费);同一剖面亦为 Itasca FLAC3D vs SHAKE-91 非线性验证页所载。
+- **剖面**:16 子层 + 弹性半空间(Vs 1219.2 m/s,出露输入约定),材料曲线 = Seed & Sun (1989) 黏土上限 / Seed & Idriss (1970) 砂上限 + Idriss (1990) 阻尼(工作簿逐值冻结)。
+- **发表锚点**:地表出露峰值 **0.190411 g @ 11.28 s**;17 行收敛末态(逐子层应变/G-Gmax/阻尼);基期 0.478723 s。
+- **方法对齐**:为跑对算给 `Physics.siteResponse1D` 增加逐层曲线表覆盖(`opts.layerCurves`,log10 应变分段线性插值,阻尼保留独立应变栅格 3.16% 终端),并新增 `Physics.shTransferComplex`(同一 `_shPropagate` 传播器,保相位)——SHAKE 语义的末次卷积用**复**传递函数(正频率乘 A、共轭 bin 乘 A*;只乘 |A| 会 +17%,丢共轭会 −41%,两者都是实现陷阱)。
+- **结果**:我们的等效线性地表峰值 **0.1803 g @ 11.30 s = 发表值的 −5.3%,峰值时刻差 0.02 s**;1 g 输入放大系数 1.803→1.482(非线性去放大趋势与 FLAC3D-SHAKE 发表行为一致)。预登记 ±15% 区间 [0.162, 0.219] 断言入回归(`tests/deepsoil-benchmark.test.js`),另设冻结结果漂移绊线(引擎改动使基准偏移 >0.5% 即报警)。
+- **已知缺口(如实)**:生产引擎的单频应变代理高估薄表子层应变(第 1 子层 25×,深层 ±25% 以内)——表层过软化但整柱共振由全柱设定,地表峰仍 −5.3% 吻合;完整频域逐层应变时程(SHAKE 的真应变求值)是未来工作。
+
+工具:`node tools/run-deepsoil-benchmark.js [--write]`;案例冻结 `tools/data/deepsoil-benchmark-case.json`(schema quake-sim-deepsoil-benchmark-v1,含 2000 点记录、双曲线表、17 行收敛态与出处链)。

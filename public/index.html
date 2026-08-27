@@ -27,10 +27,10 @@
 <link rel="stylesheet" href="leaflet/leaflet.css?v=f885c4">
 <link rel="stylesheet" href="style.css?v=d095df">
 <link rel="preload" href="leaflet/leaflet.js?v=5a640f" as="script">
-<link rel="preload" href="app.js?v=87e04f" as="script">
+<link rel="preload" href="app.js?v=ed9291" as="script">
 <link rel="preload" href="style.css?v=d095df" as="style">
 <link rel="preload" href="config.js?v=148820" as="script">
-<link rel="preload" href="physics.js?v=1260cd" as="script">
+<link rel="preload" href="physics.js?v=5221b8" as="script">
 </head>
 <body>
 <a href="#map" class="skip-link" data-i18n="aria.skip">跳转到内容</a>
@@ -136,6 +136,7 @@
           <div class="form-group"><label data-i18n="preset.label">场景</label><select id="preset"><option value="" selected data-i18n="preset.custom">自定义</option><option value="tohoku">2011 Tohoku Mw9.1</option><option value="nankaiM9">Nankai Trough M9.0 (Scenario)</option><option value="tokyoInland">Tokyo Inland M7.3 (Scenario)</option><option value="japanSinks">Japan Sinks M9.1 (Scenario ×19)</option><option value="kobe">1995 Kobe M7.3</option><option value="kumamoto">2016 Kumamoto M7.0</option><option value="kanto">1923 Kanto M8.0</option><option value="chuetsu">2004 Chuetsu M6.8</option><option value="iburihigashi">2018 Hokkaido Iburi M6.7</option><option value="noto2024">2024 Noto M7.6</option><option value="tokachi2003">2003 Tokachi-oki M8.3</option><option value="iwate2008">2008 Iwate-Miyagi M7.2</option><option value="noto2007">2007 Noto Hanto M6.9</option><option value="fukuoka2005">2005 Fukuoka-ken M7.0</option><option value="fukushima2011">2011 Fukushima Hamadori M7.0</option><option value="tottori2016">2016 Tottori Chubu M6.6</option><option value="yamagata2019">2019 Yamagata-oki M6.7</option><option value="fukushima2021">2021 Fukushima-oki M7.3</option><option value="fukushima2022">2022 Fukushima-oki M7.2</option><option value="hyuganada2024">2024 Hyuga-nada M7.1</option><option value="kushiro1993">1993 Kushiro-oki M7.5</option><option value="tonankai1944">1944 Tonankai M8.1</option><option value="nankai1946">1946 Nankai M8.4</option><option value="niigata1964">1964 Niigata M7.6</option></select></div>
           <div class="form-group"><label><span data-i18n="mag.label">震级 (Mw)</span> <span class="vd" id="mag-val">M7.0</span></label><div class="input-row"><input type="range" id="magnitude" min="3.0" max="9.5" step="0.1" value="7.0"><input type="number" id="magnitude-num" min="3.0" max="9.5" step="0.1" value="7.0"><button class="apply-btn" data-for="magnitude" data-i18n-aria="aria.apply" aria-label="Apply">&#10003;</button></div></div>
           <div class="form-group"><label><span data-i18n="depth.label">震源深度</span> <span class="vd" id="depth-val">30 km</span></label><div class="input-row"><input type="range" id="depth" min="0" max="700" step="1" value="30"><input type="number" id="depth-num" min="0" max="700" step="1" value="30"><button class="apply-btn" data-for="depth" data-i18n-aria="aria.apply" aria-label="Apply">&#10003;</button></div></div>
+          <div class="btn-row"><button class="btn btn-start" id="btn-start" disabled data-i18n="btn.start">开始模拟</button><button class="btn btn-reset" id="btn-reset" data-i18n="btn.reset" data-i18n-title="btn.reset.hint" title="停止当前模拟并恢复初始状态">重置</button><button id="btn-share" title="Share Link" data-i18n-aria="aria.share" aria-label="Share">🔗</button></div>
         </section>
 
         <details class="sidebar-disclosure" id="source-mechanism-panel" open>
@@ -150,7 +151,6 @@
         <div class="basic-action-dock">
           <label class="switch-row presenter-toggle"><input type="checkbox" id="presenter-mode"><span class="switch-ui"></span><span data-i18n="presenter.mode">直播/录制模式</span></label>
           <div id="simulation-summary" class="simulation-summary" aria-live="polite"><span data-i18n="basic.summary_waiting">请先在地图上选择震中</span></div>
-          <div class="btn-row"><button class="btn btn-start" id="btn-start" disabled data-i18n="btn.start">开始模拟</button><button class="btn btn-reset" id="btn-reset" data-i18n="btn.reset">重置</button><button id="btn-share" title="Share Link" data-i18n-aria="aria.share" aria-label="Share">🔗</button></div>
         </div>
 
         <details class="sidebar-disclosure" open>
@@ -702,9 +702,9 @@
 <script src="research.js?v=d9aad6"></script>
 <script src="data-catalog.js?v=bee20f"></script>
 <script src="grid-package.js?v=865d26"></script>
-<script src="i18n.js?v=dec88d"></script>
+<script src="i18n.js?v=bab088"></script>
 <script src="dc3d.js?v=2865dd"></script>
-<script src="physics.js?v=1260cd"></script>
+<script src="physics.js?v=5221b8"></script>
 <script src="tsunami-solver-host.js?v=2432a8"></script>
 <script src="ensemble-solver-host.js?v=153d61"></script>
 <script src="reference-backend.js?v=3ead82"></script>
@@ -801,7 +801,7 @@ window._loadThreeJS = function(cb) {
     </div>
   </div>
 </div>
-<script src="app.js?v=87e04f"></script>
+<script src="app.js?v=ed9291"></script>
 <script src="aftershock.js?v=e29837"></script>
 <script src="rt-data.js?v=cc4e9a"></script>
 <script src="rt-kmoni.js?v=b581c5"></script>
@@ -810,7 +810,7 @@ window._loadThreeJS = function(cb) {
 <script src="rt-quakeinfo.js?v=b6b2bc"></script>
 <script src="rt-tsunami.js?v=d59204"></script>
 <script src="info-panel.js?v=b799dd"></script>
-<script src="renderer.js?v=401a74"></script>
+<script src="renderer.js?v=0900d3"></script>
 <div id="help-overlay" class="help-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="help-dialog-title">
   <div class="help-panel" tabindex="-1">
     <div class="help-header"><span id="help-dialog-title" data-i18n="help.header">📖 使用帮助</span><button id="btn-help-close" class="help-close" data-i18n-aria="aria.close" aria-label="Close">&times;</button></div>

@@ -1073,7 +1073,7 @@ function cSin(a) {
  * @param {Array} freqs frequencies in Hz (must include f>0; w=0 is singular)
  * @returns {Array|null} |A(f)| amplification factors, same order as freqs
  */
-Physics.shTransferFunction = function(profile, freqs) {
+function _shPropagate(profile, freqs) {
   if (!profile || profile.length < 2 || !freqs || !freqs.length) return null;
   var layers = [];
   for (var i = 0; i < profile.length; i++) {
@@ -1111,9 +1111,21 @@ Physics.shTransferFunction = function(profile, freqs) {
     }
     // A = 1 / (u + tau / (i*Zb*w))
     var denom = cAdd(u, cDiv(tau, cMul(cScale(Zb, w), { re: 0, im: 1 })));
-    out.push(cAbs(cDiv({ re: 1, im: 0 }, denom)));
+    out.push(cDiv({ re: 1, im: 0 }, denom));
   }
   return out;
+}
+Physics.shTransferFunction = function(profile, freqs) {
+  var complex = _shPropagate(profile, freqs);
+  if (!complex) return null;
+  return complex.map(cAbs);
+};
+// Complex A(f) for frequency-domain convolution (SHAKE-style benchmark):
+// same propagator, phase preserved. Returns {re, im} arrays or null.
+Physics.shTransferComplex = function(profile, freqs) {
+  var complex = _shPropagate(profile, freqs);
+  if (!complex) return null;
+  return { re: complex.map(function(c) { return c.re; }), im: complex.map(function(c) { return c.im; }) };
 };
 
 // ================================================================
@@ -1185,6 +1197,32 @@ Physics.darendeliCurves = function(strain, opts) {
 // Returns { amp, ggmax, damping, strain, iter, converged, f0 } where amp is
 // the |A(f)| array aligned with freqs and f0 the peak-amplification
 // frequency of the final pass.
+// Log10-strain piecewise-linear interpolation of a published tabulated
+// curve set ({strainPct, ggmax, dampingPct}); clamps outside the table.
+// Used by the frozen external benchmark (Seed & Sun clay / Seed & Idriss
+// sand + Idriss 1990 damping). Returns {ggmax, damping} (damping decimal).
+function _interpLayerCurve(curve, strainPct) {
+  var s = curve.strainPct, g = curve.ggmax, d = curve.dampingPct;
+  var lg = Math.log10(Math.max(1e-7, strainPct));
+  var lo = 0;
+  while (lo < s.length - 1 && Math.log10(s[lo + 1]) < lg) lo++;
+  var hi = Math.min(s.length - 1, lo + 1);
+  var lgLo = Math.log10(s[lo]), lgHi = Math.log10(s[hi]);
+  var t = lgHi > lgLo ? (lg - lgLo) / (lgHi - lgLo) : 0;
+  t = Math.min(1, Math.max(0, t));
+  var gg = g[lo] + t * (g[hi] - g[lo]);
+  // damping keeps its own strain grid (terminal 3.16% vs 3% on G/Gmax)
+  var ds = curve.dampingStrainPct || curve.strainPct;
+  var dl = 0;
+  while (dl < ds.length - 1 && ds[dl + 1] < strainPct) dl++;
+  var dh = Math.min(ds.length - 1, dl + 1);
+  var sLo = ds[dl], sHi = ds[dh];
+  var td = sHi > sLo ? (strainPct - sLo) / (sHi - sLo) : 0;
+  td = Math.min(1, Math.max(0, td));
+  var damp = d[dl] + td * (d[dh] - d[dl]);
+  return { ggmax: gg, damping: damp / 100 };
+}
+
 Physics.siteResponse1D = function(profile, freqs, opts) {
   if (!profile || profile.length < 2 || !freqs || !freqs.length) return null;
   var o = opts || {};
@@ -1193,6 +1231,10 @@ Physics.siteResponse1D = function(profile, freqs, opts) {
   var effRatio = Number(o.effStrainRatio) > 0 ? Number(o.effStrainRatio) : 0.65;
   var maxIter = Math.min(30, Math.max(1, Number(o.maxIter) || 12));
   var tol = Number(o.tol) > 0 ? Number(o.tol) : 0.02;
+  // Per-layer published curve sets override the Darendeli default (external
+  // benchmark runs the case's own Seed-Idriss/Seed-Sun tables); entries may
+  // be null to keep Darendeli for that layer.
+  var layerCurves = o.layerCurves || null;
 
   var n = profile.length - 1; // layers over the halfspace
   var layers = [];
@@ -1236,9 +1278,15 @@ Physics.siteResponse1D = function(profile, freqs, opts) {
     for (var m = 0; m < n; m++) {
       var L = layers[m];
       var gam = Math.min(0.03, effRatio * accelMs2 / (L.vs * omega)); // decimal
-      var curves = Physics.darendeliCurves(gam, { pi: L.pi, sigmaEffKPa: L.sig, freqHz: f0 });
-      var targetGg = curves.ggmax[0];
-      var newD = Math.min(0.25, curves.damping[0]);
+      var targetGg, newD;
+      var lc = layerCurves && layerCurves[m];
+      if (lc) {
+        var tab = _interpLayerCurve(lc, gam * 100);
+        targetGg = tab.ggmax; newD = Math.min(0.25, tab.damping);
+      } else {
+        var curves = Physics.darendeliCurves(gam, { pi: L.pi, sigmaEffKPa: L.sig, freqHz: f0 });
+        targetGg = curves.ggmax[0]; newD = Math.min(0.25, curves.damping[0]);
+      }
       // 50/50 under-relaxation keeps the softening feedback stable
       var newGg = 0.5 * L.gg + 0.5 * targetGg;
       var shift = Math.abs(Math.sqrt(newGg) - Math.sqrt(L.gg)) / Math.max(1e-9, Math.sqrt(L.gg));
