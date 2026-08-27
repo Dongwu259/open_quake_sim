@@ -26,9 +26,9 @@
 
 ## 截图
 
-| 模拟：首都直下 M7.3（EEW 预报） | 实时监测：EEW 演示 | 设置页面 |
+| 模拟：首都直下 M7.3（细分区域震度预报） | 实时监测：EEW 演示 | 设置页面 |
 |---|---|---|
-| ![首都直下 M7.3 模拟](docs/screenshots/sim-tokyo.jpg) | ![实时监测 EEW 演示](docs/screenshots/eew-demo.png) | ![设置页面](docs/screenshots/settings.png) |
+| ![首都直下 M7.3 模拟](docs/screenshots/sim-tokyo.png) | ![实时监测 EEW 演示](docs/screenshots/eew-demo.png) | ![设置页面](docs/screenshots/settings.png) |
 
 ## 快速开始
 
@@ -111,11 +111,20 @@ docker-compose up -d
 
 ## 数据来源与致谢
 
-- 台站数据：NIED Hi-net / F-net / 強震モニタ（防災科学技術研究所）
-- 地震信息：気象庁（JMA）、P2P 地震情報、Wolfx API、USGS、EMSC
-- 断层模型：USGS NEIC（Hayes 2017/2018、Goldberg 2022/2024 等，公有领域）
-- 地形/海深：GEBCO 2025、地理院（GSI）DEM、Natural Earth
-- 地图库：Leaflet、Turf.js
+本项目为科研化改进所使用的观测数据、基准算例与地理数据来自以下机构与项目（随仓库分发的均为对原始数据的**派生量**——网格化/统计汇总/记分卡；原始数据获取工具见 `tools/`，需要账号的数据如 NIED 波形包、PS 测井原文不入库）：
+
+- **NIED 防災科学技術研究所**：Hi-net / F-net 台网（1,289 站——模拟台站分布）；K-NET / KiK-net 强震动观测峰值（6 事件 2,626 站，经 USGS ShakeMap 载体——GMPE 标定与记分卡）；KiK-net 地表/井下谱比派生量（197 站，DOI [10.17598/NIED.0004](https://doi.org/10.17598/NIED.0004)——1D 场地反应 f0 经验先验）；強震モニタ（约 1,700 台站实时烈度，服务器代理）；J-SHIS 表層 AVS30（Vs30 场地网格）；JIVSM V4 深部构造（工程基岩深度 / 走时 / 长周期盆地项）
+- **気象庁（JMA）**：地震情報細分区域官方 GIS（194 区）、EEW 区域名（188 区）、津波预报区海岸段、历史事件观测震度、長周期地震動階級官方阈值（5/15/50/100 cm/s）
+- **USGS NEIC**：有限断层滑移模型（Hayes 2014/2017/2018、Goldberg 2022/2024，公有领域）、地震目录、ShakeMap
+- **GEBCO**：GEBCO 2025 全球海深（含 Seabed 2030 贡献）——海啸求解器地形
+- **Natural Earth**：1:50m 海岸线（公有领域）
+- **国土地理院（GSI）**：区域高分辨率 DEM（可选，`tools/fetch-gsi-dem.js` 自行生成）——近岸海啸爬高
+- **内閣府 / 地震調査研究推進本部**：南海海槽巨大地震假想（2012 框架）——M9.0 情景预设
+- **SCEC**：TPV5 动力学破裂基准官方参数（strike.scec.org/cvws）——动力学破裂求解器验证
+- **NISEE（UC Berkeley EERC）/ EERA（Univ. of Memphis，Bardet 等）**：SHAKE-91/EERA 手册十层非线性算例与 DIAM.ACC 记录（1989 Loma Prieta, Diamond Heights 台站）——1D 场地反应外部基准
+- **实时数据流**：Wolfx API、P2P 地震情報、USGS / EMSC 历史目录（Yahoo Japan 作为強震モニタ镜像回退）
+
+地图库：Leaflet、Turf.js。GMPE / 场地反应 / 动力学破裂等模型文献的逐条引用见 [docs/PHYSICS_BENCHMARKS.md](docs/PHYSICS_BENCHMARKS.md) 与 [docs/METHODS.md](docs/METHODS.md)。
 
 ## English
 

@@ -26,9 +26,9 @@ A web-based earthquake simulation and real-time monitoring app for Japan. A zero
 
 ## Screenshots
 
-| Simulation: Tokyo Inland M7.3 (EEW forecast) | Realtime monitor: EEW demo | Settings page |
+| Simulation: Tokyo Inland M7.3 (subdivision intensity forecast) | Realtime monitor: EEW demo | Settings page |
 |---|---|---|
-| ![Tokyo Inland M7.3 simulation](docs/screenshots/sim-tokyo.jpg) | ![Realtime EEW demo](docs/screenshots/eew-demo.png) | ![Settings page](docs/screenshots/settings.png) |
+| ![Tokyo Inland M7.3 simulation](docs/screenshots/sim-tokyo.png) | ![Realtime EEW demo](docs/screenshots/eew-demo.png) | ![Settings page](docs/screenshots/settings.png) |
 
 ## Quick Start
 
@@ -106,11 +106,20 @@ docker-compose up -d
 
 ## Data Sources & Credits
 
-- Station data: NIED Hi-net / F-net / Kmoni (National Research Institute for Earth Science and Disaster Resilience)
-- Earthquake information: JMA, P2PQuake, Wolfx API, USGS, EMSC
-- Fault models: USGS NEIC (Hayes 2017/2018, Goldberg 2022/2024, etc., public domain)
-- Terrain/bathymetry: GEBCO 2025, GSI DEM, Natural Earth
-- Mapping libraries: Leaflet, Turf.js
+The research-grade improvements are built on observation data, benchmark cases and geographic data from the following institutions and projects. Everything shipped in this repository is a **derived quantity** of the originals (grids / statistical summaries / scorecards); fetch tooling lives in `tools/`, and account-gated datasets (NIED waveform packages, raw PS-logs) are deliberately not committed.
+
+- **NIED** (National Research Institute for Earth Science and Disaster Resilience, Japan): Hi-net / F-net networks (1,289 stations — simulation station coverage); K-NET / KiK-net strong-motion station peaks (6 events, 2,626 stations, via USGS ShakeMap — GMPE calibration & scorecards); KiK-net surface/borehole spectral-ratio derived quantities (197 stations, DOI [10.17598/NIED.0004](https://doi.org/10.17598/NIED.0004) — empirical f0 prior for 1D site response); Kmoni strong-motion monitor (~1,700 realtime intensity stations, server-proxied); J-SHIS Vs30 (site-effect grid); JIVSM V4 velocity model (engineering-bedrock depth / travel times / long-period basin term)
+- **JMA** (Japan Meteorological Agency): official seismic-intensity subdivision GIS (194 areas), EEW area names (188), tsunami forecast-coastline segments, historical observed intensities, official long-period ground-motion class thresholds (5/15/50/100 cm/s)
+- **USGS NEIC**: finite-fault slip models (Hayes 2014/2017/2018, Goldberg 2022/2024, public domain), earthquake catalogs, ShakeMap
+- **GEBCO**: GEBCO 2025 global bathymetry (incl. Seabed 2030 contributions) — tsunami solver terrain
+- **Natural Earth**: 1:50m coastline (public domain)
+- **GSI** (Geospatial Information Authority of Japan): regional high-resolution DEM (optional, generated via `tools/fetch-gsi-dem.js`) — nearshore tsunami runup
+- **Cabinet Office / Headquarters for Earthquake Research Promotion, Japan**: Nankai Trough megaquake scenario (2012 framework) — the M9.0 scenario preset
+- **SCEC**: official TPV5 dynamic-rupture benchmark parameters (strike.scec.org/cvws) — dynamic-rupture solver verification
+- **NISEE (UC Berkeley EERC) / EERA (Univ. of Memphis; Bardet et al.)**: the SHAKE-91/EERA manual 10-layer nonlinear case and the DIAM.ACC record (1989 Loma Prieta, Diamond Heights station) — external 1D site-response benchmark
+- **Realtime feeds**: Wolfx API, P2P Earthquake Information (P2P地震情報), USGS / EMSC catalogs (Yahoo Japan as a Kmoni mirror fallback)
+
+Mapping libraries: Leaflet, Turf.js. Model references (GMPE / site response / dynamic rupture) are cited item by item in [docs/PHYSICS_BENCHMARKS.md](docs/PHYSICS_BENCHMARKS.md) and [docs/METHODS.md](docs/METHODS.md).
 
 ## License
 
