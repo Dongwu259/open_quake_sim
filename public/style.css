@@ -485,6 +485,15 @@ body.as-pick-armed #map{cursor:crosshair}
 .rt-mini-btn{flex:0 0 auto;font-size:11px;padding:3px 10px;background:rgba(127,127,127,.12);color:var(--text);border:1px solid var(--border);border-radius:5px;cursor:pointer;white-space:nowrap}
 .rt-mini-btn:hover{border-color:var(--accent);color:var(--accent)}
 .rt-mini-btn-wide{flex:1}
+/* Settings dialog (v6.0.1): stacked label+control rows inside the
+   help-panel; reuses .rt-select/.rt-mini-btn for the controls themselves */
+.settings-section{margin-bottom:10px}
+.settings-section h3{margin:6px 0 8px}
+.settings-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:3px 0}
+.settings-row label{flex:0 0 auto;min-width:64px;font-size:12px;color:var(--text-secondary)}
+.settings-row input[type=text],.settings-row input[type=password]{flex:1;min-width:140px;font-size:12px;padding:4px 8px;background:var(--input-bg);color:var(--text);border:1px solid var(--border);border-radius:5px}
+.settings-row input[type=range]{flex:1;min-width:120px}
+.settings-note{font-size:11px;color:var(--text-secondary);opacity:.85;flex:1 1 100%}
 .rt-userloc-val{flex:1;min-width:0;font-size:11px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* v5.5: realtime history rows (JQuake/SREV-style two-line entries) */
 .realtime-item{cursor:pointer;padding:3px 5px;border-bottom:1px solid rgba(127,127,127,.12);font-size:12px}
@@ -764,7 +773,9 @@ input[type="range"]:hover::-moz-range-thumb{transform:scale(1.12);box-shadow:0 0
   #tsunami-layer-control{left:4px;right:auto;bottom:9.2em;width:min(15.5em,54%);font-size:.68em}
   #legend h3{font-size:.75em}
   /* Max PGA panel reposition */
-  #max-pga-panel{top:auto;bottom:70px;right:4px;padding:6px 8px;font-size:.6em;min-width:70px;transform:none}
+  /* Max PGA panel reposition — bottom:9.6em clears the ~79px-tall runtime
+     timeline banner (measured overlap 57x19px at 390x844 before this) */
+  #max-pga-panel{top:auto;bottom:9.6em;right:4px;padding:6px 8px;font-size:.6em;min-width:70px;transform:none}
   #max-pga-panel .max-pga-value{font-size:1.4em}
   /* EEW container reposition (info box + diag panel move together) */
   #eew-container{top:48px;left:4px}
@@ -852,7 +863,7 @@ input[type="range"]:hover::-moz-range-thumb{transform:scale(1.12);box-shadow:0 0
   #eew-container{top:40px;left:2px}
   #eew-diag-panel{font-size:.5em;min-width:120px}
   #legend{top:36px;right:2px;padding:4px 6px;font-size:.55em}
-  #max-pga-panel{bottom:60px;right:2px;padding:4px 6px;font-size:.55em}
+  #max-pga-panel{bottom:10.5em;right:2px;padding:4px 6px;font-size:.55em}
   #timeline{bottom:4px;padding:4px 8px;font-size:.6em}
   .form-group label{font-size:.75em}
   select,input[type=number]{font-size:.75em;padding:6px 8px}

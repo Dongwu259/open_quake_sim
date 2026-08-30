@@ -16,7 +16,7 @@ A web-based earthquake simulation and real-time monitoring app for Japan. A zero
 - NLSWE tsunami solver in a Web Worker (nested AMR grids supported), coastal height forecasts and city-scale inundation visualization
 - Realistic detection mode (no prior epicenter: station triggering → grid-search location → magnitude inversion → report-by-report updates, JQuake/PLUM-style)
 - Multi-event chained scenarios (incl. a hypothetical "Japan Sinks" sequence), aftershock sequences (Omori-Utsu + ETAS, manually editable), building-damage and population-exposure estimates
-- Presenter (live/recording) mode, 3D fault visualization, TTS voice announcements (ja/en/zh)
+- Presenter (live/recording) mode, 3D fault visualization, TTS voice announcements (ja/en/zh), in-run pause/step (P key, ⏸ button, +5 s step)
 
 **Real-time monitoring**
 - JMA EEW (via Wolfx): live P/S wave rings, intensity forecast, warning-area coloring, S-wave countdown
@@ -114,6 +114,7 @@ The research-grade improvements are built on observation data, benchmark cases a
 - **GEBCO**: GEBCO 2025 global bathymetry (incl. Seabed 2030 contributions) — tsunami solver terrain
 - **Natural Earth**: 1:50m coastline (public domain)
 - **GSI** (Geospatial Information Authority of Japan): regional high-resolution DEM (optional, generated via `tools/fetch-gsi-dem.js`) — nearshore tsunami runup
+- **MLIT National Land Numerical Information**: land-use subdivision mesh raster L03-b-14 ([CC BY 4.0](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-L03-b_r.html)) — per-cell tsunami Manning roughness (`tools/build-landuse-manning.js`, dominant-class 0.025° downsample)
 - **Cabinet Office / Headquarters for Earthquake Research Promotion, Japan**: Nankai Trough megaquake scenario (2012 framework) — the M9.0 scenario preset
 - **SCEC**: official TPV5 dynamic-rupture benchmark parameters (strike.scec.org/cvws) — dynamic-rupture solver verification
 - **NISEE (UC Berkeley EERC) / EERA (Univ. of Memphis; Bardet et al.)**: the SHAKE-91/EERA manual 10-layer nonlinear case and the DIAM.ACC record (1989 Loma Prieta, Diamond Heights station) — external 1D site-response benchmark

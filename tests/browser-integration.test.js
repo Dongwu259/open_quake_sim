@@ -475,6 +475,31 @@ async function desktopWorkflow(cdp) {
   await click(cdp, '#btn-start');
   await waitFor(cdp, `window.isRunning===true`, 12000, 'repeat simulation start');
   await waitFor(cdp, `window.landPoints.length>0`, 12000, 'repeat station predictions');
+
+  // v6.0.1 pause control: P freezes the clock (⏸ badge + aria state), the
+  // step button advances exactly +5 s, Space resumes, and a stale pause can
+  // never leak into the next run (pause → reset → start used to freeze at 0).
+  await waitFor(cdp, `(document.getElementById('time-display').textContent.match(/\\d+:[\\d.]+/)||[''])[0].length>0`, 8000, 'clock before pause');
+  const keyEvent = (key, code, vk) => Promise.all([
+    cdp.send('Input.dispatchKeyEvent', {type:'keyDown', key, code, windowsVirtualKeyCode:vk}),
+    cdp.send('Input.dispatchKeyEvent', {type:'keyUp', key, code, windowsVirtualKeyCode:vk})
+  ]);
+  await keyEvent('p', 'KeyP', 80);
+  await waitFor(cdp, `window.isPaused===true && document.getElementById('btn-pause').getAttribute('aria-pressed')==='true'`, 3000, 'pause engaged');
+  const frozen = await cdp.evaluate(`(async()=>{const a=document.getElementById('time-display').textContent;await new Promise(r=>setTimeout(r,1200));const b=document.getElementById('time-display').textContent;return {a,b,frozen:a===b,badge:a.indexOf('\\u23F8')===0};})()`);
+  assert(frozen.frozen && frozen.badge, `Pause did not freeze the clock: ${JSON.stringify(frozen)}`);
+  const stepped = await cdp.evaluate(`(async()=>{const parse=s=>s.replace('\\u23F8 ','').split(':').reduce((a,p)=>a*60+parseFloat(p),0);const a=parse(document.getElementById('time-display').textContent);document.getElementById('btn-step').click();await new Promise(r=>setTimeout(r,700));return {a,b:parse(document.getElementById('time-display').textContent)};})()`);
+  assert(Math.abs((stepped.b - stepped.a) - 5) < 1, `Step did not advance +5 s: ${JSON.stringify(stepped)}`);
+  await keyEvent(' ', 'Space', 32);
+  await waitFor(cdp, `window.isPaused===false && document.getElementById('time-display').textContent.indexOf('\\u23F8')!==0`, 3000, 'Space resume');
+  await keyEvent('p', 'KeyP', 80);
+  await waitFor(cdp, `window.isPaused===true`, 2000, 'pause before reset');
+  await click(cdp, '#btn-reset');
+  await waitFor(cdp, `window.isRunning===false && window.isPaused===false && document.getElementById('btn-pause').textContent==='\\u23EF'`, 5000, 'reset clears the paused state');
+  await click(cdp, '#btn-start');
+  await waitFor(cdp, `window.isRunning===true && window.isPaused===false`, 12000, 'restart after paused reset');
+  const restarted = await cdp.evaluate(`(async()=>{await new Promise(r=>setTimeout(r,1500));const a=document.getElementById('time-display').textContent;await new Promise(r=>setTimeout(r,1200));return {a,b:document.getElementById('time-display').textContent};})()`);
+  assert(restarted.a !== restarted.b && restarted.a.indexOf('\\u23F8') !== 0, `Stale pause froze the restarted run: ${JSON.stringify(restarted)}`);
   await click(cdp, '#btn-reset');
   await waitFor(cdp, `window.isRunning===false && window.landPoints.length===0`, 5000, 'repeat simulation cleanup');
   return perf;
@@ -496,6 +521,32 @@ async function mobileWorkflow(cdp) {
   assert(['auto','scroll'].includes(layout.overflow) && layout.scrollable && layout.scrollMoved, 'Mobile sidebar is not scrollable');
   assert(layout.dockVisible, 'Mobile simulation action dock is hidden');
   assert(layout.reducedMotion && layout.animationMs <= 0.02 && layout.transitionMs <= 0.02, `Reduced-motion override failed: ${JSON.stringify(layout)}`);
+
+  // v6.0.1 mobile runtime stacking audit: with a tsunami sim running, the
+  // bottom overlays (timeline banner, max-PGA panel, legend, EEW box, FAB)
+  // must not collide by more than 12 px in either axis (the max-PGA panel
+  // overlapped the banner 57×19 px at 390×844 before the fix).
+  await setSelect(cdp, '#preset', 'tohoku');
+  await waitFor(cdp, `window.epicenter && !document.getElementById('btn-start').disabled`, 5000, 'mobile audit preset');
+  await click(cdp, '#btn-start');
+  await waitFor(cdp, `window.isRunning===true && getComputedStyle(document.getElementById('timeline')).display!=='none'`, 12000, 'mobile audit run banner');
+  await sleep(2500);
+  const stack = await cdp.evaluate(`(function(){
+    function R(id){const el=document.getElementById(id);if(!el)return null;const s=getComputedStyle(el);if(s.display==='none'||s.visibility==='hidden')return null;
+      const r=el.getBoundingClientRect();return {id,x:r.x,y:r.y,w:r.width,h:r.height};}
+    const rects=['timeline','tsunami-layer-control','max-pga-panel','legend','eew-container','btn-autofocus','tsunami-eta-block'].map(R).filter(Boolean);
+    const overlaps=[];
+    for(let i=0;i<rects.length;i++)for(let j=i+1;j<rects.length;j++){
+      const a=rects[i],b=rects[j];
+      const ox=Math.max(0,Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x));
+      const oy=Math.max(0,Math.min(a.y+a.h,b.y+b.h)-Math.max(a.y,b.y));
+      if(ox>12&&oy>12)overlaps.push(a.id+'×'+b.id+' '+Math.round(ox)+'x'+Math.round(oy));
+    }
+    return {overlaps,count:rects.length};
+  })()`);
+  assert(stack.count >= 3 && stack.overlaps.length === 0, `Mobile runtime overlays collide: ${stack.overlaps.join('; ')} (${JSON.stringify(stack)})`);
+  await click(cdp, '#btn-reset');
+  await waitFor(cdp, `window.isRunning===false`, 5000, 'mobile audit cleanup');
 }
 
 async function runChromium(spec) {

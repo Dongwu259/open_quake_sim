@@ -16,7 +16,7 @@
 - 非线性浅水方程（NLSWE）海啸求解器（Web Worker，支持区域嵌套加密网格）、沿岸高度预报与市域淹没可视化
 - 真实检测模式（不预知震中：台站触发 → 网格搜索定位 → 震级反演 → 逐报更新，类 JQuake/PLUM）
 - 多事件连锁剧本（含"日本沉没"假想剧本）、余震序列（Omori-Utsu + ETAS，可手动编辑）、建筑损害与人口暴露估算
-- 直播/录制模式、3D 断层可视化、TTS 语音播报（日/英/中）
+- 直播/录制模式、3D 断层可视化、TTS 语音播报（日/英/中）、运行中暂停/步进（P 键、⏸ 按钮、+5 秒步进）
 
 **实时地震监测**
 - JMA 紧急地震速报（Wolfx 中转）：P/S 波圈实时扩张、烈度预测、预警区域着色、S 波倒计时
@@ -119,6 +119,7 @@ docker-compose up -d
 - **GEBCO**：GEBCO 2025 全球海深（含 Seabed 2030 贡献）——海啸求解器地形
 - **Natural Earth**：1:50m 海岸线（公有领域）
 - **国土地理院（GSI）**：区域高分辨率 DEM（可选，`tools/fetch-gsi-dem.js` 自行生成）——近岸海啸爬高
+- **国土交通省 国土数値情報**：土地利用细分区画栅格 L03-b-14（[CC BY 4.0](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-L03-b_r.html)）——海啸逐格 Manning 粗度（`tools/build-landuse-manning.js` 建包，0.025° 优势类降采样）
 - **内閣府 / 地震調査研究推進本部**：南海海槽巨大地震假想（2012 框架）——M9.0 情景预设
 - **SCEC**：TPV5 动力学破裂基准官方参数（strike.scec.org/cvws）——动力学破裂求解器验证
 - **NISEE（UC Berkeley EERC）/ EERA（Univ. of Memphis，Bardet 等）**：SHAKE-91/EERA 手册十层非线性算例与 DIAM.ACC 记录（1989 Loma Prieta, Diamond Heights 台站）——1D 场地反应外部基准

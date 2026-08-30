@@ -1148,7 +1148,17 @@ var TSU_RUNTIME_CFG_KEYS=['tsunamiManning','tsunamiDryTolerance','tsunamiArrival
 // loaded AND the roughness model selects it — an absent pack falls back to the
 // uniform scalar honestly instead of failing the solver.
 var _landuseManningPacks=null;
-var LANDUSE_MANNING_BY_CLASS={10:0.025,20:0.035,30:0.06,40:0.08,50:0.03,60:0.03,70:0.10,80:0.05,90:0.10,100:0.025};
+// Class codes = MLIT L03-b_r raster pixel values (verified against the
+// bundled LandUseCd-TIFF.htm, 平成26年度 edition): 10田/20その他農用地/50森林/
+// 60荒地/70建物用地/91道路/92鉄道/100その他用地/110河川湖沼/140海浜/150海域水/
+// 160ゴルフ場 (0=解析範囲外 → scalar fallback). Manning values follow the
+// landuse-differentiated convention of Japanese tsunami runup practice
+// (小谷ほか1998-family sets, as adopted by 内閣府南海トラフ巨大地震モデル2012
+// 津波計算); where literature spreads (荒地/道路/鉄道/海浜/ゴルフ場) mid-range
+// choices are frozen here. 海域水 keeps the project scalar default (相田1977).
+// NOTE the pre-v6.0.1 table {10..100} mixed in unused codes (30/40/80/90) and
+// mis-mapped 50/70 — rebuilt against the actual source classification.
+var LANDUSE_MANNING_BY_CLASS={10:0.025,20:0.025,50:0.060,60:0.050,70:0.080,91:0.030,92:0.030,100:0.050,110:0.030,140:0.030,150:0.025,160:0.040};
 function _loadLanduseManningPack(){
   if(_landuseManningPacks!==null)return;
   _landuseManningPacks=false;
@@ -3898,6 +3908,12 @@ function startCountdown() {
 function startSimulation() {
   if (!epicenter || isRunning) return;
   isRunning = true;
+  // A stale pause must never leak into the next run (pause → Reset → Start
+  // used to leave the new sim frozen at t=0 with the glyph still on ⏯).
+  isPaused = false;
+  var _pb = document.getElementById('btn-pause');
+  if (_pb) { _pb.textContent = '⏯'; _pb.setAttribute('aria-pressed', 'false'); }
+  _syncPauseBadge();
   _globalMaxPga = 0; _globalMaxPgv = 0; _lastResearchSnapshot = null; _researchStationPeaks = Object.create(null);
   _beginResearchExperiment();
   _lastDetectionSolveMs = _lastWaveRenderMs = _lastInfoRenderMs = _lastTableRenderMs = -Infinity;
@@ -3972,16 +3988,31 @@ function startSimulation() {
   animationId = requestAnimationFrame(simLoop);
 }
 
+var _pauseStepPending = 0; // sim-seconds queued by the step button (processed by the next frame, capped)
 function simLoop(timestamp) {
   if (!isRunning) return;
   if (!lastFrameTime) lastFrameTime = timestamp;
-  if (isPaused) { lastFrameTime = timestamp; animationId = requestAnimationFrame(simLoop); return; }
-  var realDt = (timestamp - lastFrameTime) / 1000; lastFrameTime = timestamp;
-  // Cap realDt at 1.0s to prevent frame-rate death spiral:
-  // If a frame takes too long, simElapsed jumps, causing more work
-  // next frame (waveform samples, active circles), causing a freeze.
-  if (realDt > 1.0) realDt = 1.0;
   var speed = parseFloat(simSpeedEl.value);
+  if (isPaused && _pauseStepPending <= 0) {
+    // Frozen: keep lastFrameTime fresh so resuming never jumps the clock.
+    lastFrameTime = timestamp;
+    animationId = requestAnimationFrame(simLoop);
+    return;
+  }
+  var realDt;
+  if (isPaused) {
+    // Step-through frame: advance exactly the queued seconds (speed-independent),
+    // then freeze again on the next tick.
+    realDt = _pauseStepPending / Math.max(speed, 0.01);
+    _pauseStepPending = 0;
+    lastFrameTime = timestamp;
+  } else {
+    realDt = (timestamp - lastFrameTime) / 1000; lastFrameTime = timestamp;
+    // Cap realDt at 1.0s to prevent frame-rate death spiral:
+    // If a frame takes too long, simElapsed jumps, causing more work
+    // next frame (waveform samples, active circles), causing a freeze.
+    if (realDt > 1.0) realDt = 1.0;
+  }
   simElapsed += realDt * speed;
   // Wave radii for all active events (mainshock + large aftershocks)
   var dp = _liveDepth;
@@ -6374,6 +6405,10 @@ function _stopBulletinTTS() {
 
 function endSimulation() {
   isRunning = false;
+  isPaused = false; // end while paused is impossible (gates are in-loop), keep the state honest anyway
+  var _pb0 = document.getElementById('btn-pause');
+  if (_pb0) { _pb0.textContent = '⏯'; _pb0.setAttribute('aria-pressed', 'false'); }
+  _syncPauseBadge();
   clearActiveShakingGrid(false);
   if (_reportActive && !_finalBulletinActive) _dismissShindoReport();
   if (animationId) { cancelAnimationFrame(animationId); animationId = null; }
@@ -6407,6 +6442,10 @@ function resetSimulation() {
   _deactivateObservedFiniteFault('reset');
   exitPresenterMode(); // v5.2: leaving presenter mode restores the sidebar
   if (isRunning) { isRunning = false; if (animationId) { cancelAnimationFrame(animationId); animationId = null; } }
+  isPaused = false; // stale pause must not freeze the next run at t=0
+  var _pb2 = document.getElementById('btn-pause');
+  if (_pb2) { _pb2.textContent = '⏯'; _pb2.setAttribute('aria-pressed', 'false'); }
+  _syncPauseBadge();
   isCountingDown = false; eewAlert.style.display = 'none';
   if (_eewSoundTimer1) { clearTimeout(_eewSoundTimer1); _eewSoundTimer1 = null; }
   if (_eewSoundTimer2) { clearTimeout(_eewSoundTimer2); _eewSoundTimer2 = null; }
@@ -7400,15 +7439,32 @@ document.getElementById('multi-event-mode').addEventListener('change', function(
   var addBtn = document.getElementById('me-preset-add');
   if (addBtn) addBtn.addEventListener('click', function() { _addPresetToChain(sel.value); });
 })();
-document.getElementById('btn-pause').addEventListener('click', function(){
-  if (!isRunning) return;
-  isPaused = !isPaused;
-  this.textContent = isPaused ? '▶' : '⏯';
-  if (!isPaused) lastFrameTime = performance.now();
-});
+// v6.0.1: real pause control — a shared toggle (button, P key, Space-resume)
+// with a visible ⏸ badge on the clock; stale pause state is cleared at
+// start/reset/end so a new run can never inherit it.
+function togglePause(force) {
+  if (!isRunning) return false;
+  var next = typeof force === 'boolean' ? force : !isPaused;
+  if (next === isPaused) return isPaused;
+  isPaused = next;
+  if (!isPaused) lastFrameTime = performance.now(); // resume without a wall-clock jump
+  var pb = document.getElementById('btn-pause');
+  if (pb) { pb.textContent = isPaused ? '▶' : '⏯'; pb.setAttribute('aria-pressed', isPaused ? 'true' : 'false'); }
+  _syncPauseBadge();
+  return isPaused;
+}
+function _syncPauseBadge() {
+  var td = document.getElementById('time-display');
+  if (!td) return;
+  var cur = td.textContent || '';
+  var tagged = cur.indexOf('⏸ ') === 0;
+  if (isPaused && isRunning && !tagged) td.textContent = '⏸ ' + cur;
+  else if ((!isPaused || !isRunning) && tagged) td.textContent = cur.slice(2);
+}
+document.getElementById('btn-pause').addEventListener('click', function(){ togglePause(); });
 document.getElementById('btn-step').addEventListener('click', function(){
   if (!isRunning || !isPaused) return;
-  simElapsed += 5;
+  _pauseStepPending = Math.min(_pauseStepPending + 5, 30); // cap: no runaway if the tab was hidden
   if (!lastFrameTime) lastFrameTime = performance.now();
 });
 // v4.3: Enhanced export — CSV + JSON + PNG via simple prompt
@@ -7610,6 +7666,8 @@ document.addEventListener('keydown', function(e){
   if (tgt && (tgt.tagName === 'INPUT' || tgt.tagName === 'TEXTAREA' || tgt.tagName === 'SELECT' || tgt.isContentEditable)) return;
   if (e.ctrlKey || e.metaKey || e.altKey) return;
   if (e.code === 'Space' && !isRunning && !isCountingDown && epicenter) { e.preventDefault(); startCountdown(); }
+  if (e.code === 'Space' && isRunning && isPaused) { e.preventDefault(); togglePause(false); }
+  if (e.code === 'KeyP' && isRunning) { e.preventDefault(); togglePause(); }
   if (e.code === 'KeyR' && !isRunning && !isCountingDown) { e.preventDefault(); resetSimulation(); }
   if (e.code === 'Equal' || e.code === 'NumpadAdd') simSpeedEl.selectedIndex = Math.min(simSpeedEl.options.length-1, simSpeedEl.selectedIndex+1);
   if (e.code === 'Minus' || e.code === 'NumpadSubtract') simSpeedEl.selectedIndex = Math.max(0, simSpeedEl.selectedIndex-1);
@@ -8891,7 +8949,7 @@ async function init() {
   initMobileToggle();
   // Register service worker for offline PWA support (non-critical)
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js?v=269175').catch(function(e) {
+    navigator.serviceWorker.register('sw.js?v=925936').catch(function(e) {
       console.warn('SW registration failed (non-critical):', e);
     });
   }
