@@ -1,6 +1,6 @@
 {
  "schema": "quake-sim-experiment-manifest-v1",
- "generated": "2026-09-01T07:51:24.807Z",
+ "generated": "2026-09-01T07:56:35.232Z",
  "identityRule": "qsx1-<sha256[:16] of file bytes>; manifest excluded from its own listing",
  "entries": [
   {
@@ -13,13 +13,13 @@
    "mtime": "2026-08-21T16:19:07.493Z"
   },
   {
-   "id": "qsx1-8b7475067bbc1bc5",
+   "id": "qsx1-ebb1da65c3afd888",
    "name": "broadband-event-mechanisms.json",
-   "bytes": 5479,
+   "bytes": 5252,
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-09-01T07:00:12.729Z"
+   "mtime": "2026-09-01T07:56:21.439Z"
   },
   {
    "id": "qsx1-c2f5892ba9d0c58f",
@@ -31,13 +31,13 @@
    "mtime": "2026-09-01T07:00:12.729Z"
   },
   {
-   "id": "qsx1-277744856c81391f",
+   "id": "qsx1-b178859121a1ed5a",
    "name": "broadband-hybrid-calibration.json",
-   "bytes": 21376,
+   "bytes": 20429,
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-09-01T07:00:12.729Z"
+   "mtime": "2026-09-01T07:56:21.439Z"
   },
   {
    "id": "qsx1-8c4b38e079b793c9",
@@ -139,13 +139,13 @@
    "mtime": "2026-08-26T12:09:53.303Z"
   },
   {
-   "id": "qsx1-c5fa64038aedcdf3",
+   "id": "qsx1-b391e6e6a4596190",
    "name": "gmpe-fixtures-zhao2006.json",
-   "bytes": 773079,
+   "bytes": 729870,
    "kind": "fixture",
    "track": "R0-3",
    "gate": "tests/gmpe-benchmarks.test.js",
-   "mtime": "2026-09-01T07:00:12.696Z"
+   "mtime": "2026-09-01T07:56:21.443Z"
   },
   {
    "id": "qsx1-bf7231c8999bc8e5",
@@ -274,13 +274,13 @@
    "mtime": "2026-08-26T11:54:17.872Z"
   },
   {
-   "id": "qsx1-29e99d5b27d50cfd",
+   "id": "qsx1-18121561134bc1e0",
    "name": "version-report.json",
    "bytes": 5955,
    "kind": "envelope",
    "track": "R7-5",
    "gate": "tuning-read audit",
-   "mtime": "2026-09-01T07:51:24.707Z"
+   "mtime": "2026-09-01T07:56:35.132Z"
   }
  ]
 }
