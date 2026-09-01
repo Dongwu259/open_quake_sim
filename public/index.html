@@ -869,6 +869,17 @@ window._loadThreeJS = function(cb) {
       <h3 data-i18n="help.share">📎 URL分享</h3>
       <p data-i18n="help.share_text">点击Start按钮旁的🔗按钮可复制当前模拟的完整URL链接。将链接分享给他人，对方打开后自动加载相同的震中、震级、深度等参数。支持参数：lat/lng（震中）、mag（震级）、depth（深度）、strike（走向）、dip（倾角）、preset（预设场景）、lang（语言）、detect（检测模式）、aftershock（余震）、tsunami（海啸）。</p>
       <hr style="border-color:var(--border);margin:12px 0">
+      <h3 data-i18n="help.v61_release">━━ v6.1 更新 ━━</h3>
+      <h3 data-i18n="help.v61_psha_t">地震危险性（PSHA）</h3>
+      <p data-i18n="help.v61_psha_d">以 USGS ComCat 目录自建震源模型（去簇、完备性 Mc=5.0@1980、逐类 b 值、自适应平滑）做 Poisson 年超越率积分，附逻辑树三分支认知不确定性带。</p>
+      <h3 data-i18n="help.v61_uhs_t">一致危险谱（UHS）</h3>
+      <p data-i18n="help.v61_uhs_d">Zhao2006 系数表逐字扩至 hazardlib 全 21 周期，信息页按 475–5000 年重现期绘制 UHS；谱周期逻辑树塌缩为单模型（si-mid/kanno 无谱行——公开记录）。</p>
+      <h3 data-i18n="help.v61_green_t">SH 离散波数 Green 函数</h3>
+      <p data-i18n="help.v61_green_d">tools/broadband 科研离线管线；五个解析锚全部验证。P-SV（瑞利/SV）未实现。</p>
+      <h3 data-i18n="help.v61_hybrid_t">混合宽带与记分卡</h3>
+      <p data-i18n="help.v61_hybrid_d">对 13 个 Kyoshin 观测包的预登记门评估：长周期（2–10 s）改善通过（+0.143），绝对门全部未过（含台站强震选样偏差地板）。结果已冻结。</p>
+      <h3 data-i18n="help.v61_bounds_t">诚实的边界</h3>
+      <p data-i18n="help.v61_bounds_d">PSHA 绝对水平在与 J-SHIS 官方曲线对照前不做等价性声明；混合器在优选台站集上存在约 −0.5 的绝对偏差地板。全部负结果已冻结进报告。</p>
       <h3 data-i18n="help.v60_release">━━ v6.0 更新 ━━</h3>
       <h3 data-i18n="help.v60_dyn_t">动力学破裂求解器</h3>
       <p data-i18n="help.v60_dyn_d">tools/dynamic-rupture 离线套件:2D 速度-应力交错网格 + 分裂节点滑移弱化自发破裂(SH 反平面与面内双模式)。解析锚验证:辐射阻尼 μ/2cs 收敛至 0.03%、静态位错核、能量闭合 <0.5%、分辨率自收敛;SCEC TPV5 官方参数反平面约化全流程运行。</p>
