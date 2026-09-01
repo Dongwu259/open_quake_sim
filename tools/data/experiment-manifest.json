@@ -1,6 +1,6 @@
 {
  "schema": "quake-sim-experiment-manifest-v1",
- "generated": "2026-09-01T07:09:05.299Z",
+ "generated": "2026-09-01T07:51:24.807Z",
  "identityRule": "qsx1-<sha256[:16] of file bytes>; manifest excluded from its own listing",
  "entries": [
   {
@@ -274,13 +274,13 @@
    "mtime": "2026-08-26T11:54:17.872Z"
   },
   {
-   "id": "qsx1-327b1f6400cc5f61",
+   "id": "qsx1-29e99d5b27d50cfd",
    "name": "version-report.json",
    "bytes": 5955,
    "kind": "envelope",
    "track": "R7-5",
    "gate": "tuning-read audit",
-   "mtime": "2026-09-01T07:09:05.199Z"
+   "mtime": "2026-09-01T07:51:24.707Z"
   }
  ]
 }
