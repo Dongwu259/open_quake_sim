@@ -1655,24 +1655,183 @@ Physics.pgvKanno = function(mw, X, depthKm, vs30) {
 // Paper coefficient rows. `site` = [CH(>1100), C1(600-1100), C2(300-600),
 // C3(200-300), C4(≤200)] m/s. `sa1` is the paper's 1.0 s spectral
 // acceleration row (used for the PGV pseudo-velocity derivation below).
+// v6.1 P2 (2026-09-01): extended to ALL 21 hazardlib IMTs (pga + 20 SA
+// periods 0.05-5.00 s), transcribed verbatim from the SAME frozen hazardlib
+// source (gem/oq-engine zhao_2006.py, sha256 3322dd09...ac88ec9 — verified
+// identical at fetch time). Every row asserted point-wise against the
+// regenerated fixtures in tests/gmpe-benchmarks.test.js. 'sa1' is kept as a
+// label alias of the 1.00 s row (fixture back-compat).
 Physics.ZHAO2006_PAPER = {
-  pga: {
-    a: 1.101, b: -0.00564, c: 0.0055, d: 1.080, e: 0.01412, fr: 0.251,
-    site: [0.293, 1.111, 1.344, 1.355, 1.420],
-    asc:    { qc: 0.0,     wc: 0.0 },
-    inter:  { si: 0.000, qi: 0.0,    wi: 0.0,    tau: 0.308 },
+  'pga': {
+    a: 1.101, b: -0.00564, c: 0.0055, d: 1.08, e: 0.01412, fr: 0.251,
+    site: [0.293, 1.111, 1.344, 1.355, 1.42],
+    asc:    { qc: 0.0, wc: 0.0 },
+    inter:  { si: 0.0, qi: 0.0, wi: 0.0, tau: 0.308 },
     slab:   { ss: 2.607, ssl: -0.528, ps: 0.1392, qs: 0.1584, ws: -0.0529, tau: 0.321 },
     tau: 0.303, sigma: 0.604
   },
-  sa1: {
-    a: 1.479, b: -0.00220, c: 0.0020, d: 1.115, e: 0.01005, fr: 0.211,
+  '0.05': {
+    a: 1.076, b: -0.00671, c: 0.0075, d: 1.06, e: 0.01463, fr: 0.251,
+    site: [0.939, 1.684, 1.793, 1.747, 1.814],
+    asc:    { qc: 0.0, wc: 0.0 },
+    inter:  { si: 0.0, qi: 0.0, wi: 0.0, tau: 0.343 },
+    slab:   { ss: 2.764, ssl: -0.551, ps: 0.1636, qs: 0.1932, ws: -0.0841, tau: 0.378 },
+    tau: 0.326, sigma: 0.64
+  },
+  '0.10': {
+    a: 1.118, b: -0.00787, c: 0.009, d: 1.083, e: 0.01423, fr: 0.24,
+    site: [1.499, 2.061, 2.135, 2.031, 2.082],
+    asc:    { qc: 0.0, wc: 0.0 },
+    inter:  { si: 0.0, qi: 0.0, wi: 0.0, tau: 0.403 },
+    slab:   { ss: 2.156, ssl: -0.42, ps: 0.169, qs: 0.2057, ws: -0.0877, tau: 0.42 },
+    tau: 0.342, sigma: 0.694
+  },
+  '0.15': {
+    a: 1.134, b: -0.00722, c: 0.01, d: 1.053, e: 0.01509, fr: 0.251,
+    site: [1.462, 1.916, 2.168, 2.052, 2.113],
+    asc:    { qc: 0.0, wc: 0.0 },
+    inter:  { si: 0.0, qi: -0.0138, wi: 0.0286, tau: 0.367 },
+    slab:   { ss: 2.161, ssl: -0.431, ps: 0.1669, qs: 0.1984, ws: -0.0773, tau: 0.372 },
+    tau: 0.331, sigma: 0.702
+  },
+  '0.20': {
+    a: 1.147, b: -0.00659, c: 0.012, d: 1.014, e: 0.01462, fr: 0.26,
+    site: [1.28, 1.669, 2.085, 2.001, 2.03],
+    asc:    { qc: 0.0, wc: 0.0 },
+    inter:  { si: 0.0, qi: -0.0256, wi: 0.0352, tau: 0.328 },
+    slab:   { ss: 1.901, ssl: -0.372, ps: 0.1631, qs: 0.1856, ws: -0.0644, tau: 0.324 },
+    tau: 0.312, sigma: 0.692
+  },
+  '0.25': {
+    a: 1.149, b: -0.0059, c: 0.014, d: 0.966, e: 0.01459, fr: 0.269,
+    site: [1.121, 1.468, 1.942, 1.941, 1.937],
+    asc:    { qc: 0.0, wc: 0.0 },
+    inter:  { si: 0.0, qi: -0.0348, wi: 0.0403, tau: 0.289 },
+    slab:   { ss: 1.814, ssl: -0.36, ps: 0.1588, qs: 0.1714, ws: -0.0515, tau: 0.294 },
+    tau: 0.298, sigma: 0.682
+  },
+  '0.30': {
+    a: 1.163, b: -0.0052, c: 0.015, d: 0.934, e: 0.01458, fr: 0.259,
+    site: [0.852, 1.172, 1.683, 1.808, 1.77],
+    asc:    { qc: 0.0, wc: 0.0 },
+    inter:  { si: 0.0, qi: -0.0423, wi: 0.0445, tau: 0.28 },
+    slab:   { ss: 2.181, ssl: -0.45, ps: 0.1544, qs: 0.1573, ws: -0.0395, tau: 0.284 },
+    tau: 0.3, sigma: 0.67
+  },
+  '0.40': {
+    a: 1.2, b: -0.00422, c: 0.01, d: 0.959, e: 0.01257, fr: 0.248,
+    site: [0.365, 0.655, 1.127, 1.482, 1.397],
+    asc:    { qc: 0.0, wc: 0.0 },
+    inter:  { si: -0.041, qi: -0.0541, wi: 0.0511, tau: 0.271 },
+    slab:   { ss: 2.432, ssl: -0.506, ps: 0.146, qs: 0.1309, ws: -0.0183, tau: 0.278 },
+    tau: 0.346, sigma: 0.659
+  },
+  '0.50': {
+    a: 1.25, b: -0.00338, c: 0.006, d: 1.008, e: 0.01114, fr: 0.247,
+    site: [-0.207, 0.071, 0.515, 0.934, 0.955],
+    asc:    { qc: -0.0126, wc: 0.0116 },
+    inter:  { si: -0.053, qi: -0.0632, wi: 0.0562, tau: 0.277 },
+    slab:   { ss: 2.629, ssl: -0.554, ps: 0.1381, qs: 0.1078, ws: -0.0008, tau: 0.272 },
+    tau: 0.338, sigma: 0.653
+  },
+  '0.60': {
+    a: 1.293, b: -0.00282, c: 0.003, d: 1.088, e: 0.01019, fr: 0.233,
+    site: [-0.705, -0.429, -0.003, 0.394, 0.559],
+    asc:    { qc: -0.0329, wc: 0.0202 },
+    inter:  { si: -0.103, qi: -0.0707, wi: 0.0604, tau: 0.296 },
+    slab:   { ss: 2.702, ssl: -0.575, ps: 0.1307, qs: 0.0878, ws: 0.0136, tau: 0.285 },
+    tau: 0.349, sigma: 0.653
+  },
+  '0.70': {
+    a: 1.336, b: -0.00258, c: 0.0025, d: 1.084, e: 0.00979, fr: 0.22,
+    site: [-1.144, -0.866, -0.449, -0.111, 0.188],
+    asc:    { qc: -0.0501, wc: 0.0274 },
+    inter:  { si: -0.146, qi: -0.0771, wi: 0.0639, tau: 0.313 },
+    slab:   { ss: 2.654, ssl: -0.572, ps: 0.1239, qs: 0.0705, ws: 0.0254, tau: 0.29 },
+    tau: 0.351, sigma: 0.652
+  },
+  '0.80': {
+    a: 1.386, b: -0.00242, c: 0.0022, d: 1.088, e: 0.00944, fr: 0.232,
+    site: [-1.609, -1.325, -0.928, -0.62, -0.246],
+    asc:    { qc: -0.065, wc: 0.0336 },
+    inter:  { si: -0.164, qi: -0.0825, wi: 0.067, tau: 0.329 },
+    slab:   { ss: 2.48, ssl: -0.54, ps: 0.1176, qs: 0.0556, ws: 0.0352, tau: 0.299 },
+    tau: 0.356, sigma: 0.647
+  },
+  '0.90': {
+    a: 1.433, b: -0.00232, c: 0.002, d: 1.109, e: 0.00972, fr: 0.22,
+    site: [-2.023, -1.732, -1.349, -1.066, -0.643],
+    asc:    { qc: -0.0781, wc: 0.0391 },
+    inter:  { si: -0.206, qi: -0.0874, wi: 0.0697, tau: 0.324 },
+    slab:   { ss: 2.332, ssl: -0.522, ps: 0.1116, qs: 0.0426, ws: 0.0432, tau: 0.289 },
+    tau: 0.348, sigma: 0.653
+  },
+  '1.00': {
+    a: 1.479, b: -0.0022, c: 0.002, d: 1.115, e: 0.01005, fr: 0.211,
     site: [-2.451, -2.152, -1.776, -1.523, -1.084],
-    asc:    { qc: -0.0899, wc: 0.0440 },
+    asc:    { qc: -0.0899, wc: 0.044 },
     inter:  { si: -0.239, qi: -0.0917, wi: 0.0721, tau: 0.328 },
-    slab:   { ss: 2.233, ssl: -0.509, ps: 0.1060, qs: 0.0314, ws: 0.0498, tau: 0.286 },
+    slab:   { ss: 2.233, ssl: -0.509, ps: 0.106, qs: 0.0314, ws: 0.0498, tau: 0.286 },
     tau: 0.338, sigma: 0.657
+  },
+  '1.25': {
+    a: 1.551, b: -0.00207, c: 0.002, d: 1.083, e: 0.01003, fr: 0.251,
+    site: [-3.243, -2.923, -2.542, -2.327, -1.936],
+    asc:    { qc: -0.1148, wc: 0.0545 },
+    inter:  { si: -0.256, qi: -0.1009, wi: 0.0772, tau: 0.339 },
+    slab:   { ss: 2.029, ssl: -0.469, ps: 0.0933, qs: 0.0093, ws: 0.0612, tau: 0.277 },
+    tau: 0.313, sigma: 0.66
+  },
+  '1.50': {
+    a: 1.621, b: -0.00224, c: 0.002, d: 1.091, e: 0.00928, fr: 0.248,
+    site: [-3.888, -3.548, -3.169, -2.979, -2.661],
+    asc:    { qc: -0.1351, wc: 0.063 },
+    inter:  { si: -0.306, qi: -0.1083, wi: 0.0814, tau: 0.352 },
+    slab:   { ss: 1.589, ssl: -0.379, ps: 0.0821, qs: -0.0062, ws: 0.0674, tau: 0.282 },
+    tau: 0.306, sigma: 0.664
+  },
+  '2.00': {
+    a: 1.694, b: -0.00201, c: 0.0025, d: 1.055, e: 0.00833, fr: 0.263,
+    site: [-4.783, -4.41, -4.039, -3.871, -3.64],
+    asc:    { qc: -0.1672, wc: 0.0764 },
+    inter:  { si: -0.321, qi: -0.1202, wi: 0.088, tau: 0.36 },
+    slab:   { ss: 0.966, ssl: -0.248, ps: 0.0628, qs: -0.0235, ws: 0.0692, tau: 0.3 },
+    tau: 0.283, sigma: 0.669
+  },
+  '2.50': {
+    a: 1.748, b: -0.00187, c: 0.0028, d: 1.052, e: 0.00776, fr: 0.262,
+    site: [-5.444, -5.049, -4.698, -4.496, -4.341],
+    asc:    { qc: -0.1921, wc: 0.0869 },
+    inter:  { si: -0.337, qi: -0.1293, wi: 0.0931, tau: 0.356 },
+    slab:   { ss: 0.789, ssl: -0.221, ps: 0.0465, qs: -0.0287, ws: 0.0622, tau: 0.292 },
+    tau: 0.287, sigma: 0.671
+  },
+  '3.00': {
+    a: 1.759, b: -0.00147, c: 0.0032, d: 1.025, e: 0.00644, fr: 0.307,
+    site: [-5.839, -5.431, -5.089, -4.893, -4.758],
+    asc:    { qc: -0.2124, wc: 0.0954 },
+    inter:  { si: -0.331, qi: -0.1368, wi: 0.0972, tau: 0.338 },
+    slab:   { ss: 1.037, ssl: -0.263, ps: 0.0322, qs: -0.0261, ws: 0.0496, tau: 0.274 },
+    tau: 0.278, sigma: 0.667
+  },
+  '4.00': {
+    a: 1.826, b: -0.00195, c: 0.004, d: 1.044, e: 0.0059, fr: 0.353,
+    site: [-6.598, -6.181, -5.882, -5.698, -5.588],
+    asc:    { qc: -0.2445, wc: 0.1088 },
+    inter:  { si: -0.39, qi: -0.1486, wi: 0.1038, tau: 0.307 },
+    slab:   { ss: 0.561, ssl: -0.169, ps: 0.0083, qs: -0.0065, ws: 0.015, tau: 0.281 },
+    tau: 0.273, sigma: 0.647
+  },
+  '5.00': {
+    a: 1.825, b: -0.00237, c: 0.005, d: 1.065, e: 0.0051, fr: 0.248,
+    site: [-6.752, -6.347, -6.051, -5.873, -5.798],
+    asc:    { qc: -0.2694, wc: 0.1193 },
+    inter:  { si: -0.498, qi: -0.1578, wi: 0.109, tau: 0.272 },
+    slab:   { ss: 0.225, ssl: -0.12, ps: -0.0117, qs: 0.0246, ws: -0.0268, tau: 0.296 },
+    tau: 0.275, sigma: 0.643
   }
 };
+Physics.ZHAO2006_PAPER.sa1 = Physics.ZHAO2006_PAPER['1.00'];
 
 // Site class from Vs30 per Zhao (2006) Table 2 p.901: 0=CH hard rock
 // (>1100), 1=C1 rock (600-1100), 2=C2 hard soil (300-600, project default),
@@ -2176,6 +2335,291 @@ Physics.logicTreeBranches = function(srcType) {
   var wsum = 0;
   for (var i = 0; i < tree.length; i++) wsum += tree[i].weight;
   return tree.map(function(b) { return { model: b.model, weight: b.weight / wsum }; });
+};
+
+// ================================================================
+//  PSHA HAZARD INTEGRATION (v6.1 P1, 2026-09-01)
+//  Poisson hazard curve for a site from a gridded GR source model
+//  (quake-sim-psha-source-v1, tools/build-psha-source-model.js) plus
+//  scenario sources. Medians come from the SAME three GMPE families the
+//  simulation path uses, weighted per tectonic class by the frozen LLH
+//  logic tree (GMPE_LOGIC_TREE) — modelBias is deliberately NOT applied
+//  (LOEO evidence in tools/data/model-bias-loeo-report.json: it does not
+//  generalise held-out). Aleatory uncertainty is the per-model total
+//  sigma (log10 units); epistemic spread is shown as a 3-curve branch-set
+//  ensemble (branch rank k applied consistently across all classes — an
+//  approximation of the joint logic tree, documented).
+//
+//  Distance convention: gridded cells use an equal-area circular rupture
+//  patch at the smoothed hypocentre depth (strike/dip unknown for grid
+//  sources): Rrup = hypDist - sqrt(L*W/pi) with L,W from faultDimensions;
+//  scenario sources with patch geometry use the min 3-D distance to patch
+//  centroids, point scenarios use the circular-patch rule. Rake is a
+//  class-level simplification (interplate reverse 90 deg, others neutral).
+// ================================================================
+
+/** Probability of at least one event in `years` for a Poisson annual rate. */
+Physics.poissonExceedProb = function(annualRate, years) {
+  if (!(annualRate > 0) || !(years > 0)) return 0;
+  return 1 - Math.exp(-annualRate * years);
+};
+/** Poisson annual rate whose `years`-year exceedance probability is `prob`. */
+Physics.poissonRateFromProb = function(prob, years) {
+  if (!(prob > 0) || !(years > 0) || prob >= 1) return Infinity;
+  return -Math.log(1 - prob) / years;
+};
+
+/** Class-level rake simplification for hazard integration. */
+Physics.PSHA_CLASS_RAKE = { crustal: 0, interplate: 90, intraslab: 0 };
+
+/** Period-aware Zhao 2006 sigma (log10 units): tau from the tectonic-class
+ *  sub-table of the period row (crustal tauC / interplate tauI / slab tauS),
+ *  phi = the row's shared sigma (hazardlib sets phi = sigma). imt is a
+ *  ZHAO2006_PAPER key ('pga', '0.05'...'5.00'); 'pgv' maps to the 1.00 s row
+ *  (the pseudo-velocity conversion source). For the pga/pgv keys this is
+ *  byte-identical to the class-constant ZHAO2006_SIGMA. */
+Physics.zhao2006Sigma = function(imt, srcType) {
+  var T = Physics.ZHAO2006_PAPER[imt] || (imt === 'pgv' ? Physics.ZHAO2006_PAPER['1.00'] : null) || Physics.ZHAO2006_PAPER.pga;
+  var tauLn = srcType === 'interplate' ? T.inter.tau : (srcType === 'intraslab' ? T.slab.tau : T.tau);
+  var phiLn = T.sigma;
+  return { tau: tauLn / _LN10, phi: phiLn / _LN10, sigmaT: Math.sqrt(tauLn * tauLn + phiLn * phiLn) / _LN10 };
+};
+
+/** Median and total sigma (log10 units) for one GMPE family at a hazard
+ *  contribution. imt: 'pga' (gal) | 'pgv' (cm/s) | 'sa:<periodKey>' (gal,
+ *  periodKey a ZHAO2006_PAPER key like '0.50'). Returns {median, sigmaLog10},
+ *  or null when the family does not implement the imt — si-midorikawa and
+ *  kanno2006 publish no spectral rows, so SA periods collapse to the zhao2006
+ *  single model (documented UHS limitation: no logic-tree epistemic spread
+ *  in periods). */
+Physics._pshaBranchMotion = function(modelName, imt, srcType, mw, rRupKm, depthKm, vs30, rake) {
+  if (imt.slice(0, 3) === 'sa:') {
+    if (modelName !== 'zhao2006') return null;
+    var key = imt.slice(3);
+    return {
+      median: Physics.GMPE_PGA_SOFT_CAP * Math.tanh(Math.exp(Physics.zhao2006LnA(key, srcType, mw, rRupKm, depthKm, vs30, rake)) / Physics.GMPE_PGA_SOFT_CAP),
+      sigmaLog10: Physics.zhao2006Sigma(key, srcType).sigmaT
+    };
+  }
+  if (modelName === 'zhao2006') {
+    var sig = Physics.zhao2006Sigma(imt === 'pgv' ? '1.00' : imt, srcType);
+    if (imt === 'pga') {
+      return { median: Physics.pgaZhao2006(mw, rRupKm, depthKm, srcType, vs30, rake), sigmaLog10: sig.sigmaT };
+    }
+    return { median: Physics.pgvZhao2006(mw, rRupKm, depthKm, srcType, vs30, rake), sigmaLog10: sig.sigmaT };
+  }
+  if (modelName === 'si-midorikawa') {
+    if (imt === 'pga') return { median: Physics.pgaSiMid(mw, rRupKm, depthKm, srcType), sigmaLog10: Physics.SIMID_SIGMA.sigmaT };
+    return { median: Physics.pgvSiMid(mw, rRupKm, depthKm, srcType), sigmaLog10: Physics.SIMID_SIGMA.sigmaT };
+  }
+  if (modelName === 'kanno2006') {
+    if (imt === 'pgv') return { median: Physics.pgvKanno(mw, rRupKm, depthKm, vs30), sigmaLog10: Physics.KANNO2006_SIGMA.sigmaT };
+    return { median: Physics.pgaKanno(mw, rRupKm, depthKm, vs30), sigmaLog10: Physics.KANNO2006_SIGMA.sigmaT };
+  }
+  return null;
+};
+
+/** Logic-tree branches for an imt: spectral periods collapse to the zhao2006
+ *  single model at weight 1 (si-mid/kanno publish no SA rows). */
+Physics._pshaBranchesFor = function(srcType, imt) {
+  if (imt.slice(0, 3) === 'sa:') return [{ model: 'zhao2006', weight: 1 }];
+  return Physics.logicTreeBranches(srcType);
+};
+
+/** Equal-area circular-patch Rrup proxy for a gridded/point source. */
+Physics._pshaPointRrup = function(hypDistKm, mw, srcType) {
+  var dims = Physics.faultDimensions(mw, srcType);
+  var rEq = Math.sqrt(dims.area / Math.PI);
+  return Math.max(hypDistKm - rEq, 0.1);
+};
+
+/** Hazard curve(s) at a site. site: {lat, lng, vs30?}. imt: 'pga'|'pgv'|
+ *  'sa:<periodKey>' (ZHAO2006_PAPER key, gal; logic tree collapses to the
+ *  zhao2006 single model — si-mid/kanno publish no SA rows).
+ *  options: {imLevels?, vs30?=600, maxDistKm?=500, mStep?=0.1, years?=50}.
+ *  Returns {imLevels, meanRate, ensemble, poissonProb, diagnostics} where
+ *  meanRate[i] is the mean annual exceedance rate of imLevels[i], ensemble
+ *  is the 3-branch-set hazard (index-aligned with GMPE_LOGIC_TREE rank;
+ *  single-branch imts repeat the mean curve), poissonProb is P(exceed in
+ *  `years`) for the mean curve. */
+Physics.hazardCurve = function(sourceModel, site, imt, options) {
+  options = options || {};
+  var isSa = imt.slice(0, 3) === 'sa:';
+  var imtKey = imt === 'pgv' ? 'pgv' : (isSa ? imt : 'pga');
+  var vs30 = site && site.vs30 != null ? site.vs30 : (options.vs30 != null ? options.vs30 : 600);
+  var maxDistKm = options.maxDistKm != null ? options.maxDistKm : 500;
+  var mStep = options.mStep || 0.1;
+  var years = options.years != null ? options.years : 50;
+  var imLevels = options.imLevels;
+  if (!imLevels || !imLevels.length) {
+    imLevels = [];
+    var lo = imtKey === 'pga' ? 3 : (isSa ? 0.01 : 0.3);
+    var hi = imtKey === 'pga' ? 3000 : (isSa ? 3000 : 300);
+    var nLv = isSa ? 50 : 40;
+    for (var q = 0; q < nLv; q++) imLevels.push(+(lo * Math.pow(hi / lo, q / (nLv - 1))).toPrecision(3));
+  }
+  var nIm = imLevels.length;
+  var meanRate = new Array(nIm).fill(0);
+  var nBranchSets = 3;
+  var ensemble = [];
+  for (var bs = 0; bs < nBranchSets; bs++) ensemble.push(new Array(nIm).fill(0));
+  var logIm = imLevels.map(function(v) { return Math.log10(v); });
+
+  var mc = sourceModel.mc, mMin = sourceModel.mMin != null ? sourceModel.mMin : 5.0;
+  var nCells = 0, nBins = 0;
+
+  function accumulate(srcType, mag, rRupKm, depthKm, rate) {
+    var branches = Physics._pshaBranchesFor(srcType, imtKey);
+    var rake = Physics.PSHA_CLASS_RAKE[srcType] || 0;
+    for (var bi = 0; bi < branches.length; bi++) {
+      var motion = Physics._pshaBranchMotion(branches[bi].model, imtKey, srcType, mag, rRupKm, depthKm, vs30, rake);
+      if (!motion || !(motion.median > 0)) continue;
+      var medLog = Math.log10(motion.median);
+      var sig = motion.sigmaLog10;
+      for (var ii = 0; ii < nIm; ii++) {
+        var z = (logIm[ii] - medLog) / sig;
+        var sign = z < 0 ? -1 : 1, az = Math.abs(z) / Math.SQRT2;
+        var t = 1 / (1 + 0.3275911 * az);
+        var erf = sign * (1 - (((((1.061405429*t - 1.453152027)*t) + 1.421413741)*t - 0.284496736)*t + 0.254829592)*t*Math.exp(-az*az));
+        var p = Math.max(0, Math.min(1, 0.5 * (1 - erf)));
+        if (p <= 0) continue;
+        // mean curve: logic-tree-weighted mix of the branch CCDFs;
+        // ensemble set k: branch rank k carries the FULL rate within its set.
+        meanRate[ii] += branches[bi].weight * rate * p;
+        if (bi < nBranchSets) ensemble[bi][ii] += rate * p;
+      }
+    }
+  }
+
+  // gridded cells
+  var cells = sourceModel.cells || [];
+  for (var ci = 0; ci < cells.length; ci++) {
+    var c = cells[ci];
+    var hd = Physics.haversineDist(site.lat, site.lng, c.lat, c.lng);
+    if (hd > maxDistKm) continue;
+    nCells++;
+    var b = sourceModel.bValues[c.srcType];
+    var mMax = (sourceModel.mMaxByClass || {})[c.srcType] || 7.5;
+    if (!(b > 0) || !(c.rateMc > 0)) continue;
+    var hypDist = Math.sqrt(hd * hd + c.depthKm * c.depthKm);
+    var mLo = Math.ceil(mMin / mStep - 1e-9) * mStep;
+    for (var m = mLo; m <= mMax + 1e-9; m += mStep) {
+      // incremental rate of bin [m, m+mStep) from the GR survival function
+      var lam = c.rateMc * (Math.pow(10, -b * (m - mc)) - Math.pow(10, -b * (m + mStep - mc)));
+      if (!(lam > 1e-9)) continue;
+      nBins++;
+      var mm = Math.min(m + mStep / 2, mMax);
+      var rRup = Physics._pshaPointRrup(hypDist, mm, c.srcType);
+      accumulate(c.srcType, mm, rRup, c.depthKm, lam);
+    }
+  }
+
+  // scenario sources
+  var scenUsed = 0;
+  var scenarios = sourceModel.scenarios || [];
+  for (var si = 0; si < scenarios.length; si++) {
+    var s = scenarios[si];
+    var rRupS, depthS;
+    if (s.patches && s.patches.length) {
+      rRupS = Infinity; depthS = s.depthKm != null ? s.depthKm : 0;
+      for (var pi = 0; pi < s.patches.length; pi++) {
+        var p = s.patches[pi];
+        var d3 = Math.sqrt(Math.pow(Physics.haversineDist(site.lat, site.lng, p[0], p[1]), 2) + p[2] * p[2]);
+        if (d3 < rRupS) rRupS = d3;
+      }
+    } else {
+      depthS = s.depthKm != null ? s.depthKm : 15;
+      var hdS = Physics.haversineDist(site.lat, site.lng, s.lat != null ? s.lat : 0, s.lng != null ? s.lng : 0);
+      rRupS = Physics._pshaPointRrup(Math.sqrt(hdS * hdS + depthS * depthS), s.mw, s.sourceType || 'crustal');
+    }
+    scenUsed++;
+    accumulate(s.sourceType || 'crustal', s.mw, Math.max(rRupS, 0.1), depthS, s.ratePerYear);
+  }
+
+  var poissonProb = meanRate.map(function(r) { return Physics.poissonExceedProb(r, years); });
+  if (isSa) {
+    // single-model imt: the branch-set ensemble is degenerate — repeat the
+    // mean curve so downstream fractile code stays well-defined.
+    for (var rep = 1; rep < nBranchSets; rep++) {
+      for (var ri = 0; ri < nIm; ri++) ensemble[rep][ri] = ensemble[0][ri];
+    }
+  }
+  return {
+    imt: imtKey, imLevels: imLevels, meanRate: meanRate, ensemble: ensemble,
+    poissonProb: poissonProb, years: years,
+    diagnostics: {
+      nCellsUsed: nCells, nMagnitudeBins: nBins, nScenarios: scenUsed,
+      mStep: mStep, maxDistKm: maxDistKm, vs30: vs30,
+      singleModel: isSa,
+      branchSets: ['crustal', 'interplate', 'intraslab'].map(function(cls) {
+        return Physics._pshaBranchesFor(cls, imtKey).map(function(b) { return b.model; });
+      })
+    }
+  };
+};
+
+/** Invert a hazard curve (descending rates over ascending imLevels) to the IM
+ *  with annual exceedance rate `targetRate`, by log-linear interpolation.
+ *  Returns null when the target lies outside the computed grid. */
+Physics._pshaInvertCurve = function(imLevels, rates, targetRate) {
+  if (!imLevels || imLevels.length < 2) return null;
+  if (rates[0] < targetRate || rates[rates.length - 1] > targetRate) return null;
+  for (var i = 1; i < rates.length; i++) {
+    if (rates[i] <= targetRate) {
+      var r0 = rates[i - 1], r1 = rates[i];
+      if (r0 <= 0) return imLevels[i - 1];
+      var f = r1 === r0 ? 0 : (Math.log(r0) - Math.log(targetRate)) / (Math.log(r0) - Math.log(r1));
+      var x0 = Math.log10(imLevels[i - 1]), x1 = Math.log10(imLevels[i]);
+      return Math.pow(10, x0 + f * (x1 - x0));
+    }
+  }
+  return null;
+};
+
+/** Uniform hazard spectra at a site: for each return period (years) the
+ *  Sa(T) whose mean annual exceedance rate is 1/RP, over the hazardlib Zhao
+ *  period set. Period '0' is the PGA anchor from the pga curve. SA periods
+ *  run on the zhao2006 single model (no logic-tree epistemic spread —
+ *  documented limitation). options: {periods?, vs30?, maxDistKm?, mStep?}.
+ *  Returns {periodsSec, uhs: {rp: [gal...]}, pga: {rp: gal}, diagnostics}. */
+Physics.uhs = function(sourceModel, site, returnPeriods, options) {
+  options = options || {};
+  var rps = (returnPeriods && returnPeriods.length ? returnPeriods : [475]).slice();
+  var periodKeys = options.periods ||
+    ['0.10', '0.20', '0.30', '0.50', '0.70', '1.00', '1.50', '2.00', '3.00', '5.00'];
+  var periodsSec = periodKeys.map(function(k) { return parseFloat(k); });
+
+  var pgaCurve = Physics.hazardCurve(sourceModel, site, 'pga', {
+    vs30: options.vs30, maxDistKm: options.maxDistKm, mStep: options.mStep
+  });
+  var pga = {};
+  var curves = [];
+  for (var pi = 0; pi < periodKeys.length; pi++) {
+    curves.push(Physics.hazardCurve(sourceModel, site, 'sa:' + periodKeys[pi], {
+      vs30: options.vs30, maxDistKm: options.maxDistKm, mStep: options.mStep
+    }));
+  }
+  // string RP keys keep JSON round-trips exact
+  var uhs = {};
+  for (var rk = 0; rk < rps.length; rk++) {
+    var t = 1 / rps[rk];
+    uhs[String(rps[rk])] = curves.map(function(cv) {
+      return Physics._pshaInvertCurve(cv.imLevels, cv.meanRate, t);
+    });
+  }
+  var pgaOut = {};
+  for (var rk2 = 0; rk2 < rps.length; rk2++) {
+    pgaOut[String(rps[rk2])] = Physics._pshaInvertCurve(pgaCurve.imLevels, pgaCurve.meanRate, 1 / rps[rk2]);
+  }
+  return {
+    periodsSec: periodsSec, uhs: uhs, pga: pgaOut, units: 'gal',
+    vs30: pgaCurve.diagnostics.vs30,
+    diagnostics: {
+      nCellsUsed: pgaCurve.diagnostics.nCellsUsed,
+      nPeriods: periodKeys.length, singleModel: true,
+      note: 'SA periods: zhao2006 single model (si-mid/kanno publish no spectral rows); absolute level vs J-SHIS pending external gate'
+    }
+  };
 };
 
 // ================================================================

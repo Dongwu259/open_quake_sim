@@ -1,6 +1,6 @@
 {
  "schema": "quake-sim-experiment-manifest-v1",
- "generated": "2026-08-27T15:42:59.322Z",
+ "generated": "2026-09-01T07:09:05.299Z",
  "identityRule": "qsx1-<sha256[:16] of file bytes>; manifest excluded from its own listing",
  "entries": [
   {
@@ -11,6 +11,42 @@
    "track": null,
    "gate": null,
    "mtime": "2026-08-21T16:19:07.493Z"
+  },
+  {
+   "id": "qsx1-8b7475067bbc1bc5",
+   "name": "broadband-event-mechanisms.json",
+   "bytes": 5479,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-01T07:00:12.729Z"
+  },
+  {
+   "id": "qsx1-c2f5892ba9d0c58f",
+   "name": "broadband-green-report.json",
+   "bytes": 3666,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-01T07:00:12.729Z"
+  },
+  {
+   "id": "qsx1-277744856c81391f",
+   "name": "broadband-hybrid-calibration.json",
+   "bytes": 21376,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-01T07:00:12.729Z"
+  },
+  {
+   "id": "qsx1-8c4b38e079b793c9",
+   "name": "broadband-scorecard.json",
+   "bytes": 25289,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-01T07:00:12.733Z"
   },
   {
    "id": "qsx1-228c17a0c7536365",
@@ -103,13 +139,13 @@
    "mtime": "2026-08-26T12:09:53.303Z"
   },
   {
-   "id": "qsx1-510ca39ab96dbe19",
+   "id": "qsx1-c5fa64038aedcdf3",
    "name": "gmpe-fixtures-zhao2006.json",
-   "bytes": 407411,
+   "bytes": 773079,
    "kind": "fixture",
    "track": "R0-3",
    "gate": "tests/gmpe-benchmarks.test.js",
-   "mtime": "2026-08-26T12:09:53.419Z"
+   "mtime": "2026-09-01T07:00:12.696Z"
   },
   {
    "id": "qsx1-bf7231c8999bc8e5",
@@ -146,6 +182,15 @@
    "track": null,
    "gate": null,
    "mtime": "2026-08-25T05:05:11.078Z"
+  },
+  {
+   "id": "qsx1-42b5f96e66b17e9b",
+   "name": "psha-source-model-report.json",
+   "bytes": 7232,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-01T07:00:12.692Z"
   },
   {
    "id": "qsx1-56d691a8bfa0a3ea",
@@ -229,13 +274,13 @@
    "mtime": "2026-08-26T11:54:17.872Z"
   },
   {
-   "id": "qsx1-df7f7448101f6d6b",
+   "id": "qsx1-327b1f6400cc5f61",
    "name": "version-report.json",
    "bytes": 5955,
    "kind": "envelope",
    "track": "R7-5",
    "gate": "tuning-read audit",
-   "mtime": "2026-08-26T11:54:18.004Z"
+   "mtime": "2026-09-01T07:09:05.199Z"
   }
  ]
 }

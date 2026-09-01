@@ -1,8 +1,8 @@
 {
   "schema": "quake-sim-version-report-v1",
-  "appVersion": "6.0.0",
-  "generatedAt": "2026-08-26T09:31:43.252Z",
-  "gitHead": "6f2835e63055378ac649867d756a6dddcdc88a54",
+  "appVersion": "6.1.0",
+  "generatedAt": "2026-09-01T07:09:05.136Z",
+  "gitHead": "66f5daad4bc8a314cbe696dfd41f2bba7c256f61",
   "reports": {
     "strong-motion-report.json": {
       "present": true,

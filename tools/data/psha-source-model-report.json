@@ -1,0 +1,366 @@
+{
+  "schema": "quake-sim-psha-source-model-report-v1",
+  "generatedAt": "2026-09-01T02:04:21.104Z",
+  "catalogCount": 8883,
+  "classCounts": {
+    "interplate": 4815,
+    "crustal": 1085,
+    "intraslab": 2983
+  },
+  "declusteredMainshocks": 5498,
+  "aftershocksRemoved": 3385,
+  "completeness": {
+    "rule": "pre-registered: max in-window count among CV<=0.25; else min CV among count>=500",
+    "chosen": {
+      "mc": 5,
+      "start": 1980,
+      "count": 3767,
+      "cv": 0.13099958706922968,
+      "decadeRates": [
+        90.5,
+        76.6,
+        66.4,
+        92.6
+      ],
+      "passes": true
+    },
+    "candidates": [
+      {
+        "mc": 5,
+        "start": 1923,
+        "count": 5498,
+        "cv": 0.5842209445815191,
+        "decadeRates": [
+          22.1,
+          10.9,
+          16.3,
+          30.9,
+          78.2,
+          90.5,
+          76.6,
+          66.4,
+          92.6
+        ],
+        "passes": false
+      },
+      {
+        "mc": 5,
+        "start": 1940,
+        "count": 5130,
+        "cv": 0.5391626394843313,
+        "decadeRates": [
+          10.9,
+          16.3,
+          30.9,
+          78.2,
+          90.5,
+          76.6,
+          66.4,
+          92.6
+        ],
+        "passes": false
+      },
+      {
+        "mc": 5,
+        "start": 1960,
+        "count": 4858,
+        "cv": 0.28394674122403957,
+        "decadeRates": [
+          30.9,
+          78.2,
+          90.5,
+          76.6,
+          66.4,
+          92.6
+        ],
+        "passes": false
+      },
+      {
+        "mc": 5,
+        "start": 1980,
+        "count": 3767,
+        "cv": 0.13099958706922968,
+        "decadeRates": [
+          90.5,
+          76.6,
+          66.4,
+          92.6
+        ],
+        "passes": true
+      },
+      {
+        "mc": 5,
+        "start": 1990,
+        "count": 2862,
+        "cv": 0.1373062101673718,
+        "decadeRates": [
+          76.6,
+          66.4,
+          92.6
+        ],
+        "passes": true
+      },
+      {
+        "mc": 5,
+        "start": 2000,
+        "count": 2096,
+        "cv": 0.1647798742138364,
+        "decadeRates": [
+          66.4,
+          92.6
+        ],
+        "passes": true
+      },
+      {
+        "mc": 5.5,
+        "start": 1923,
+        "count": 2341,
+        "cv": 0.2511401063461189,
+        "decadeRates": [
+          20.6,
+          10.9,
+          16.1,
+          29.5,
+          25.7,
+          22.7,
+          26.3,
+          24.1,
+          28.7
+        ],
+        "passes": false
+      },
+      {
+        "mc": 5.5,
+        "start": 1940,
+        "count": 1990,
+        "cv": 0.2609782382340682,
+        "decadeRates": [
+          10.9,
+          16.1,
+          29.5,
+          25.7,
+          22.7,
+          26.3,
+          24.1,
+          28.7
+        ],
+        "passes": false
+      },
+      {
+        "mc": 5.5,
+        "start": 1960,
+        "count": 1720,
+        "cv": 0.0910449344469077,
+        "decadeRates": [
+          29.5,
+          25.7,
+          22.7,
+          26.3,
+          24.1,
+          28.7
+        ],
+        "passes": true
+      },
+      {
+        "mc": 5.5,
+        "start": 1980,
+        "count": 1168,
+        "cv": 0.08932076952195916,
+        "decadeRates": [
+          22.7,
+          26.3,
+          24.1,
+          28.7
+        ],
+        "passes": true
+      },
+      {
+        "mc": 5.5,
+        "start": 1990,
+        "count": 941,
+        "cv": 0.07124653756564027,
+        "decadeRates": [
+          26.3,
+          24.1,
+          28.7
+        ],
+        "passes": true
+      },
+      {
+        "mc": 5.5,
+        "start": 2000,
+        "count": 678,
+        "cv": 0.08712121212121209,
+        "decadeRates": [
+          24.1,
+          28.7
+        ],
+        "passes": true
+      },
+      {
+        "mc": 6,
+        "start": 1923,
+        "count": 922,
+        "cv": 0.10542186091566272,
+        "decadeRates": [
+          8.3,
+          8.4,
+          9.1,
+          10.3,
+          7.6,
+          7.8,
+          9.8,
+          9,
+          10.2
+        ],
+        "passes": true
+      },
+      {
+        "mc": 6,
+        "start": 1940,
+        "count": 767,
+        "cv": 0.10753489719546634,
+        "decadeRates": [
+          8.4,
+          9.1,
+          10.3,
+          7.6,
+          7.8,
+          9.8,
+          9,
+          10.2
+        ],
+        "passes": true
+      },
+      {
+        "mc": 6,
+        "start": 1960,
+        "count": 592,
+        "cv": 0.1192230876466572,
+        "decadeRates": [
+          10.3,
+          7.6,
+          7.8,
+          9.8,
+          9,
+          10.2
+        ],
+        "passes": true
+      },
+      {
+        "mc": 6,
+        "start": 1980,
+        "count": 413,
+        "cv": 0.09962121075990957,
+        "decadeRates": [
+          7.8,
+          9.8,
+          9,
+          10.2
+        ],
+        "passes": true
+      },
+      {
+        "mc": 6,
+        "start": 1990,
+        "count": 335,
+        "cv": 0.05160906740377849,
+        "decadeRates": [
+          9.8,
+          9,
+          10.2
+        ],
+        "passes": true
+      },
+      {
+        "mc": 6,
+        "start": 2000,
+        "count": 237,
+        "cv": 0.062499999999999965,
+        "decadeRates": [
+          9,
+          10.2
+        ],
+        "passes": true
+      }
+    ]
+  },
+  "bValues": {
+    "crustal": 0.8426165478606837,
+    "interplate": 1.135895365480147,
+    "intraslab": 1.1632417036318836
+  },
+  "classStats": {
+    "crustal": {
+      "nWindow": 340,
+      "b": 0.8426165478606837
+    },
+    "interplate": {
+      "nWindow": 1883,
+      "b": 1.135895365480147
+    },
+    "intraslab": {
+      "nWindow": 1544,
+      "b": 1.1632417036318836
+    }
+  },
+  "cells": {
+    "total": 10441,
+    "byClass": {
+      "crustal": 3070,
+      "interplate": 2547,
+      "intraslab": 4824
+    }
+  },
+  "rateConservation": {
+    "crustal": {
+      "catalogRate": 7.299,
+      "modelRate": 7.653,
+      "ratioBefore": 1.05,
+      "normalisationFactor": 0.9537,
+      "ratioAfter": 1
+    },
+    "interplate": {
+      "catalogRate": 40.42,
+      "modelRate": 53.34,
+      "ratioBefore": 1.32,
+      "normalisationFactor": 0.7578,
+      "ratioAfter": 1
+    },
+    "intraslab": {
+      "catalogRate": 33.14,
+      "modelRate": 40.09,
+      "ratioBefore": 1.21,
+      "normalisationFactor": 0.8267,
+      "ratioAfter": 1
+    }
+  },
+  "scenarios": [
+    {
+      "id": "nankaiM9",
+      "mw": 9,
+      "ratePerYear": 0.04621
+    },
+    {
+      "id": "tokyoInland",
+      "mw": 7.3,
+      "ratePerYear": 0.04013
+    }
+  ],
+  "preRegisteredB2": {
+    "batch": "B2 broadband scorecard acceptance (frozen 2026-09-01, before any B2 implementation run)",
+    "metrics": {
+      "psaLog10BiasAbsMax": {
+        "0.5-2s": 0.25,
+        "2-10s": 0.25,
+        "0.1-0.5s": 0.3
+      },
+      "pgaLog10BiasAbsMax": 0.3,
+      "pgvLog10BiasAbsMax": 0.3,
+      "jmaIntensityBiasAbsMax": 0.5,
+      "longPeriodImprovementVsBrune": "hybrid 2-10s log10 PSA |bias| beats the Brune-carrier baseline by >=0.05, or both <=0.10",
+      "pgaNonRegressionVsBrune": "hybrid PGA log10 |bias| may not exceed the Brune baseline by more than 0.05"
+    },
+    "scope": "per-event median station bias over the 13 frozen Kyoshin packages; failures reported honestly, no post-hoc tuning"
+  }
+}

@@ -67,6 +67,80 @@ test('zhao2006 — coefficient tables match the openquake.hazardlib transcriptio
     'fixture provenance sha256 (regenerate via tools/gen-gmpe-fixtures.py)');
 });
 
+// --- v6.1 P2 (2026-09-01): the full 20-period SA extension -------------------
+// Periods 0.05-5.00 s transcribed from the SAME frozen hazardlib source; the
+// point-wise fixture test above already locks every period's equation output.
+// These assertions lock the table SHAPE plus hand-inline anchor rows so a
+// tampered fixture cannot bless a wrong table.
+const ALL_PERIODS = ['0.05', '0.10', '0.15', '0.20', '0.25', '0.30', '0.40', '0.50', '0.60',
+  '0.70', '0.80', '0.90', '1.00', '1.25', '1.50', '2.00', '2.50', '3.00', '4.00', '5.00'];
+
+test('zhao2006 — full SA period table present with hand-verified anchor rows', () => {
+  assert.strictEqual(Physics.ZHAO2006_PAPER.sa1, Physics.ZHAO2006_PAPER['1.00'], 'sa1 alias');
+  for (const p of ALL_PERIODS) assert.ok(Physics.ZHAO2006_PAPER[p], `row ${p}`);
+  const anchors = {
+    '0.05': { a: 1.076, sigma: 0.64, tau: 0.326, site0: 0.939, si: 0.0, qi: 0.0, wi: 0.0, tauI: 0.343, ss: 2.764, ssl: -0.551, ps: 0.1636, qs: 0.1932, ws: -0.0841, tauS: 0.378 },
+    '0.50': { a: 1.25, sigma: 0.653, tau: 0.338, site0: -0.207, si: -0.053, qi: -0.0632, wi: 0.0562, tauI: 0.277, ss: 2.629, ssl: -0.554, ps: 0.1381, qs: 0.1078, ws: -0.0008, tauS: 0.272 },
+    '5.00': { a: 1.825, sigma: 0.643, tau: 0.275, site0: -6.752, si: -0.498, qi: -0.1578, wi: 0.109, tauI: 0.272, ss: 0.225, ssl: -0.12, ps: -0.0117, qs: 0.0246, ws: -0.0268, tauS: 0.296 }
+  };
+  for (const p of Object.keys(anchors)) {
+    const A = anchors[p], P = Physics.ZHAO2006_PAPER[p];
+    assert.strictEqual(P.a, A.a, `${p} a`);
+    assert.strictEqual(P.sigma, A.sigma, `${p} sigma`);
+    assert.strictEqual(P.tau, A.tau, `${p} tauC`);
+    assert.strictEqual(P.site[0], A.site0, `${p} CH`);
+    assert.strictEqual(P.inter.si, A.si, `${p} SI`);
+    assert.strictEqual(P.inter.qi, A.qi, `${p} QI`);
+    assert.strictEqual(P.inter.wi, A.wi, `${p} WI`);
+    assert.strictEqual(P.inter.tau, A.tauI, `${p} tauI`);
+    assert.strictEqual(P.slab.ss, A.ss, `${p} SS`);
+    assert.strictEqual(P.slab.ssl, A.ssl, `${p} SSL`);
+    assert.strictEqual(P.slab.ps, A.ps, `${p} PS`);
+    assert.strictEqual(P.slab.qs, A.qs, `${p} QS`);
+    assert.strictEqual(P.slab.ws, A.ws, `${p} WS`);
+    assert.strictEqual(P.slab.tau, A.tauS, `${p} tauS`);
+  }
+});
+
+test('zhao2006 — fixture covers every period; period-aware sigma matches hazardlib stddevs', () => {
+  const imts = new Set(fixture.points.map(p => p.imt));
+  assert.ok(imts.has('pga') && imts.has('sa1'));
+  // '1.00' is emitted under the legacy label 'sa1' (full 1,200-point grid)
+  for (const p of ALL_PERIODS) {
+    if (p === '1.00') continue;
+    assert.ok(imts.has(p), `fixture imt ${p} missing`);
+  }
+  // per-period points: full 1,200 grid for pga/sa1, >=96 stratified for the rest
+  const byImt = {};
+  for (const p of fixture.points) byImt[p.imt] = (byImt[p.imt] || 0) + 1;
+  assert.strictEqual(byImt.pga, 1200);
+  assert.strictEqual(byImt.sa1, 1200);
+  for (const p of ALL_PERIODS) {
+    if (p === '1.00') continue;
+    assert.ok(byImt[p] >= 96, `${p}: ${byImt[p]}`);
+  }
+  // zhao2006Sigma: tau per class + phi = row sigma, in ln units in fixtures
+  for (const p of ['0.05', '0.50', '2.00', '5.00']) {
+    for (const cls of ['crustal', 'interplate', 'intraslab']) {
+      const sd = fixture.stddevs_ln[`${p}.${cls}`];
+      assert.ok(sd, `stddevs ${p}.${cls}`);
+      const s = Physics.zhao2006Sigma(p, cls);
+      assert.ok(Math.abs(s.phi * Math.LN10 - sd.phi_ln) < 1e-12, `${p}.${cls} phi`);
+      assert.ok(Math.abs(s.tau * Math.LN10 - sd.tau_ln) < 1e-12, `${p}.${cls} tau`);
+    }
+  }
+  // pga stays byte-identical to the class-constant table; pgv now pairs the
+  // sa1-derived medians with the sa1-row sigma (v6.1 P2 fix: P1 had used the
+  // PGA-row class sigma with sa1 medians — period-consistent now)
+  for (const cls of ['crustal', 'interplate', 'intraslab']) {
+    assert.strictEqual(Physics.zhao2006Sigma('pga', cls).sigmaT, Physics.ZHAO2006_SIGMA[cls].sigmaT);
+    const s = Physics.zhao2006Sigma('pgv', cls);
+    const sd = fixture.stddevs_ln[`sa1.${cls}`];
+    assert.ok(Math.abs(s.phi * Math.LN10 - sd.phi_ln) < 1e-12, `pgv ${cls} phi`);
+    assert.ok(Math.abs(s.tau * Math.LN10 - sd.tau_ln) < 1e-12, `pgv ${cls} tau`);
+  }
+});
+
 test('zhao2006 — medians reproduce the hazardlib reference at every fixture point', () => {
   assert.ok(fixture.points.length >= 2000, 'fixture grid unexpectedly small');
   let worst = 0, worstPoint = null;

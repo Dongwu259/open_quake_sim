@@ -1,0 +1,228 @@
+{
+  "schema": "quake-sim-broadband-event-mechanisms-v1",
+  "generatedAt": "2026-09-01T05:43:44.604Z",
+  "provenance": "USGS ComCat FDSN + eventpage moment-tensor products (GCMT preferred); public domain",
+  "events": [
+    {
+      "id": "20030926045007",
+      "resolved": true,
+      "comcatId": "official20030925195006360_27",
+      "comcatMag": 8.16,
+      "comcatMagType": "mww",
+      "depthKm": 27,
+      "pkgMag": 8,
+      "mechanism": {
+        "source": "us/duputel092503C",
+        "strike": 245,
+        "dip": 15,
+        "rake": 125,
+        "mwwMag": 8.2
+      },
+      "matchTimeDiffSec": 6.4
+    },
+    {
+      "id": "20041023180730",
+      "resolved": true,
+      "comcatId": "usp000d6vp",
+      "comcatMag": 5.4,
+      "comcatMagType": "mwr",
+      "depthKm": 10,
+      "pkgMag": 5.7,
+      "mechanism": {
+        "source": "us/pde20041023090731290_10_M_NIED",
+        "strike": 37,
+        "dip": 59,
+        "rake": 110,
+        "mwwMag": null
+      },
+      "matchTimeDiffSec": 31.3
+    },
+    {
+      "id": "20050320105319",
+      "resolved": true,
+      "comcatId": "usp000djku",
+      "comcatMag": 6.6,
+      "comcatMagType": "mwc",
+      "depthKm": 10,
+      "pkgMag": 7,
+      "mechanism": {
+        "source": "us/duputel200503200153A",
+        "strike": 125,
+        "dip": 63,
+        "rake": 15,
+        "mwwMag": 6.6
+      },
+      "matchTimeDiffSec": 41.8
+    },
+    {
+      "id": "20070325094145",
+      "resolved": true,
+      "comcatId": "usp000f7b5",
+      "comcatMag": 6.7,
+      "comcatMagType": "mwc",
+      "depthKm": 8,
+      "pkgMag": 6.9,
+      "mechanism": {
+        "source": "us/duputel200703250041A",
+        "strike": 32,
+        "dip": 24,
+        "rake": 104,
+        "mwwMag": 6.7
+      },
+      "matchTimeDiffSec": -2.2
+    },
+    {
+      "id": "20080614084331",
+      "resolved": true,
+      "comcatId": "usp000g9h6",
+      "comcatMag": 6.9,
+      "comcatMagType": "mwc",
+      "depthKm": 7.8,
+      "pkgMag": 7.2,
+      "mechanism": {
+        "source": "us/duputel200806132343A",
+        "strike": 28,
+        "dip": 40,
+        "rake": 100,
+        "mwwMag": 6.8
+      },
+      "matchTimeDiffSec": 45.4
+    },
+    {
+      "id": "20110311144626",
+      "resolved": true,
+      "comcatId": "official20110311054624120_30",
+      "comcatMag": 9.1,
+      "comcatMagType": "mww",
+      "depthKm": 29,
+      "pkgMag": 9,
+      "mechanism": {
+        "source": "us/duputel201103110546A",
+        "strike": 192,
+        "dip": 8,
+        "rake": 78,
+        "mwwMag": 9.1
+      },
+      "matchTimeDiffSec": 24.1
+    },
+    {
+      "id": "20110411171556",
+      "resolved": true,
+      "comcatId": "usp000hzq8",
+      "comcatMag": 6.6,
+      "comcatMagType": "mww",
+      "depthKm": 11,
+      "pkgMag": 7,
+      "mechanism": {
+        "source": "us/duputel201104110816A",
+        "strike": 308,
+        "dip": 48,
+        "rake": -93,
+        "mwwMag": 6.6
+      },
+      "matchTimeDiffSec": 12.7
+    },
+    {
+      "id": "20160416012405",
+      "resolved": true,
+      "comcatId": "us20005iis",
+      "comcatMag": 7,
+      "comcatMagType": "mww",
+      "depthKm": 10,
+      "pkgMag": 7.3,
+      "mechanism": {
+        "source": "us/us_20005iis_mww",
+        "strike": 224,
+        "dip": 66,
+        "rake": -151,
+        "mwwMag": 7
+      },
+      "matchTimeDiffSec": 6.2
+    },
+    {
+      "id": "20180906030750",
+      "resolved": true,
+      "comcatId": "us2000h8ty",
+      "comcatMag": 6.6,
+      "comcatMagType": "mww",
+      "depthKm": 35,
+      "pkgMag": 6.7,
+      "mechanism": {
+        "source": "us/us_2000h8ty_mww",
+        "strike": 167.1,
+        "dip": 30.1,
+        "rake": 102.4,
+        "mwwMag": 6.6
+      },
+      "matchTimeDiffSec": -0.8
+    },
+    {
+      "id": "20190618222207",
+      "resolved": true,
+      "comcatId": "us600042fx",
+      "comcatMag": 6.4,
+      "comcatMagType": "mww",
+      "depthKm": 12,
+      "pkgMag": 6.7,
+      "mechanism": {
+        "source": "us/us_600042fx_mww",
+        "strike": 26.8,
+        "dip": 38,
+        "rake": 87.7,
+        "mwwMag": 6.4
+      },
+      "matchTimeDiffSec": 19
+    },
+    {
+      "id": "20220316233630",
+      "resolved": true,
+      "comcatId": "us6000h519",
+      "comcatMag": 7.3,
+      "comcatMagType": "mww",
+      "depthKm": 41,
+      "pkgMag": 7.4,
+      "mechanism": {
+        "source": "us/us_6000h519_mww",
+        "strike": 184.5,
+        "dip": 40.4,
+        "rake": 80.2,
+        "mwwMag": 7.3
+      },
+      "matchTimeDiffSec": 31
+    },
+    {
+      "id": "20240101160813",
+      "resolved": true,
+      "comcatId": "us6000m0xl",
+      "comcatMag": 7.5,
+      "comcatMagType": "mww",
+      "depthKm": 10,
+      "pkgMag": 7.6,
+      "mechanism": {
+        "source": "us/us_6000m0xl_mww",
+        "strike": 49.2,
+        "dip": 41.3,
+        "rake": 102.5,
+        "mwwMag": 7.5
+      },
+      "matchTimeDiffSec": 9.5
+    },
+    {
+      "id": "20240808164247",
+      "resolved": true,
+      "comcatId": "us6000nith",
+      "comcatMag": 7.1,
+      "comcatMagType": "mww",
+      "depthKm": 24,
+      "pkgMag": 7.1,
+      "mechanism": {
+        "source": "us/us_6000nith_mww",
+        "strike": 202.7,
+        "dip": 18.4,
+        "rake": 75.8,
+        "mwwMag": 7.1
+      },
+      "matchTimeDiffSec": -4.8
+    }
+  ]
+}

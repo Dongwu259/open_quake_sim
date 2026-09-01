@@ -21,16 +21,16 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="QuakeSim">
-<link rel="manifest" href="manifest.json?v=f1148e">
+<link rel="manifest" href="manifest.json?v=28075d">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <title>地震模拟器 v6.0 | Earthquake Simulator Pro</title>
 <link rel="stylesheet" href="leaflet/leaflet.css?v=f885c4">
 <link rel="stylesheet" href="style.css?v=d1c705">
 <link rel="preload" href="leaflet/leaflet.js?v=5a640f" as="script">
-<link rel="preload" href="app.js?v=e99197" as="script">
+<link rel="preload" href="app.js?v=857e8f" as="script">
 <link rel="preload" href="style.css?v=d1c705" as="style">
-<link rel="preload" href="config.js?v=148820" as="script">
-<link rel="preload" href="physics.js?v=4f00c1" as="script">
+<link rel="preload" href="config.js?v=925c43" as="script">
+<link rel="preload" href="physics.js?v=0a8cf8" as="script">
 </head>
 <body>
 <a href="#map" class="skip-link" data-i18n="aria.skip">跳转到内容</a>
@@ -275,6 +275,7 @@
           <div class="adv-row" data-cfg="gmpModel"><span data-i18n="adv.gmpModel">GMPE模型</span><select></select><span class="adv-val"></span><button class="adv-rst" title="Reset">&#8634;</button></div>
           <div class="adv-row" data-cfg="subareaUncertainty"><span data-i18n="adv.uncertainty">不确定性描边</span><select></select><span class="adv-val"></span><button class="adv-rst" title="Reset">&#8634;</button></div>
           <div class="adv-row" data-cfg="ensembleMembers"><span data-i18n="adv.ensembleMembers">集合成员数</span><input type="range"><span class="adv-val"></span><button class="adv-rst" title="Reset">&#8634;</button></div>
+          <div class="adv-row" data-cfg="pshaReturnPeriod"><span data-i18n="adv.pshaReturnPeriod">PSHA 重现期</span><select></select><span class="adv-val"></span><button class="adv-rst" title="Reset">&#8634;</button></div>
           <div class="adv-row" data-cfg="attA"><span data-i18n="adv.attA">系数 a (M)</span><input type="range"><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div>
           <div class="adv-row" data-cfg="attB"><span data-i18n="adv.attB">系数 b (logR)</span><input type="range"><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div>
           <div class="adv-row" data-cfg="attC"><span data-i18n="adv.attC">系数 c (常数)</span><input type="range"><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div>
@@ -424,6 +425,18 @@
               <div class="chart-block"><div class="info-mini-hdr"><span data-i18n="info.atten_curve">PGA 距离衰减曲线</span><button class="chart-download" data-canvas="atten-canvas" data-i18n-aria="info.download_chart" aria-label="Download chart">&#11015;</button></div><canvas id="atten-canvas" width="320" height="120" class="info-plot" role="img" data-i18n-aria="a11y.canvas.attenuation" aria-label="Attenuation curve"></canvas></div>
               <div class="chart-block"><div class="info-mini-hdr"><span data-i18n="info.gmpe_compare">GMPE模型对比</span><button class="chart-download" data-canvas="gmpe-compare-canvas" data-i18n-aria="info.download_chart" aria-label="Download chart">&#11015;</button></div><canvas id="gmpe-compare-canvas" width="320" height="130" class="info-plot" role="img" data-i18n-aria="a11y.canvas.gmpe" aria-label="GMPE comparison"></canvas></div>
               <div class="chart-block"><div class="info-mini-hdr"><span data-i18n="info.azimuth">方位角 PGA 方向性</span><button class="chart-download" data-canvas="azimuth-canvas" data-i18n-aria="info.download_chart" aria-label="Download chart">&#11015;</button></div><canvas id="azimuth-canvas" width="200" height="200" class="info-plot info-plot-sq" role="img" data-i18n-aria="a11y.canvas.azimuth" aria-label="Azimuth directivity"></canvas></div>
+            </div>
+          </details>
+          <details class="info-card" id="psha-card">
+            <summary><span data-i18n="info.psha">地震危险性 (PSHA)</span></summary>
+            <div class="info-card-body">
+              <div class="rt-opt-row" style="margin-bottom:4px"><label for="psha-rp-select" data-i18n="info.psha_rp">重现期</label>
+                <select id="psha-rp-select" class="rt-select" data-i18n-aria="info.psha_rp" aria-label="Return period"><option value="475">475</option><option value="1000">1000</option><option value="2500">2500</option><option value="5000">5000</option></select>
+                <span data-i18n="info.psha_rp_year">年</span>
+              </div>
+              <div class="chart-block"><div class="info-mini-hdr"><span data-i18n="info.psha_hazard">PGA 年超越率曲线</span><button class="chart-download" data-canvas="psha-hazard-canvas" data-i18n-aria="info.download_chart" aria-label="Download chart">&#11015;</button></div><canvas id="psha-hazard-canvas" width="320" height="90" class="info-plot" role="img" data-i18n-aria="a11y.canvas.psha_hazard" aria-label="PGA hazard curve" aria-describedby="psha-hazard-description"></canvas><p id="psha-hazard-description" class="visually-hidden" data-i18n="a11y.canvas.psha_hazard_desc">以对数坐标展示当前站点（震中或地图中心）PGA 的年超越率随加速度水平的下降曲线，含逻辑树分支集合带与所选重现期参考线；数值随站点与重现期选择变化。</p></div>
+              <div class="chart-block"><div class="info-mini-hdr"><span data-i18n="info.psha_uhs">均匀危险谱 UHS</span><button class="chart-download" data-canvas="psha-uhs-canvas" data-i18n-aria="info.download_chart" aria-label="Download chart">&#11015;</button></div><canvas id="psha-uhs-canvas" width="320" height="90" class="info-plot" role="img" data-i18n-aria="a11y.canvas.psha_uhs" aria-label="Uniform hazard spectrum" aria-describedby="psha-uhs-description"></canvas><p id="psha-uhs-description" class="visually-hidden" data-i18n="a11y.canvas.psha_uhs_desc">以所选重现期均匀危险谱形式展示 0.1–5 秒各周期加速度响应谱值（含 PGA 锚点）；谱值随站点与重现期选择变化，可通过下载按钮导出 CSV。</p></div>
+              <p class="info-note" data-i18n="info.psha_note">简化自算震源模型（USGS ComCat + 南海/首都直下情景源）；绝对水平与官方 J-SHIS 曲线的对照待完成。站点=当前震中或地图中心，Vs30=600。</p>
             </div>
           </details>
           <details class="info-card">
@@ -697,14 +710,14 @@
 
 <script src="leaflet/leaflet.js?v=5a640f"></script>
 <script src="turf/turf.min.js?v=07f3b6"></script>
-<script src="config.js?v=148820"></script>
+<script src="config.js?v=925c43"></script>
 <script src="sim-utils.js?v=b2aa4c"></script>
 <script src="research.js?v=d9aad6"></script>
 <script src="data-catalog.js?v=bee20f"></script>
 <script src="grid-package.js?v=865d26"></script>
-<script src="i18n.js?v=b3c078"></script>
+<script src="i18n.js?v=e3f909"></script>
 <script src="dc3d.js?v=2865dd"></script>
-<script src="physics.js?v=4f00c1"></script>
+<script src="physics.js?v=0a8cf8"></script>
 <script src="tsunami-solver-host.js?v=2432a8"></script>
 <script src="ensemble-solver-host.js?v=153d61"></script>
 <script src="reference-backend.js?v=3ead82"></script>
@@ -801,7 +814,7 @@ window._loadThreeJS = function(cb) {
     </div>
   </div>
 </div>
-<script src="app.js?v=e99197"></script>
+<script src="app.js?v=857e8f"></script>
 <script src="aftershock.js?v=e29837"></script>
 <script src="rt-data.js?v=cc4e9a"></script>
 <script src="rt-kmoni.js?v=b581c5"></script>
@@ -809,7 +822,7 @@ window._loadThreeJS = function(cb) {
 <script src="rt-demo.js?v=c99e56"></script>
 <script src="rt-quakeinfo.js?v=b6b2bc"></script>
 <script src="rt-tsunami.js?v=d59204"></script>
-<script src="info-panel.js?v=b799dd"></script>
+<script src="info-panel.js?v=f09267"></script>
 <script src="renderer.js?v=0900d3"></script>
 <div id="help-overlay" class="help-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="help-dialog-title">
   <div class="help-panel" tabindex="-1">

@@ -435,6 +435,9 @@ var InfoPanel = (function() {
     // Travel time and azimuth curves reference local functions in app.js
     if (typeof drawTravelTimeCurve === 'function') drawTravelTimeCurve();
     if (typeof drawAzimuthDirectivity === 'function') drawAzimuthDirectivity();
+    // PSHA hazard/UHS (v6.1 P2) live in app.js (cfgGet/epicenter access)
+    if (typeof window.drawPshaHazard === 'function') window.drawPshaHazard();
+    if (typeof window.drawPshaUhs === 'function') window.drawPshaUhs();
   }
 
   // ================================================================

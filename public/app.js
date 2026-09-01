@@ -9282,7 +9282,7 @@ var ScenarioManager = (function(){
       if (isFinite(+a.lat) && isFinite(+a.lng)) { e.lat = +a.lat; e.lng = +a.lng; }
       return e;
     });
-    return { schema:Research.SCENARIO_SCHEMA,name:name || tr('scn.untitled'),version:2,appVersion:'v6.0',
+    return { schema:Research.SCENARIO_SCHEMA,name:name || tr('scn.untitled'),version:2,appVersion:'v6.1',
              seed:Research.normalizeSeed(cfgGet('randomSeed')),events:events,flags:flags,config:JSON.parse(JSON.stringify(CFG)),
              faultOpts:FiniteFaultEditor.getState(),manualAftershocks:manAs,display:_researchDisplayState(),dataVersions:versions.data,modelVersions:versions.model,
              experiment:_currentExperiment,created:(function(){try{return new Date().toISOString();}catch(e){return '';}})() };
@@ -9841,6 +9841,189 @@ function drawResponseSpectrum() {
   }
 }
 
+
+// --- PSHA hazard curve & UHS (v6.1 P2, 2026-09-01) ------------------------
+// Site hazard from the bundled self-computed source model
+// (geojson/psha-source-model.json, schema quake-sim-psha-source-v1, built by
+// tools/build-psha-source-model.js from the frozen USGS ComCat catalog).
+// The model loads lazily (landuse-pack precedent); an absent pack leaves the
+// canvases in their waiting state instead of failing the charts view.
+// Absolute hazard LEVELS are pending the J-SHIS external comparison gate
+// (ROADMAP v6.1 R8) — the card note says so.
+
+var _pshaSourceModel = null;   // null=not attempted, false=missing/unloaded, doc=ready
+var _pshaResultCache = null;   // {key, hazard, uhs, rp} keyed by site+rp+vs30
+var _lastUhsExport = null;
+
+function _loadPshaSourceModel() {
+  if (_pshaSourceModel !== null) return;
+  _pshaSourceModel = false;
+  fetch('geojson/psha-source-model.json').then(function(r){ return r.ok ? r.json() : null; }).then(function(doc){
+    if (!doc || doc.schema !== 'quake-sim-psha-source-v1' || !Array.isArray(doc.cells)) return;
+    _pshaSourceModel = doc;
+    _redrawInfoCharts();
+  }).catch(function(){ /* pack optional — charts stay in waiting state */ });
+}
+
+function _pshaSite() {
+  // hazard site = current epicenter when set, else map centre; rock Vs30 600
+  if (typeof epicenter !== 'undefined' && epicenter && epicenter.lat != null) {
+    return { lat: epicenter.lat, lng: epicenter.lng, vs30: 600 };
+  }
+  try {
+    var c = (typeof map !== 'undefined' && map.getCenter) ? map.getCenter() : null;
+    if (c) return { lat: c.lat, lng: c.lng, vs30: 600 };
+  } catch (e) { /* map not ready */ }
+  return null;
+}
+
+var PSHA_UHS_PERIODS = ['0.10', '0.20', '0.50', '1.00', '2.00', '3.00', '5.00'];
+var _pshaComputeTimer = null;
+
+function _pshaCompute() {
+  var site = _pshaSite();
+  if (!site || !_pshaSourceModel) return null;
+  var rp = cfgGet('pshaReturnPeriod') || 475;
+  var key = site.lat.toFixed(3) + '|' + site.lng.toFixed(3) + '|' + rp + '|' + site.vs30;
+  if (_pshaResultCache && _pshaResultCache.key === key) return _pshaResultCache;
+  var hazard = Physics.hazardCurve(_pshaSourceModel, site, 'pga', { years: 50 });
+  var uhs = Physics.uhs(_pshaSourceModel, site, [rp], { periods: PSHA_UHS_PERIODS });
+  _pshaResultCache = { key: key, hazard: hazard, uhs: uhs, rp: rp, site: site };
+  return _pshaResultCache;
+}
+
+/** Debounced compute-and-redraw: hazard/UHS cost ~1 s per site, so slider
+ *  spam / epicenter drags must not recompute synchronously on every redraw.
+ *  Cache hits draw immediately; misses draw the waiting state and schedule
+ *  one deferred computation (latest-site wins). */
+function _pshaScheduleCompute() {
+  var site = _pshaSite();
+  if (!site || !_pshaSourceModel) return null;
+  var rp = cfgGet('pshaReturnPeriod') || 475;
+  var key = site.lat.toFixed(3) + '|' + site.lng.toFixed(3) + '|' + rp + '|' + site.vs30;
+  if (_pshaResultCache && _pshaResultCache.key === key) return _pshaResultCache;
+  if (_pshaComputeTimer) clearTimeout(_pshaComputeTimer);
+  _pshaComputeTimer = setTimeout(function() {
+    _pshaComputeTimer = null;
+    try { _pshaCompute(); } catch (e) { return; }
+    _redrawInfoCharts();
+  }, 350);
+  return null; // caller draws the waiting state
+}
+
+function _pshaWaiting(ctx, W, H, msg) {
+  ctx.fillStyle = '#666'; ctx.font = '10px monospace';
+  ctx.fillText(msg || 'PSHA — waiting for source model...', 10, H / 2);
+}
+
+function drawPshaHazard() {
+  _loadPshaSourceModel();
+  var canvas = document.getElementById('psha-hazard-canvas');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  var W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  var res = _pshaScheduleCompute();
+  if (!res) { _pshaWaiting(ctx, W, H); return; }
+  var hz = res.hazard;
+  // log-log frame over the curve's valid range
+  var lo = hz.imLevels[0], hi = hz.imLevels[hz.imLevels.length - 1];
+  var maxRate = hz.meanRate[0];
+  if (!(maxRate > 0)) { _pshaWaiting(ctx, W, H, 'PSHA — no contribution'); return; }
+  var rateTop = Math.max(maxRate, 1e-5), rateBot = Math.min(1e-6, maxRate / 1e3);
+  function xOf(gal) { return 30 + (Math.log10(gal) - Math.log10(lo)) / (Math.log10(hi) - Math.log10(lo)) * (W - 40); }
+  function yOf(rate) {
+    return 10 + (1 - (Math.log10(Math.max(rate, rateBot)) - Math.log10(rateBot)) / (Math.log10(rateTop) - Math.log10(rateBot))) * (H - 25);
+  }
+  // axes
+  ctx.strokeStyle = '#333'; ctx.lineWidth = 0.5;
+  ctx.beginPath(); ctx.moveTo(30, 5); ctx.lineTo(30, H - 15); ctx.lineTo(W - 5, H - 15); ctx.stroke();
+  // ensemble band (epistemic branch sets) + mean curve
+  ctx.strokeStyle = 'rgba(102,204,255,0.35)'; ctx.lineWidth = 1;
+  hz.ensemble.forEach(function(curve) {
+    ctx.beginPath();
+    var started = false;
+    for (var i = 0; i < hz.imLevels.length; i++) {
+      if (!(curve[i] > 0)) continue;
+      var x = xOf(hz.imLevels[i]), y = yOf(curve[i]);
+      if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  });
+  ctx.beginPath(); ctx.strokeStyle = '#e94560'; ctx.lineWidth = 2;
+  for (var i = 0; i < hz.imLevels.length; i++) {
+    if (!(hz.meanRate[i] > 0)) continue;
+    var x = xOf(hz.imLevels[i]), y = yOf(hz.meanRate[i]);
+    if (i === 0 || !(hz.meanRate[i - 1] > 0)) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  // return-period reference line: rate = 1/RP
+  var rpRate = 1 / res.rp, yRp = yOf(rpRate);
+  ctx.setLineDash([4, 3]); ctx.strokeStyle = '#ff9f43'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(30, yRp); ctx.lineTo(W - 5, yRp); ctx.stroke();
+  ctx.setLineDash([]);
+  // labels
+  ctx.fillStyle = '#888'; ctx.font = '8px monospace'; ctx.textAlign = 'center';
+  [10, 100, 1000].forEach(function(gal) {
+    if (gal >= lo && gal <= hi) ctx.fillText(String(gal) + 'gal', xOf(gal), H - 3);
+  });
+  ctx.textAlign = 'left'; ctx.fillStyle = '#ff9f43'; ctx.font = '8px monospace';
+  ctx.fillText('RP ' + res.rp + 'y', 34, Math.max(10, yRp - 3));
+  ctx.fillStyle = '#aaa'; ctx.font = '9px monospace';
+  var p50 = Physics._pshaInvertCurve(hz.imLevels, hz.meanRate, -Math.log(0.5) / 50);
+  ctx.fillText('50y PGA(50%): ' + (p50 ? Math.round(p50) + ' gal' : '—') + ' | RP' + res.rp + ': ' +
+    (res.uhs.pga[String(res.rp)] ? Math.round(res.uhs.pga[String(res.rp)]) + ' gal' : '>grid'), 34, 12);
+}
+
+function drawPshaUhs() {
+  _loadPshaSourceModel();
+  var canvas = document.getElementById('psha-uhs-canvas');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  var W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  var res = _pshaScheduleCompute();
+  if (!res) { _pshaWaiting(ctx, W, H); return; }
+  var rpKey = String(res.rp);
+  var periods = res.uhs.periodsSec.slice();
+  var vals = res.uhs.uhs[rpKey].slice();
+  var pgaPt = res.uhs.pga[rpKey];
+  var pts = [];
+  if (pgaPt != null) pts.push({ T: 0.02, sa: pgaPt });  // PGA anchor near T=0
+  for (var i = 0; i < periods.length; i++) if (vals[i] != null) pts.push({ T: periods[i], sa: vals[i] });
+  if (pts.length < 2) { _pshaWaiting(ctx, W, H, 'UHS — outside computed grid'); return; }
+  var maxSa = 0; pts.forEach(function(p) { maxSa = Math.max(maxSa, p.sa); });
+  if (!(maxSa > 0)) { _pshaWaiting(ctx, W, H); return; }
+  var logTMin = Math.log(0.02), logTMax = Math.log(5);
+  function xOf(T) { return 30 + (Math.log(T) - logTMin) / (logTMax - logTMin) * (W - 40); }
+  function yOf(sa) { return (H - 20) - (sa / maxSa) * (H - 30); }
+  ctx.strokeStyle = '#333'; ctx.lineWidth = 0.5;
+  ctx.beginPath(); ctx.moveTo(30, 5); ctx.lineTo(30, H - 15); ctx.lineTo(W - 5, H - 15); ctx.stroke();
+  ctx.beginPath(); ctx.strokeStyle = '#4ecdc4'; ctx.lineWidth = 2;
+  for (var pi = 0; pi < pts.length; pi++) {
+    var x = xOf(pts[pi].T), y = yOf(pts[pi].sa);
+    if (pi === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.fillStyle = '#888'; ctx.font = '8px monospace'; ctx.textAlign = 'center';
+  [[0.1, '0.1s'], [0.5, '0.5s'], [1, '1s'], [2, '2s'], [5, '5s']].forEach(function(lab) {
+    ctx.fillText(lab[1], xOf(lab[0]), H - 3);
+  });
+  ctx.textAlign = 'left'; ctx.fillStyle = '#aaa'; ctx.font = '9px monospace';
+  ctx.fillText('UHS RP' + res.rp + 'y  peak ' + Math.round(maxSa) + ' gal (zhao2006 SA, 5% ζ)', 34, 12);
+  // stash for the CSV export
+  _lastUhsExport = {
+    site: res.site.lat.toFixed(3) + ',' + res.site.lng.toFixed(3),
+    rp: res.rp, vs30: res.site.vs30,
+    periodsSec: pts.map(function(p) { return p.T === 0.02 ? 0 : p.T; }),
+    saGal: pts.map(function(p) { return p.sa; })
+  };
+}
+window.drawPshaHazard = drawPshaHazard;
+window.drawPshaUhs = drawPshaUhs;
+
 // --- Info-page charts: attenuation, source spectrum, travel-time, azimuth directivity ---
 
 // Redraw all info-page charts (used on slider input / epicenter set, when sim
@@ -9850,6 +10033,7 @@ function _redrawInfoCharts() {
   try {
     drawAttenuationCurve(); drawGMPECompare(); drawSourceSpectrum();
     drawTravelTimeCurve(); drawAzimuthDirectivity();
+    drawPshaHazard(); drawPshaUhs();
   } catch(e) {}
 }
 
@@ -9903,6 +10087,21 @@ document.querySelectorAll('.chart-download').forEach(function(btn) {
       return;
     } catch (e) { /* fall through to PNG */ }
   }
+  // UHS chart CSV export (v6.1 P2): period / Sa columns for the selected RP
+  if (btn.dataset.canvas === 'psha-uhs-canvas' && _lastUhsExport && _lastUhsExport.periodsSec.length) {
+    try {
+      var ux = _lastUhsExport;
+      var urows = ['period_sec,sa_gal'];
+      for (var ui = 0; ui < ux.periodsSec.length; ui++) {
+        urows.push(ux.periodsSec[ui].toFixed(3) + ',' + ux.saGal[ui].toFixed(2));
+      }
+      var ublob = new Blob([urows.join('\n')], { type: 'text/csv' });
+      var ua = document.createElement('a'); ua.href = URL.createObjectURL(ublob);
+      ua.download = 'quake-sim-uhs-rp' + ux.rp + '-vs30-' + ux.vs30 + '-site-' + ux.site.replace(',', 'x') + '.csv'; ua.click();
+      setTimeout(function() { URL.revokeObjectURL(ua.href); }, 5000);
+      return;
+    } catch (e) { /* fall through to PNG */ }
+  }
     btn.addEventListener('click', function() {
       var canvas = document.getElementById(btn.dataset.canvas); if (!canvas) return;
       try { var a=document.createElement('a'); a.href=canvas.toDataURL('image/png'); a.download='quake-sim-'+btn.dataset.canvas+'.png'; a.click(); } catch(e) {}
@@ -9915,6 +10114,17 @@ if (focalDownload) focalDownload.addEventListener('click',function(){
 });
   var view = document.getElementById('info-3d-view');
   if (view) view.addEventListener('change', function() { var legacy=document.getElementById('btn-3d-'+view.value); if (legacy) legacy.click(); });
+  // PSHA return-period selector (v6.1 P2): drives cfg + invalidates the
+  // site-hazard cache; hazard/UHS redraw through _redrawInfoCharts
+  var pshaRp = document.getElementById('psha-rp-select');
+  if (pshaRp) {
+    try { pshaRp.value = String(cfgGet('pshaReturnPeriod') || 475); } catch (e) { /* default */ }
+    pshaRp.addEventListener('change', function() {
+      cfgSet('pshaReturnPeriod', +pshaRp.value);
+      _pshaResultCache = null;
+      _redrawInfoCharts();
+    });
+  }
 })();
 
 // Chart 1: PGA vs distance attenuation curve + station scatter

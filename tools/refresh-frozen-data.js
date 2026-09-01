@@ -19,6 +19,7 @@
 //  Usage:
 //    node tools/refresh-frozen-data.js               # all sources
 //    node tools/refresh-frozen-data.js --source=jma  # one source
+//    node tools/refresh-frozen-data.js --month=2026-09  # explicit month key
 //  Monthly cadence per R7-1; snapshots accumulate under tools/data/frozen/.
 // ================================================================
 const fs = require('fs');
@@ -80,6 +81,19 @@ const SOURCES = [
 
 function sha256(text) { return crypto.createHash('sha256').update(text).digest('hex'); }
 
+function monthKey(now, override) {
+  // Monthly cadence keys on the runner's LOCAL calendar month. A UTC-derived
+  // key (toISOString) lands runs between local midnight and UTC midnight —
+  // e.g. Sep 1 00:32 at UTC+8 — back into the previous month's directory and
+  // silently overwrites that snapshot (bit us on the 2026-09-01 run).
+  if (override) {
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(override)) throw new Error('--month must be YYYY-MM, got: ' + override);
+    return override;
+  }
+  const d = now instanceof Date ? now : new Date(now);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+
 function loadLocalSnapshot(sourceId) {
   // newest existing snapshot for the source
   if (!fs.existsSync(FROZEN_DIR)) return null;
@@ -118,7 +132,8 @@ function driftOf(prev, next) {
 
 async function main() {
   const only = (process.argv.find(a => a.startsWith('--source=')) || '').split('=')[1];
-  const month = new Date().toISOString().slice(0, 7);
+  const monthArg = (process.argv.find(a => a.startsWith('--month=')) || '').split('=')[1];
+  const month = monthKey(new Date(), monthArg);
   const outDir = path.join(FROZEN_DIR, month);
   fs.mkdirSync(outDir, { recursive: true });
   const report = {
@@ -170,4 +185,4 @@ async function main() {
 }
 
 if (require.main === module) main();
-module.exports = { SOURCES, driftOf };
+module.exports = { SOURCES, driftOf, monthKey };

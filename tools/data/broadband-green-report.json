@@ -1,0 +1,174 @@
+{
+ "schema": "quake-sim-broadband-green-report-v1",
+ "generatedAt": "2026-09-01T06:32:33.195Z",
+ "kernel": "tools/broadband/core.js (SH DW; no P-SV/3D/scattering — public capability boundary)",
+ "anchors": {
+  "a1_fullSpace": {
+   "pass": true,
+   "tolerances": {
+    "ampAbs": 0.05,
+    "phaseRad": 0.25
+   },
+   "worst": {
+    "ampAbs": "0.0280",
+    "phaseRad": "0.0998",
+    "complexRelUngated": "0.0998"
+   },
+   "rows": [
+    {
+     "rKm": 15,
+     "zReceiverKm": 0,
+     "ampRatio": 0.9887,
+     "phaseDiffRad": 0.09981,
+     "complexRel": 0.09984
+    },
+    {
+     "rKm": 30,
+     "zReceiverKm": 0,
+     "ampRatio": 0.9994,
+     "phaseDiffRad": 0.03276,
+     "complexRel": 0.03275
+    },
+    {
+     "rKm": 60,
+     "zReceiverKm": 0,
+     "ampRatio": 0.9993,
+     "phaseDiffRad": 0.005697,
+     "complexRel": 0.005741
+    },
+    {
+     "rKm": 30,
+     "zReceiverKm": 0,
+     "ampRatio": 1.006,
+     "phaseDiffRad": 0.0336,
+     "complexRel": 0.03418
+    },
+    {
+     "rKm": 15,
+     "zReceiverKm": 5,
+     "ampRatio": 1.028,
+     "phaseDiffRad": 0.08848,
+     "complexRel": 0.09395
+    }
+   ],
+   "config": {
+    "vsKmS": 3.5,
+    "rhoGcm3": 2.7,
+    "Q": 50,
+    "fHz": 0.5,
+    "dkInvKm": 0.0025,
+    "kMaxInvKm": 12
+   }
+  },
+  "a2_staticLimit": {
+   "pass": true,
+   "relF2VsStatic": "0.0200",
+   "relF1VsStatic": "0.0352",
+   "note": "static limit of the same closed form; DW itself is singular as omega->0 (not sampled)"
+  },
+  "a3_loveDispersion": {
+   "pass": true,
+   "firstOvertoneCutoffHz": 0.08006,
+   "rows": [
+    {
+     "fHz": 0.04003,
+     "phaseVelsKmS": [
+      3.182
+     ]
+    },
+    {
+     "fHz": 0.1201,
+     "phaseVelsKmS": [
+      3.501,
+      2.579
+     ]
+    }
+   ],
+   "note": "fundamental has no low-frequency cutoff (c->bH); first overtone emerges at omega*S*h=pi; roots by bisection on Re D"
+  },
+  "a4_verticalIncidence": {
+   "pass": true,
+   "rows": [
+    {
+     "fHz": 0.2,
+     "ref": 1.6530404548926323,
+     "kernel": 1.653,
+     "relDiff": "0.00000388"
+    },
+    {
+     "fHz": 0.5,
+     "ref": 1.3750509872783012,
+     "kernel": 1.375,
+     "relDiff": "6.21e-7"
+    },
+    {
+     "fHz": 1,
+     "ref": 4.5171040750618925,
+     "kernel": 4.517,
+     "relDiff": "1.55e-7"
+    },
+    {
+     "fHz": 2,
+     "ref": 2.199299884587884,
+     "kernel": 2.199,
+     "relDiff": "3.88e-8"
+    },
+    {
+     "fHz": 5,
+     "ref": 1.466143579450782,
+     "kernel": 1.466,
+     "relDiff": "6.21e-9"
+    },
+    {
+     "fHz": 10,
+     "ref": 2.899474436206368,
+     "kernel": 2.899,
+     "relDiff": "1.55e-9"
+    }
+   ],
+   "maxRel": "0.00000388",
+   "note": "k->0 vertical-incidence limit vs physics.js site-response propagator (damping 0 both sides)"
+  },
+  "a5_kSampling": {
+   "pass": true,
+   "ladder": [
+    {
+     "dkInvKm": 0.01,
+     "kMaxInvKm": 8,
+     "complexRel": 0.034
+    },
+    {
+     "dkInvKm": 0.005,
+     "kMaxInvKm": 10,
+     "complexRel": 0.0328
+    },
+    {
+     "dkInvKm": 0.0025,
+     "kMaxInvKm": 12,
+     "complexRel": 0.0328
+    },
+    {
+     "dkInvKm": 0.00125,
+     "kMaxInvKm": 14,
+     "complexRel": 0.0328
+    }
+   ],
+   "note": "measured convergence ladder (frozen, not gated — Q=50 residual is dominated by a slowly-converging near-field phase component)"
+  }
+ },
+ "jivsmCase": {
+  "pass": true,
+  "nLayers": 13,
+  "fMaxHz": 1,
+  "dfHz": 0.0078125,
+  "runtimeMs": 501,
+  "qShear": 50,
+  "peakUm": 437000,
+  "peakTimeS": 13.5,
+  "sTravelS": 7.11,
+  "peakWithinWindow": true,
+  "note": "JIVSM Kanto column, Q=50; M6.5 strike-slip; peak is DISPLACEMENT in the 0.05-1 Hz band — window [0.5S, S+40] s, amplitude [1e-3, 10] m"
+ },
+ "allPass": true,
+ "status": "anchors-pass + time-domain case gated"
+}
