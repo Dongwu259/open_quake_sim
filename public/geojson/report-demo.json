@@ -1,0 +1,267 @@
+{
+ "schema": "quake-sim-report-snapshot-v1",
+ "kind": "demo",
+ "capturedAt": "2026-09-03T11:53:58.176Z",
+ "event": {
+  "preset": "tokyoInland",
+  "presetName": "Tokyo Inland M7.3 (default preset)",
+  "mag": 7.3,
+  "sliderMag": 7.3,
+  "depthKm": 17,
+  "lat": 35.62,
+  "lng": 139.75,
+  "sourceClass": "crustal",
+  "faultModel": null,
+  "chainCount": null
+ },
+ "summary": {
+  "durationS": 0,
+  "maxShindo": "7",
+  "maxShindoLabel": "7",
+  "maxPgaGal": 1103.6,
+  "maxPgvCms": 237.22,
+  "maxTsunamiM": null,
+  "stationCount": 1289
+ },
+ "prefectures": [
+  {
+   "name": "東京都",
+   "shindo": "7",
+   "range": "6-~7",
+   "lpgm": 0
+  },
+  {
+   "name": "千葉県",
+   "shindo": "6+",
+   "range": "6-~7",
+   "lpgm": 0
+  },
+  {
+   "name": "神奈川県",
+   "shindo": "6+",
+   "range": "5+~7",
+   "lpgm": 0
+  },
+  {
+   "name": "埼玉県",
+   "shindo": "6-",
+   "range": "5+~6+",
+   "lpgm": 0
+  },
+  {
+   "name": "茨城県",
+   "shindo": "5+",
+   "range": "4~6-",
+   "lpgm": 0
+  },
+  {
+   "name": "栃木県",
+   "shindo": "5-",
+   "range": "4~5+",
+   "lpgm": 0
+  },
+  {
+   "name": "山梨県",
+   "shindo": "5-",
+   "range": "4~6-",
+   "lpgm": 0
+  },
+  {
+   "name": "群馬県",
+   "shindo": "5-",
+   "range": "4~5+",
+   "lpgm": 0
+  },
+  {
+   "name": "静岡県",
+   "shindo": "5-",
+   "range": "4~6-",
+   "lpgm": 0
+  },
+  {
+   "name": "長野県",
+   "shindo": "5-",
+   "range": "4~5+",
+   "lpgm": 0
+  },
+  {
+   "name": "福島県",
+   "shindo": "5-",
+   "range": "4~5+",
+   "lpgm": 0
+  },
+  {
+   "name": "愛知県",
+   "shindo": "4",
+   "range": "4~5-",
+   "lpgm": 0
+  },
+  {
+   "name": "滋賀県",
+   "shindo": "4",
+   "range": "3~5-",
+   "lpgm": 0
+  },
+  {
+   "name": "宮城県",
+   "shindo": "4",
+   "range": "3~4",
+   "lpgm": 0
+  },
+  {
+   "name": "山形県",
+   "shindo": "4",
+   "range": "3~4",
+   "lpgm": 0
+  }
+ ],
+ "stations": [
+  {
+   "name": "KOTO (TOKYO)",
+   "shindo": "7",
+   "pga": 1103.6,
+   "pgv": 237.22
+  },
+  {
+   "name": "KAWASAKI (KANAGAWA)",
+   "shindo": "7",
+   "pga": 1103.6,
+   "pgv": 237.22
+  },
+  {
+   "name": "浦安市",
+   "shindo": "7",
+   "pga": 1103.6,
+   "pgv": 237.22
+  },
+  {
+   "name": "東京都千代田区",
+   "shindo": "7",
+   "pga": 1103.6,
+   "pgv": 237.22
+  },
+  {
+   "name": "港区",
+   "shindo": "7",
+   "pga": 1103.6,
+   "pgv": 237.22
+  },
+  {
+   "name": "品川区",
+   "shindo": "7",
+   "pga": 1103.6,
+   "pgv": 237.22
+  },
+  {
+   "name": "大田区",
+   "shindo": "7",
+   "pga": 1103.6,
+   "pgv": 237.22
+  },
+  {
+   "name": "豊島区",
+   "shindo": "7",
+   "pga": 1103.6,
+   "pgv": 237.22
+  },
+  {
+   "name": "荒川区",
+   "shindo": "7",
+   "pga": 1103.6,
+   "pgv": 237.22
+  },
+  {
+   "name": "江戸川区",
+   "shindo": "7",
+   "pga": 1103.6,
+   "pgv": 237.22
+  },
+  {
+   "name": "川崎市",
+   "shindo": "7",
+   "pga": 1103.6,
+   "pgv": 237.22
+  },
+  {
+   "name": "北区",
+   "shindo": "7",
+   "pga": 1088.5,
+   "pgv": 235.83
+  }
+ ],
+ "tsunami": null,
+ "aftershocks": null,
+ "spectrum": {
+  "station": "KOTO (TOKYO) (zhao2006 median PSA)",
+  "periods": [
+   0.1,
+   0.117,
+   0.137,
+   0.161,
+   0.189,
+   0.221,
+   0.259,
+   0.304,
+   0.356,
+   0.418,
+   0.489,
+   0.574,
+   0.672,
+   0.788,
+   0.924,
+   1.083,
+   1.269,
+   1.487,
+   1.743,
+   2.043,
+   2.395,
+   2.807,
+   3.29,
+   3.857,
+   4.52,
+   5.298,
+   6.21,
+   7.279,
+   8.532,
+   10
+  ],
+  "psaGal": [
+   1397.06,
+   1103.57,
+   1103.57,
+   1103.57,
+   1103.57,
+   1103.57,
+   1103.57,
+   2230.43,
+   1103.57,
+   1103.57,
+   1103.57,
+   1103.57,
+   1103.57,
+   1103.57,
+   1103.57,
+   1103.57,
+   1103.57,
+   1103.57,
+   1103.57,
+   1103.57,
+   1103.57,
+   1103.57,
+   1103.57,
+   1103.57,
+   1103.57,
+   1103.57,
+   1103.57,
+   1103.57,
+   1103.57,
+   1103.57
+  ]
+ },
+ "provenance": {
+  "builder": "tools/build-report-demo.js",
+  "model": "zhao2006 + shipped modelBias, point-source equal-area Rrup proxy — static forecast, no time simulation",
+  "inputs": "japan_prefectures.geojson centroids / stations.json / vs30.json",
+  "note": "demo snapshot for the report page; regenerated deterministically (no RNG)"
+ }
+}

@@ -1,6 +1,6 @@
 {
  "schema": "quake-sim-experiment-manifest-v1",
- "generated": "2026-09-01T07:56:35.232Z",
+ "generated": "2026-09-03T16:30:25.353Z",
  "identityRule": "qsx1-<sha256[:16] of file bytes>; manifest excluded from its own listing",
  "entries": [
   {
@@ -47,6 +47,15 @@
    "track": null,
    "gate": null,
    "mtime": "2026-09-01T07:00:12.733Z"
+  },
+  {
+   "id": "qsx1-44ddfdfa315e47bc",
+   "name": "cs-pipeline-report.json",
+   "bytes": 146940,
+   "kind": "experiment",
+   "track": "v6.2 CS pipeline",
+   "gate": "tests/cs-pipeline.test.js",
+   "mtime": "2026-09-03T16:26:18.943Z"
   },
   {
    "id": "qsx1-228c17a0c7536365",
@@ -157,6 +166,15 @@
    "mtime": "2026-08-25T05:05:11.113Z"
   },
   {
+   "id": "qsx1-cfdd1ce685ddb8a7",
+   "name": "jshis-comparison-report.json",
+   "bytes": 25033,
+   "kind": "scorecard",
+   "track": "R8 external gate",
+   "gate": "tests/jshis-comparison.test.js",
+   "mtime": "2026-09-03T16:26:18.980Z"
+  },
+  {
    "id": "qsx1-4f0a3b6bf344fcd4",
    "name": "kyoshin-eqid-map.json",
    "bytes": 4367,
@@ -175,13 +193,22 @@
    "mtime": "2026-08-25T05:16:39.990Z"
   },
   {
-   "id": "qsx1-00ef48c730dbbb2a",
+   "id": "qsx1-70b953c8730129e0",
    "name": "model-bias-loeo-report.json",
-   "bytes": 5207,
+   "bytes": 11160,
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-08-25T05:05:11.078Z"
+   "mtime": "2026-09-03T16:26:19.052Z"
+  },
+  {
+   "id": "qsx1-5780aec04d637af4",
+   "name": "psha-attribution-report.json",
+   "bytes": 32201,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-03T16:26:19.015Z"
   },
   {
    "id": "qsx1-42b5f96e66b17e9b",
@@ -238,13 +265,13 @@
    "mtime": "2026-08-25T05:16:40.064Z"
   },
   {
-   "id": "qsx1-3dae28efb9fbe1c2",
+   "id": "qsx1-6d20354344ec2127",
    "name": "strong-motion-report.json",
-   "bytes": 140907,
+   "bytes": 200084,
    "kind": "scorecard",
    "track": "GMPE",
    "gate": "tests/scientific-tripwires.test.js",
-   "mtime": "2026-08-26T12:09:53.767Z"
+   "mtime": "2026-09-03T16:26:19.086Z"
   },
   {
    "id": "qsx1-25434a5c3e795655",

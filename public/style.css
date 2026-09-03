@@ -979,3 +979,18 @@ body.presenter-mode .autofocus-label{left:290px;bottom:44px}
 }
 
 /* ===== v5.5 What's-New entry button + overlay (pure CSS animations) ===== */
+
+/* v6.2 experience report page — sidebar entry pills (open fork: guide pill
+   reuses the class; upstream has the guide entry in the promo modal instead) */
+.report-entry-btn{appearance:none;border:1px solid var(--accent);background:linear-gradient(100deg,rgba(233,69,96,.16),rgba(138,47,190,.16));color:var(--accent);font:inherit;font-size:.78em;font-weight:700;line-height:1.2;cursor:pointer;white-space:nowrap;padding:5px 12px;margin:6px 0 2px;border-radius:999px;flex-shrink:0;transition:transform var(--ui-motion-fast) var(--ui-motion-ease),box-shadow var(--ui-motion-base) ease)}
+.report-entry-btn:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(233,69,96,.35)}
+.report-entry-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* v6.2 fix: standalone full-window pages (report/guide) must scroll — the app
+   root body rule (overflow:hidden/100vh/100vw) is for the single-viewport app
+   layout, not for these documents; also re-enable text selection for reading */
+.report-page-body, .guide-page-body {
+  overflow-y: auto; overflow-x: hidden;
+  height: auto; min-height: 100vh; width: auto; max-width: 100vw;
+  user-select: text; -webkit-user-select: text;
+}

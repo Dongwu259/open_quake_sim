@@ -2,6 +2,32 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/) where practical.
 
+## [v6.2] — 2026-09-04
+
+v6.2 upstream sync (quake_sim `1256af5`..`cb957c3`): experience report page, illustrated guide, validation expansion, conditional-spectrum pipeline, J-SHIS external gate + attribution. v6.2 上游同步：体验报告页、图例使用说明、验证扩容、条件谱管线、J-SHIS 外部门与归因。
+
+### Added
+- **Experience report page** (`report.html`): full-window report of the current/last simulation — prefecture table with ±1σ ranges, top stations, tsunami zones, aftershock summary, response-spectrum chart — snapshotted to localStorage at simulation end; a frozen deterministic demo snapshot renders when nothing has run. Sidebar entry pill under the app title
+- **Illustrated guide page** (`guide.html`): 13-section full-window manual with pure-CSS map legends (shindo palette / P-S rings / tsunami warning grades) anchored to the renderer and rt-tsunami colors; this fork's entry is a sidebar pill (upstream carries it in the promo modal, which is stripped here)
+- **`Physics.deaggregate`**: PSHA hazard deaggregation (source class × 0.5-magnitude × Rrup bins, per-bin epsilon and representative source geometries for scenario replay)
+- **Conditional-spectrum time-history pipeline** (`tools/broadband/cs-pipeline.js`): UHS anchor inversion → deaggregation → multi-scenario Baker conditional spectra × Jayaram 2011 ρ → hybrid broadband sampling → Sa(T*) anchored scaling. Pre-registered gates frozen honestly: short-period shape gates FAIL as measured, 2–5 s improvement vs Brune +0.661 PASS
+- **J-SHIS Y2024 external gate** (`tools/fetch-jshis-comparison.js`): 6-site hazard-curve comparison against the official NIED PshmHzcv API — the self-built model overpredicts RP475 PGV by 5.97× median [1.69..14.54]; frozen as a measurement, not a calibration input
+- **PSHA overprediction attribution** (`tools/psha-attribution.js`): 8-arm decomposition — the overprediction is almost entirely carried by the two characteristic scenario sources (median 99.7% of the RP475 exceedance rate); the grid + zhao + PSV-factor endpoint lands within ~1% at sendai/tokyo; the honest next lever is a rate-calibrated segmented Nankai source, not a GMPE change
+- **Strong-motion validation set expanded 13 → 19 events** (6,917 stations): the v5.6-era "modelBias does not generalize (LOEO)" conclusion is overturned as a small-sample artifact — public correction locked in tripwire tests
+
+### Changed
+- Release identity v6.2 (title / h1 / `app.title` / help section, 145 i18n keys added per language)
+- Overview station markers below zoom 7 are now small plain dots (JQuake-style) instead of full-size discs
+
+## [v6.1] — 2026-09-01
+
+(v6.1 full sync `3be3f21`; changelog entry recorded retroactively with the v6.2 sync)
+
+### Added
+- **PSHA / UHS**: USGS ComCat self-built source model (0.25° GR grid + Nankai M9 / capital M7.3 scenario sources) with `Physics.hazardCurve` (Poisson annual exceedance, pre-registered acceptance) and `Physics.uhs`; info-page PSHA card (hazard curve, UHS canvases, 475/1000/2500/5000-year return-period selector, CSV export)
+- Zhao et al. (2006) coefficient table extended to all 21 hazardlib IMTs with period-aware sigma
+- **Offline broadband research pipeline** (`tools/broadband/`): SH discrete-wavenumber Green functions (Thomson–Haskell + Bouchon DW, five analytic anchors) and hybrid broadband synthesis with a Kyoshin 13-event scorecard (long-period improvement PASS, absolute-level gates fail honestly and are frozen)
+
 ## [v6.0.1] — 2026-08-26
 
 Map interaction fixes (upstream quake_sim `737999e`…`d497ea9`). 地图交互修复。

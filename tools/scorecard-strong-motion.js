@@ -75,7 +75,15 @@ const JMA_KEY_BY_EVENT = {
   noto2007: 'noto2007',
   fukushima2011: 'fukushima2011',
   yamagata2019: 'yamagata2019',
-  iburihigashi2018: 'iburihigashi'
+  iburihigashi2018: 'iburihigashi',
+  // v6.2 expansion (2026-09-03): +6 events, JMA catalog hypocenters frozen in
+  // observed.json with per-event provenance notes.
+  tottori2000: 'tottori2000',
+  geiyo2001: 'geiyo2001',
+  miyagioki2005: 'miyagioki2005',
+  chuetsuoki2007: 'chuetsuoki2007',
+  nagano2014: 'nagano2014',
+  ishikawa2023: 'ishikawa2023'
 };
 const PRESET_ONLY_EVENTS = ['fukushima2022', 'hyuganada2024'];
 

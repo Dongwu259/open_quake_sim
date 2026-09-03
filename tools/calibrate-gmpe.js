@@ -222,6 +222,10 @@ async function main() {
   const sitelistArg = args.find(a => a.startsWith('--sitelist='));
   const outArg = args.find(a => a.startsWith('--out='));
   const loeo = args.includes('--loeo');
+  // 2026-09-03: --loeo refresh note — the report is only meaningful over
+  // recordings that contain scored events; a recordings rotation with no
+  // qualifying events produces a vacuous 'no scored events' report. The
+  // frozen 2026-08-23 report stays until event-rich recordings exist.
   const loeoOutArg = args.find(a => a.startsWith('--loeo-out='));
   const outPath = outArg ? outArg.split('=')[1] : 'public/geojson/gmpe-calibration.json';
 
@@ -232,7 +236,7 @@ async function main() {
     console.log('no recordings found; writing identity calibration');
   }
   const frames = [];
-  for (const f of targets) frames.push(...readRecordingFile(f));
+  for (const f of targets) { const fr = readRecordingFile(f); for (let i = 0; i < fr.length; i++) frames.push(fr[i]); }
   console.log('loaded', frames.length, 'frames from', targets.length, 'file(s)');
 
   const sl = await loadSitelist(sitelistArg ? sitelistArg.split('=')[1] : null);

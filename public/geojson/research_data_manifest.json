@@ -1,6 +1,6 @@
 {
   "_schema": "quake-sim-research-data-manifest-v1",
-  "snapshotDate": "2026-08-26",
+  "snapshotDate": "2026-09-01",
   "policy": "A resource is research-ready only when its source, license, date, SHA-256, CRS, datum/resolution where applicable, and processing history are declared. Demonstration or estimated data never pass silently.",
   "resources": [
     {
@@ -118,7 +118,7 @@
       "sourceUrl": "https://earthquake.usgs.gov/earthquakes/eventpage/",
       "license": "USGS Shakemap products (public domain); station data © NIED K-NET/KiK-net (DOI 10.17598/NIED.0004) — derived peak values only, cite NIED",
       "releaseDate": "2026-08-17",
-      "sha256": "46e4e2fb2c2bee30d439f776f9a5766c59218bab6baed304a9ade034f173ac22",
+      "sha256": "bbd7a2811b3b8a2c84420de914614772ea01cb499a75124b22e85a3535649aa1",
       "crs": "EPSG:4326",
       "resolution": "point observations",
       "processing": "tools/fetch-strong-motion-obs.js per-event stationlist downloads, peak PGA/PGV/intensity extraction; intensity values are GMICE-converted MMI (not JMA instrumental intensity)"

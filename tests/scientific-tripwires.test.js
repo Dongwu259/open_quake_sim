@@ -37,6 +37,24 @@ test('strong-motion scorecard tripwire: calibrated overall bands',()=>{
   assert.ok(o.intensity.n>=4000,`intensity sample ${o.intensity.n} below 4000`);
 });
 
+test('strong-motion LOEO tripwire: expanded 19-event set shows no leave-one-out overfitting (v6.2)',()=>{
+  // v6.2 (2026-09-03): the 6-event-era R0-4 warning (modelBias does not
+  // generalize) is OVERTURNED on the expanded 19-event set — frozen numbers.
+  const r=load('model-bias-loeo-report.json');
+  assert.equal(r.schema,'quake-sim-model-bias-loeo-bundle-v1');
+  const want={zhao2006:[0.840,0.804], 'si-midorikawa':[0.637,0.634], kanno2006:[0.772,0.743]};
+  for(const k of Object.keys(want)){
+    const m=r.models[k];
+    assert.ok(m,'model block missing: '+k);
+    assert.equal(m.rmsUncorrected, want[k][0], k+' uncorrected');
+    assert.equal(m.rmsHeldOutLOO, want[k][1], k+' held-out');
+    assert.ok(m.rmsHeldOutLOO<=m.rmsUncorrected, k+' held-out worse than uncorrected');
+    assert.ok(!m.heldOutWorseThanUncorrected, k+' flagged worse');
+  }
+  assert.equal(r.models.kanno2006.events,19);
+  assert.equal(r.models.kanno2006.stations,6917);
+});
+
 test('GeoClaw cross-code tripwire: deep-water agreement bands',()=>{
   const report=load('geoclaw-crosscheck-report.json');
   const offshore=report.rows.filter(r=>r.gauge.startsWith('offshore'));

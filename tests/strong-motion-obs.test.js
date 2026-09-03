@@ -7,9 +7,11 @@ const Scorecard=require('../tools/scorecard-strong-motion.js');
 const OBS=JSON.parse(fs.readFileSync('public/geojson/strong-motion-obs.json','utf8'));
 const CAL=JSON.parse(fs.readFileSync('public/geojson/gmpe-calibration.json','utf8'));
 const EVENT_IDS=['tohoku2011','kumamoto2016','tokachi2003','fukushima2022','noto2024','hyuganada2024',
-  'chuetsu2004','iwate2008','fukuoka2005','noto2007','fukushima2011','yamagata2019','iburihigashi2018'];
+  'chuetsu2004','iwate2008','fukuoka2005','noto2007','fukushima2011','yamagata2019','iburihigashi2018',
+  // v6.2 expansion (2026-09-03): +6 events, JMA hypocenters frozen in observed.json
+  'tottori2000','geiyo2001','miyagioki2005','chuetsuoki2007','nagano2014','ishikawa2023'];
 
-test('frozen strong-motion file has all six events with stations and provenance',()=>{
+test('frozen strong-motion file has all nineteen events with stations and provenance',()=>{
   assert.equal(OBS.schema,'quake-sim-strong-motion-obs-v1');
   assert.deepEqual(OBS.events.map(e=>e.eventId).sort(),EVENT_IDS.slice().sort());
   for(const ev of OBS.events){

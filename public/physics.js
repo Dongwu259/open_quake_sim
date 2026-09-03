@@ -2622,6 +2622,174 @@ Physics.uhs = function(sourceModel, site, returnPeriods, options) {
   };
 };
 
+/** Deaggregation of the MEAN hazard at `imt` around one conditioning IM
+ *  level (v6.1 CS pipeline groundwork): contributions accumulated per
+ *  (source class x 0.5-magnitude bin x Rrup distance bin) using exactly the
+ *  hazardCurve bin/branch arithmetic (same GR bins, same equal-area Rrup
+ *  proxy, same logic-tree-weighted CCDF mix), but evaluated at a single IM
+ *  level. Each bin carries a rate-weighted representative geometry so
+ *  downstream scenario sampling can replay the contributor.
+ *
+ *  The conditioning level is options.imTarget directly, or resolved by
+ *  inverting the mean hazard curve at 1/options.returnPeriod (identical to
+ *  the Physics.uhs anchor). Returns null when the inversion falls outside
+ *  the computed IM grid.
+ *
+ *  Per-branch epsilon z = (log10(imTarget) - log10(median)) / sigmaLog10 is
+ *  accumulated contribution-weighted, so bins.meanEps is the branch-mixed
+ *  mean epsilon of that contributor; the top-level mean.eps is the overall
+ *  mean epsilon (the value that enters a Baker conditional spectrum). */
+Physics.deaggregate = function(sourceModel, site, imt, options) {
+  options = options || {};
+  var isSa = imt.slice(0, 3) === 'sa:';
+  var imtKey = imt === 'pgv' ? 'pgv' : (isSa ? imt : 'pga');
+  var vs30 = site && site.vs30 != null ? site.vs30 : (options.vs30 != null ? options.vs30 : 600);
+  var maxDistKm = options.maxDistKm != null ? options.maxDistKm : 500;
+  var mStep = options.mStep || 0.1;
+  var imTarget = options.imTarget;
+  if (!(imTarget > 0)) {
+    var rp = options.returnPeriod;
+    if (!(rp > 0)) return null;
+    var anchorCurve = Physics.hazardCurve(sourceModel, site, imt, {
+      vs30: vs30, maxDistKm: maxDistKm, mStep: mStep
+    });
+    imTarget = Physics._pshaInvertCurve(anchorCurve.imLevels, anchorCurve.meanRate, 1 / rp);
+    if (!(imTarget > 0)) return null;
+  }
+  var logTarget = Math.log10(imTarget);
+
+  var magBinW = 0.5;
+  var rEdges = [0, 10, 20, 30, 50, 75, 100, 150, 200, 300, 500, Infinity];
+  var bins = {};
+  var classRate = { crustal: 0, interplate: 0, intraslab: 0 };
+  var totalRate = 0;
+
+  function binOf(srcType, mag, rRupKm) {
+    var mk = Math.floor(mag / magBinW + 1e-9), rk = rEdges.length - 2;
+    for (var i = 1; i < rEdges.length - 1; i++) {
+      if (rRupKm < rEdges[i]) { rk = i - 1; break; }
+    }
+    var key = srcType + '|' + mk + '|' + rk;
+    if (!bins[key]) {
+      bins[key] = {
+        srcType: srcType, magBin: mk, rBin: rk,
+        magLo: mk * magBinW, magHi: (mk + 1) * magBinW,
+        rLo: rEdges[rk], rHi: rEdges[rk + 1],
+        rate: 0, epsSum: 0, magSum: 0, rSum: 0, depthSum: 0, latSum: 0, lngSum: 0
+      };
+    }
+    return bins[key];
+  }
+
+  function accumulate(srcType, mag, rRupKm, depthKm, rate, lat, lng) {
+    var branches = Physics._pshaBranchesFor(srcType, imtKey);
+    var rake = Physics.PSHA_CLASS_RAKE[srcType] || 0;
+    for (var bi = 0; bi < branches.length; bi++) {
+      var motion = Physics._pshaBranchMotion(branches[bi].model, imtKey, srcType, mag, rRupKm, depthKm, vs30, rake);
+      if (!motion || !(motion.median > 0)) continue;
+      var medLog = Math.log10(motion.median);
+      var sig = motion.sigmaLog10;
+      var z = (logTarget - medLog) / sig;
+      var p = Physics.exceedanceProbability(motion.median, sig, imTarget);
+      if (p <= 0) continue;
+      var c = branches[bi].weight * rate * p;
+      var bin = binOf(srcType, mag, rRupKm);
+      bin.rate += c;
+      bin.epsSum += c * z;
+      bin.magSum += c * mag;
+      bin.rSum += c * rRupKm;
+      bin.depthSum += c * depthKm;
+      bin.latSum += c * lat;
+      bin.lngSum += c * lng;
+      classRate[srcType] = (classRate[srcType] || 0) + c;
+      totalRate += c;
+    }
+  }
+
+  var mc = sourceModel.mc, mMin = sourceModel.mMin != null ? sourceModel.mMin : 5.0;
+  var cells = sourceModel.cells || [];
+  var nCells = 0;
+  for (var ci = 0; ci < cells.length; ci++) {
+    var c = cells[ci];
+    var hd = Physics.haversineDist(site.lat, site.lng, c.lat, c.lng);
+    if (hd > maxDistKm) continue;
+    nCells++;
+    var b = sourceModel.bValues[c.srcType];
+    var mMax = (sourceModel.mMaxByClass || {})[c.srcType] || 7.5;
+    if (!(b > 0) || !(c.rateMc > 0)) continue;
+    var hypDist = Math.sqrt(hd * hd + c.depthKm * c.depthKm);
+    var mLo = Math.ceil(mMin / mStep - 1e-9) * mStep;
+    for (var m = mLo; m <= mMax + 1e-9; m += mStep) {
+      var lam = c.rateMc * (Math.pow(10, -b * (m - mc)) - Math.pow(10, -b * (m + mStep - mc)));
+      if (!(lam > 1e-9)) continue;
+      var mm = Math.min(m + mStep / 2, mMax);
+      var rRup = Physics._pshaPointRrup(hypDist, mm, c.srcType);
+      accumulate(c.srcType, mm, rRup, c.depthKm, lam, c.lat, c.lng);
+    }
+  }
+
+  var scenUsed = 0;
+  var scenarios = sourceModel.scenarios || [];
+  for (var si = 0; si < scenarios.length; si++) {
+    var s = scenarios[si];
+    var rRupS, depthS, slat, slng;
+    if (s.patches && s.patches.length) {
+      rRupS = Infinity; depthS = s.depthKm != null ? s.depthKm : 0;
+      slat = 0; slng = 0;
+      for (var pi = 0; pi < s.patches.length; pi++) {
+        var p = s.patches[pi];
+        var d3 = Math.sqrt(Math.pow(Physics.haversineDist(site.lat, site.lng, p[0], p[1]), 2) + p[2] * p[2]);
+        if (d3 < rRupS) { rRupS = d3; slat = p[0]; slng = p[1]; }
+      }
+    } else {
+      depthS = s.depthKm != null ? s.depthKm : 15;
+      slat = s.lat != null ? s.lat : 0; slng = s.lng != null ? s.lng : 0;
+      var hdS = Physics.haversineDist(site.lat, site.lng, slat, slng);
+      rRupS = Physics._pshaPointRrup(Math.sqrt(hdS * hdS + depthS * depthS), s.mw, s.sourceType || 'crustal');
+    }
+    scenUsed++;
+    accumulate(s.sourceType || 'crustal', s.mw, Math.max(rRupS, 0.1), depthS, s.ratePerYear, slat, slng);
+  }
+
+  if (!(totalRate > 0)) return null;
+  var out = [];
+  for (var key in bins) {
+    var bb = bins[key];
+    if (!(bb.rate > 0)) continue;
+    out.push({
+      srcType: bb.srcType, magBin: bb.magBin, rBin: bb.rBin,
+      magLo: bb.magLo, magHi: bb.magHi, rLo: bb.rLo, rHi: bb.rHi === Infinity ? null : bb.rHi,
+      rate: bb.rate, prob: bb.rate / totalRate,
+      meanMag: bb.magSum / bb.rate, meanRrupKm: bb.rSum / bb.rate,
+      meanDepthKm: bb.depthSum / bb.rate, meanEps: bb.epsSum / bb.rate,
+      repr: { lat: bb.latSum / bb.rate, lng: bb.lngSum / bb.rate, depthKm: bb.depthSum / bb.rate, mw: bb.magSum / bb.rate, srcType: bb.srcType }
+    });
+  }
+  out.sort(function(a, b2) { return b2.rate - a.rate; });
+  var mean = { mw: 0, rRupKm: 0, eps: 0, depthKm: 0 };
+  for (var oi = 0; oi < out.length; oi++) {
+    var w = out[oi].prob;
+    mean.mw += w * out[oi].meanMag;
+    mean.rRupKm += w * out[oi].meanRrupKm;
+    mean.eps += w * out[oi].meanEps;
+    mean.depthKm += w * out[oi].meanDepthKm;
+  }
+  var classShares = {};
+  for (var cls in classRate) {
+    if (classRate[cls] > 0) classShares[cls] = classRate[cls] / totalRate;
+  }
+  return {
+    imt: imtKey, imTarget: imTarget,
+    totalRate: totalRate, mean: mean, classShares: classShares, bins: out,
+    rEdgesKm: rEdges.slice(0, rEdges.length - 1).concat([null]),
+    diagnostics: {
+      nCellsUsed: nCells, nScenarios: scenUsed, mStep: mStep,
+      maxDistKm: maxDistKm, vs30: vs30, magBinW: magBinW, nBins: out.length,
+      note: 'mean-curve deaggregation (logic-tree-weighted branch mix); bins carry rate-weighted representative geometries for scenario replay'
+    }
+  };
+};
+
 // ================================================================
 //  STATION-TO-STATION SPATIAL CORRELATION (R1, 2026-08-24)
 //  Jayaram & Baker (2009) EESD 38:1687-1708, Eq.(17)-(20): the correlation

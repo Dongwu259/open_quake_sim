@@ -1,0 +1,1436 @@
+{
+ "schema": "quake-sim-psha-attribution-v1",
+ "generatedAt": "2026-09-03T16:09:25.612Z",
+ "basis": {
+  "engine": "Physics.hazardCurve (pgv, Vs30=600, extended level grid identical to the frozen comparison)",
+  "comparison": "tools/data/jshis-comparison-report.json (frozen 2026-09-03, NIED J-SHIS Y2024 AVR TTL_MTTL T30 engineering-bedrock PGV) — NOT re-fetched",
+  "arms": [
+   {
+    "id": "baseline",
+    "label": "as shipped (logic tree + scenarios)"
+   },
+   {
+    "id": "zhaoOnly",
+    "label": "GMPE logic tree collapsed to zhao2006"
+   },
+   {
+    "id": "noScenarios",
+    "label": "scenario sources excluded (grid only)"
+   },
+   {
+    "id": "zhaoOnlyNoScenarios",
+    "label": "grid only + zhao2006 only"
+   },
+   {
+    "id": "psv1p20",
+    "label": "zhao PGV (SA1.0/2pi pseudo-velocity) divided by 1.20"
+   },
+   {
+    "id": "psv1p35",
+    "label": "zhao PGV divided by 1.35 (registered ballpark mid)"
+   },
+   {
+    "id": "sigma0p80",
+    "label": "DIAGNOSTIC: all branch sigmaLog10 x0.80 (sigma-scale sensitivity bound; J-SHIS also integrates aleatory sigma — NOT a candidate correction)"
+   },
+   {
+    "id": "gridZhaoPsv",
+    "label": "grid only + zhao only + PGV/1.35 (decomposition chain endpoint)"
+   }
+  ],
+  "decompositionChain": [
+   "baseline",
+   "noScenarios",
+   "zhaoOnlyNoScenarios",
+   "gridZhaoPsv"
+  ],
+  "confound": "residual ratios still carry the Vs30=600 vs engineering-bedrock basis confound (bounded <2x in the frozen comparison)"
+ },
+ "aggregate": {
+  "chainMedian": {
+   "dropScenarios": 0.063,
+   "zhaoCollapse": 0.946,
+   "psvFactor": 0.741
+  },
+  "armRatioMedian": {
+   "baseline": 5.967,
+   "zhaoOnly": 2.648,
+   "noScenarios": 0.923,
+   "zhaoOnlyNoScenarios": 0.948,
+   "psv1p20": 5.942,
+   "psv1p35": 5.933,
+   "sigma0p80": 5.03,
+   "gridZhaoPsv": 0.702
+  },
+  "scenarioShareMedian": 0.9974,
+  "scenarioShareMin": 0.2873,
+  "scenarioShareMax": 0.9996,
+  "classRateAdditivityMaxRelative": 0.0000573
+ },
+ "findings": {
+  "headline": "RP475 PGV overprediction vs J-SHIS is a SCENARIO-SOURCE effect, not a GMPE-branch or sigma effect: chain baseline x5.97 -> dropScenarios x0.06 -> zhaoCollapse x0.95 -> psvFactor x0.74 (median per-site multiplicative factors); endpoint x0.70 vs baseline x5.97; scenario sources carry a median 99.7% of the RP475 exceedance rate",
+  "scenarioDomination": "the two characteristic scenarios (Nankai M9 0.0462/yr + capital M7.3 0.0401/yr) supply 99.7% median [28.7..100.0%] of the RP475 exceedance rate — at 4 of 6 sites the published hazard is essentially two subjective characteristic-event rates, not the ComCat GR grid; any use of hazardCurve for site-specific decisions is bounded by these two rates",
+  "flipSide": "removing the scenarios flips the sign at Nankai-adjacent sites — grid-only UNDERSHOOTS J-SHIS at kochi/osaka/nagoya (site endpoint ratios ~0.10-0.33) while sendai and tokyo land within ~1% (44.4 vs 44.2, 64.9 vs 65.2 cm/s): J-SHIS carries real Nankai-characteristic hazard our GR grid lacks, and our single-M9-at-0.0462/yr characterization overshoots it by roughly 6-16x in level — the honest next lever is a segmented, rate-calibrated Nankai source (full-trough M9 recurrence is order 0.005-0.01/yr in the literature), NOT a GMPE change",
+  "branchNeutrality": "GMPE branch choice is path-dependent: with scenarios present, zhao-only halves the ratio (x2.65 vs x5.97) because the M9-at-close-Rrup branches differ strongly between families; on the grid alone it is nearly neutral (chain factor x0.95) — the pre-registered PSV->PGV hypothesis is confirmed as a real but secondary scale effect (x0.74 on the chain, ~x0.99 on the scenario-dominated full model)",
+  "diagnosticSigma": "the sigma x0.80 arm moves the RP475 ratio from x5.97 to x5.03 — sigma scale shapes the tail but cannot alone close the gap; it is a sensitivity bound, not a correction (J-SHIS integrates aleatory sigma too)",
+  "honestyNote": "this decomposition is a frozen measurement of pre-registered arm variants; no engine parameter was tuned from it (data-honesty rule). Chain factors are path-dependent (multiplicative substitution order baseline->noScenarios->zhaoOnly->PSV); per-class rate shares are exact (the engine is additive across sources, additivity residual <= 0.0000573)"
+ },
+ "sites": [
+  {
+   "site": {
+    "id": "tokyo",
+    "lat": 35.6812,
+    "lng": 139.7671
+   },
+   "arms": {
+    "baseline": {
+     "475": {
+      "oursPgvCmS": 207.6,
+      "jshisPgvCmS": 65.2,
+      "ratioOursOverJshis": 3.185
+     },
+     "1000": {
+      "oursPgvCmS": 274.3,
+      "jshisPgvCmS": 78.1,
+      "ratioOursOverJshis": 3.512
+     },
+     "2500": {
+      "oursPgvCmS": 370.7,
+      "jshisPgvCmS": 95,
+      "ratioOursOverJshis": 3.903
+     },
+     "5000": {
+      "oursPgvCmS": 459.5,
+      "jshisPgvCmS": 107.9,
+      "ratioOursOverJshis": 4.259
+     }
+    },
+    "zhaoOnly": {
+     "475": {
+      "oursPgvCmS": 108.7,
+      "jshisPgvCmS": 65.2,
+      "ratioOursOverJshis": 1.668
+     },
+     "1000": {
+      "oursPgvCmS": 145.4,
+      "jshisPgvCmS": 78.1,
+      "ratioOursOverJshis": 1.862
+     },
+     "2500": {
+      "oursPgvCmS": 204.9,
+      "jshisPgvCmS": 95,
+      "ratioOursOverJshis": 2.157
+     },
+     "5000": {
+      "oursPgvCmS": 262.5,
+      "jshisPgvCmS": 107.9,
+      "ratioOursOverJshis": 2.433
+     }
+    },
+    "noScenarios": {
+     "475": {
+      "oursPgvCmS": 82.4,
+      "jshisPgvCmS": 65.2,
+      "ratioOursOverJshis": 1.264
+     },
+     "1000": {
+      "oursPgvCmS": 119.4,
+      "jshisPgvCmS": 78.1,
+      "ratioOursOverJshis": 1.528
+     },
+     "2500": {
+      "oursPgvCmS": 185,
+      "jshisPgvCmS": 95,
+      "ratioOursOverJshis": 1.948
+     },
+     "5000": {
+      "oursPgvCmS": 256.7,
+      "jshisPgvCmS": 107.9,
+      "ratioOursOverJshis": 2.379
+     }
+    },
+    "zhaoOnlyNoScenarios": {
+     "475": {
+      "oursPgvCmS": 87.6,
+      "jshisPgvCmS": 65.2,
+      "ratioOursOverJshis": 1.343
+     },
+     "1000": {
+      "oursPgvCmS": 126.9,
+      "jshisPgvCmS": 78.1,
+      "ratioOursOverJshis": 1.625
+     },
+     "2500": {
+      "oursPgvCmS": 191.5,
+      "jshisPgvCmS": 95,
+      "ratioOursOverJshis": 2.016
+     },
+     "5000": {
+      "oursPgvCmS": 252.8,
+      "jshisPgvCmS": 107.9,
+      "ratioOursOverJshis": 2.343
+     }
+    },
+    "psv1p20": {
+     "475": {
+      "oursPgvCmS": 205.5,
+      "jshisPgvCmS": 65.2,
+      "ratioOursOverJshis": 3.152
+     },
+     "1000": {
+      "oursPgvCmS": 271.8,
+      "jshisPgvCmS": 78.1,
+      "ratioOursOverJshis": 3.48
+     },
+     "2500": {
+      "oursPgvCmS": 367.5,
+      "jshisPgvCmS": 95,
+      "ratioOursOverJshis": 3.868
+     },
+     "5000": {
+      "oursPgvCmS": 455.3,
+      "jshisPgvCmS": 107.9,
+      "ratioOursOverJshis": 4.22
+     }
+    },
+    "psv1p35": {
+     "475": {
+      "oursPgvCmS": 204.5,
+      "jshisPgvCmS": 65.2,
+      "ratioOursOverJshis": 3.137
+     },
+     "1000": {
+      "oursPgvCmS": 270.7,
+      "jshisPgvCmS": 78.1,
+      "ratioOursOverJshis": 3.466
+     },
+     "2500": {
+      "oursPgvCmS": 366.1,
+      "jshisPgvCmS": 95,
+      "ratioOursOverJshis": 3.854
+     },
+     "5000": {
+      "oursPgvCmS": 453.6,
+      "jshisPgvCmS": 107.9,
+      "ratioOursOverJshis": 4.204
+     }
+    },
+    "sigma0p80": {
+     "475": {
+      "oursPgvCmS": 173.6,
+      "jshisPgvCmS": 65.2,
+      "ratioOursOverJshis": 2.663
+     },
+     "1000": {
+      "oursPgvCmS": 218.3,
+      "jshisPgvCmS": 78.1,
+      "ratioOursOverJshis": 2.795
+     },
+     "2500": {
+      "oursPgvCmS": 280.2,
+      "jshisPgvCmS": 95,
+      "ratioOursOverJshis": 2.949
+     },
+     "5000": {
+      "oursPgvCmS": 335.7,
+      "jshisPgvCmS": 107.9,
+      "ratioOursOverJshis": 3.112
+     }
+    },
+    "gridZhaoPsv": {
+     "475": {
+      "oursPgvCmS": 64.9,
+      "jshisPgvCmS": 65.2,
+      "ratioOursOverJshis": 0.995
+     },
+     "1000": {
+      "oursPgvCmS": 94,
+      "jshisPgvCmS": 78.1,
+      "ratioOursOverJshis": 1.204
+     },
+     "2500": {
+      "oursPgvCmS": 141.9,
+      "jshisPgvCmS": 95,
+      "ratioOursOverJshis": 1.493
+     },
+     "5000": {
+      "oursPgvCmS": 187.3,
+      "jshisPgvCmS": 107.9,
+      "ratioOursOverJshis": 1.736
+     }
+    }
+   },
+   "decomposition475": {
+    "levels": [
+     207.6,
+     82.4,
+     87.6,
+     64.9
+    ],
+    "steps": [
+     {
+      "from": "baseline",
+      "to": "noScenarios",
+      "levelPgvCmS": 82.4,
+      "factor": 0.397
+     },
+     {
+      "from": "noScenarios",
+      "to": "zhaoOnlyNoScenarios",
+      "levelPgvCmS": 87.6,
+      "factor": 1.063
+     },
+     {
+      "from": "zhaoOnlyNoScenarios",
+      "to": "gridZhaoPsv",
+      "levelPgvCmS": 64.9,
+      "factor": 0.741
+     }
+    ],
+    "residualFactorVsJshis": 0.995
+   },
+   "classSharesAtBaselineRp475": {
+    "levelPgvCmS": 207.6,
+    "shares": {
+     "crustal": 0.0001,
+     "interplate": 0.0913,
+     "intraslab": 0.0572,
+     "nankaiM9": 0.8513,
+     "tokyoInland": 0
+    },
+    "scenarioShareTotal": 0.8513,
+    "additivityResidual": 0.0000573
+   }
+  },
+  {
+   "site": {
+    "id": "osaka",
+    "lat": 34.6937,
+    "lng": 135.5022
+   },
+   "arms": {
+    "baseline": {
+     "475": {
+      "oursPgvCmS": 543.3,
+      "jshisPgvCmS": 52.2,
+      "ratioOursOverJshis": 10.409
+     },
+     "1000": {
+      "oursPgvCmS": 716.7,
+      "jshisPgvCmS": 65.3,
+      "ratioOursOverJshis": 10.975
+     },
+     "2500": {
+      "oursPgvCmS": 955.6,
+      "jshisPgvCmS": 87.4,
+      "ratioOursOverJshis": 10.934
+     },
+     "5000": {
+      "oursPgvCmS": 1158.5,
+      "jshisPgvCmS": 111.1,
+      "ratioOursOverJshis": 10.428
+     }
+    },
+    "zhaoOnly": {
+     "475": {
+      "oursPgvCmS": 241.7,
+      "jshisPgvCmS": 52.2,
+      "ratioOursOverJshis": 4.63
+     },
+     "1000": {
+      "oursPgvCmS": 308.3,
+      "jshisPgvCmS": 65.3,
+      "ratioOursOverJshis": 4.721
+     },
+     "2500": {
+      "oursPgvCmS": 401.3,
+      "jshisPgvCmS": 87.4,
+      "ratioOursOverJshis": 4.592
+     },
+     "5000": {
+      "oursPgvCmS": 480.4,
+      "jshisPgvCmS": 111.1,
+      "ratioOursOverJshis": 4.324
+     }
+    },
+    "noScenarios": {
+     "475": {
+      "oursPgvCmS": 25.5,
+      "jshisPgvCmS": 52.2,
+      "ratioOursOverJshis": 0.488
+     },
+     "1000": {
+      "oursPgvCmS": 37.2,
+      "jshisPgvCmS": 65.3,
+      "ratioOursOverJshis": 0.57
+     },
+     "2500": {
+      "oursPgvCmS": 58.8,
+      "jshisPgvCmS": 87.4,
+      "ratioOursOverJshis": 0.672
+     },
+     "5000": {
+      "oursPgvCmS": 82.5,
+      "jshisPgvCmS": 111.1,
+      "ratioOursOverJshis": 0.742
+     }
+    },
+    "zhaoOnlyNoScenarios": {
+     "475": {
+      "oursPgvCmS": 22.9,
+      "jshisPgvCmS": 52.2,
+      "ratioOursOverJshis": 0.439
+     },
+     "1000": {
+      "oursPgvCmS": 34.3,
+      "jshisPgvCmS": 65.3,
+      "ratioOursOverJshis": 0.525
+     },
+     "2500": {
+      "oursPgvCmS": 55.5,
+      "jshisPgvCmS": 87.4,
+      "ratioOursOverJshis": 0.635
+     },
+     "5000": {
+      "oursPgvCmS": 79.2,
+      "jshisPgvCmS": 111.1,
+      "ratioOursOverJshis": 0.713
+     }
+    },
+    "psv1p20": {
+     "475": {
+      "oursPgvCmS": 540.8,
+      "jshisPgvCmS": 52.2,
+      "ratioOursOverJshis": 10.361
+     },
+     "1000": {
+      "oursPgvCmS": 714.9,
+      "jshisPgvCmS": 65.3,
+      "ratioOursOverJshis": 10.949
+     },
+     "2500": {
+      "oursPgvCmS": 954.3,
+      "jshisPgvCmS": 87.4,
+      "ratioOursOverJshis": 10.918
+     },
+     "5000": {
+      "oursPgvCmS": 1157.4,
+      "jshisPgvCmS": 111.1,
+      "ratioOursOverJshis": 10.418
+     }
+    },
+    "psv1p35": {
+     "475": {
+      "oursPgvCmS": 540,
+      "jshisPgvCmS": 52.2,
+      "ratioOursOverJshis": 10.344
+     },
+     "1000": {
+      "oursPgvCmS": 714.4,
+      "jshisPgvCmS": 65.3,
+      "ratioOursOverJshis": 10.94
+     },
+     "2500": {
+      "oursPgvCmS": 953.9,
+      "jshisPgvCmS": 87.4,
+      "ratioOursOverJshis": 10.914
+     },
+     "5000": {
+      "oursPgvCmS": 1157.1,
+      "jshisPgvCmS": 111.1,
+      "ratioOursOverJshis": 10.415
+     }
+    },
+    "sigma0p80": {
+     "475": {
+      "oursPgvCmS": 459.1,
+      "jshisPgvCmS": 52.2,
+      "ratioOursOverJshis": 8.795
+     },
+     "1000": {
+      "oursPgvCmS": 573.4,
+      "jshisPgvCmS": 65.3,
+      "ratioOursOverJshis": 8.781
+     },
+     "2500": {
+      "oursPgvCmS": 723.7,
+      "jshisPgvCmS": 87.4,
+      "ratioOursOverJshis": 8.281
+     },
+     "5000": {
+      "oursPgvCmS": 846,
+      "jshisPgvCmS": 111.1,
+      "ratioOursOverJshis": 7.615
+     }
+    },
+    "gridZhaoPsv": {
+     "475": {
+      "oursPgvCmS": 17,
+      "jshisPgvCmS": 52.2,
+      "ratioOursOverJshis": 0.325
+     },
+     "1000": {
+      "oursPgvCmS": 25.4,
+      "jshisPgvCmS": 65.3,
+      "ratioOursOverJshis": 0.389
+     },
+     "2500": {
+      "oursPgvCmS": 41.1,
+      "jshisPgvCmS": 87.4,
+      "ratioOursOverJshis": 0.47
+     },
+     "5000": {
+      "oursPgvCmS": 58.6,
+      "jshisPgvCmS": 111.1,
+      "ratioOursOverJshis": 0.528
+     }
+    }
+   },
+   "decomposition475": {
+    "levels": [
+     543.3,
+     25.5,
+     22.9,
+     17
+    ],
+    "steps": [
+     {
+      "from": "baseline",
+      "to": "noScenarios",
+      "levelPgvCmS": 25.5,
+      "factor": 0.047
+     },
+     {
+      "from": "noScenarios",
+      "to": "zhaoOnlyNoScenarios",
+      "levelPgvCmS": 22.9,
+      "factor": 0.898
+     },
+     {
+      "from": "zhaoOnlyNoScenarios",
+      "to": "gridZhaoPsv",
+      "levelPgvCmS": 17,
+      "factor": 0.742
+     }
+    ],
+    "residualFactorVsJshis": 0.325
+   },
+   "classSharesAtBaselineRp475": {
+    "levelPgvCmS": 543.3,
+    "shares": {
+     "crustal": 0.0002,
+     "interplate": 0.0017,
+     "intraslab": 0,
+     "nankaiM9": 0.9981,
+     "tokyoInland": 0
+    },
+    "scenarioShareTotal": 0.9981,
+    "additivityResidual": 0.0000118
+   }
+  },
+  {
+   "site": {
+    "id": "sendai",
+    "lat": 38.2682,
+    "lng": 140.8694
+   },
+   "arms": {
+    "baseline": {
+     "475": {
+      "oursPgvCmS": 74.8,
+      "jshisPgvCmS": 44.2,
+      "ratioOursOverJshis": 1.693
+     },
+     "1000": {
+      "oursPgvCmS": 101.9,
+      "jshisPgvCmS": 53.9,
+      "ratioOursOverJshis": 1.891
+     },
+     "2500": {
+      "oursPgvCmS": 149.2,
+      "jshisPgvCmS": 67.6,
+      "ratioOursOverJshis": 2.207
+     },
+     "5000": {
+      "oursPgvCmS": 202.1,
+      "jshisPgvCmS": 79.8,
+      "ratioOursOverJshis": 2.533
+     }
+    },
+    "zhaoOnly": {
+     "475": {
+      "oursPgvCmS": 60.2,
+      "jshisPgvCmS": 44.2,
+      "ratioOursOverJshis": 1.361
+     },
+     "1000": {
+      "oursPgvCmS": 85.4,
+      "jshisPgvCmS": 53.9,
+      "ratioOursOverJshis": 1.584
+     },
+     "2500": {
+      "oursPgvCmS": 128.6,
+      "jshisPgvCmS": 67.6,
+      "ratioOursOverJshis": 1.902
+     },
+     "5000": {
+      "oursPgvCmS": 172,
+      "jshisPgvCmS": 79.8,
+      "ratioOursOverJshis": 2.155
+     }
+    },
+    "noScenarios": {
+     "475": {
+      "oursPgvCmS": 63.3,
+      "jshisPgvCmS": 44.2,
+      "ratioOursOverJshis": 1.432
+     },
+     "1000": {
+      "oursPgvCmS": 91.2,
+      "jshisPgvCmS": 53.9,
+      "ratioOursOverJshis": 1.692
+     },
+     "2500": {
+      "oursPgvCmS": 141.4,
+      "jshisPgvCmS": 67.6,
+      "ratioOursOverJshis": 2.091
+     },
+     "5000": {
+      "oursPgvCmS": 197.2,
+      "jshisPgvCmS": 79.8,
+      "ratioOursOverJshis": 2.471
+     }
+    },
+    "zhaoOnlyNoScenarios": {
+     "475": {
+      "oursPgvCmS": 59.9,
+      "jshisPgvCmS": 44.2,
+      "ratioOursOverJshis": 1.355
+     },
+     "1000": {
+      "oursPgvCmS": 85.3,
+      "jshisPgvCmS": 53.9,
+      "ratioOursOverJshis": 1.582
+     },
+     "2500": {
+      "oursPgvCmS": 128.5,
+      "jshisPgvCmS": 67.6,
+      "ratioOursOverJshis": 1.902
+     },
+     "5000": {
+      "oursPgvCmS": 172,
+      "jshisPgvCmS": 79.8,
+      "ratioOursOverJshis": 2.155
+     }
+    },
+    "psv1p20": {
+     "475": {
+      "oursPgvCmS": 72.5,
+      "jshisPgvCmS": 44.2,
+      "ratioOursOverJshis": 1.641
+     },
+     "1000": {
+      "oursPgvCmS": 98.5,
+      "jshisPgvCmS": 53.9,
+      "ratioOursOverJshis": 1.828
+     },
+     "2500": {
+      "oursPgvCmS": 143.5,
+      "jshisPgvCmS": 67.6,
+      "ratioOursOverJshis": 2.123
+     },
+     "5000": {
+      "oursPgvCmS": 193.9,
+      "jshisPgvCmS": 79.8,
+      "ratioOursOverJshis": 2.429
+     }
+    },
+    "psv1p35": {
+     "475": {
+      "oursPgvCmS": 71.4,
+      "jshisPgvCmS": 44.2,
+      "ratioOursOverJshis": 1.616
+     },
+     "1000": {
+      "oursPgvCmS": 96.9,
+      "jshisPgvCmS": 53.9,
+      "ratioOursOverJshis": 1.798
+     },
+     "2500": {
+      "oursPgvCmS": 140.9,
+      "jshisPgvCmS": 67.6,
+      "ratioOursOverJshis": 2.084
+     },
+     "5000": {
+      "oursPgvCmS": 190,
+      "jshisPgvCmS": 79.8,
+      "ratioOursOverJshis": 2.381
+     }
+    },
+    "sigma0p80": {
+     "475": {
+      "oursPgvCmS": 61,
+      "jshisPgvCmS": 44.2,
+      "ratioOursOverJshis": 1.381
+     },
+     "1000": {
+      "oursPgvCmS": 81.8,
+      "jshisPgvCmS": 53.9,
+      "ratioOursOverJshis": 1.517
+     },
+     "2500": {
+      "oursPgvCmS": 119.7,
+      "jshisPgvCmS": 67.6,
+      "ratioOursOverJshis": 1.77
+     },
+     "5000": {
+      "oursPgvCmS": 163.4,
+      "jshisPgvCmS": 79.8,
+      "ratioOursOverJshis": 2.048
+     }
+    },
+    "gridZhaoPsv": {
+     "475": {
+      "oursPgvCmS": 44.4,
+      "jshisPgvCmS": 44.2,
+      "ratioOursOverJshis": 1.004
+     },
+     "1000": {
+      "oursPgvCmS": 63.2,
+      "jshisPgvCmS": 53.9,
+      "ratioOursOverJshis": 1.172
+     },
+     "2500": {
+      "oursPgvCmS": 95.2,
+      "jshisPgvCmS": 67.6,
+      "ratioOursOverJshis": 1.409
+     },
+     "5000": {
+      "oursPgvCmS": 127.4,
+      "jshisPgvCmS": 79.8,
+      "ratioOursOverJshis": 1.596
+     }
+    }
+   },
+   "decomposition475": {
+    "levels": [
+     74.8,
+     63.3,
+     59.9,
+     44.4
+    ],
+    "steps": [
+     {
+      "from": "baseline",
+      "to": "noScenarios",
+      "levelPgvCmS": 63.3,
+      "factor": 0.846
+     },
+     {
+      "from": "noScenarios",
+      "to": "zhaoOnlyNoScenarios",
+      "levelPgvCmS": 59.9,
+      "factor": 0.946
+     },
+     {
+      "from": "zhaoOnlyNoScenarios",
+      "to": "gridZhaoPsv",
+      "levelPgvCmS": 44.4,
+      "factor": 0.741
+     }
+    ],
+    "residualFactorVsJshis": 1.004
+   },
+   "classSharesAtBaselineRp475": {
+    "levelPgvCmS": 74.8,
+    "shares": {
+     "crustal": 0.0649,
+     "interplate": 0.504,
+     "intraslab": 0.1438,
+     "nankaiM9": 0.2873,
+     "tokyoInland": 0
+    },
+    "scenarioShareTotal": 0.2873,
+    "additivityResidual": 0.0000236
+   }
+  },
+  {
+   "site": {
+    "id": "kochi",
+    "lat": 33.5597,
+    "lng": 133.5311
+   },
+   "arms": {
+    "baseline": {
+     "475": {
+      "oursPgvCmS": 682.9,
+      "jshisPgvCmS": 118.2,
+      "ratioOursOverJshis": 5.777
+     },
+     "1000": {
+      "oursPgvCmS": 898.1,
+      "jshisPgvCmS": 133.6,
+      "ratioOursOverJshis": 6.722
+     },
+     "2500": {
+      "oursPgvCmS": 1198.7,
+      "jshisPgvCmS": 151.9,
+      "ratioOursOverJshis": 7.891
+     },
+     "5000": {
+      "oursPgvCmS": null,
+      "jshisPgvCmS": 164.8,
+      "ratioOursOverJshis": null
+     }
+    },
+    "zhaoOnly": {
+     "475": {
+      "oursPgvCmS": 313,
+      "jshisPgvCmS": 118.2,
+      "ratioOursOverJshis": 2.648
+     },
+     "1000": {
+      "oursPgvCmS": 399.4,
+      "jshisPgvCmS": 133.6,
+      "ratioOursOverJshis": 2.989
+     },
+     "2500": {
+      "oursPgvCmS": 519.2,
+      "jshisPgvCmS": 151.9,
+      "ratioOursOverJshis": 3.418
+     },
+     "5000": {
+      "oursPgvCmS": 622,
+      "jshisPgvCmS": 164.8,
+      "ratioOursOverJshis": 3.774
+     }
+    },
+    "noScenarios": {
+     "475": {
+      "oursPgvCmS": 17.1,
+      "jshisPgvCmS": 118.2,
+      "ratioOursOverJshis": 0.145
+     },
+     "1000": {
+      "oursPgvCmS": 24.1,
+      "jshisPgvCmS": 133.6,
+      "ratioOursOverJshis": 0.181
+     },
+     "2500": {
+      "oursPgvCmS": 36.5,
+      "jshisPgvCmS": 151.9,
+      "ratioOursOverJshis": 0.24
+     },
+     "5000": {
+      "oursPgvCmS": 49.6,
+      "jshisPgvCmS": 164.8,
+      "ratioOursOverJshis": 0.301
+     }
+    },
+    "zhaoOnlyNoScenarios": {
+     "475": {
+      "oursPgvCmS": 15.6,
+      "jshisPgvCmS": 118.2,
+      "ratioOursOverJshis": 0.132
+     },
+     "1000": {
+      "oursPgvCmS": 22.2,
+      "jshisPgvCmS": 133.6,
+      "ratioOursOverJshis": 0.166
+     },
+     "2500": {
+      "oursPgvCmS": 34,
+      "jshisPgvCmS": 151.9,
+      "ratioOursOverJshis": 0.224
+     },
+     "5000": {
+      "oursPgvCmS": 47,
+      "jshisPgvCmS": 164.8,
+      "ratioOursOverJshis": 0.285
+     }
+    },
+    "psv1p20": {
+     "475": {
+      "oursPgvCmS": 679.2,
+      "jshisPgvCmS": 118.2,
+      "ratioOursOverJshis": 5.747
+     },
+     "1000": {
+      "oursPgvCmS": 895.5,
+      "jshisPgvCmS": 133.6,
+      "ratioOursOverJshis": 6.703
+     },
+     "2500": {
+      "oursPgvCmS": 1196.6,
+      "jshisPgvCmS": 151.9,
+      "ratioOursOverJshis": 7.878
+     },
+     "5000": {
+      "oursPgvCmS": null,
+      "jshisPgvCmS": 164.8,
+      "ratioOursOverJshis": null
+     }
+    },
+    "psv1p35": {
+     "475": {
+      "oursPgvCmS": 677.9,
+      "jshisPgvCmS": 118.2,
+      "ratioOursOverJshis": 5.736
+     },
+     "1000": {
+      "oursPgvCmS": 894.6,
+      "jshisPgvCmS": 133.6,
+      "ratioOursOverJshis": 6.696
+     },
+     "2500": {
+      "oursPgvCmS": 1196,
+      "jshisPgvCmS": 151.9,
+      "ratioOursOverJshis": 7.874
+     },
+     "5000": {
+      "oursPgvCmS": null,
+      "jshisPgvCmS": 164.8,
+      "ratioOursOverJshis": null
+     }
+    },
+    "sigma0p80": {
+     "475": {
+      "oursPgvCmS": 574.5,
+      "jshisPgvCmS": 118.2,
+      "ratioOursOverJshis": 4.86
+     },
+     "1000": {
+      "oursPgvCmS": 719,
+      "jshisPgvCmS": 133.6,
+      "ratioOursOverJshis": 5.382
+     },
+     "2500": {
+      "oursPgvCmS": 906.1,
+      "jshisPgvCmS": 151.9,
+      "ratioOursOverJshis": 5.965
+     },
+     "5000": {
+      "oursPgvCmS": 1056.9,
+      "jshisPgvCmS": 164.8,
+      "ratioOursOverJshis": 6.413
+     }
+    },
+    "gridZhaoPsv": {
+     "475": {
+      "oursPgvCmS": 11.6,
+      "jshisPgvCmS": 118.2,
+      "ratioOursOverJshis": 0.098
+     },
+     "1000": {
+      "oursPgvCmS": 16.4,
+      "jshisPgvCmS": 133.6,
+      "ratioOursOverJshis": 0.123
+     },
+     "2500": {
+      "oursPgvCmS": 25.2,
+      "jshisPgvCmS": 151.9,
+      "ratioOursOverJshis": 0.166
+     },
+     "5000": {
+      "oursPgvCmS": 34.8,
+      "jshisPgvCmS": 164.8,
+      "ratioOursOverJshis": 0.211
+     }
+    }
+   },
+   "decomposition475": {
+    "levels": [
+     682.9,
+     17.1,
+     15.6,
+     11.6
+    ],
+    "steps": [
+     {
+      "from": "baseline",
+      "to": "noScenarios",
+      "levelPgvCmS": 17.1,
+      "factor": 0.025
+     },
+     {
+      "from": "noScenarios",
+      "to": "zhaoOnlyNoScenarios",
+      "levelPgvCmS": 15.6,
+      "factor": 0.912
+     },
+     {
+      "from": "zhaoOnlyNoScenarios",
+      "to": "gridZhaoPsv",
+      "levelPgvCmS": 11.6,
+      "factor": 0.744
+     }
+    ],
+    "residualFactorVsJshis": 0.098
+   },
+   "classSharesAtBaselineRp475": {
+    "levelPgvCmS": 682.9,
+    "shares": {
+     "crustal": 0,
+     "interplate": 0.0004,
+     "intraslab": 0.0001,
+     "nankaiM9": 0.9996,
+     "tokyoInland": 0
+    },
+    "scenarioShareTotal": 0.9996,
+    "additivityResidual": 0.00000118
+   }
+  },
+  {
+   "site": {
+    "id": "nagoya",
+    "lat": 35.1815,
+    "lng": 136.9066
+   },
+   "arms": {
+    "baseline": {
+     "475": {
+      "oursPgvCmS": 442.2,
+      "jshisPgvCmS": 74.1,
+      "ratioOursOverJshis": 5.967
+     },
+     "1000": {
+      "oursPgvCmS": 582.4,
+      "jshisPgvCmS": 87.4,
+      "ratioOursOverJshis": 6.663
+     },
+     "2500": {
+      "oursPgvCmS": 776.2,
+      "jshisPgvCmS": 103.6,
+      "ratioOursOverJshis": 7.492
+     },
+     "5000": {
+      "oursPgvCmS": 942,
+      "jshisPgvCmS": 115.4,
+      "ratioOursOverJshis": 8.163
+     }
+    },
+    "zhaoOnly": {
+     "475": {
+      "oursPgvCmS": 191.1,
+      "jshisPgvCmS": 74.1,
+      "ratioOursOverJshis": 2.579
+     },
+     "1000": {
+      "oursPgvCmS": 243.7,
+      "jshisPgvCmS": 87.4,
+      "ratioOursOverJshis": 2.789
+     },
+     "2500": {
+      "oursPgvCmS": 317.5,
+      "jshisPgvCmS": 103.6,
+      "ratioOursOverJshis": 3.064
+     },
+     "5000": {
+      "oursPgvCmS": 380,
+      "jshisPgvCmS": 115.4,
+      "ratioOursOverJshis": 3.293
+     }
+    },
+    "noScenarios": {
+     "475": {
+      "oursPgvCmS": 25.7,
+      "jshisPgvCmS": 74.1,
+      "ratioOursOverJshis": 0.346
+     },
+     "1000": {
+      "oursPgvCmS": 36,
+      "jshisPgvCmS": 87.4,
+      "ratioOursOverJshis": 0.412
+     },
+     "2500": {
+      "oursPgvCmS": 54.2,
+      "jshisPgvCmS": 103.6,
+      "ratioOursOverJshis": 0.524
+     },
+     "5000": {
+      "oursPgvCmS": 74.1,
+      "jshisPgvCmS": 115.4,
+      "ratioOursOverJshis": 0.642
+     }
+    },
+    "zhaoOnlyNoScenarios": {
+     "475": {
+      "oursPgvCmS": 23.1,
+      "jshisPgvCmS": 74.1,
+      "ratioOursOverJshis": 0.312
+     },
+     "1000": {
+      "oursPgvCmS": 32.9,
+      "jshisPgvCmS": 87.4,
+      "ratioOursOverJshis": 0.376
+     },
+     "2500": {
+      "oursPgvCmS": 50.6,
+      "jshisPgvCmS": 103.6,
+      "ratioOursOverJshis": 0.488
+     },
+     "5000": {
+      "oursPgvCmS": 70.3,
+      "jshisPgvCmS": 115.4,
+      "ratioOursOverJshis": 0.609
+     }
+    },
+    "psv1p20": {
+     "475": {
+      "oursPgvCmS": 440.3,
+      "jshisPgvCmS": 74.1,
+      "ratioOursOverJshis": 5.942
+     },
+     "1000": {
+      "oursPgvCmS": 581,
+      "jshisPgvCmS": 87.4,
+      "ratioOursOverJshis": 6.647
+     },
+     "2500": {
+      "oursPgvCmS": 775.2,
+      "jshisPgvCmS": 103.6,
+      "ratioOursOverJshis": 7.483
+     },
+     "5000": {
+      "oursPgvCmS": 941.2,
+      "jshisPgvCmS": 115.4,
+      "ratioOursOverJshis": 8.156
+     }
+    },
+    "psv1p35": {
+     "475": {
+      "oursPgvCmS": 439.7,
+      "jshisPgvCmS": 74.1,
+      "ratioOursOverJshis": 5.933
+     },
+     "1000": {
+      "oursPgvCmS": 580.5,
+      "jshisPgvCmS": 87.4,
+      "ratioOursOverJshis": 6.642
+     },
+     "2500": {
+      "oursPgvCmS": 774.9,
+      "jshisPgvCmS": 103.6,
+      "ratioOursOverJshis": 7.48
+     },
+     "5000": {
+      "oursPgvCmS": 941,
+      "jshisPgvCmS": 115.4,
+      "ratioOursOverJshis": 8.154
+     }
+    },
+    "sigma0p80": {
+     "475": {
+      "oursPgvCmS": 372.7,
+      "jshisPgvCmS": 74.1,
+      "ratioOursOverJshis": 5.03
+     },
+     "1000": {
+      "oursPgvCmS": 466.9,
+      "jshisPgvCmS": 87.4,
+      "ratioOursOverJshis": 5.342
+     },
+     "2500": {
+      "oursPgvCmS": 589.1,
+      "jshisPgvCmS": 103.6,
+      "ratioOursOverJshis": 5.686
+     },
+     "5000": {
+      "oursPgvCmS": 687.9,
+      "jshisPgvCmS": 115.4,
+      "ratioOursOverJshis": 5.961
+     }
+    },
+    "gridZhaoPsv": {
+     "475": {
+      "oursPgvCmS": 17.1,
+      "jshisPgvCmS": 74.1,
+      "ratioOursOverJshis": 0.231
+     },
+     "1000": {
+      "oursPgvCmS": 24.3,
+      "jshisPgvCmS": 87.4,
+      "ratioOursOverJshis": 0.278
+     },
+     "2500": {
+      "oursPgvCmS": 37.5,
+      "jshisPgvCmS": 103.6,
+      "ratioOursOverJshis": 0.361
+     },
+     "5000": {
+      "oursPgvCmS": 52.1,
+      "jshisPgvCmS": 115.4,
+      "ratioOursOverJshis": 0.451
+     }
+    }
+   },
+   "decomposition475": {
+    "levels": [
+     442.2,
+     25.7,
+     23.1,
+     17.1
+    ],
+    "steps": [
+     {
+      "from": "baseline",
+      "to": "noScenarios",
+      "levelPgvCmS": 25.7,
+      "factor": 0.058
+     },
+     {
+      "from": "noScenarios",
+      "to": "zhaoOnlyNoScenarios",
+      "levelPgvCmS": 23.1,
+      "factor": 0.899
+     },
+     {
+      "from": "zhaoOnlyNoScenarios",
+      "to": "gridZhaoPsv",
+      "levelPgvCmS": 17.1,
+      "factor": 0.74
+     }
+    ],
+    "residualFactorVsJshis": 0.231
+   },
+   "classSharesAtBaselineRp475": {
+    "levelPgvCmS": 442.2,
+    "shares": {
+     "crustal": 0.0006,
+     "interplate": 0.002,
+     "intraslab": 0,
+     "nankaiM9": 0.9974,
+     "tokyoInland": 0
+    },
+    "scenarioShareTotal": 0.9974,
+    "additivityResidual": 0.00000319
+   }
+  },
+  {
+   "site": {
+    "id": "fukuoka",
+    "lat": 33.5902,
+    "lng": 130.4017
+   },
+   "arms": {
+    "baseline": {
+     "475": {
+      "oursPgvCmS": 379.6,
+      "jshisPgvCmS": 26.1,
+      "ratioOursOverJshis": 14.544
+     },
+     "1000": {
+      "oursPgvCmS": 501,
+      "jshisPgvCmS": 40.9,
+      "ratioOursOverJshis": 12.248
+     },
+     "2500": {
+      "oursPgvCmS": 667.1,
+      "jshisPgvCmS": 72.4,
+      "ratioOursOverJshis": 9.214
+     },
+     "5000": {
+      "oursPgvCmS": 807.6,
+      "jshisPgvCmS": 98.8,
+      "ratioOursOverJshis": 8.174
+     }
+    },
+    "zhaoOnly": {
+     "475": {
+      "oursPgvCmS": 162.4,
+      "jshisPgvCmS": 26.1,
+      "ratioOursOverJshis": 6.221
+     },
+     "1000": {
+      "oursPgvCmS": 207.3,
+      "jshisPgvCmS": 40.9,
+      "ratioOursOverJshis": 5.068
+     },
+     "2500": {
+      "oursPgvCmS": 270.5,
+      "jshisPgvCmS": 72.4,
+      "ratioOursOverJshis": 3.736
+     },
+     "5000": {
+      "oursPgvCmS": 324.7,
+      "jshisPgvCmS": 98.8,
+      "ratioOursOverJshis": 3.287
+     }
+    },
+    "noScenarios": {
+     "475": {
+      "oursPgvCmS": 24.1,
+      "jshisPgvCmS": 26.1,
+      "ratioOursOverJshis": 0.923
+     },
+     "1000": {
+      "oursPgvCmS": 36,
+      "jshisPgvCmS": 40.9,
+      "ratioOursOverJshis": 0.88
+     },
+     "2500": {
+      "oursPgvCmS": 58.3,
+      "jshisPgvCmS": 72.4,
+      "ratioOursOverJshis": 0.806
+     },
+     "5000": {
+      "oursPgvCmS": 83.3,
+      "jshisPgvCmS": 98.8,
+      "ratioOursOverJshis": 0.843
+     }
+    },
+    "zhaoOnlyNoScenarios": {
+     "475": {
+      "oursPgvCmS": 24.7,
+      "jshisPgvCmS": 26.1,
+      "ratioOursOverJshis": 0.948
+     },
+     "1000": {
+      "oursPgvCmS": 37.6,
+      "jshisPgvCmS": 40.9,
+      "ratioOursOverJshis": 0.919
+     },
+     "2500": {
+      "oursPgvCmS": 62.5,
+      "jshisPgvCmS": 72.4,
+      "ratioOursOverJshis": 0.863
+     },
+     "5000": {
+      "oursPgvCmS": 91.2,
+      "jshisPgvCmS": 98.8,
+      "ratioOursOverJshis": 0.923
+     }
+    },
+    "psv1p20": {
+     "475": {
+      "oursPgvCmS": 378.1,
+      "jshisPgvCmS": 26.1,
+      "ratioOursOverJshis": 14.486
+     },
+     "1000": {
+      "oursPgvCmS": 499.9,
+      "jshisPgvCmS": 40.9,
+      "ratioOursOverJshis": 12.223
+     },
+     "2500": {
+      "oursPgvCmS": 666.3,
+      "jshisPgvCmS": 72.4,
+      "ratioOursOverJshis": 9.203
+     },
+     "5000": {
+      "oursPgvCmS": 806.9,
+      "jshisPgvCmS": 98.8,
+      "ratioOursOverJshis": 8.167
+     }
+    },
+    "psv1p35": {
+     "475": {
+      "oursPgvCmS": 377.6,
+      "jshisPgvCmS": 26.1,
+      "ratioOursOverJshis": 14.466
+     },
+     "1000": {
+      "oursPgvCmS": 499.5,
+      "jshisPgvCmS": 40.9,
+      "ratioOursOverJshis": 12.214
+     },
+     "2500": {
+      "oursPgvCmS": 666,
+      "jshisPgvCmS": 72.4,
+      "ratioOursOverJshis": 9.199
+     },
+     "5000": {
+      "oursPgvCmS": 806.7,
+      "jshisPgvCmS": 98.8,
+      "ratioOursOverJshis": 8.165
+     }
+    },
+    "sigma0p80": {
+     "475": {
+      "oursPgvCmS": 321,
+      "jshisPgvCmS": 26.1,
+      "ratioOursOverJshis": 12.299
+     },
+     "1000": {
+      "oursPgvCmS": 401.6,
+      "jshisPgvCmS": 40.9,
+      "ratioOursOverJshis": 9.819
+     },
+     "2500": {
+      "oursPgvCmS": 506,
+      "jshisPgvCmS": 72.4,
+      "ratioOursOverJshis": 6.99
+     },
+     "5000": {
+      "oursPgvCmS": 590.1,
+      "jshisPgvCmS": 98.8,
+      "ratioOursOverJshis": 5.972
+     }
+    },
+    "gridZhaoPsv": {
+     "475": {
+      "oursPgvCmS": 18.3,
+      "jshisPgvCmS": 26.1,
+      "ratioOursOverJshis": 0.702
+     },
+     "1000": {
+      "oursPgvCmS": 27.8,
+      "jshisPgvCmS": 40.9,
+      "ratioOursOverJshis": 0.681
+     },
+     "2500": {
+      "oursPgvCmS": 46.3,
+      "jshisPgvCmS": 72.4,
+      "ratioOursOverJshis": 0.639
+     },
+     "5000": {
+      "oursPgvCmS": 67.6,
+      "jshisPgvCmS": 98.8,
+      "ratioOursOverJshis": 0.684
+     }
+    }
+   },
+   "decomposition475": {
+    "levels": [
+     379.6,
+     24.1,
+     24.7,
+     18.3
+    ],
+    "steps": [
+     {
+      "from": "baseline",
+      "to": "noScenarios",
+      "levelPgvCmS": 24.1,
+      "factor": 0.063
+     },
+     {
+      "from": "noScenarios",
+      "to": "zhaoOnlyNoScenarios",
+      "levelPgvCmS": 24.7,
+      "factor": 1.025
+     },
+     {
+      "from": "zhaoOnlyNoScenarios",
+      "to": "gridZhaoPsv",
+      "levelPgvCmS": 18.3,
+      "factor": 0.741
+     }
+    ],
+    "residualFactorVsJshis": 0.702
+   },
+   "classSharesAtBaselineRp475": {
+    "levelPgvCmS": 379.6,
+    "shares": {
+     "crustal": 0.0028,
+     "interplate": 0,
+     "intraslab": 0.0001,
+     "nankaiM9": 0.9971,
+     "tokyoInland": 0
+    },
+    "scenarioShareTotal": 0.9971,
+    "additivityResidual": 0.00000135
+   }
+  }
+ ]
+}

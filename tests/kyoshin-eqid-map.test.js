@@ -8,11 +8,17 @@ const fs = require('node:fs');
 const MAP = JSON.parse(fs.readFileSync('tools/data/kyoshin-eqid-map.json', 'utf8'));
 const OBS = JSON.parse(fs.readFileSync('public/geojson/strong-motion-obs.json', 'utf8'));
 
-test('kyoshin eqid map covers every frozen event exactly once', () => {
-  assert.equal(MAP.length, OBS.events.length);
+test('kyoshin eqid map covers the 13 waveform-package events exactly once', () => {
+  // v6.2 (2026-09-03): the strong-motion obs set grew 13 -> 19, but the eqid
+  // map only needs to cover the 13 Kyoshin WAVEFORM-package events (the map
+  // is the fetch-kyoshin-waveforms contract, not the obs-scorecard contract;
+  // new v6.2 events have no waveform packages yet and enter the map only
+  // when tools/find-kyoshin-eqids.js is re-run against them).
+  assert.equal(MAP.length, 13);
   const ids = MAP.map(r => r.eventId);
   assert.equal(new Set(ids).size, ids.length, 'no duplicate eventIds');
-  for (const ev of OBS.events) assert.ok(ids.includes(ev.eventId), ev.eventId + ' missing');
+  const obsIds = OBS.events.map(e => e.eventId);
+  for (const id of ids) assert.ok(obsIds.includes(id), id + ' not in the frozen obs set');
 });
 
 test('every mapped eqid passed the origin-time and distance gates', () => {

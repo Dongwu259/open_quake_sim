@@ -80,7 +80,40 @@ const EVENTS = [
     approx: [38.61, 139.53], sourceType: 'crustal' },
   { key: 'iburihigashi2018', name: '2018 Hokkaido Iburi East (M6.7)',
     start: '2018-09-05T18:00:00Z', end: '2018-09-05T18:25:00Z', minMag: 6.0,
-    approx: [42.69, 142.01], sourceType: 'crustal' }
+    approx: [42.69, 142.01], sourceType: 'crustal' },
+  // --- v6.2 expansion (2026-09-03): +8 well-recorded events toward a ~20-event
+  // set for modelBias/LOEO re-evaluation; events landing below a 100-station
+  // quality floor are dropped from the frozen set and noted in the commit.
+  { key: 'tottori2000',    name: '2000 Tottori-ken Seibu (M7.3)',
+    // JMA M7.3 but ComCat preferred mag is 6.7 (usp000a1b0) — minMag relaxed
+    // accordingly; the window + closest-to-approx pick stays the guard.
+    start: '2000-10-06T04:25:00Z', end: '2000-10-06T04:45:00Z', minMag: 6.5,
+    approx: [35.27, 133.35], sourceType: 'crustal' },
+  { key: 'geiyo2001',      name: '2001 Geiyo (M6.8)',
+    // 2001-03-24 15:28 JST = 06:28 UTC; ~46 km deep beneath the Seto Inland
+    // Sea (upper-mantle event beneath the overriding plate margin — slab band).
+    start: '2001-03-24T06:20:00Z', end: '2001-03-24T06:40:00Z', minMag: 6.4,
+    approx: [34.12, 132.69], sourceType: 'intraslab' },
+  { key: 'miyagioki2005',  name: '2005 Miyagi-oki (M7.2)',
+    start: '2005-08-16T02:38:00Z', end: '2005-08-16T02:58:00Z', minMag: 6.8,
+    approx: [38.15, 142.28], sourceType: 'interplate' },
+  { key: 'chuetsuoki2007', name: '2007 Niigata Chuetsu-oki (M6.8)',
+    // 2007-07-16 10:13 JST = 01:13 UTC (ComCat usp000fg9t, M6.6).
+    start: '2007-07-16T01:05:00Z', end: '2007-07-16T01:25:00Z', minMag: 6.4,
+    approx: [37.56, 138.61], sourceType: 'crustal' },
+  { key: 'nagano2014',     name: '2014 Nagano-ken Hokubu (M6.7)',
+    // 2014-11-22 22:08 JST = 13:08 UTC.
+    start: '2014-11-22T13:00:00Z', end: '2014-11-22T13:20:00Z', minMag: 6.2,
+    approx: [36.69, 137.89], sourceType: 'crustal' },
+  // fukushimaoki2016 (2016-11-22 M7.4, us10007b88 ComCat M6.9) was probed and
+  // DROPPED: its USGS Shakemap carries zero instrumented stations (only DYFI
+  // pseudo-intensity) — below the quality floor for this frozen set.
+  { key: 'ishikawa2023',   name: '2023 Ishikawa-ken Ochi (M6.5)',
+    // 2023-05-05 14:42 JST = 05:42 UTC (ComCat us6000k9mb, M6.2).
+    start: '2023-05-05T05:35:00Z', end: '2023-05-05T05:55:00Z', minMag: 6.0,
+    approx: [37.49, 137.29], sourceType: 'crustal' },
+  // hyuganada2025 (2025-01-13 M6.9) probed and DROPPED: zero instrumented
+  // stations in its Shakemap stationlist (only DYFI) — below the floor.
 ];
 
 // Unit conversion tables, keyed by the exact units strings shakemap emits.

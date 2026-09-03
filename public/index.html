@@ -21,24 +21,26 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="QuakeSim">
-<link rel="manifest" href="manifest.json?v=28075d">
+<link rel="manifest" href="manifest.json?v=124517">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
-<title>地震模拟器 v6.0 | Earthquake Simulator Pro</title>
+<title>地震模拟器 v6.2 | Earthquake Simulator Pro</title>
 <link rel="stylesheet" href="leaflet/leaflet.css?v=f885c4">
-<link rel="stylesheet" href="style.css?v=d1c705">
+<link rel="stylesheet" href="style.css?v=cdd3bd">
 <link rel="preload" href="leaflet/leaflet.js?v=5a640f" as="script">
-<link rel="preload" href="app.js?v=857e8f" as="script">
-<link rel="preload" href="style.css?v=d1c705" as="style">
+<link rel="preload" href="app.js?v=188a4d" as="script">
+<link rel="preload" href="style.css?v=cdd3bd" as="style">
 <link rel="preload" href="config.js?v=925c43" as="script">
-<link rel="preload" href="physics.js?v=0a8cf8" as="script">
+<link rel="preload" href="physics.js?v=1b9b57" as="script">
 </head>
 <body>
 <a href="#map" class="skip-link" data-i18n="aria.skip">跳转到内容</a>
 <div id="app" role="application" aria-label="Earthquake Simulator">
   <div id="sidebar" role="complementary" aria-label="控制面板">
     <div id="sidebar-header">
-      <h1 data-i18n="app.title">地震模拟器 v6.0</h1>
-      <div id="build-ver" style="font-size:.65em;color:var(--text-secondary);opacity:.5;margin-top:-2px" data-sw="sw.js=v925936">(······)</div>
+      <h1 data-i18n="app.title">地震模拟器 v6.2</h1>
+      <div id="build-ver" style="font-size:.65em;color:var(--text-secondary);opacity:.5;margin-top:-2px" data-sw="sw.js=v451016">(······)</div>
+      <button id="btn-report-page" class="report-entry-btn" type="button" data-i18n="report.entry_btn">📋 体验报告</button>
+      <button id="btn-guide-page" class="report-entry-btn" type="button" data-i18n="guide.entry_btn">🧭 使用说明</button>
       <button id="btn-help" class="help-link" type="button" data-i18n="help.title">使用帮助</button>
       <button id="btn-formulas" class="help-link" type="button" data-i18n="formulas.title">公式原理</button>
       <button id="btn-settings" class="help-link" type="button" data-i18n="settings.title">设置</button>
@@ -715,9 +717,9 @@
 <script src="research.js?v=d9aad6"></script>
 <script src="data-catalog.js?v=bee20f"></script>
 <script src="grid-package.js?v=865d26"></script>
-<script src="i18n.js?v=e3f909"></script>
+<script src="i18n.js?v=db604f"></script>
 <script src="dc3d.js?v=2865dd"></script>
-<script src="physics.js?v=0a8cf8"></script>
+<script src="physics.js?v=1b9b57"></script>
 <script src="tsunami-solver-host.js?v=2432a8"></script>
 <script src="ensemble-solver-host.js?v=153d61"></script>
 <script src="reference-backend.js?v=3ead82"></script>
@@ -814,7 +816,7 @@ window._loadThreeJS = function(cb) {
     </div>
   </div>
 </div>
-<script src="app.js?v=857e8f"></script>
+<script src="app.js?v=188a4d"></script>
 <script src="aftershock.js?v=e29837"></script>
 <script src="rt-data.js?v=cc4e9a"></script>
 <script src="rt-kmoni.js?v=b581c5"></script>
@@ -823,7 +825,7 @@ window._loadThreeJS = function(cb) {
 <script src="rt-quakeinfo.js?v=b6b2bc"></script>
 <script src="rt-tsunami.js?v=d59204"></script>
 <script src="info-panel.js?v=f09267"></script>
-<script src="renderer.js?v=0900d3"></script>
+<script src="renderer.js?v=c4072c"></script>
 <div id="help-overlay" class="help-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="help-dialog-title">
   <div class="help-panel" tabindex="-1">
     <div class="help-header"><span id="help-dialog-title" data-i18n="help.header">📖 使用帮助</span><button id="btn-help-close" class="help-close" data-i18n-aria="aria.close" aria-label="Close">&times;</button></div>
@@ -868,6 +870,18 @@ window._loadThreeJS = function(cb) {
       <p data-i18n="help.error_text">模拟过程中如发生JavaScript错误，浏览器窗口底部会出现红色错误面板，显示错误信息和发生位置（文件:行:列）。多个错误会堆叠显示。点击×按钮关闭，或20秒后自动隐藏。</p>
       <h3 data-i18n="help.share">📎 URL分享</h3>
       <p data-i18n="help.share_text">点击Start按钮旁的🔗按钮可复制当前模拟的完整URL链接。将链接分享给他人，对方打开后自动加载相同的震中、震级、深度等参数。支持参数：lat/lng（震中）、mag（震级）、depth（深度）、strike（走向）、dip（倾角）、preset（预设场景）、lang（语言）、detect（检测模式）、aftershock（余震）、tsunami（海啸）。</p>
+      <hr style="border-color:var(--border);margin:12px 0">
+      <h3 data-i18n="help.v62_release">━━ v6.2 更新 ━━</h3>
+      <h3 data-i18n="help.v62_report_t">体验报告页</h3>
+      <p data-i18n="help.v62_report_d">侧边栏标题下或弹窗按钮打开全屏报告页。</p>
+      <h3 data-i18n="help.v62_validation_t">强震动验证扩容</h3>
+      <p data-i18n="help.v62_validation_d">观测峰值集扩至 19 事件 6,917 站；LOEO 无过拟合证据。</p>
+      <h3 data-i18n="help.v62_cs_t">条件谱管线</h3>
+      <p data-i18n="help.v62_cs_d">UHS→分解→MS-CS→混合宽带离线管线；形状门如实冻结。</p>
+      <h3 data-i18n="help.v62_jshis_t">J-SHIS 对照</h3>
+      <p data-i18n="help.v62_jshis_d">自算模型 RP475 PGV 为官方 1.7–14.5×（测量非标定）。</p>
+      <h3 data-i18n="help.v62_bounds_t">诚实边界</h3>
+      <p data-i18n="help.v62_bounds_d">P-SV 未实现；PSHA 绝对水平非设计值；负结果照冻。</p>
       <hr style="border-color:var(--border);margin:12px 0">
       <h3 data-i18n="help.v61_release">━━ v6.1 更新 ━━</h3>
       <h3 data-i18n="help.v61_psha_t">地震危险性（PSHA）</h3>

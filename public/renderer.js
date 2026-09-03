@@ -1065,6 +1065,19 @@
       waveCtx.fillStyle = rgbStr; waveCtx.fill();
       continue;
     }
+    // Overview dot mode (zoom < 7): full-size discs (~10-12px radius at the
+    // Japan-wide view) read as big colored balls against the basemap — the
+    // "测站样式又不对" promo feedback. JQuake-style overview language: small
+    // plain dots (no under-disc / white ring), numbered icons only appear
+    // from zoom 8 where CIR_R grows back to icon scale.
+    if (zoom < 7) {
+      var dotR = Math.max(2.5, CIR_R * 0.35);
+      waveCtx.beginPath(); waveCtx.arc(pt.x, pt.y, dotR, 0, Math.PI*2);
+      waveCtx.fillStyle = rgbStr; waveCtx.fill();
+      waveCtx.strokeStyle = 'rgba(255,255,255,0.55)'; waveCtx.lineWidth = 0.8;
+      waveCtx.stroke();
+      continue;
+    }
     if (c.isSeafloor) {
       var sq = CIR_R;
       waveCtx.fillStyle = 'rgba(0,0,0,0.35)'; waveCtx.fillRect(pt.x-sq-2, pt.y-sq-2, sq*2+4, sq*2+4);

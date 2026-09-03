@@ -1,6 +1,6 @@
 {
   "schema": "quake-sim-model-bias-loeo-bundle-v1",
-  "generatedAt": "2026-08-23T17:22:29.797Z",
+  "generatedAt": "2026-09-03T11:31:03.515Z",
   "obsSource": "public/geojson/strong-motion-obs.json",
   "models": {
     "zhao2006": {
@@ -11,79 +11,93 @@
         "minM": 7,
         "maxM": null
       },
-      "events": 4,
-      "stations": 1925,
+      "events": 6,
+      "stations": 2823,
       "deployedDistBins": [
         {
           "minKm": 0,
           "maxKm": 50,
-          "measuredBias": -0.0106,
-          "stations": 10,
-          "deltaI": 0.011
+          "measuredBias": -0.0981,
+          "stations": 12,
+          "deltaI": 0.098
         },
         {
           "minKm": 50,
           "maxKm": 100,
-          "measuredBias": -0.034,
-          "stations": 46,
-          "deltaI": 0.034
+          "measuredBias": -0.3924,
+          "stations": 110,
+          "deltaI": 0.392
         },
         {
           "minKm": 100,
           "maxKm": 200,
-          "measuredBias": -0.6154,
-          "stations": 331,
-          "deltaI": 0.615
+          "measuredBias": -0.6467,
+          "stations": 604,
+          "deltaI": 0.647
         },
         {
           "minKm": 200,
           "maxKm": 400,
-          "measuredBias": -0.409,
-          "stations": 1026,
-          "deltaI": 0.409
+          "measuredBias": -0.3172,
+          "stations": 1483,
+          "deltaI": 0.317
         },
         {
           "minKm": 400,
           "maxKm": null,
-          "measuredBias": -0.3847,
-          "stations": 512,
-          "deltaI": 0.385
+          "measuredBias": -0.3632,
+          "stations": 614,
+          "deltaI": 0.363
         }
       ],
-      "rmsUncorrected": 0.899,
-      "rmsHeldOutLOO": 0.931,
-      "heldOutWorseThanUncorrected": true,
+      "rmsUncorrected": 0.84,
+      "rmsHeldOutLOO": 0.804,
+      "heldOutWorseThanUncorrected": false,
       "folds": [
         {
           "eventId": "tohoku2011",
           "stations": 600,
           "rmsUncorrected": 0.952,
-          "rmsHeldOutRefit": 0.766,
-          "rmsDeployed": 0.709
+          "rmsHeldOutRefit": 0.783,
+          "rmsDeployed": 0.734
         },
         {
           "eventId": "tokachi2003",
           "stations": 552,
           "rmsUncorrected": 0.605,
-          "rmsHeldOutRefit": 0.911,
-          "rmsDeployed": 0.721
+          "rmsHeldOutRefit": 0.803,
+          "rmsDeployed": 0.686
         },
         {
           "eventId": "fukushima2022",
           "stations": 600,
           "rmsUncorrected": 1.105,
-          "rmsHeldOutRefit": 0.939,
-          "rmsDeployed": 0.814
+          "rmsHeldOutRefit": 0.903,
+          "rmsDeployed": 0.824
         },
         {
           "eventId": "hyuganada2024",
           "stations": 173,
           "rmsUncorrected": 0.663,
-          "rmsHeldOutRefit": 1.379,
-          "rmsDeployed": 1.063
+          "rmsHeldOutRefit": 1.262,
+          "rmsDeployed": 1.093
+        },
+        {
+          "eventId": "geiyo2001",
+          "stations": 438,
+          "rmsUncorrected": 0.646,
+          "rmsHeldOutRefit": 0.646,
+          "rmsDeployed": 0.646
+        },
+        {
+          "eventId": "miyagioki2005",
+          "stations": 460,
+          "rmsUncorrected": 0.745,
+          "rmsHeldOutRefit": 0.579,
+          "rmsDeployed": 0.565
         }
       ],
-      "conclusion": "held-out RMS exceeds uncorrected RMS: the modelBias correction does not generalize to unseen events"
+      "conclusion": "held-out RMS does not exceed uncorrected RMS: no leave-one-out evidence of overfitting"
     },
     "si-midorikawa": {
       "schema": "quake-sim-model-bias-loeo-v1",
@@ -93,62 +107,62 @@
         "minM": 7,
         "maxM": null
       },
-      "events": 9,
-      "stations": 2962,
+      "events": 13,
+      "stations": 4094,
       "deployedDistBins": [
         {
           "minKm": 0,
           "maxKm": 50,
-          "measuredBias": -0.1892,
-          "stations": 111,
-          "deltaI": 0.189
+          "measuredBias": -0.082,
+          "stations": 157,
+          "deltaI": 0.082
         },
         {
           "minKm": 50,
           "maxKm": 100,
-          "measuredBias": 0.0028,
-          "stations": 396,
-          "deltaI": -0.003
+          "measuredBias": 0.0803,
+          "stations": 529,
+          "deltaI": -0.08
         },
         {
           "minKm": 100,
           "maxKm": 200,
-          "measuredBias": 0.0837,
-          "stations": 1118,
-          "deltaI": -0.084
+          "measuredBias": 0.1165,
+          "stations": 1692,
+          "deltaI": -0.116
         },
         {
           "minKm": 200,
           "maxKm": 400,
-          "measuredBias": -0.2618,
-          "stations": 1254,
-          "deltaI": 0.262
+          "measuredBias": -0.2585,
+          "stations": 1627,
+          "deltaI": 0.258
         },
         {
           "minKm": 400,
           "maxKm": null,
-          "measuredBias": -0.75,
-          "stations": 83,
-          "deltaI": 0.75
+          "measuredBias": -0.7915,
+          "stations": 89,
+          "deltaI": 0.791
         }
       ],
       "rmsUncorrected": 0.637,
-      "rmsHeldOutLOO": 0.635,
+      "rmsHeldOutLOO": 0.634,
       "heldOutWorseThanUncorrected": false,
       "folds": [
         {
           "eventId": "kumamoto2016",
           "stations": 333,
           "rmsUncorrected": 0.65,
-          "rmsHeldOutRefit": 0.571,
-          "rmsDeployed": 0.55
+          "rmsHeldOutRefit": 0.549,
+          "rmsDeployed": 0.539
         },
         {
           "eventId": "noto2024",
           "stations": 368,
           "rmsUncorrected": 0.613,
-          "rmsHeldOutRefit": 0.665,
-          "rmsDeployed": 0.646
+          "rmsHeldOutRefit": 0.668,
+          "rmsDeployed": 0.654
         },
         {
           "eventId": "chuetsu2004",
@@ -198,6 +212,221 @@
           "rmsUncorrected": 0.68,
           "rmsHeldOutRefit": 0.68,
           "rmsDeployed": 0.68
+        },
+        {
+          "eventId": "tottori2000",
+          "stations": 279,
+          "rmsUncorrected": 0.653,
+          "rmsHeldOutRefit": 0.653,
+          "rmsDeployed": 0.653
+        },
+        {
+          "eventId": "chuetsuoki2007",
+          "stations": 412,
+          "rmsUncorrected": 0.505,
+          "rmsHeldOutRefit": 0.505,
+          "rmsDeployed": 0.505
+        },
+        {
+          "eventId": "nagano2014",
+          "stations": 281,
+          "rmsUncorrected": 0.796,
+          "rmsHeldOutRefit": 0.796,
+          "rmsDeployed": 0.796
+        },
+        {
+          "eventId": "ishikawa2023",
+          "stations": 160,
+          "rmsUncorrected": 0.605,
+          "rmsHeldOutRefit": 0.605,
+          "rmsDeployed": 0.605
+        }
+      ],
+      "conclusion": "held-out RMS does not exceed uncorrected RMS: no leave-one-out evidence of overfitting"
+    },
+    "kanno2006": {
+      "schema": "quake-sim-model-bias-loeo-v1",
+      "model": "kanno2006",
+      "forcedFit": true,
+      "magnitudeGate": {
+        "minM": 7,
+        "maxM": null
+      },
+      "events": 19,
+      "stations": 6917,
+      "deployedDistBins": [
+        {
+          "minKm": 0,
+          "maxKm": 50,
+          "measuredBias": 0.0452,
+          "stations": 169,
+          "deltaI": -0.045
+        },
+        {
+          "minKm": 50,
+          "maxKm": 100,
+          "measuredBias": 0.1239,
+          "stations": 639,
+          "deltaI": -0.124
+        },
+        {
+          "minKm": 100,
+          "maxKm": 200,
+          "measuredBias": 0.1739,
+          "stations": 2296,
+          "deltaI": -0.174
+        },
+        {
+          "minKm": 200,
+          "maxKm": 400,
+          "measuredBias": 0.4547,
+          "stations": 3110,
+          "deltaI": -0.455
+        },
+        {
+          "minKm": 400,
+          "maxKm": null,
+          "measuredBias": 0.5089,
+          "stations": 703,
+          "deltaI": -0.509
+        }
+      ],
+      "rmsUncorrected": 0.772,
+      "rmsHeldOutLOO": 0.743,
+      "heldOutWorseThanUncorrected": false,
+      "folds": [
+        {
+          "eventId": "tohoku2011",
+          "stations": 600,
+          "rmsUncorrected": 0.884,
+          "rmsHeldOutRefit": 0.692,
+          "rmsDeployed": 0.673
+        },
+        {
+          "eventId": "kumamoto2016",
+          "stations": 333,
+          "rmsUncorrected": 0.583,
+          "rmsHeldOutRefit": 0.558,
+          "rmsDeployed": 0.549
+        },
+        {
+          "eventId": "tokachi2003",
+          "stations": 552,
+          "rmsUncorrected": 1.042,
+          "rmsHeldOutRefit": 0.771,
+          "rmsDeployed": 0.694
+        },
+        {
+          "eventId": "fukushima2022",
+          "stations": 600,
+          "rmsUncorrected": 0.846,
+          "rmsHeldOutRefit": 1.127,
+          "rmsDeployed": 1.055
+        },
+        {
+          "eventId": "noto2024",
+          "stations": 368,
+          "rmsUncorrected": 0.939,
+          "rmsHeldOutRefit": 0.708,
+          "rmsDeployed": 0.694
+        },
+        {
+          "eventId": "hyuganada2024",
+          "stations": 173,
+          "rmsUncorrected": 1.131,
+          "rmsHeldOutRefit": 0.95,
+          "rmsDeployed": 0.922
+        },
+        {
+          "eventId": "chuetsu2004",
+          "stations": 209,
+          "rmsUncorrected": 1.089,
+          "rmsHeldOutRefit": 1.089,
+          "rmsDeployed": 1.089
+        },
+        {
+          "eventId": "iwate2008",
+          "stations": 367,
+          "rmsUncorrected": 0.593,
+          "rmsHeldOutRefit": 0.593,
+          "rmsDeployed": 0.593
+        },
+        {
+          "eventId": "fukuoka2005",
+          "stations": 294,
+          "rmsUncorrected": 0.55,
+          "rmsHeldOutRefit": 0.55,
+          "rmsDeployed": 0.55
+        },
+        {
+          "eventId": "noto2007",
+          "stations": 358,
+          "rmsUncorrected": 0.762,
+          "rmsHeldOutRefit": 0.762,
+          "rmsDeployed": 0.762
+        },
+        {
+          "eventId": "fukushima2011",
+          "stations": 430,
+          "rmsUncorrected": 0.562,
+          "rmsHeldOutRefit": 0.562,
+          "rmsDeployed": 0.562
+        },
+        {
+          "eventId": "yamagata2019",
+          "stations": 230,
+          "rmsUncorrected": 0.602,
+          "rmsHeldOutRefit": 0.602,
+          "rmsDeployed": 0.602
+        },
+        {
+          "eventId": "iburihigashi2018",
+          "stations": 373,
+          "rmsUncorrected": 0.601,
+          "rmsHeldOutRefit": 0.601,
+          "rmsDeployed": 0.601
+        },
+        {
+          "eventId": "tottori2000",
+          "stations": 279,
+          "rmsUncorrected": 0.491,
+          "rmsHeldOutRefit": 0.491,
+          "rmsDeployed": 0.491
+        },
+        {
+          "eventId": "geiyo2001",
+          "stations": 438,
+          "rmsUncorrected": 0.742,
+          "rmsHeldOutRefit": 0.742,
+          "rmsDeployed": 0.742
+        },
+        {
+          "eventId": "miyagioki2005",
+          "stations": 460,
+          "rmsUncorrected": 0.625,
+          "rmsHeldOutRefit": 0.685,
+          "rmsDeployed": 0.668
+        },
+        {
+          "eventId": "chuetsuoki2007",
+          "stations": 412,
+          "rmsUncorrected": 0.636,
+          "rmsHeldOutRefit": 0.636,
+          "rmsDeployed": 0.636
+        },
+        {
+          "eventId": "nagano2014",
+          "stations": 281,
+          "rmsUncorrected": 0.854,
+          "rmsHeldOutRefit": 0.854,
+          "rmsDeployed": 0.854
+        },
+        {
+          "eventId": "ishikawa2023",
+          "stations": 160,
+          "rmsUncorrected": 0.686,
+          "rmsHeldOutRefit": 0.686,
+          "rmsDeployed": 0.686
         }
       ],
       "conclusion": "held-out RMS does not exceed uncorrected RMS: no leave-one-out evidence of overfitting"

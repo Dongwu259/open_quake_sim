@@ -121,17 +121,24 @@ for (const m of swMarkers) {
 
 // ---- Stage 2: ?v= rewrites (hashes computed against staged content) ----
 // Match  src="path?v=N"  or  href="path?v=N"  for same-origin relative paths.
+// index.html plus secondary app pages that reuse versioned assets
+// (report.html links style.css/i18n.js — same immutable-cache coupling).
 const RE = /((?:src|href)\s*=\s*")([^":?#]+?)(\?v=)([^"]*)(")/g;
+const HTML_FILES = ['index.html', 'report.html', 'guide.html'].filter(f => fs.existsSync(path.join(PUBLIC, f)));
 const bumped = [];
-html = html.replace(RE, (full, pre, rel, mid, oldV, post) => {
-  const h = hashOf(rel);
-  if (!h) return full; // file missing — leave version untouched
-  if (h === oldV) return full;
-  bumped.push({ file: rel, old: oldV, neu: h });
-  return pre + rel + mid + h + post;
-});
+for (const hf of HTML_FILES) {
+  const before = contentOf(hf);
+  const after = before.replace(RE, (full, pre, rel, mid, oldV, post) => {
+    const h = hashOf(rel);
+    if (!h) return full; // file missing — leave version untouched
+    if (h === oldV) return full;
+    bumped.push({ html: hf, file: rel, old: oldV, neu: h });
+    return pre + rel + mid + h + post;
+  });
+  if (after !== before) staged[hf] = after;
+}
 if (bumped.length) {
-  for (const b of bumped) recordChange('index.html', `?v= ${b.file}: ${b.old} -> ${b.neu}`);
+  for (const b of bumped) recordChange(b.html, `?v= ${b.file}: ${b.old} -> ${b.neu}`);
 }
 // index.html is written whenever it diverges from disk (moved data-sw marker
 // or bumped ?v= strings).

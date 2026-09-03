@@ -6403,6 +6403,117 @@ function _stopBulletinTTS() {
   _cancelSrevSpeech();
 }
 
+// ================================================================
+//  v6.2 experience report page (public/report.html) — a full-window
+//  standalone page rendering a snapshot of the current/last simulation.
+//  The snapshot lives in localStorage ('qs-report-snapshot'); report.html
+//  falls back to the frozen demo snapshot (geojson/report-demo.json, built
+//  by tools/build-report-demo.js through the same Physics engine) so the
+//  promo-modal entry always shows a complete report.
+// ================================================================
+var REPORT_SNAPSHOT_KEY = 'qs-report-snapshot';
+
+function _captureReportSnapshot() {
+  if (!epicenter) return null; // nothing simulated yet — report.html uses the demo
+  var presetDef = (currentPreset && PRESETS[currentPreset]) || null;
+  var presetName = null;
+  if (currentPreset) {
+    presetName = t('preset.' + currentPreset);
+    if (presetName === 'preset.' + currentPreset) presetName = currentPreset;
+  }
+  var mag = parseFloat(magSlider.value);
+  var depth = parseFloat(depthSlider.value);
+  var srcClass = null;
+  try { srcClass = resolvedSourceType(depth, null, epicenter.lat, epicenter.lng); } catch (e) { srcClass = null; }
+
+  var prefs = [];
+  for (var pid in _predictedPrefectureShindos) {
+    var row = _predictedPrefectureShindos[pid];
+    var range = '';
+    if (row.i != null && typeof Physics.shindoUncertaintyRange === 'function') {
+      var ur = Physics.shindoUncertaintyRange(row.i);
+      if (ur) range = ur.lowLabel + '~' + ur.highLabel;
+    }
+    prefs.push({ name: row.nam_ja || row.nam, shindo: String(Physics.shindoLabel(row.shindo)), range: range, lpgm: row.lpgm || 0, score: Physics.shindoScore(row.shindo) });
+  }
+  prefs.sort(function(a, b) { return b.score - a.score; });
+
+  var stations = [];
+  for (var key in _researchStationPeaks) stations.push(_researchStationPeaks[key]);
+  stations.sort(function(a, b) { return (b.peakPga || 0) - (a.peakPga || 0); });
+
+  var maxTsu = 0, zones = [];
+  tsunamiCircles.forEach(function(area) {
+    var h = Number(area.height) || 0;
+    if (h > maxTsu) maxTsu = h;
+    zones.push({ name: area.areaName || '', height: h, alert: area.status || area.level || '' });
+  });
+  zones.sort(function(a, b) { return b.height - a.height; });
+
+  var aft = null;
+  if (aftershockCatalog && aftershockCatalog.length) {
+    var maxAm = 0;
+    for (var ai = 0; ai < aftershockCatalog.length; ai++) {
+      var am = Number(aftershockCatalog[ai].mag || aftershockCatalog[ai].mw) || 0;
+      if (am > maxAm) maxAm = am;
+    }
+    aft = { count: aftershockCatalog.length, maxMag: maxAm };
+  }
+
+  var snap = {
+    schema: 'quake-sim-report-snapshot-v1',
+    kind: 'sim',
+    capturedAt: new Date().toISOString(),
+    event: {
+      preset: currentPreset || 'custom',
+      presetName: presetName,
+      mag: (typeof eventMw !== 'undefined' && eventMw != null) ? eventMw : mag,
+      sliderMag: mag,
+      depthKm: depth,
+      lat: epicenter.lat, lng: epicenter.lng,
+      sourceClass: srcClass,
+      faultModel: (presetDef && presetDef.faultModel) ? presetDef.faultModel : null,
+      chainCount: (typeof customEvents !== 'undefined' && customEvents && customEvents.length > 1) ? customEvents.length : null
+    },
+    summary: {
+      durationS: Math.round(simElapsed),
+      maxShindo: _globalMaxShindo,
+      maxShindoLabel: _globalMaxShindo > 0 ? String(Physics.shindoLabel(_globalMaxShindo)) : '—',
+      maxPgaGal: _globalMaxPga || null,
+      maxPgvCms: _globalMaxPgv || null,
+      maxTsunamiM: maxTsu > 0 ? maxTsu : null,
+      stationCount: stations.length
+    },
+    prefectures: prefs.slice(0, 15).map(function(p) { return { name: p.name, shindo: p.shindo, range: p.range, lpgm: p.lpgm }; }),
+    stations: stations.slice(0, 12).map(function(s) {
+      return { name: s.name || String(s.id), shindo: s.shindo > 0 ? String(Physics.shindoLabel(s.shindo)) : '0', pga: s.peakPga || null, pgv: s.peakPgv || null };
+    }),
+    tsunami: zones.length ? { zones: zones.slice(0, 8) } : null,
+    aftershocks: aft,
+    spectrum: _lastSpectrumExport ? {
+      station: _lastSpectrumExport.station,
+      periods: _lastSpectrumExport.periods.slice(),
+      psaGal: _lastSpectrumExport.psaGal.slice()
+    } : null
+  };
+  try { localStorage.setItem(REPORT_SNAPSHOT_KEY, JSON.stringify(snap)); } catch (e) { /* storage full — report.html falls back to demo */ }
+  return snap;
+}
+
+function _openReportPage() {
+  _captureReportSnapshot(); // refresh from live state; no-op without an epicenter
+  window.open('report.html', '_blank', 'noopener');
+}
+
+(function wireReportEntries() {
+  var side = document.getElementById('btn-report-page');
+  if (side) side.addEventListener('click', _openReportPage);
+  // v6.2 post-release: the popup entry became the illustrated guide page;
+  // the report page keeps its sidebar entry under the app title
+  var guideSide = document.getElementById('btn-guide-page');
+  if (guideSide) guideSide.addEventListener('click', function() { window.open('guide.html', '_blank', 'noopener'); });
+})();
+
 function endSimulation() {
   isRunning = false;
   isPaused = false; // end while paused is impossible (gates are in-loop), keep the state honest anyway
@@ -6430,6 +6541,7 @@ function endSimulation() {
     if (rTime && _replayData.length > 0) rTime.textContent = Math.round(_replayData[_replayData.length-1].t) + 's';
   }
   statusDot.classList.remove('running'); statusText.textContent = t('status.complete');
+  _captureReportSnapshot(); // v6.2: freeze the finished run for report.html
   _lastResearchSnapshot = _captureResearchSnapshot();
   if (_lastResearchSnapshot) _saveResearchSnapshot(_lastResearchSnapshot);
   var baf2 = document.getElementById('btn-autofocus'); var afl2 = document.getElementById('autofocus-label'); if (baf2) { baf2.style.display='none'; baf2.classList.remove('active'); } if (afl2) afl2.style.display='none';
@@ -8949,7 +9061,7 @@ async function init() {
   initMobileToggle();
   // Register service worker for offline PWA support (non-critical)
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js?v=925936').catch(function(e) {
+    navigator.serviceWorker.register('sw.js?v=451016').catch(function(e) {
       console.warn('SW registration failed (non-critical):', e);
     });
   }
@@ -9282,7 +9394,7 @@ var ScenarioManager = (function(){
       if (isFinite(+a.lat) && isFinite(+a.lng)) { e.lat = +a.lat; e.lng = +a.lng; }
       return e;
     });
-    return { schema:Research.SCENARIO_SCHEMA,name:name || tr('scn.untitled'),version:2,appVersion:'v6.1',
+    return { schema:Research.SCENARIO_SCHEMA,name:name || tr('scn.untitled'),version:2,appVersion:'v6.2',
              seed:Research.normalizeSeed(cfgGet('randomSeed')),events:events,flags:flags,config:JSON.parse(JSON.stringify(CFG)),
              faultOpts:FiniteFaultEditor.getState(),manualAftershocks:manAs,display:_researchDisplayState(),dataVersions:versions.data,modelVersions:versions.model,
              experiment:_currentExperiment,created:(function(){try{return new Date().toISOString();}catch(e){return '';}})() };

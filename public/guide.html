@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="guide.page_title">使用说明 · 图例总览</title>
+  <link rel="stylesheet" href="style.css?v=cdd3bd">
+  <style>
+    /* guide page — full-window standalone; legend samples are pure CSS so the
+       page stays theme-aware and deterministic (no screenshots) */
+    .guide-page-body { margin:0; background:var(--bg); color:var(--text); font-family:inherit; }
+    .guide-root { max-width:960px; margin:0 auto; padding:28px 20px 60px; }
+    .guide-hero { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; }
+    .guide-hero h1 { margin:0; font-size:1.55em; }
+    .guide-byline { margin:4px 0 0; color:var(--text-secondary); font-size:.85em; }
+    .guide-actions { display:flex; gap:10px; }
+    .guide-actions a, .guide-actions button {
+      border:1px solid var(--border); background:var(--panel); color:var(--text);
+      padding:8px 14px; border-radius:8px; cursor:pointer; font-size:.9em; text-decoration:none;
+    }
+    .guide-actions a:hover, .guide-actions button:hover { filter:brightness(1.15); }
+    .guide-section { margin-top:30px; }
+    .guide-section > h2 { font-size:1.1em; margin:0 0 12px; color:var(--accent); border-bottom:1px solid var(--border); padding-bottom:6px; }
+    .guide-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(270px,1fr)); gap:12px; }
+    .guide-card { background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:14px; }
+    .guide-card h3 { margin:0 0 6px; font-size:.95em; }
+    .guide-card p { margin:0; font-size:.82em; color:var(--text-secondary); line-height:1.55; }
+    /* legend rows: sample + label + description */
+    .lg-row { display:flex; gap:14px; align-items:center; background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:12px 14px; }
+    .lg-sample { flex:0 0 76px; display:flex; align-items:center; justify-content:center; min-height:56px; }
+    .lg-sample.p-ring { width:56px; height:56px; border-radius:50%; border:3px dashed rgba(77,166,255,.9); box-shadow:0 0 0 6px rgba(77,166,255,.16); }
+    .lg-sample.s-ring { width:56px; height:56px; border-radius:50%; border:4px dashed rgba(255,159,67,.92); box-shadow:0 0 0 7px rgba(255,159,67,.18); }
+    .lg-sample.epi { width:26px; height:26px; border-radius:50%; background:radial-gradient(circle,#fff 0 4px,#e94560 5px); box-shadow:0 0 0 3px rgba(233,69,96,.35),0 0 0 7px rgba(233,69,96,.18); }
+    .lg-sample.station-icon { width:34px; height:34px; border-radius:50%; background:#d00000; color:#fff; font-size:.85em; font-weight:700; display:flex; align-items:center; justify-content:center; box-shadow:0 0 0 2px rgba(0,0,0,.45); }
+    .lg-sample.station-dot { width:9px; height:9px; border-radius:50%; background:#f5a623; border:1px solid rgba(255,255,255,.85); }
+    .lg-sample.subdiv { width:64px; height:40px; border-radius:8px; background:rgba(240,160,64,.35); border:1px solid rgba(240,160,64,.75); }
+    .lg-sample.uncert { width:60px; height:38px; border-radius:8px; background:rgba(240,160,64,.22); border:3px dashed rgba(255,255,255,.65); }
+    .lg-sample.detect { color:rgba(255,140,0,.95); font-size:2em; font-weight:800; line-height:1; text-shadow:0 0 6px rgba(255,140,0,.4); }
+    .lg-sample.beachball { width:46px; height:46px; border-radius:50%; border:2px solid #fff;
+      background:linear-gradient(135deg,#f5f5f5 0 33%,#e94560 33% 66%,#f5f5f5 66%); }
+    .lg-swatches { display:grid; grid-template-columns:repeat(auto-fit,minmax(88px,1fr)); gap:10px; }
+    .lg-swatch { border-radius:12px; border:1px solid var(--border); overflow:hidden; background:var(--panel); }
+    .lg-swatch .sw { height:44px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:1.05em; }
+    .lg-swatch .sw-label { padding:5px 8px; font-size:.72em; color:var(--text-secondary); text-align:center; }
+    .lg-tsu { display:flex; align-items:center; gap:12px; }
+    .lg-tsu .bar { width:54px; height:16px; border-radius:4px; }
+    .guide-keys { background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:12px 16px; font-size:.9em; }
+    kbd { border:1px solid var(--border); border-bottom-width:2px; border-radius:5px; padding:1px 7px; font-family:monospace; font-size:.9em; background:rgba(127,127,127,.12); }
+    .guide-footer { margin-top:36px; padding-top:14px; border-top:1px solid var(--border); color:var(--text-secondary); font-size:.78em; line-height:1.6; }
+    @media print {
+      .guide-actions { display:none !important; }
+      .guide-page-body { background:#fff; color:#000; }
+      .guide-root { max-width:none; padding:0; }
+    }
+  </style>
+</head>
+<body class="guide-page-body">
+<main class="guide-root">
+  <header class="guide-hero">
+    <div>
+      <h1 data-i18n="guide.page_title">使用说明 · 图例总览</h1>
+      <p class="guide-byline" id="guide-byline">Earthquake Simulator Pro</p>
+    </div>
+    <div class="guide-actions">
+      <button id="btn-guide-print" type="button" data-i18n="report.print">打印 / 导出 PDF</button>
+      <a href="index.html" data-i18n="report.back">返回模拟器</a>
+    </div>
+  </header>
+
+  <section class="guide-section">
+    <h2 data-i18n="guide.quick_title">快速开始（三步）</h2>
+    <div class="guide-grid">
+      <div class="guide-card"><h3 data-i18n="guide.quick_1_t">① 选择事件</h3><p data-i18n="guide.quick_1_d"></p></div>
+      <div class="guide-card"><h3 data-i18n="guide.quick_2_t">② 调整参数</h3><p data-i18n="guide.quick_2_d"></p></div>
+      <div class="guide-card"><h3 data-i18n="guide.quick_3_t">③ 开始模拟</h3><p data-i18n="guide.quick_3_d"></p></div>
+    </div>
+  </section>
+
+  <section class="guide-section">
+    <h2 data-i18n="guide.ui_title">界面导览</h2>
+    <div class="guide-grid">
+      <div class="guide-card"><h3 data-i18n="guide.ui_sidebar_t"></h3><p data-i18n="guide.ui_sidebar_d"></p></div>
+      <div class="guide-card"><h3 data-i18n="guide.ui_map_t"></h3><p data-i18n="guide.ui_map_d"></p></div>
+      <div class="guide-card"><h3 data-i18n="guide.ui_status_t"></h3><p data-i18n="guide.ui_status_d"></p></div>
+      <div class="guide-card"><h3 data-i18n="guide.ui_info_t"></h3><p data-i18n="guide.ui_info_d"></p></div>
+    </div>
+  </section>
+
+  <section class="guide-section">
+    <h2 data-i18n="guide.legend_shindo_title">地震烈度图例</h2>
+    <div class="lg-swatches" id="shindo-swatches"></div>
+    <p style="font-size:.82em;color:var(--text-secondary);margin:10px 2px 0" data-i18n="guide.legend_shindo_note"></p>
+  </section>
+
+  <section class="guide-section">
+    <h2 data-i18n="guide.legend_map_title">地图元素图例</h2>
+    <div class="guide-grid">
+      <div class="lg-row"><div class="lg-sample epi"></div><div><h3 data-i18n="guide.lg_epicenter"></h3><p data-i18n="guide.lg_epicenter_d"></p></div></div>
+      <div class="lg-row"><div class="lg-sample p-ring"></div><div><h3 data-i18n="guide.lg_pwave"></h3><p data-i18n="guide.lg_pwave_d"></p></div></div>
+      <div class="lg-row"><div class="lg-sample s-ring"></div><div><h3 data-i18n="guide.lg_swave"></h3><p data-i18n="guide.lg_swave_d"></p></div></div>
+      <div class="lg-row"><div class="lg-sample" style="gap:8px"><span class="lg-sample station-icon" style="box-shadow:none">6+</span><span class="lg-sample station-dot" style="min-height:0"></span></div><div><h3 data-i18n="guide.lg_station"></h3><p data-i18n="guide.lg_station_d"></p></div></div>
+      <div class="lg-row"><div class="lg-sample subdiv"></div><div><h3 data-i18n="guide.lg_subdiv"></h3><p data-i18n="guide.lg_subdiv_d"></p></div></div>
+      <div class="lg-row"><div class="lg-sample uncert"></div><div><h3 data-i18n="guide.lg_uncert"></h3><p data-i18n="guide.lg_uncert_d"></p></div></div>
+      <div class="lg-row"><div class="lg-sample detect">✕</div><div><h3 data-i18n="guide.lg_detect"></h3><p data-i18n="guide.lg_detect_d"></p></div></div>
+      <div class="lg-row"><div class="lg-sample beachball"></div><div><h3 data-i18n="guide.lg_beachball"></h3><p data-i18n="guide.lg_beachball_d"></p></div></div>
+    </div>
+  </section>
+
+  <section class="guide-section">
+    <h2 data-i18n="guide.tsunami_title">海啸警报级别图例</h2>
+    <div class="guide-grid">
+      <div class="lg-row"><div class="lg-tsu"><span class="bar" style="background:#8b0000"></span></div><div><h3 data-i18n="guide.lg_tsu_major"></h3><p data-i18n="guide.lg_tsu_major_d"></p></div></div>
+      <div class="lg-row"><div class="lg-tsu"><span class="bar" style="background:#e74c3c"></span></div><div><h3 data-i18n="guide.lg_tsu_warn"></h3><p data-i18n="guide.lg_tsu_warn_d"></p></div></div>
+      <div class="lg-row"><div class="lg-tsu"><span class="bar" style="background:#f1c40f"></span></div><div><h3 data-i18n="guide.lg_tsu_watch"></h3><p data-i18n="guide.lg_tsu_watch_d"></p></div></div>
+    </div>
+  </section>
+
+  <section class="guide-section">
+    <h2 data-i18n="guide.mapops_title">地图操作与回放</h2>
+    <div class="guide-card"><p data-i18n="guide.mapops_d"></p></div>
+  </section>
+
+  <section class="guide-section">
+    <h2 data-i18n="guide.detect_title">检测模式（体验 EEW）</h2>
+    <div class="guide-card"><p data-i18n="guide.detect_d"></p></div>
+  </section>
+
+  <section class="guide-section">
+    <h2 data-i18n="guide.adv_title">高级参数面板</h2>
+    <div class="guide-card"><p data-i18n="guide.adv_d"></p></div>
+  </section>
+
+  <section class="guide-section">
+    <h2 data-i18n="guide.charts_title">信息页图表解读</h2>
+    <div class="guide-grid">
+      <div class="guide-card"><h3 data-i18n="guide.ch_wave_t"></h3><p data-i18n="guide.ch_wave_d"></p></div>
+      <div class="guide-card"><h3 data-i18n="guide.ch_spectrum_t"></h3><p data-i18n="guide.ch_spectrum_d"></p></div>
+      <div class="guide-card"><h3 data-i18n="guide.ch_psha_t"></h3><p data-i18n="guide.ch_psha_d"></p></div>
+    </div>
+  </section>
+
+  <section class="guide-section">
+    <h2 data-i18n="guide.features_title">功能速览</h2>
+    <div class="guide-grid">
+      <div class="guide-card"><h3 data-i18n="guide.ft_report_t"></h3><p data-i18n="guide.ft_report_d"></p></div>
+      <div class="guide-card"><h3 data-i18n="guide.ft_eew_t"></h3><p data-i18n="guide.ft_eew_d"></p></div>
+      <div class="guide-card"><h3 data-i18n="guide.ft_pause_t"></h3><p data-i18n="guide.ft_pause_d"></p></div>
+      <div class="guide-card"><h3 data-i18n="guide.ft_presenter_t"></h3><p data-i18n="guide.ft_presenter_d"></p></div>
+      <div class="guide-card"><h3 data-i18n="guide.ft_3d_t"></h3><p data-i18n="guide.ft_3d_d"></p></div>
+      <div class="guide-card"><h3 data-i18n="guide.ft_realtime_t"></h3><p data-i18n="guide.ft_realtime_d"></p></div>
+      <div class="guide-card"><h3 data-i18n="guide.ft_share_t"></h3><p data-i18n="guide.ft_share_d"></p></div>
+    </div>
+  </section>
+
+  <section class="guide-section">
+    <h2 data-i18n="guide.keys_title">快捷键</h2>
+    <p class="guide-keys"><kbd>Space</kbd> <span data-i18n="guide.keys_line"></span></p>
+  </section>
+
+  <section class="guide-section">
+    <h2 data-i18n="guide.realtime_title">实时监测说明</h2>
+    <div class="guide-card"><p data-i18n="guide.realtime_d"></p></div>
+  </section>
+
+  <section class="guide-section">
+    <h2 data-i18n="guide.faq_title">常见问题</h2>
+    <div class="guide-grid">
+      <div class="guide-card"><h3 data-i18n="guide.faq1_q"></h3><p data-i18n="guide.faq1_a"></p></div>
+      <div class="guide-card"><h3 data-i18n="guide.faq2_q"></h3><p data-i18n="guide.faq2_a"></p></div>
+      <div class="guide-card"><h3 data-i18n="guide.faq3_q"></h3><p data-i18n="guide.faq3_a"></p></div>
+      <div class="guide-card"><h3 data-i18n="guide.faq4_q"></h3><p data-i18n="guide.faq4_a"></p></div>
+      <div class="guide-card"><h3 data-i18n="guide.faq5_q"></h3><p data-i18n="guide.faq5_a"></p></div>
+    </div>
+  </section>
+
+  <footer class="guide-footer">
+    <strong data-i18n="guide.data_title">数据来源与免责</strong>
+    <p data-i18n="guide.data_d" style="margin:6px 0 0"></p>
+    <p id="guide-footer-meta"></p>
+  </footer>
+</main>
+
+<script src="i18n.js?v=db604f"></script>
+<script>
+(function () {
+  'use strict';
+  var SHINDO_SCALE = ['0','1','2','3','4','5-','5+','6-','6+','7'];
+  var SHINDO_FILL = { '7': '#7c0a02', '6+': '#d00000', '6-': '#e7382e', '5+': '#f26d1e',
+    '5-': '#f5a623', '4': '#f7d51d', '3': '#eae672', '2': '#a0d8f0', '1': '#5090d0', '0': '#7c7c7c' };
+  var lang = localStorage.getItem('qs-lang') || 'zh';
+  applyLanguage(lang);
+  document.getElementById('guide-byline').textContent = 'Earthquake Simulator Pro v6.2';
+  document.getElementById('btn-guide-print').addEventListener('click', function () { window.print(); });
+
+  // shindo swatches (labels are universal; fills mirror the renderer palette)
+  var wrap = document.getElementById('shindo-swatches');
+  SHINDO_SCALE.forEach(function (s) {
+    var card = document.createElement('div');
+    card.className = 'lg-swatch';
+    var sw = document.createElement('div');
+    sw.className = 'sw';
+    sw.style.background = SHINDO_FILL[s] || '#888';
+    sw.textContent = s;
+    var label = document.createElement('div');
+    label.className = 'sw-label';
+    label.textContent = 'Shindo ' + s;
+    card.appendChild(sw); card.appendChild(label);
+    wrap.appendChild(card);
+  });
+  document.getElementById('guide-footer-meta').textContent =
+    (window.t ? t('report.footer_meta', { v: 'v6.2' }) : '') ;
+})();
+</script>
+</body>
+</html>

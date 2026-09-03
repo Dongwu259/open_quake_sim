@@ -24,6 +24,8 @@ const ROLES = {
   'deepsoil-benchmark-case.json': { kind: 'fixture', track: 'R7', gate: 'tests/deepsoil-benchmark.test.js' },
   'travel-time-picks.json': { kind: 'observed-picks', track: 'R3-2', gate: 'tests/jivsm-columns.test.js' },
   'f0-jivsm-reeval.json': { kind: 'experiment', track: 'v5.7 tail', gate: null },
+  'cs-pipeline-report.json': { kind: 'experiment', track: 'v6.2 CS pipeline', gate: 'tests/cs-pipeline.test.js' },
+  'jshis-comparison-report.json': { kind: 'scorecard', track: 'R8 external gate', gate: 'tests/jshis-comparison.test.js' },
   'version-report.json': { kind: 'envelope', track: 'R7-5', gate: 'tuning-read audit' },
   'experiment-manifest.json': { kind: 'manifest', track: 'v6.0', gate: 'self' }
 };

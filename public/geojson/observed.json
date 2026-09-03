@@ -18,7 +18,7 @@
   ],
   "_validation": {
     "schema": "quake-sim-validation-split-v1",
-    "method": "Event-level split fixed on 2026-07-25. Independent events must not be used for coefficient selection. Records marked estimated remain lower-confidence references and are reported separately.",
+    "method": "Event-level split fixed on 2026-07-25. Independent events must not be used for coefficient selection. Records marked estimated remain lower-confidence references and are reported separately. v6.2 (2026-09-03): six scorecard-support events added as independent (never used for coefficient selection — JMA-hypocenter support for the expanded strong-motion scorecard only).",
     "training": [
       "tohoku",
       "kobe",
@@ -42,7 +42,13 @@
       "kushiro1993",
       "tonankai1944",
       "nankai1946",
-      "niigata1964"
+      "niigata1964",
+      "tottori2000",
+      "geiyo2001",
+      "miyagioki2005",
+      "chuetsuoki2007",
+      "nagano2014",
+      "ishikawa2023"
     ]
   },
   "tohoku": {
@@ -18607,5 +18613,109 @@
     },
     "estimated": true,
     "jmaEventId": "19640616130140"
+  },
+  "tottori2000": {
+    "mag": 7.3,
+    "mw": 6.7,
+    "src": "crustal",
+    "strike": 150,
+    "dip": 85,
+    "rake": -10,
+    "time": "2000-10-06T13:30:18+09:00",
+    "epi_lat": 35.274,
+    "epi_lng": 133.348,
+    "depth": 9,
+    "obs": {
+      "境港市": "6+"
+    },
+    "estimated": true,
+    "note": "JMA 強震波形 001006_tottori-seibu: 35°16.4N 133°20.9E 9km M7.3; strike-slip ~150°"
+  },
+  "geiyo2001": {
+    "mag": 6.7,
+    "mw": 6.8,
+    "src": "intraslab",
+    "strike": 230,
+    "dip": 35,
+    "rake": 90,
+    "time": "2001-03-24T15:28:00+09:00",
+    "epi_lat": 34.132,
+    "epi_lng": 132.693,
+    "depth": 46,
+    "obs": {
+      "東広島市": "6-"
+    },
+    "estimated": true,
+    "note": "JMA 強震波形 010324_geiyo: 34°07.9N 132°41.6E 46km M6.7; Philippine-Sea slab interior"
+  },
+  "miyagioki2005": {
+    "mag": 7.2,
+    "mw": 7.2,
+    "src": "interplate",
+    "strike": 185,
+    "dip": 25,
+    "rake": 90,
+    "time": "2005-08-16T11:46:00+09:00",
+    "epi_lat": 38.148,
+    "epi_lng": 142.277,
+    "depth": 42,
+    "obs": {
+      "仙台市": "5+"
+    },
+    "estimated": true,
+    "note": "JMA 第六報 0508/17c: 38°08.9N 142°16.6E 42km M7.2; plate-boundary"
+  },
+  "chuetsuoki2007": {
+    "mag": 6.8,
+    "mw": 6.6,
+    "src": "crustal",
+    "strike": 215,
+    "dip": 45,
+    "rake": 90,
+    "time": "2007-07-16T10:13:00+09:00",
+    "epi_lat": 37.557,
+    "epi_lng": 138.608,
+    "depth": 17,
+    "obs": {
+      "長岡市": "6+",
+      "柏崎市": "6+"
+    },
+    "estimated": true,
+    "note": "JMA 強震波形 070716_chuetsu-oki: 37°33.4N 138°36.5E 17km M6.8 (暫定値); reverse, WNW-ESE compression"
+  },
+  "nagano2014": {
+    "mag": 6.8,
+    "mw": 6.2,
+    "src": "crustal",
+    "strike": 45,
+    "dip": 50,
+    "rake": 90,
+    "time": "2014-11-22T22:08:00+09:00",
+    "epi_lat": 36.692,
+    "epi_lng": 137.89,
+    "depth": 10,
+    "obs": {
+      "長野市": "6-"
+    },
+    "estimated": true,
+    "note": "JMA 強震波形 141122_naganohokubu prelim 36°41.5N 137°53.4E 5km M6.7; unified-catalog final M6.8/10km (Yahoo JMA feed); Kamishiro-fault reverse"
+  },
+  "ishikawa2023": {
+    "mag": 6.5,
+    "mw": 6.2,
+    "src": "crustal",
+    "strike": 45,
+    "dip": 60,
+    "rake": 90,
+    "time": "2023-05-05T14:42:00+09:00",
+    "epi_lat": 37.5,
+    "epi_lng": 137.3,
+    "depth": 12,
+    "obs": {
+      "金沢市": "4",
+      "七尾市": "4"
+    },
+    "estimated": true,
+    "note": "JMA 発表 令和5年5月5日14時42分: M6.5 12km (暫定値), max 震度6強 (奥能登地震); max 震度6強 observed at 珠洲市 (not a stations.json name — kept in this note)"
   }
 }
