@@ -9956,7 +9956,7 @@ function drawResponseSpectrum() {
 
 // --- PSHA hazard curve & UHS (v6.1 P2, 2026-09-01) ------------------------
 // Site hazard from the bundled self-computed source model
-// (geojson/psha-source-model.json, schema quake-sim-psha-source-v1, built by
+// (geojson/psha-source-model.json, schema quake-sim-psha-source-v2, built by
 // tools/build-psha-source-model.js from the frozen USGS ComCat catalog).
 // The model loads lazily (landuse-pack precedent); an absent pack leaves the
 // canvases in their waiting state instead of failing the charts view.

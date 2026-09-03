@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/) where practical.
 
+## [Unreleased] — 2026-09-04 science refresh
+
+Upstream science batch (quake_sim `6c82057`..`be463ba`), no app-version bump: segmented Nankai source model + CS shape-gate diagnosis. 上游科学批次：分段南海震源模型 + 条件谱形状门诊断。
+
+### Changed
+- **PSHA source model v2 (segmented Nankai)**: the single full-trough M9 at 0.0462/yr — which took the ERC *time-dependent* 30-yr probability as a Poisson rate — is rebuilt as three rupture modes (full M8.9 / east Tokai+Tonankai M8.2 / west Tonankai+Nankai M8.3) at Poisson long-run rates from the ERC plain-interval BPT set (1/117 yr total, 4/1/1 mode split over 1361–1946; Poisson P30 = 22.7% inside the published 20–50% band). Segment geometry reuses the bundled 4-segment synthetic model's own polyline (2013 HERP domains)
+- **J-SHIS external gate re-frozen**: RP475 PGV ours/J-SHIS median **5.97x → 1.83x** [1.458..4.227]; mid-band log-rate ratios flip negative at Kochi/Nagoya — the expected Poisson-long-run vs BPT-conditional signature; attribution re-frozen (sendai scenario share 99.7% → 3.6%; the v1 all-sites 99.7% pathology is gone); CS pipeline re-frozen on v2 anchors (shape gates still FAIL — anchors moved, shapes did not)
+
+### Added
+- **CS shape-gate diagnosis** (`tools/broadband/cs-diagnose.js`): the 0.1 s overshoot is 100% on the Boore HF side (shipped ≡ HF-only arm at every case), ~0.186 of it from the frozen κ0=0.02 choice, and in 4/6 cases the MS-CS mixture target sits below every contributing-bin median envelope (structurally unreachable); the Kochi 2–4 s deficit excludes the JIVSM column (half-space Δ ≤ 0.08) and Q (Δ ≤ 0.005) — attributed to the 1D SH kernel vs zhao's empirically amplified long-period medians. Repair directions registered, not executed
+
 ## [v6.2] — 2026-09-04
 
 v6.2 upstream sync (quake_sim `1256af5`..`cb957c3`): experience report page, illustrated guide, validation expansion, conditional-spectrum pipeline, J-SHIS external gate + attribution. v6.2 上游同步：体验报告页、图例使用说明、验证扩容、条件谱管线、J-SHIS 外部门与归因。

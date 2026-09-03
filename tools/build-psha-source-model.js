@@ -17,10 +17,11 @@
 //   4. Regional b per class (Aki 1965 MLE) on in-window declustered events;
 //      per-cell a-value from adaptive top-hat smoothing (radii 25/50/100 km,
 //      smallest radius with >= 10 events), rate renormalised per cell area.
-//   5. Scenario sources (rates from published Earthquake Research Committee
-//      30-year probabilities, converted as lambda = -ln(1-P30)/30):
-//        nankaiM9    P30 = 0.75 (midpoint of the published 70-80% range)
-//        tokyoInland P30 = 0.70 (published 70% for capital-region M7)
+//   5. Scenario sources — v2 segmented Nankai (2026-09-04): full/east/west
+//      rupture modes at POISSON long-run rates from the ERC plain-interval
+//      BPT set (1/117 yr total, 4/1/1 mode split over 1361..1946; the
+//      time-dependent 60-90%+/30yr view is deliberately not Poisson-converted),
+//      plus tokyoInland M7.3 at the published capital-region 70%/30 yr.
 //   6. GR truncated at class Mmax (7.2 crustal / 7.8 interface & slab),
 //      NOT renormalised; the Japan-trench M9 tail is not carried by any
 //      scenario in v1 (documented hazard underestimate along Sanriku).
@@ -225,7 +226,27 @@ function main() {
     }
   }
 
-  // 5. scenario sources
+  // 5. scenario sources — v2 (2026-09-04): SEGMENTED Nankai rupture modes.
+  // v1 carried a single full-trough M9 at lambda=0.0462/yr, taking the ERC
+  // TIME-DEPENDENT 30-yr probability as a Poisson rate. The attribution study
+  // (tools/data/psha-attribution-report.json, frozen 2026-09-04) measured
+  // that as the dominant overprediction driver vs J-SHIS (the two scenarios
+  // carried a median 99.7% of the RP475 exceedance rate). v2 decomposes the
+  // trough into rupture modes with POISSON-COMPATIBLE long-run rates:
+  //   lambda_total = 1/117 yr = 0.008547/yr — the ERC plain-interval BPT
+  //   set (past 6 events 1361..1946; 5 intervals over 585 yr, mean 117 yr).
+  //   The 2025-09-26 partial revision publishes BOTH a slip-dependent BPT
+  //   view (60-90%+/30 yr, time-dependent, NOT Poisson-compatible) and the
+  //   plain-interval BPT view (20-50%/30 yr); our Poisson P30 = 22.7% sits
+  //   inside the published plain-BPT band.
+  //   Mode split from the same 6-episode record:
+  //     full-trough  Hoei-type (1361, 1605, 1707, 1854 as a 32-h pair) 4/6
+  //     east  Tokai+Tonankai (Meio 1498 type)                          1/6
+  //     west  Tonankai+Nankai  (Showa 1944/46 type)                    1/6
+  //   Segment geometry reuses the bundled synthetic model's own polyline
+  //   (build-fault-models.js NODES/SEGMENTS, 2013 HERP domains, projected
+  //   from the east end); the speculative Hyuga-nada domain joins ONLY the
+  //   full-trough mode (the 1946 rupture reached at most off-Ashizuri).
   const faultModels = require('../public/observed-fault-models.js');
   const nankai = faultModels.get('nankaiM9');
   const nankaiPatches = nankai.patches.map(p => {
@@ -235,18 +256,75 @@ function main() {
     const depthKm = cs.reduce((a, c) => a + c.depthKm, 0) / cs.length;
     return [+lat.toFixed(3), +lng.toFixed(3), +depthKm.toFixed(1)];
   });
-  const scenarios = [
-    {
-      id: 'nankaiM9', mw: 9.0, ratePerYear: +(-Math.log(1 - 0.75) / 30).toPrecision(4),
-      sourceType: 'interplate', depthKm: nankai.event.depthKm,
-      patches: nankaiPatches,
+  // --- polyline projection (identical geometry carrier as build-fault-models.js)
+  const NODES = [
+    [34.75, 138.50], [34.10, 138.15], [33.75, 137.30], [33.40, 136.30],
+    [33.05, 135.05], [32.70, 133.90], [32.30, 132.85], [31.80, 132.05], [31.40, 131.60]
+  ];
+  const SEGS_ALONG = [ // [fromKm, toKm) from the EAST (Suruga) end — 2013 HERP domains
+    ['tokai', 0, 168], ['tonankai', 168, 392], ['nankai', 392, 614], ['hyuga', 614, Infinity]
+  ];
+  const KM_PER_DEG_LAT = 111.32;
+  const legs = [];
+  let totalKm = 0;
+  for (let i = 0; i < NODES.length - 1; i++) {
+    const [latA, lngA] = NODES[i], [latB, lngB] = NODES[i + 1];
+    const cosLat = Math.cos((latA + latB) / 2 * Math.PI / 180);
+    const lenKm = Math.hypot((latB - latA) * KM_PER_DEG_LAT, (lngB - lngA) * KM_PER_DEG_LAT * cosLat);
+    legs.push({ latA, lngA, latB, lngB, lenKm, from: totalKm });
+    totalKm += lenKm;
+  }
+  function alongStrikeKm(lat, lng) {
+    const toR = Math.PI / 180;
+    let best = { d2: Infinity, s: 0 };
+    for (const leg of legs) {
+      const ax = (leg.lngA - lng) * Math.cos((leg.latA + lat) / 2 * toR) * KM_PER_DEG_LAT, ay = (leg.latA - lat) * KM_PER_DEG_LAT;
+      const bx = (leg.lngB - lng) * Math.cos((leg.latB + lat) / 2 * toR) * KM_PER_DEG_LAT, by = (leg.latB - lat) * KM_PER_DEG_LAT;
+      const dx = bx - ax, dy = by - ay;
+      const t = Math.max(0, Math.min(1, (ax * dx + ay * dy) / (dx * dx + dy * dy || 1e-12)));
+      const px = ax + t * dx, py = ay + t * dy;
+      const d2 = px * px + py * py;
+      if (d2 < best.d2) best = { d2, s: leg.from + t * leg.lenKm };
+    }
+    return best.s;
+  }
+  const patchSeg = nankaiPatches.map(p => {
+    const s = alongStrikeKm(p[0], p[1]);
+    const seg = SEGS_ALONG.find(x => s >= x[1] && s < x[2]);
+    return seg ? seg[0] : 'hyuga';
+  });
+  const segCounts = patchSeg.reduce((a, s) => { a[s] = (a[s] || 0) + 1; return a; }, {});
+  const bySeg = {};
+  for (const name of ['tokai', 'tonankai', 'nankai', 'hyuga']) {
+    bySeg[name] = nankaiPatches.filter((_, i) => patchSeg[i] === name);
+  }
+  const nankaiLambda = 1 / 117; // ERC plain-interval BPT set (1361..1946, mean 117 yr)
+  const ERC_URL = 'https://www.jishin.go.jp/evaluation/long_term_evaluation/subduction_fault/summary_nankai/';
+  function nankaiMode(id, mw, share, segments, note) {
+    const patches = [];
+    let depthSum = 0;
+    for (const name of segments) {
+      for (const p of bySeg[name]) { patches.push(p); depthSum += p[2]; }
+    }
+    return {
+      id, mw, ratePerYear: +(nankaiLambda * share).toPrecision(4),
+      sourceType: 'interplate', depthKm: +(depthSum / patches.length).toFixed(1),
+      patches,
       provenance: {
-        geometry: 'bundled observed-fault-models nankaiM9 (Cabinet Office 2012 framework, 217 patches)',
-        rate: 'Earthquake Research Committee long-term evaluation: 70-80% probability of M8-9 within 30 years; lambda=-ln(1-0.75)/30',
-        sourceUrl: 'https://www.jishin.go.jp/main/choukihyoka/nankai/',
-        accessed: 'figure is public record; page reachable via proxy only from this network (2026-09-01)'
+        geometry: 'bundled observed-fault-models nankaiM9 patches (' + patches.length + ' of 217), segments ' + segments.join('+') + ' via the build-fault-models polyline (2013 HERP domains)',
+        rate: 'ERC plain-interval BPT set: 1/117yr total x ' + share + ' mode share (' + note + '); the time-dependent 60-90%+/30yr view is deliberately NOT used (Poisson engine)',
+        sourceUrl: ERC_URL,
+        accessed: 'ERC 2025-09-26 partial revision (plain-BPT 20-50%/30yr band; our Poisson P30=22.7%)'
       }
-    },
+    };
+  }
+  const scenarios = [
+    nankaiMode('nankaiFullM89', 8.9, 4 / 6, ['tokai', 'tonankai', 'nankai', 'hyuga'],
+      'Hoei-type: 1361, 1605, 1707, 1854 counted as one 32-h episode'),
+    nankaiMode('nankaiEastM82', 8.2, 1 / 6, ['tokai', 'tonankai'],
+      'Meio 1498-type east-side rupture'),
+    nankaiMode('nankaiWestM83', 8.3, 1 / 6, ['tonankai', 'nankai'],
+      'Showa 1944/46-type west pair; speculative Hyuga-nada domain excluded'),
     {
       id: 'tokyoInland', mw: 7.3, ratePerYear: +(-Math.log(1 - 0.70) / 30).toPrecision(4),
       sourceType: 'crustal', depthKm: 17,
@@ -259,6 +337,7 @@ function main() {
       }
     }
   ];
+  const scenarioSegments = { polylineTotalKm: +totalKm.toFixed(1), patchCountsBySegment: segCounts };
 
   // rate conservation diagnostics + per-class mass renormalisation.
   // Multi-scale adaptive top-hat smoothing is NOT mass-conserving (a dense
@@ -296,7 +375,7 @@ function main() {
   };
 
   const model = {
-    schema: 'quake-sim-psha-source-v1',
+    schema: 'quake-sim-psha-source-v2',
     generatedAt,
     mMin: MMIN, mc, windowStartYear: start, windowYears: +Tyears.toPrecision(5),
     bValues: Object.assign({}, bValues, { method: 'Aki (1965) MLE on declustered in-window mainshocks', global: bGlobal }),
@@ -307,8 +386,9 @@ function main() {
     provenance: {
       catalog: 'tools/data/psha/comcat-japan.json (USGS ComCat, public domain)',
       limitations: [
-        'simplified self-computed model — NOT the official J-SHIS/ERC source model (comparison pending data acquisition)',
-        'gridded GR truncated at class Mmax without renormalisation; Japan-trench M9-class recurrence not carried by any scenario in v1 (Sanriku long-RP hazard underestimated)',
+        'simplified self-computed model — NOT the official J-SHIS/ERC source model (external comparison frozen in tools/data/jshis-comparison-report.json + psha-attribution-report.json)',
+        'v2 Nankai scenarios use POISSON long-run rates (ERC plain-interval BPT set, 1/117 yr total, 4/1/1 mode split) — the ERC time-dependent 60-90%+/30yr view is intentionally not Poisson-converted; Japan-trench M9-class recurrence still carried by no scenario (Sanriku long-RP hazard underestimated)',
+        'gridded GR truncated at class Mmax without renormalisation',
         'class-level rake simplification (interplate reverse 90, others neutral); gridded Rrup via equal-area circular patch at hypocentre depth',
         'GMPE modelBias deliberately NOT applied (LOEO evidence: it does not generalise held-out)',
         'adaptive top-hat smoothing assumes seismogenic area fills the circle near coasts/bbox edges (edge effects uncorrected)'
@@ -328,7 +408,8 @@ function main() {
     bValues, classStats,
     cells: { total: cells.length, byClass: cells.reduce((a, c) => { a[c.srcType] = (a[c.srcType] || 0) + 1; return a; }, {}) },
     rateConservation: conservation,
-    scenarios: scenarios.map(s => ({ id: s.id, mw: s.mw, ratePerYear: s.ratePerYear })),
+    scenarios: scenarios.map(s => ({ id: s.id, mw: s.mw, ratePerYear: s.ratePerYear, patches: s.patches ? s.patches.length : 0 })),
+    scenarioSegments,
     preRegisteredB2
   };
   fs.writeFileSync(OUT_REPORT, JSON.stringify(report, null, 2));

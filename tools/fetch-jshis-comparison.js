@@ -60,11 +60,26 @@ function median(a) {
 
 async function main() {
   const write = process.argv.includes('--write');
+  // --offline: reuse the J-SHIS curves embedded in the existing frozen report
+  // (identical official Y2024 data; used when the API is unreachable from
+  // this network). Ours is always recomputed against the CURRENT source model.
+  const offline = process.argv.includes('--offline');
   const model = JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'psha-source-model.json'), 'utf8'));
+  const embedded = fs.existsSync(OUT) ? JSON.parse(fs.readFileSync(OUT, 'utf8')) : null;
+  if (offline && !embedded) throw new Error('--offline needs an existing frozen report to reuse');
   const fetchedAt = new Date().toISOString();
 
   const results = [];
   for (const site of SITES) {
+    let levels, probs, meshcode;
+    if (offline) {
+      const prev = embedded.results.find((r) => r.site.id === site.id);
+      if (!prev) throw new Error('--offline: site ' + site.id + ' missing from the frozen report');
+      levels = prev.levelsCmS;
+      probs = prev.jshisProb30;
+      meshcode = prev.meshcode;
+      console.log(site.id + ': reusing embedded J-SHIS curve (' + levels.length + ' levels, frozen ' + embedded.generatedAt + ')');
+    } else {
     const url = ENDPOINT + '?position=' + site.lng + ',' + site.lat + '&epsg=4326';
     let doc;
     for (let attempt = 1; attempt <= 3; attempt++) {
@@ -78,8 +93,10 @@ async function main() {
     if (!doc || doc.status !== 'Success' || !doc.sim || !doc.prob) {
       throw new Error(site.id + ': unexpected response ' + JSON.stringify(doc).slice(0, 200));
     }
-    const levels = doc.sim.value.map(Number); // cm/s, ascending
-    const probs = doc.prob.value.map(Number);
+    levels = doc.sim.value.map(Number); // cm/s, ascending
+    probs = doc.prob.value.map(Number);
+    meshcode = doc.metaData && doc.metaData.meshcode;
+    }
     // 30-yr window Poisson conversion; levels with prob >= 1-1e-6 carry no information
     const rate = probs.map((p) => (p >= 1 - 1e-6 ? Infinity : (p <= 0 ? 0 : -Math.log(1 - p) / WINDOW_YEARS)));
 
@@ -110,7 +127,7 @@ async function main() {
     }
 
     results.push({
-      site, meshcode: doc.metaData && doc.metaData.meshcode,
+      site, meshcode,
       levelsCmS: levels,
       jshisProb30: probs.map((p) => +p.toFixed(7)),
       jshisRateAnnual: rate.map((r) => (isFinite(r) ? +r.toPrecision(4) : null)),
@@ -126,7 +143,7 @@ async function main() {
     console.log(site.id + ' mesh ' + results[results.length - 1].meshcode +
       ': median log10(rate ratio) ' + results[results.length - 1].midBand.medianLog10RateRatio +
       ', RP475 jshis ' + (rpTable['475'].jshisPgvCmS || 'n/a') + ' cm/s vs ours ' + (rpTable['475'].oursPgvCmS || 'n/a') + ' cm/s');
-    await sleep(2000); // be polite; 403 = rate limit per the API doc
+    if (!offline) await sleep(2000); // be polite; 403 = rate limit per the API doc
   }
 
   // aggregate over sites (level factor at RP475 + mid-band shape)
@@ -154,7 +171,8 @@ async function main() {
       version: 'Y2024', case: 'AVR', eqcode: 'TTL_MTTL', window: 'T30',
       sim: 'engineering-bedrock PGV (bv), cm/s',
       license: 'NIED J-SHIS (防災科研 地震ハザードステーション) — government open data, attribution carried in README',
-      note: 'raw 30-yr probabilities embedded per site; annual rate = -ln(1-p)/30 (Poisson window conversion)'
+      note: (offline ? 'J-SHIS curves reused verbatim from the previous frozen fetch (embedded per site); ours recomputed on ' + model.schema + ' — live API unreachable from this network at generation time. ' : 'raw 30-yr probabilities embedded per site; ') + 'annual rate = -ln(1-p)/30 (Poisson window conversion)',
+      sourceModel: model.schema,
     },
     basis: {
       jshis: 'Y2024 NIED national model, average case, all sources, engineering bedrock, official site amplification NOT included (bedrock motion)',

@@ -15,6 +15,7 @@ const r = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'tools', 'data',
 test('jshis — schema, provenance and basis frozen', () => {
   assert.equal(r.schema, 'quake-sim-jshis-comparison-v1');
   assert.equal(r.provenance.version, 'Y2024');
+  assert.equal(r.provenance.sourceModel, 'quake-sim-psha-source-v2');
   assert.equal(r.provenance.case, 'AVR');
   assert.equal(r.provenance.eqcode, 'TTL_MTTL');
   assert.equal(r.provenance.window, 'T30');
@@ -25,9 +26,11 @@ test('jshis — schema, provenance and basis frozen', () => {
 
 test('jshis — frozen comparison numbers (6 sites, honest overprediction locked)', () => {
   assert.equal(r.aggregate.nSites, 6);
-  assert.deepEqual(r.aggregate.rp475PgvRatioOursOverJshis, { median: 5.971, min: 1.692, max: 14.537 });
-  assert.deepEqual(r.aggregate.midBandMedianLog10RateRatio, { median: 0.805, min: 0.176, max: 1.66 });
-  const want = { tokyo: 3.186, osaka: 10.4, sendai: 1.692, kochi: 5.777, nagoya: 5.971, fukuoka: 14.537 };
+  // v2 segmented-source re-freeze (2026-09-04): J-SHIS curves reused verbatim
+  // from the frozen 2026-09-03 fetch (live API unreachable), ours recomputed
+  assert.deepEqual(r.aggregate.rp475PgvRatioOursOverJshis, { median: 1.827, min: 1.458, max: 4.227 });
+  assert.deepEqual(r.aggregate.midBandMedianLog10RateRatio, { median: 0.422, min: -0.594, max: 0.836 });
+  const want = { tokyo: 1.585, osaka: 3.313, sendai: 1.458, kochi: 1.827, nagoya: 1.793, fukuoka: 4.227 };
   for (const s of r.results) assert.equal(s.returnPeriods['475'].ratioOursOverJshis, want[s.site.id], s.site.id);
 });
 

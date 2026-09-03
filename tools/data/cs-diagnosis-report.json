@@ -1,0 +1,798 @@
+{
+ "schema": "quake-sim-cs-diagnosis-v1",
+ "generatedAt": "2026-09-03T17:19:11.394Z",
+ "basis": {
+  "sourceModel": "quake-sim-psha-source-v2",
+  "pipeline": "tools/data/cs-pipeline-report.json (v2 anchors, gates frozen FAIL 2026-09-04)",
+  "arms": "A1 hfOnly (lfMaxHz->0) / A2 kappa 0.04 sensitivity / A3 per-bin zhao ratio envelope; B1 homogeneous half-space stack / B2 qShear 100 / B3 period-resolved bias",
+  "note": "DIAGNOSIS ONLY — sensitivity arms are measurements, not retuning; no parameter was changed from this report"
+ },
+ "aggregate": {
+  "hfOnly01Median": 0.634,
+  "shipped01Median": 0.634,
+  "kappa04Delta01Median": -0.186,
+  "targetBelowAllBins01s": false,
+  "nCasesTargetBelowAll01s": 4,
+  "nCasesTargetAboveAll3s": 0,
+  "kochi24sBias": [
+   [
+    -0.555,
+    -0.58,
+    -0.47
+   ],
+   [
+    -0.418,
+    -0.298,
+    -0.27
+   ]
+  ],
+  "halfspaceEffect24sKochi": [
+   [
+    -0.016,
+    0.004,
+    0.039
+   ],
+   [
+    0.01,
+    -0.011,
+    0.075
+   ]
+  ]
+ },
+ "cases": [
+  {
+   "site": {
+    "id": "tokyo",
+    "lat": 35.6812,
+    "lng": 139.7671
+   },
+   "rp": 475,
+   "imTarget": 1141.6,
+   "shortBand": {
+    "hfOnlyBias": [
+     0.604,
+     0.472,
+     0.432,
+     0.303,
+     0.316,
+     0.247
+    ],
+    "hfKappa04Bias": [
+     0.418,
+     0.352,
+     0.341,
+     0.252,
+     0.283,
+     0.215
+    ],
+    "shippedBias": [
+     0.604,
+     0.472,
+     0.432,
+     0.303,
+     0.316,
+     0.247
+    ],
+    "periodsSec": [
+     0.1,
+     0.15,
+     0.2,
+     0.3,
+     0.4,
+     0.5
+    ]
+   },
+   "targetReachability": {
+    "targetRatio01": -0.03943789646079539,
+    "binRatioMin": -0.254,
+    "binRatioMax": 0.272,
+    "nBins": 22,
+    "targetBelowAllBins": false,
+    "targetRatio3s": -0.9157507298308025,
+    "lpBinRatioMax": -0.603,
+    "targetAboveAllBins3s": false
+   },
+   "periodBiasLog10": [
+    0.604,
+    0.472,
+    0.432,
+    0.303,
+    0.316,
+    0.247,
+    0.155,
+    0,
+    0.052,
+    0.025,
+    -0.117,
+    -0.14,
+    -0.104
+   ],
+   "structural": null
+  },
+  {
+   "site": {
+    "id": "tokyo",
+    "lat": 35.6812,
+    "lng": 139.7671
+   },
+   "rp": 2500,
+   "imTarget": 2426.2,
+   "shortBand": {
+    "hfOnlyBias": [
+     0.634,
+     0.545,
+     0.447,
+     0.41,
+     0.379,
+     0.218
+    ],
+    "hfKappa04Bias": [
+     0.444,
+     0.409,
+     0.348,
+     0.356,
+     0.342,
+     0.193
+    ],
+    "shippedBias": [
+     0.634,
+     0.545,
+     0.447,
+     0.41,
+     0.379,
+     0.217
+    ],
+    "periodsSec": [
+     0.1,
+     0.15,
+     0.2,
+     0.3,
+     0.4,
+     0.5
+    ]
+   },
+   "targetReachability": {
+    "targetRatio01": -0.12171674981940599,
+    "binRatioMin": -0.254,
+    "binRatioMax": 0.268,
+    "nBins": 17,
+    "targetBelowAllBins": false,
+    "targetRatio3s": -0.9610256798637383,
+    "lpBinRatioMax": -0.603,
+    "targetAboveAllBins3s": false
+   },
+   "periodBiasLog10": [
+    0.634,
+    0.545,
+    0.447,
+    0.41,
+    0.379,
+    0.217,
+    0.102,
+    0,
+    -0.063,
+    -0.014,
+    -0.066,
+    -0.112,
+    -0.112
+   ],
+   "structural": null
+  },
+  {
+   "site": {
+    "id": "osaka",
+    "lat": 34.6937,
+    "lng": 135.5022
+   },
+   "rp": 475,
+   "imTarget": 1330.6,
+   "shortBand": {
+    "hfOnlyBias": [
+     0.733,
+     0.567,
+     0.583,
+     0.514,
+     0.372,
+     0.276
+    ],
+    "hfKappa04Bias": [
+     0.555,
+     0.46,
+     0.491,
+     0.46,
+     0.335,
+     0.247
+    ],
+    "shippedBias": [
+     0.733,
+     0.567,
+     0.583,
+     0.514,
+     0.372,
+     0.276
+    ],
+    "periodsSec": [
+     0.1,
+     0.15,
+     0.2,
+     0.3,
+     0.4,
+     0.5
+    ]
+   },
+   "targetReachability": {
+    "targetRatio01": -0.2273009035026248,
+    "binRatioMin": -0.133,
+    "binRatioMax": 0,
+    "nBins": 5,
+    "targetBelowAllBins": true,
+    "targetRatio3s": -0.6886810124973691,
+    "lpBinRatioMax": -0.595,
+    "targetAboveAllBins3s": false
+   },
+   "periodBiasLog10": [
+    0.733,
+    0.567,
+    0.583,
+    0.514,
+    0.372,
+    0.276,
+    0.12,
+    0,
+    -0.163,
+    -0.212,
+    -0.35,
+    -0.371,
+    -0.298
+   ],
+   "structural": {
+    "halfspaceVsJivsm": [
+     -0.013,
+     -0.013,
+     -0.013,
+     -0.013,
+     -0.013,
+     -0.013,
+     -0.013,
+     -0.014,
+     -0.015,
+     -0.01,
+     -0.019,
+     -0.026,
+     -0.032
+    ],
+    "q100VsQ50": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     -0.002,
+     -0.002,
+     -0.003
+    ],
+    "asShipped": {
+     "psaMedian": [
+      1458.9,
+      1856.9,
+      1336.7,
+      1565,
+      1653.8,
+      1175.1,
+      814.7,
+      431,
+      213.2,
+      139.5,
+      44.2,
+      20.9,
+      14
+     ],
+     "hfScaleRaw": 0.003
+    },
+    "halfspace": {
+     "psaMedian": [
+      1415.1,
+      1803,
+      1298.1,
+      1519.7,
+      1605.9,
+      1141.3,
+      789.9,
+      417.4,
+      205.9,
+      136.2,
+      42.3,
+      19.7,
+      13
+     ],
+     "hfScaleRaw": 0.002
+    },
+    "q100": {
+     "psaMedian": [
+      1458.9,
+      1856.9,
+      1336.6,
+      1565,
+      1653.7,
+      1175,
+      814.7,
+      431.1,
+      213.2,
+      139.5,
+      44,
+      20.8,
+      13.9
+     ],
+     "hfScaleRaw": 0.004
+    }
+   }
+  },
+  {
+   "site": {
+    "id": "osaka",
+    "lat": 34.6937,
+    "lng": 135.5022
+   },
+   "rp": 2500,
+   "imTarget": 2777.6,
+   "shortBand": {
+    "hfOnlyBias": [
+     0.991,
+     0.912,
+     0.834,
+     0.644,
+     0.499,
+     0.385
+    ],
+    "hfKappa04Bias": [
+     0.817,
+     0.786,
+     0.738,
+     0.587,
+     0.463,
+     0.35
+    ],
+    "shippedBias": [
+     0.991,
+     0.913,
+     0.834,
+     0.643,
+     0.499,
+     0.385
+    ],
+    "periodsSec": [
+     0.1,
+     0.15,
+     0.2,
+     0.3,
+     0.4,
+     0.5
+    ]
+   },
+   "targetReachability": {
+    "targetRatio01": -0.42372302181755556,
+    "binRatioMin": -0.14,
+    "binRatioMax": -0.007,
+    "nBins": 6,
+    "targetBelowAllBins": true,
+    "targetRatio3s": -0.7886273621651961,
+    "lpBinRatioMax": -0.595,
+    "targetAboveAllBins3s": false
+   },
+   "periodBiasLog10": [
+    0.991,
+    0.913,
+    0.834,
+    0.644,
+    0.499,
+    0.385,
+    0.215,
+    0,
+    -0.049,
+    -0.15,
+    -0.184,
+    -0.065,
+    -0.027
+   ],
+   "structural": {
+    "halfspaceVsJivsm": [
+     -0.013,
+     -0.013,
+     -0.013,
+     -0.013,
+     -0.013,
+     -0.013,
+     -0.013,
+     -0.014,
+     -0.015,
+     -0.007,
+     -0.014,
+     -0.033,
+     -0.031
+    ],
+    "q100VsQ50": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     -0.001,
+     0,
+     -0.004,
+     0
+    ],
+    "asShipped": {
+     "psaMedian": [
+      3193.8,
+      3221.3,
+      2915.1,
+      2286.4,
+      2245.5,
+      1939.5,
+      1483.9,
+      1336.4,
+      346.5,
+      184.5,
+      79.3,
+      49.7,
+      33
+     ],
+     "hfScaleRaw": 0.004
+    },
+    "halfspace": {
+     "psaMedian": [
+      3102.4,
+      3126.5,
+      2826.6,
+      2221.5,
+      2176.9,
+      1882.2,
+      1440.4,
+      1294.8,
+      335.1,
+      181.6,
+      76.7,
+      46.1,
+      30.7
+     ],
+     "hfScaleRaw": 0.004
+    },
+    "q100": {
+     "psaMedian": [
+      3193.4,
+      3221.3,
+      2914.9,
+      2286.5,
+      2245.9,
+      1939.5,
+      1483.9,
+      1336.6,
+      346.5,
+      184.1,
+      79.3,
+      49.2,
+      33
+     ],
+     "hfScaleRaw": 0.006
+    }
+   }
+  },
+  {
+   "site": {
+    "id": "kochi",
+    "lat": 33.5597,
+    "lng": 133.5311
+   },
+   "rp": 475,
+   "imTarget": 867.2,
+   "shortBand": {
+    "hfOnlyBias": [
+     0.471,
+     0.324,
+     0.279,
+     0.215,
+     0.201,
+     0.224
+    ],
+    "hfKappa04Bias": [
+     0.284,
+     0.2,
+     0.18,
+     0.159,
+     0.169,
+     0.196
+    ],
+    "shippedBias": [
+     0.471,
+     0.324,
+     0.279,
+     0.215,
+     0.2,
+     0.224
+    ],
+    "periodsSec": [
+     0.1,
+     0.15,
+     0.2,
+     0.3,
+     0.4,
+     0.5
+    ]
+   },
+   "targetReachability": {
+    "targetRatio01": 0.08389647062340849,
+    "binRatioMin": 0.191,
+    "binRatioMax": 0.29,
+    "nBins": 3,
+    "targetBelowAllBins": true,
+    "targetRatio3s": -0.5085284669710102,
+    "lpBinRatioMax": -0.43,
+    "targetAboveAllBins3s": false
+   },
+   "periodBiasLog10": [
+    0.471,
+    0.324,
+    0.279,
+    0.215,
+    0.201,
+    0.224,
+    0.094,
+    0,
+    -0.175,
+    -0.321,
+    -0.555,
+    -0.58,
+    -0.47
+   ],
+   "structural": {
+    "halfspaceVsJivsm": [
+     -0.013,
+     -0.012,
+     -0.013,
+     -0.013,
+     -0.012,
+     -0.013,
+     -0.013,
+     -0.013,
+     -0.015,
+     -0.021,
+     -0.016,
+     0.004,
+     0.039
+    ],
+    "q100VsQ50": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     -0.001,
+     0,
+     0,
+     0
+    ],
+    "asShipped": {
+     "psaMedian": [
+      5610.2,
+      6098.1,
+      5161.2,
+      4212.4,
+      3297.4,
+      4532.5,
+      2936.3,
+      1545.3,
+      1119,
+      429,
+      207.4,
+      91.9,
+      52.8
+     ],
+     "hfScaleRaw": 0.002
+    },
+    "halfspace": {
+     "psaMedian": [
+      5438.5,
+      5925.1,
+      5007.7,
+      4089.7,
+      3208,
+      4400.3,
+      2851.4,
+      1498.3,
+      1080.2,
+      409,
+      199.7,
+      92.7,
+      57.7
+     ],
+     "hfScaleRaw": 0.006
+    },
+    "q100": {
+     "psaMedian": [
+      5610.3,
+      6098,
+      5161.1,
+      4212.5,
+      3297.6,
+      4532.6,
+      2936.3,
+      1545.2,
+      1119,
+      428.5,
+      207.4,
+      91.9,
+      52.8
+     ],
+     "hfScaleRaw": 0.002
+    }
+   }
+  },
+  {
+   "site": {
+    "id": "kochi",
+    "lat": 33.5597,
+    "lng": 133.5311
+   },
+   "rp": 2500,
+   "imTarget": 1852.1,
+   "shortBand": {
+    "hfOnlyBias": [
+     0.628,
+     0.538,
+     0.527,
+     0.348,
+     0.286,
+     0.334
+    ],
+    "hfKappa04Bias": [
+     0.436,
+     0.408,
+     0.443,
+     0.292,
+     0.254,
+     0.311
+    ],
+    "shippedBias": [
+     0.628,
+     0.538,
+     0.527,
+     0.348,
+     0.287,
+     0.334
+    ],
+    "periodsSec": [
+     0.1,
+     0.15,
+     0.2,
+     0.3,
+     0.4,
+     0.5
+    ]
+   },
+   "targetReachability": {
+    "targetRatio01": -0.11900009175662271,
+    "binRatioMin": 0.191,
+    "binRatioMax": 0.29,
+    "nBins": 3,
+    "targetBelowAllBins": true,
+    "targetRatio3s": -0.615901984358748,
+    "lpBinRatioMax": -0.43,
+    "targetAboveAllBins3s": false
+   },
+   "periodBiasLog10": [
+    0.628,
+    0.538,
+    0.527,
+    0.348,
+    0.286,
+    0.334,
+    0.2,
+    0,
+    -0.205,
+    -0.387,
+    -0.418,
+    -0.298,
+    -0.27
+   ],
+   "structural": {
+    "halfspaceVsJivsm": [
+     -0.014,
+     -0.013,
+     -0.013,
+     -0.012,
+     -0.013,
+     -0.012,
+     -0.015,
+     -0.011,
+     -0.01,
+     -0.021,
+     0.01,
+     -0.011,
+     0.075
+    ],
+    "q100VsQ50": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     -0.001,
+     -0.001,
+     0.004
+    ],
+    "asShipped": {
+     "psaMedian": [
+      5672.3,
+      4750.2,
+      6511.2,
+      4223,
+      4218.2,
+      3393.2,
+      2204.5,
+      1462.4,
+      532,
+      486.5,
+      147.5,
+      75.6,
+      48.2
+     ],
+     "hfScaleRaw": 0.002
+    },
+    "halfspace": {
+     "psaMedian": [
+      5498.2,
+      4605,
+      6326,
+      4105.3,
+      4092.1,
+      3299,
+      2132.1,
+      1427.1,
+      520.3,
+      463.8,
+      150.8,
+      73.7,
+      57.3
+     ],
+     "hfScaleRaw": 0.007
+    },
+    "q100": {
+     "psaMedian": [
+      5672.6,
+      4750.3,
+      6511.4,
+      4222.9,
+      4218.1,
+      3393.2,
+      2203.9,
+      1462.5,
+      532.2,
+      486.7,
+      147,
+      75.4,
+      48.6
+     ],
+     "hfScaleRaw": 0.003
+    }
+   }
+  }
+ ]
+}

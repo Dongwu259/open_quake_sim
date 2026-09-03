@@ -62,8 +62,12 @@ test('source-model — frozen report structure and pre-registered gates', () => 
   assert.ok(b2 && b2.metrics && b2.metrics.psaLog10BiasAbsMax['2-10s'] === 0.25);
   assert.match(b2.batch, /frozen 2026-09-01/);
   const model = JSON.parse(fs.readFileSync(require.resolve('../public/geojson/psha-source-model.json'), 'utf8'));
-  assert.equal(model.schema, 'quake-sim-psha-source-v1');
+  assert.equal(model.schema, 'quake-sim-psha-source-v2');
   assert.ok(model.cells.length > 5000);
-  assert.equal(model.scenarios.length, 2);
+  assert.equal(model.scenarios.length, 4);
+  assert.deepEqual(model.scenarios.map((x) => x.id), ['nankaiFullM89', 'nankaiEastM82', 'nankaiWestM83', 'tokyoInland']);
+  // v2 Nankai modes must sum to the ERC plain-interval BPT rate 1/117 yr
+  const nankaiRate = model.scenarios.filter((x) => x.id.startsWith('nankai')).reduce((a, x) => a + x.ratePerYear, 0);
+  assert.ok(Math.abs(nankaiRate - 1 / 117) < 2e-6, 'nankai mode rates must sum to 1/117: ' + nankaiRate);
   assert.ok(model.provenance.limitations.length >= 4);
 });

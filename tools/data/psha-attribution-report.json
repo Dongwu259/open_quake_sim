@@ -1,7 +1,8 @@
 {
  "schema": "quake-sim-psha-attribution-v1",
- "generatedAt": "2026-09-03T16:09:25.612Z",
+ "generatedAt": "2026-09-03T17:02:15.596Z",
  "basis": {
+  "sourceModel": "quake-sim-psha-source-v2",
   "engine": "Physics.hazardCurve (pgv, Vs30=600, extended level grid identical to the frozen comparison)",
   "comparison": "tools/data/jshis-comparison-report.json (frozen 2026-09-03, NIED J-SHIS Y2024 AVR TTL_MTTL T30 engineering-bedrock PGV) — NOT re-fetched",
   "arms": [
@@ -47,33 +48,34 @@
   "confound": "residual ratios still carry the Vs30=600 vs engineering-bedrock basis confound (bounded <2x in the frozen comparison)"
  },
  "aggregate": {
+  "midBandMin": -0.594,
+  "scenarioList": "nankaiFullM89 0.005698/yr + nankaiEastM82 0.001425/yr + nankaiWestM83 0.001425/yr + tokyoInland 0.04013/yr",
   "chainMedian": {
-   "dropScenarios": 0.063,
+   "dropScenarios": 0.218,
    "zhaoCollapse": 0.946,
    "psvFactor": 0.741
   },
   "armRatioMedian": {
-   "baseline": 5.967,
-   "zhaoOnly": 2.648,
+   "baseline": 1.827,
+   "zhaoOnly": 1.395,
    "noScenarios": 0.923,
    "zhaoOnlyNoScenarios": 0.948,
-   "psv1p20": 5.942,
-   "psv1p35": 5.933,
-   "sigma0p80": 5.03,
+   "psv1p20": 1.756,
+   "psv1p35": 1.72,
+   "sigma0p80": 1.713,
    "gridZhaoPsv": 0.702
   },
-  "scenarioShareMedian": 0.9974,
-  "scenarioShareMin": 0.2873,
-  "scenarioShareMax": 0.9996,
-  "classRateAdditivityMaxRelative": 0.0000573
+  "scenarioShareMedian": 0.9729,
+  "scenarioShareMin": 0.0358,
+  "scenarioShareMax": 0.9965,
+  "classRateAdditivityMaxRelative": 0.0000761
  },
  "findings": {
-  "headline": "RP475 PGV overprediction vs J-SHIS is a SCENARIO-SOURCE effect, not a GMPE-branch or sigma effect: chain baseline x5.97 -> dropScenarios x0.06 -> zhaoCollapse x0.95 -> psvFactor x0.74 (median per-site multiplicative factors); endpoint x0.70 vs baseline x5.97; scenario sources carry a median 99.7% of the RP475 exceedance rate",
-  "scenarioDomination": "the two characteristic scenarios (Nankai M9 0.0462/yr + capital M7.3 0.0401/yr) supply 99.7% median [28.7..100.0%] of the RP475 exceedance rate — at 4 of 6 sites the published hazard is essentially two subjective characteristic-event rates, not the ComCat GR grid; any use of hazardCurve for site-specific decisions is bounded by these two rates",
-  "flipSide": "removing the scenarios flips the sign at Nankai-adjacent sites — grid-only UNDERSHOOTS J-SHIS at kochi/osaka/nagoya (site endpoint ratios ~0.10-0.33) while sendai and tokyo land within ~1% (44.4 vs 44.2, 64.9 vs 65.2 cm/s): J-SHIS carries real Nankai-characteristic hazard our GR grid lacks, and our single-M9-at-0.0462/yr characterization overshoots it by roughly 6-16x in level — the honest next lever is a segmented, rate-calibrated Nankai source (full-trough M9 recurrence is order 0.005-0.01/yr in the literature), NOT a GMPE change",
-  "branchNeutrality": "GMPE branch choice is path-dependent: with scenarios present, zhao-only halves the ratio (x2.65 vs x5.97) because the M9-at-close-Rrup branches differ strongly between families; on the grid alone it is nearly neutral (chain factor x0.95) — the pre-registered PSV->PGV hypothesis is confirmed as a real but secondary scale effect (x0.74 on the chain, ~x0.99 on the scenario-dominated full model)",
-  "diagnosticSigma": "the sigma x0.80 arm moves the RP475 ratio from x5.97 to x5.03 — sigma scale shapes the tail but cannot alone close the gap; it is a sensitivity bound, not a correction (J-SHIS integrates aleatory sigma too)",
-  "honestyNote": "this decomposition is a frozen measurement of pre-registered arm variants; no engine parameter was tuned from it (data-honesty rule). Chain factors are path-dependent (multiplicative substitution order baseline->noScenarios->zhaoOnly->PSV); per-class rate shares are exact (the engine is additive across sources, additivity residual <= 0.0000573)"
+  "headline": "on the v2 SEGMENTED source model the RP475 PGV overprediction vs J-SHIS falls to x1.83 median [baseline; was x5.97 on v1 single-M9] — chain: dropScenarios x0.22 -> zhaoCollapse x0.95 -> psvFactor x0.74; scenario modes carry a median 97.3% of the RP475 rate",
+  "scenarioDomination": "the characteristic scenarios (nankaiFullM89 0.005698/yr + nankaiEastM82 0.001425/yr + nankaiWestM83 0.001425/yr + tokyoInland 0.04013/yr) supply 97.3% median [3.6..99.7%] of the RP475 exceedance rate — Nankai-adjacent sites are scenario-dominated as they should be, while sendai drops to 3.6% (grid-dominated): the v1 pathology (one subjective M9 rate owning 99.7% MEDIAN across ALL sites) is gone",
+  "residualStructure": "the residual x1.83 is no longer a single-cause effect: removing scenarios undershoots J-SHIS at Nankai sites (grid-only kochi ~17 vs 118 cm/s — J-SHIS carries real characteristic hazard), the zhao branch collapse moves x1.83 -> x1.40, the PSV->PGV conversion factor x1.72 and the sigma arm x1.71 — mid-band log10 rate ratios now flip NEGATIVE at kochi/nagoya (-0.594): the Poisson long-run engine underpredicts mid-levels where J-SHIS BPT-conditional rates are elevated (elapsed ~80 yr since 1946); a time-dependent engine is the honest next step, not further rate tuning",
+  "diagnosticSigma": "the sigma x0.80 arm moves the RP475 ratio from x1.83 to x1.71 — sensitivity bound only, not a correction (J-SHIS integrates aleatory sigma too)",
+  "honestyNote": "this decomposition is a frozen measurement of pre-registered arm variants on quake-sim-psha-source-v2; no engine parameter was tuned from the J-SHIS side (the v2 segmented rates come from ERC plain-interval BPT statistics, an INDEPENDENT source; the live API was unreachable so the frozen embedded J-SHIS curves are reused verbatim). Chain factors are path-dependent (multiplicative substitution order baseline->noScenarios->zhaoOnly->PSV); per-class rate shares are exact (engine additivity, residual <= 0.0000761)"
  },
  "sites": [
   {
@@ -85,46 +87,46 @@
    "arms": {
     "baseline": {
      "475": {
-      "oursPgvCmS": 207.6,
+      "oursPgvCmS": 103.3,
       "jshisPgvCmS": 65.2,
-      "ratioOursOverJshis": 3.185
+      "ratioOursOverJshis": 1.584
      },
      "1000": {
-      "oursPgvCmS": 274.3,
+      "oursPgvCmS": 148.9,
       "jshisPgvCmS": 78.1,
-      "ratioOursOverJshis": 3.512
+      "ratioOursOverJshis": 1.906
      },
      "2500": {
-      "oursPgvCmS": 370.7,
+      "oursPgvCmS": 222.7,
       "jshisPgvCmS": 95,
-      "ratioOursOverJshis": 3.903
+      "ratioOursOverJshis": 2.344
      },
      "5000": {
-      "oursPgvCmS": 459.5,
+      "oursPgvCmS": 297,
       "jshisPgvCmS": 107.9,
-      "ratioOursOverJshis": 4.259
+      "ratioOursOverJshis": 2.753
      }
     },
     "zhaoOnly": {
      "475": {
-      "oursPgvCmS": 108.7,
+      "oursPgvCmS": 91,
       "jshisPgvCmS": 65.2,
-      "ratioOursOverJshis": 1.668
+      "ratioOursOverJshis": 1.395
      },
      "1000": {
-      "oursPgvCmS": 145.4,
+      "oursPgvCmS": 129.6,
       "jshisPgvCmS": 78.1,
-      "ratioOursOverJshis": 1.862
+      "ratioOursOverJshis": 1.66
      },
      "2500": {
-      "oursPgvCmS": 204.9,
+      "oursPgvCmS": 193.2,
       "jshisPgvCmS": 95,
-      "ratioOursOverJshis": 2.157
+      "ratioOursOverJshis": 2.034
      },
      "5000": {
-      "oursPgvCmS": 262.5,
+      "oursPgvCmS": 254,
       "jshisPgvCmS": 107.9,
-      "ratioOursOverJshis": 2.433
+      "ratioOursOverJshis": 2.354
      }
     },
     "noScenarios": {
@@ -173,68 +175,68 @@
     },
     "psv1p20": {
      "475": {
-      "oursPgvCmS": 205.5,
+      "oursPgvCmS": 98.5,
       "jshisPgvCmS": 65.2,
-      "ratioOursOverJshis": 3.152
+      "ratioOursOverJshis": 1.511
      },
      "1000": {
-      "oursPgvCmS": 271.8,
+      "oursPgvCmS": 142.5,
       "jshisPgvCmS": 78.1,
-      "ratioOursOverJshis": 3.48
+      "ratioOursOverJshis": 1.825
      },
      "2500": {
-      "oursPgvCmS": 367.5,
+      "oursPgvCmS": 213.6,
       "jshisPgvCmS": 95,
-      "ratioOursOverJshis": 3.868
+      "ratioOursOverJshis": 2.248
      },
      "5000": {
-      "oursPgvCmS": 455.3,
+      "oursPgvCmS": 285,
       "jshisPgvCmS": 107.9,
-      "ratioOursOverJshis": 4.22
+      "ratioOursOverJshis": 2.641
      }
     },
     "psv1p35": {
      "475": {
-      "oursPgvCmS": 204.5,
+      "oursPgvCmS": 96.1,
       "jshisPgvCmS": 65.2,
-      "ratioOursOverJshis": 3.137
+      "ratioOursOverJshis": 1.473
      },
      "1000": {
-      "oursPgvCmS": 270.7,
+      "oursPgvCmS": 139.4,
       "jshisPgvCmS": 78.1,
-      "ratioOursOverJshis": 3.466
+      "ratioOursOverJshis": 1.785
      },
      "2500": {
-      "oursPgvCmS": 366.1,
+      "oursPgvCmS": 209.3,
       "jshisPgvCmS": 95,
-      "ratioOursOverJshis": 3.854
+      "ratioOursOverJshis": 2.203
      },
      "5000": {
-      "oursPgvCmS": 453.6,
+      "oursPgvCmS": 279.4,
       "jshisPgvCmS": 107.9,
-      "ratioOursOverJshis": 4.204
+      "ratioOursOverJshis": 2.59
      }
     },
     "sigma0p80": {
      "475": {
-      "oursPgvCmS": 173.6,
+      "oursPgvCmS": 90.1,
       "jshisPgvCmS": 65.2,
-      "ratioOursOverJshis": 2.663
+      "ratioOursOverJshis": 1.381
      },
      "1000": {
-      "oursPgvCmS": 218.3,
+      "oursPgvCmS": 126.4,
       "jshisPgvCmS": 78.1,
-      "ratioOursOverJshis": 2.795
+      "ratioOursOverJshis": 1.619
      },
      "2500": {
-      "oursPgvCmS": 280.2,
+      "oursPgvCmS": 181.6,
       "jshisPgvCmS": 95,
-      "ratioOursOverJshis": 2.949
+      "ratioOursOverJshis": 1.912
      },
      "5000": {
-      "oursPgvCmS": 335.7,
+      "oursPgvCmS": 235.7,
       "jshisPgvCmS": 107.9,
-      "ratioOursOverJshis": 3.112
+      "ratioOursOverJshis": 2.185
      }
     },
     "gridZhaoPsv": {
@@ -262,7 +264,7 @@
    },
    "decomposition475": {
     "levels": [
-     207.6,
+     103.3,
      82.4,
      87.6,
      64.9
@@ -272,7 +274,7 @@
       "from": "baseline",
       "to": "noScenarios",
       "levelPgvCmS": 82.4,
-      "factor": 0.397
+      "factor": 0.798
      },
      {
       "from": "noScenarios",
@@ -290,16 +292,18 @@
     "residualFactorVsJshis": 0.995
    },
    "classSharesAtBaselineRp475": {
-    "levelPgvCmS": 207.6,
+    "levelPgvCmS": 103.3,
     "shares": {
-     "crustal": 0.0001,
-     "interplate": 0.0913,
-     "intraslab": 0.0572,
-     "nankaiM9": 0.8513,
+     "crustal": 0.002,
+     "interplate": 0.3304,
+     "intraslab": 0.3049,
+     "nankaiFullM89": 0.3527,
+     "nankaiEastM82": 0.0084,
+     "nankaiWestM83": 0.0016,
      "tokyoInland": 0
     },
-    "scenarioShareTotal": 0.8513,
-    "additivityResidual": 0.0000573
+    "scenarioShareTotal": 0.3627,
+    "additivityResidual": 0.0000642
    }
   },
   {
@@ -311,46 +315,46 @@
    "arms": {
     "baseline": {
      "475": {
-      "oursPgvCmS": 543.3,
+      "oursPgvCmS": 173.1,
       "jshisPgvCmS": 52.2,
-      "ratioOursOverJshis": 10.409
+      "ratioOursOverJshis": 3.316
      },
      "1000": {
-      "oursPgvCmS": 716.7,
+      "oursPgvCmS": 277.5,
       "jshisPgvCmS": 65.3,
-      "ratioOursOverJshis": 10.975
+      "ratioOursOverJshis": 4.249
      },
      "2500": {
-      "oursPgvCmS": 955.6,
+      "oursPgvCmS": 431.3,
       "jshisPgvCmS": 87.4,
-      "ratioOursOverJshis": 10.934
+      "ratioOursOverJshis": 4.935
      },
      "5000": {
-      "oursPgvCmS": 1158.5,
+      "oursPgvCmS": 565.3,
       "jshisPgvCmS": 111.1,
-      "ratioOursOverJshis": 10.428
+      "ratioOursOverJshis": 5.088
      }
     },
     "zhaoOnly": {
      "475": {
-      "oursPgvCmS": 241.7,
+      "oursPgvCmS": 106.1,
       "jshisPgvCmS": 52.2,
-      "ratioOursOverJshis": 4.63
+      "ratioOursOverJshis": 2.033
      },
      "1000": {
-      "oursPgvCmS": 308.3,
+      "oursPgvCmS": 154,
       "jshisPgvCmS": 65.3,
-      "ratioOursOverJshis": 4.721
+      "ratioOursOverJshis": 2.358
      },
      "2500": {
-      "oursPgvCmS": 401.3,
+      "oursPgvCmS": 221.4,
       "jshisPgvCmS": 87.4,
-      "ratioOursOverJshis": 4.592
+      "ratioOursOverJshis": 2.533
      },
      "5000": {
-      "oursPgvCmS": 480.4,
+      "oursPgvCmS": 279.7,
       "jshisPgvCmS": 111.1,
-      "ratioOursOverJshis": 4.324
+      "ratioOursOverJshis": 2.517
      }
     },
     "noScenarios": {
@@ -399,68 +403,68 @@
     },
     "psv1p20": {
      "475": {
-      "oursPgvCmS": 540.8,
+      "oursPgvCmS": 166.8,
       "jshisPgvCmS": 52.2,
-      "ratioOursOverJshis": 10.361
+      "ratioOursOverJshis": 3.195
      },
      "1000": {
-      "oursPgvCmS": 714.9,
+      "oursPgvCmS": 272.2,
       "jshisPgvCmS": 65.3,
-      "ratioOursOverJshis": 10.949
+      "ratioOursOverJshis": 4.169
      },
      "2500": {
-      "oursPgvCmS": 954.3,
+      "oursPgvCmS": 427.5,
       "jshisPgvCmS": 87.4,
-      "ratioOursOverJshis": 10.918
+      "ratioOursOverJshis": 4.891
      },
      "5000": {
-      "oursPgvCmS": 1157.4,
+      "oursPgvCmS": 562.2,
       "jshisPgvCmS": 111.1,
-      "ratioOursOverJshis": 10.418
+      "ratioOursOverJshis": 5.06
      }
     },
     "psv1p35": {
      "475": {
-      "oursPgvCmS": 540,
+      "oursPgvCmS": 163.6,
       "jshisPgvCmS": 52.2,
-      "ratioOursOverJshis": 10.344
+      "ratioOursOverJshis": 3.134
      },
      "1000": {
-      "oursPgvCmS": 714.4,
+      "oursPgvCmS": 269.9,
       "jshisPgvCmS": 65.3,
-      "ratioOursOverJshis": 10.94
+      "ratioOursOverJshis": 4.134
      },
      "2500": {
-      "oursPgvCmS": 953.9,
+      "oursPgvCmS": 426.1,
       "jshisPgvCmS": 87.4,
-      "ratioOursOverJshis": 10.914
+      "ratioOursOverJshis": 4.875
      },
      "5000": {
-      "oursPgvCmS": 1157.1,
+      "oursPgvCmS": 561.1,
       "jshisPgvCmS": 111.1,
-      "ratioOursOverJshis": 10.415
+      "ratioOursOverJshis": 5.05
      }
     },
     "sigma0p80": {
      "475": {
-      "oursPgvCmS": 459.1,
+      "oursPgvCmS": 161.4,
       "jshisPgvCmS": 52.2,
-      "ratioOursOverJshis": 8.795
+      "ratioOursOverJshis": 3.093
      },
      "1000": {
-      "oursPgvCmS": 573.4,
+      "oursPgvCmS": 249.9,
       "jshisPgvCmS": 65.3,
-      "ratioOursOverJshis": 8.781
+      "ratioOursOverJshis": 3.828
      },
      "2500": {
-      "oursPgvCmS": 723.7,
+      "oursPgvCmS": 367,
       "jshisPgvCmS": 87.4,
-      "ratioOursOverJshis": 8.281
+      "ratioOursOverJshis": 4.199
      },
      "5000": {
-      "oursPgvCmS": 846,
+      "oursPgvCmS": 461.1,
       "jshisPgvCmS": 111.1,
-      "ratioOursOverJshis": 7.615
+      "ratioOursOverJshis": 4.15
      }
     },
     "gridZhaoPsv": {
@@ -488,7 +492,7 @@
    },
    "decomposition475": {
     "levels": [
-     543.3,
+     173.1,
      25.5,
      22.9,
      17
@@ -498,7 +502,7 @@
       "from": "baseline",
       "to": "noScenarios",
       "levelPgvCmS": 25.5,
-      "factor": 0.047
+      "factor": 0.147
      },
      {
       "from": "noScenarios",
@@ -516,16 +520,18 @@
     "residualFactorVsJshis": 0.325
    },
    "classSharesAtBaselineRp475": {
-    "levelPgvCmS": 543.3,
+    "levelPgvCmS": 173.1,
     "shares": {
-     "crustal": 0.0002,
-     "interplate": 0.0017,
-     "intraslab": 0,
-     "nankaiM9": 0.9981,
+     "crustal": 0.0081,
+     "interplate": 0.0116,
+     "intraslab": 0.0005,
+     "nankaiFullM89": 0.8216,
+     "nankaiEastM82": 0.0705,
+     "nankaiWestM83": 0.0878,
      "tokyoInland": 0
     },
-    "scenarioShareTotal": 0.9981,
-    "additivityResidual": 0.0000118
+    "scenarioShareTotal": 0.9799,
+    "additivityResidual": 0.0000387
    }
   },
   {
@@ -537,36 +543,36 @@
    "arms": {
     "baseline": {
      "475": {
-      "oursPgvCmS": 74.8,
+      "oursPgvCmS": 64.5,
       "jshisPgvCmS": 44.2,
-      "ratioOursOverJshis": 1.693
+      "ratioOursOverJshis": 1.458
      },
      "1000": {
-      "oursPgvCmS": 101.9,
+      "oursPgvCmS": 92.1,
       "jshisPgvCmS": 53.9,
-      "ratioOursOverJshis": 1.891
+      "ratioOursOverJshis": 1.709
      },
      "2500": {
-      "oursPgvCmS": 149.2,
+      "oursPgvCmS": 141.9,
       "jshisPgvCmS": 67.6,
-      "ratioOursOverJshis": 2.207
+      "ratioOursOverJshis": 2.1
      },
      "5000": {
-      "oursPgvCmS": 202.1,
+      "oursPgvCmS": 197.5,
       "jshisPgvCmS": 79.8,
-      "ratioOursOverJshis": 2.533
+      "ratioOursOverJshis": 2.474
      }
     },
     "zhaoOnly": {
      "475": {
-      "oursPgvCmS": 60.2,
+      "oursPgvCmS": 59.9,
       "jshisPgvCmS": 44.2,
-      "ratioOursOverJshis": 1.361
+      "ratioOursOverJshis": 1.356
      },
      "1000": {
-      "oursPgvCmS": 85.4,
+      "oursPgvCmS": 85.3,
       "jshisPgvCmS": 53.9,
-      "ratioOursOverJshis": 1.584
+      "ratioOursOverJshis": 1.582
      },
      "2500": {
       "oursPgvCmS": 128.6,
@@ -625,68 +631,68 @@
     },
     "psv1p20": {
      "475": {
-      "oursPgvCmS": 72.5,
+      "oursPgvCmS": 61.4,
       "jshisPgvCmS": 44.2,
-      "ratioOursOverJshis": 1.641
+      "ratioOursOverJshis": 1.389
      },
      "1000": {
-      "oursPgvCmS": 98.5,
+      "oursPgvCmS": 87.7,
       "jshisPgvCmS": 53.9,
-      "ratioOursOverJshis": 1.828
+      "ratioOursOverJshis": 1.628
      },
      "2500": {
-      "oursPgvCmS": 143.5,
+      "oursPgvCmS": 135.2,
       "jshisPgvCmS": 67.6,
-      "ratioOursOverJshis": 2.123
+      "ratioOursOverJshis": 2
      },
      "5000": {
-      "oursPgvCmS": 193.9,
+      "oursPgvCmS": 188.3,
       "jshisPgvCmS": 79.8,
-      "ratioOursOverJshis": 2.429
+      "ratioOursOverJshis": 2.36
      }
     },
     "psv1p35": {
      "475": {
-      "oursPgvCmS": 71.4,
+      "oursPgvCmS": 59.9,
       "jshisPgvCmS": 44.2,
-      "ratioOursOverJshis": 1.616
+      "ratioOursOverJshis": 1.354
      },
      "1000": {
-      "oursPgvCmS": 96.9,
+      "oursPgvCmS": 85.6,
       "jshisPgvCmS": 53.9,
-      "ratioOursOverJshis": 1.798
+      "ratioOursOverJshis": 1.588
      },
      "2500": {
-      "oursPgvCmS": 140.9,
+      "oursPgvCmS": 131.9,
       "jshisPgvCmS": 67.6,
-      "ratioOursOverJshis": 2.084
+      "ratioOursOverJshis": 1.952
      },
      "5000": {
-      "oursPgvCmS": 190,
+      "oursPgvCmS": 183.9,
       "jshisPgvCmS": 79.8,
-      "ratioOursOverJshis": 2.381
+      "ratioOursOverJshis": 2.305
      }
     },
     "sigma0p80": {
      "475": {
-      "oursPgvCmS": 61,
+      "oursPgvCmS": 54.2,
       "jshisPgvCmS": 44.2,
-      "ratioOursOverJshis": 1.381
+      "ratioOursOverJshis": 1.227
      },
      "1000": {
-      "oursPgvCmS": 81.8,
+      "oursPgvCmS": 76.9,
       "jshisPgvCmS": 53.9,
-      "ratioOursOverJshis": 1.517
+      "ratioOursOverJshis": 1.427
      },
      "2500": {
-      "oursPgvCmS": 119.7,
+      "oursPgvCmS": 117.5,
       "jshisPgvCmS": 67.6,
-      "ratioOursOverJshis": 1.77
+      "ratioOursOverJshis": 1.739
      },
      "5000": {
-      "oursPgvCmS": 163.4,
+      "oursPgvCmS": 162.7,
       "jshisPgvCmS": 79.8,
-      "ratioOursOverJshis": 2.048
+      "ratioOursOverJshis": 2.038
      }
     },
     "gridZhaoPsv": {
@@ -714,7 +720,7 @@
    },
    "decomposition475": {
     "levels": [
-     74.8,
+     64.5,
      63.3,
      59.9,
      44.4
@@ -724,7 +730,7 @@
       "from": "baseline",
       "to": "noScenarios",
       "levelPgvCmS": 63.3,
-      "factor": 0.846
+      "factor": 0.981
      },
      {
       "from": "noScenarios",
@@ -742,16 +748,18 @@
     "residualFactorVsJshis": 1.004
    },
    "classSharesAtBaselineRp475": {
-    "levelPgvCmS": 74.8,
+    "levelPgvCmS": 64.5,
     "shares": {
-     "crustal": 0.0649,
-     "interplate": 0.504,
-     "intraslab": 0.1438,
-     "nankaiM9": 0.2873,
+     "crustal": 0.0872,
+     "interplate": 0.6756,
+     "intraslab": 0.2014,
+     "nankaiFullM89": 0.0357,
+     "nankaiEastM82": 0.0001,
+     "nankaiWestM83": 0,
      "tokyoInland": 0
     },
-    "scenarioShareTotal": 0.2873,
-    "additivityResidual": 0.0000236
+    "scenarioShareTotal": 0.0358,
+    "additivityResidual": 0.0000162
    }
   },
   {
@@ -763,46 +771,46 @@
    "arms": {
     "baseline": {
      "475": {
-      "oursPgvCmS": 682.9,
+      "oursPgvCmS": 216,
       "jshisPgvCmS": 118.2,
-      "ratioOursOverJshis": 5.777
+      "ratioOursOverJshis": 1.827
      },
      "1000": {
-      "oursPgvCmS": 898.1,
+      "oursPgvCmS": 349.9,
       "jshisPgvCmS": 133.6,
-      "ratioOursOverJshis": 6.722
+      "ratioOursOverJshis": 2.619
      },
      "2500": {
-      "oursPgvCmS": 1198.7,
+      "oursPgvCmS": 545.1,
       "jshisPgvCmS": 151.9,
-      "ratioOursOverJshis": 7.891
+      "ratioOursOverJshis": 3.588
      },
      "5000": {
-      "oursPgvCmS": null,
+      "oursPgvCmS": 716.3,
       "jshisPgvCmS": 164.8,
-      "ratioOursOverJshis": null
+      "ratioOursOverJshis": 4.347
      }
     },
     "zhaoOnly": {
      "475": {
-      "oursPgvCmS": 313,
+      "oursPgvCmS": 133.6,
       "jshisPgvCmS": 118.2,
-      "ratioOursOverJshis": 2.648
+      "ratioOursOverJshis": 1.131
      },
      "1000": {
-      "oursPgvCmS": 399.4,
+      "oursPgvCmS": 196.8,
       "jshisPgvCmS": 133.6,
-      "ratioOursOverJshis": 2.989
+      "ratioOursOverJshis": 1.473
      },
      "2500": {
-      "oursPgvCmS": 519.2,
+      "oursPgvCmS": 285,
       "jshisPgvCmS": 151.9,
-      "ratioOursOverJshis": 3.418
+      "ratioOursOverJshis": 1.876
      },
      "5000": {
-      "oursPgvCmS": 622,
+      "oursPgvCmS": 360.7,
       "jshisPgvCmS": 164.8,
-      "ratioOursOverJshis": 3.774
+      "ratioOursOverJshis": 2.189
      }
     },
     "noScenarios": {
@@ -851,68 +859,68 @@
     },
     "psv1p20": {
      "475": {
-      "oursPgvCmS": 679.2,
+      "oursPgvCmS": 207.5,
       "jshisPgvCmS": 118.2,
-      "ratioOursOverJshis": 5.747
+      "ratioOursOverJshis": 1.756
      },
      "1000": {
-      "oursPgvCmS": 895.5,
+      "oursPgvCmS": 342.6,
       "jshisPgvCmS": 133.6,
-      "ratioOursOverJshis": 6.703
+      "ratioOursOverJshis": 2.565
      },
      "2500": {
-      "oursPgvCmS": 1196.6,
+      "oursPgvCmS": 539.9,
       "jshisPgvCmS": 151.9,
-      "ratioOursOverJshis": 7.878
+      "ratioOursOverJshis": 3.554
      },
      "5000": {
-      "oursPgvCmS": null,
+      "oursPgvCmS": 712.3,
       "jshisPgvCmS": 164.8,
-      "ratioOursOverJshis": null
+      "ratioOursOverJshis": 4.322
      }
     },
     "psv1p35": {
      "475": {
-      "oursPgvCmS": 677.9,
+      "oursPgvCmS": 203.3,
       "jshisPgvCmS": 118.2,
-      "ratioOursOverJshis": 5.736
+      "ratioOursOverJshis": 1.72
      },
      "1000": {
-      "oursPgvCmS": 894.6,
+      "oursPgvCmS": 339.5,
       "jshisPgvCmS": 133.6,
-      "ratioOursOverJshis": 6.696
+      "ratioOursOverJshis": 2.541
      },
      "2500": {
-      "oursPgvCmS": 1196,
+      "oursPgvCmS": 537.9,
       "jshisPgvCmS": 151.9,
-      "ratioOursOverJshis": 7.874
+      "ratioOursOverJshis": 3.541
      },
      "5000": {
-      "oursPgvCmS": null,
+      "oursPgvCmS": 710.9,
       "jshisPgvCmS": 164.8,
-      "ratioOursOverJshis": null
+      "ratioOursOverJshis": 4.314
      }
     },
     "sigma0p80": {
      "475": {
-      "oursPgvCmS": 574.5,
+      "oursPgvCmS": 202.5,
       "jshisPgvCmS": 118.2,
-      "ratioOursOverJshis": 4.86
+      "ratioOursOverJshis": 1.713
      },
      "1000": {
-      "oursPgvCmS": 719,
+      "oursPgvCmS": 316.4,
       "jshisPgvCmS": 133.6,
-      "ratioOursOverJshis": 5.382
+      "ratioOursOverJshis": 2.368
      },
      "2500": {
-      "oursPgvCmS": 906.1,
+      "oursPgvCmS": 465.9,
       "jshisPgvCmS": 151.9,
-      "ratioOursOverJshis": 5.965
+      "ratioOursOverJshis": 3.067
      },
      "5000": {
-      "oursPgvCmS": 1056.9,
+      "oursPgvCmS": 584.3,
       "jshisPgvCmS": 164.8,
-      "ratioOursOverJshis": 6.413
+      "ratioOursOverJshis": 3.546
      }
     },
     "gridZhaoPsv": {
@@ -940,7 +948,7 @@
    },
    "decomposition475": {
     "levels": [
-     682.9,
+     216,
      17.1,
      15.6,
      11.6
@@ -950,7 +958,7 @@
       "from": "baseline",
       "to": "noScenarios",
       "levelPgvCmS": 17.1,
-      "factor": 0.025
+      "factor": 0.079
      },
      {
       "from": "noScenarios",
@@ -968,16 +976,18 @@
     "residualFactorVsJshis": 0.098
    },
    "classSharesAtBaselineRp475": {
-    "levelPgvCmS": 682.9,
+    "levelPgvCmS": 216,
     "shares": {
      "crustal": 0,
-     "interplate": 0.0004,
-     "intraslab": 0.0001,
-     "nankaiM9": 0.9996,
+     "interplate": 0.0022,
+     "intraslab": 0.0014,
+     "nankaiFullM89": 0.853,
+     "nankaiEastM82": 0.0328,
+     "nankaiWestM83": 0.1107,
      "tokyoInland": 0
     },
-    "scenarioShareTotal": 0.9996,
-    "additivityResidual": 0.00000118
+    "scenarioShareTotal": 0.9965,
+    "additivityResidual": 0.0000669
    }
   },
   {
@@ -989,46 +999,46 @@
    "arms": {
     "baseline": {
      "475": {
-      "oursPgvCmS": 442.2,
+      "oursPgvCmS": 132.7,
       "jshisPgvCmS": 74.1,
-      "ratioOursOverJshis": 5.967
+      "ratioOursOverJshis": 1.791
      },
      "1000": {
-      "oursPgvCmS": 582.4,
+      "oursPgvCmS": 216.8,
       "jshisPgvCmS": 87.4,
-      "ratioOursOverJshis": 6.663
+      "ratioOursOverJshis": 2.48
      },
      "2500": {
-      "oursPgvCmS": 776.2,
+      "oursPgvCmS": 342,
       "jshisPgvCmS": 103.6,
-      "ratioOursOverJshis": 7.492
+      "ratioOursOverJshis": 3.301
      },
      "5000": {
-      "oursPgvCmS": 942,
+      "oursPgvCmS": 451.6,
       "jshisPgvCmS": 115.4,
-      "ratioOursOverJshis": 8.163
+      "ratioOursOverJshis": 3.913
      }
     },
     "zhaoOnly": {
      "475": {
-      "oursPgvCmS": 191.1,
+      "oursPgvCmS": 80.6,
       "jshisPgvCmS": 74.1,
-      "ratioOursOverJshis": 2.579
+      "ratioOursOverJshis": 1.088
      },
      "1000": {
-      "oursPgvCmS": 243.7,
+      "oursPgvCmS": 117.7,
       "jshisPgvCmS": 87.4,
-      "ratioOursOverJshis": 2.789
+      "ratioOursOverJshis": 1.347
      },
      "2500": {
-      "oursPgvCmS": 317.5,
+      "oursPgvCmS": 170.6,
       "jshisPgvCmS": 103.6,
-      "ratioOursOverJshis": 3.064
+      "ratioOursOverJshis": 1.646
      },
      "5000": {
-      "oursPgvCmS": 380,
+      "oursPgvCmS": 216.5,
       "jshisPgvCmS": 115.4,
-      "ratioOursOverJshis": 3.293
+      "ratioOursOverJshis": 1.876
      }
     },
     "noScenarios": {
@@ -1077,68 +1087,68 @@
     },
     "psv1p20": {
      "475": {
-      "oursPgvCmS": 440.3,
+      "oursPgvCmS": 127.9,
       "jshisPgvCmS": 74.1,
-      "ratioOursOverJshis": 5.942
+      "ratioOursOverJshis": 1.725
      },
      "1000": {
-      "oursPgvCmS": 581,
+      "oursPgvCmS": 212.7,
       "jshisPgvCmS": 87.4,
-      "ratioOursOverJshis": 6.647
+      "ratioOursOverJshis": 2.434
      },
      "2500": {
-      "oursPgvCmS": 775.2,
+      "oursPgvCmS": 339.1,
       "jshisPgvCmS": 103.6,
-      "ratioOursOverJshis": 7.483
+      "ratioOursOverJshis": 3.273
      },
      "5000": {
-      "oursPgvCmS": 941.2,
+      "oursPgvCmS": 449.4,
       "jshisPgvCmS": 115.4,
-      "ratioOursOverJshis": 8.156
+      "ratioOursOverJshis": 3.894
      }
     },
     "psv1p35": {
      "475": {
-      "oursPgvCmS": 439.7,
+      "oursPgvCmS": 125.3,
       "jshisPgvCmS": 74.1,
-      "ratioOursOverJshis": 5.933
+      "ratioOursOverJshis": 1.692
      },
      "1000": {
-      "oursPgvCmS": 580.5,
+      "oursPgvCmS": 210.9,
       "jshisPgvCmS": 87.4,
-      "ratioOursOverJshis": 6.642
+      "ratioOursOverJshis": 2.413
      },
      "2500": {
-      "oursPgvCmS": 774.9,
+      "oursPgvCmS": 338,
       "jshisPgvCmS": 103.6,
-      "ratioOursOverJshis": 7.48
+      "ratioOursOverJshis": 3.263
      },
      "5000": {
-      "oursPgvCmS": 941,
+      "oursPgvCmS": 448.5,
       "jshisPgvCmS": 115.4,
-      "ratioOursOverJshis": 8.154
+      "ratioOursOverJshis": 3.887
      }
     },
     "sigma0p80": {
      "475": {
-      "oursPgvCmS": 372.7,
+      "oursPgvCmS": 123.9,
       "jshisPgvCmS": 74.1,
-      "ratioOursOverJshis": 5.03
+      "ratioOursOverJshis": 1.672
      },
      "1000": {
-      "oursPgvCmS": 466.9,
+      "oursPgvCmS": 196.9,
       "jshisPgvCmS": 87.4,
-      "ratioOursOverJshis": 5.342
+      "ratioOursOverJshis": 2.252
      },
      "2500": {
-      "oursPgvCmS": 589.1,
+      "oursPgvCmS": 293.3,
       "jshisPgvCmS": 103.6,
-      "ratioOursOverJshis": 5.686
+      "ratioOursOverJshis": 2.831
      },
      "5000": {
-      "oursPgvCmS": 687.9,
+      "oursPgvCmS": 369.4,
       "jshisPgvCmS": 115.4,
-      "ratioOursOverJshis": 5.961
+      "ratioOursOverJshis": 3.201
      }
     },
     "gridZhaoPsv": {
@@ -1166,7 +1176,7 @@
    },
    "decomposition475": {
     "levels": [
-     442.2,
+     132.7,
      25.7,
      23.1,
      17.1
@@ -1176,7 +1186,7 @@
       "from": "baseline",
       "to": "noScenarios",
       "levelPgvCmS": 25.7,
-      "factor": 0.058
+      "factor": 0.194
      },
      {
       "from": "noScenarios",
@@ -1194,16 +1204,18 @@
     "residualFactorVsJshis": 0.231
    },
    "classSharesAtBaselineRp475": {
-    "levelPgvCmS": 442.2,
+    "levelPgvCmS": 132.7,
     "shares": {
-     "crustal": 0.0006,
-     "interplate": 0.002,
-     "intraslab": 0,
-     "nankaiM9": 0.9974,
+     "crustal": 0.0136,
+     "interplate": 0.0115,
+     "intraslab": 0.002,
+     "nankaiFullM89": 0.8565,
+     "nankaiEastM82": 0.0658,
+     "nankaiWestM83": 0.0506,
      "tokyoInland": 0
     },
-    "scenarioShareTotal": 0.9974,
-    "additivityResidual": 0.00000319
+    "scenarioShareTotal": 0.9729,
+    "additivityResidual": 0.0000761
    }
   },
   {
@@ -1215,46 +1227,46 @@
    "arms": {
     "baseline": {
      "475": {
-      "oursPgvCmS": 379.6,
+      "oursPgvCmS": 110.4,
       "jshisPgvCmS": 26.1,
-      "ratioOursOverJshis": 14.544
+      "ratioOursOverJshis": 4.23
      },
      "1000": {
-      "oursPgvCmS": 501,
+      "oursPgvCmS": 183.5,
       "jshisPgvCmS": 40.9,
-      "ratioOursOverJshis": 12.248
+      "ratioOursOverJshis": 4.488
      },
      "2500": {
-      "oursPgvCmS": 667.1,
+      "oursPgvCmS": 291.4,
       "jshisPgvCmS": 72.4,
-      "ratioOursOverJshis": 9.214
+      "ratioOursOverJshis": 4.025
      },
      "5000": {
-      "oursPgvCmS": 807.6,
+      "oursPgvCmS": 384.4,
       "jshisPgvCmS": 98.8,
-      "ratioOursOverJshis": 8.174
+      "ratioOursOverJshis": 3.89
      }
     },
     "zhaoOnly": {
      "475": {
-      "oursPgvCmS": 162.4,
+      "oursPgvCmS": 69.3,
       "jshisPgvCmS": 26.1,
-      "ratioOursOverJshis": 6.221
+      "ratioOursOverJshis": 2.654
      },
      "1000": {
-      "oursPgvCmS": 207.3,
+      "oursPgvCmS": 101.8,
       "jshisPgvCmS": 40.9,
-      "ratioOursOverJshis": 5.068
+      "ratioOursOverJshis": 2.488
      },
      "2500": {
-      "oursPgvCmS": 270.5,
+      "oursPgvCmS": 148.8,
       "jshisPgvCmS": 72.4,
-      "ratioOursOverJshis": 3.736
+      "ratioOursOverJshis": 2.055
      },
      "5000": {
-      "oursPgvCmS": 324.7,
+      "oursPgvCmS": 190.5,
       "jshisPgvCmS": 98.8,
-      "ratioOursOverJshis": 3.287
+      "ratioOursOverJshis": 1.928
      }
     },
     "noScenarios": {
@@ -1303,68 +1315,68 @@
     },
     "psv1p20": {
      "475": {
-      "oursPgvCmS": 378.1,
+      "oursPgvCmS": 105.9,
       "jshisPgvCmS": 26.1,
-      "ratioOursOverJshis": 14.486
+      "ratioOursOverJshis": 4.056
      },
      "1000": {
-      "oursPgvCmS": 499.9,
+      "oursPgvCmS": 179.9,
       "jshisPgvCmS": 40.9,
-      "ratioOursOverJshis": 12.223
+      "ratioOursOverJshis": 4.399
      },
      "2500": {
-      "oursPgvCmS": 666.3,
+      "oursPgvCmS": 288.7,
       "jshisPgvCmS": 72.4,
-      "ratioOursOverJshis": 9.203
+      "ratioOursOverJshis": 3.988
      },
      "5000": {
-      "oursPgvCmS": 806.9,
+      "oursPgvCmS": 382,
       "jshisPgvCmS": 98.8,
-      "ratioOursOverJshis": 8.167
+      "ratioOursOverJshis": 3.867
      }
     },
     "psv1p35": {
      "475": {
-      "oursPgvCmS": 377.6,
+      "oursPgvCmS": 103.6,
       "jshisPgvCmS": 26.1,
-      "ratioOursOverJshis": 14.466
+      "ratioOursOverJshis": 3.968
      },
      "1000": {
-      "oursPgvCmS": 499.5,
+      "oursPgvCmS": 178.3,
       "jshisPgvCmS": 40.9,
-      "ratioOursOverJshis": 12.214
+      "ratioOursOverJshis": 4.359
      },
      "2500": {
-      "oursPgvCmS": 666,
+      "oursPgvCmS": 287.7,
       "jshisPgvCmS": 72.4,
-      "ratioOursOverJshis": 9.199
+      "ratioOursOverJshis": 3.973
      },
      "5000": {
-      "oursPgvCmS": 806.7,
+      "oursPgvCmS": 381.2,
       "jshisPgvCmS": 98.8,
-      "ratioOursOverJshis": 8.165
+      "ratioOursOverJshis": 3.858
      }
     },
     "sigma0p80": {
      "475": {
-      "oursPgvCmS": 321,
+      "oursPgvCmS": 103.7,
       "jshisPgvCmS": 26.1,
-      "ratioOursOverJshis": 12.299
+      "ratioOursOverJshis": 3.974
      },
      "1000": {
-      "oursPgvCmS": 401.6,
+      "oursPgvCmS": 167.8,
       "jshisPgvCmS": 40.9,
-      "ratioOursOverJshis": 9.819
+      "ratioOursOverJshis": 4.104
      },
      "2500": {
-      "oursPgvCmS": 506,
+      "oursPgvCmS": 250.6,
       "jshisPgvCmS": 72.4,
-      "ratioOursOverJshis": 6.99
+      "ratioOursOverJshis": 3.462
      },
      "5000": {
-      "oursPgvCmS": 590.1,
+      "oursPgvCmS": 315.7,
       "jshisPgvCmS": 98.8,
-      "ratioOursOverJshis": 5.972
+      "ratioOursOverJshis": 3.196
      }
     },
     "gridZhaoPsv": {
@@ -1392,7 +1404,7 @@
    },
    "decomposition475": {
     "levels": [
-     379.6,
+     110.4,
      24.1,
      24.7,
      18.3
@@ -1402,7 +1414,7 @@
       "from": "baseline",
       "to": "noScenarios",
       "levelPgvCmS": 24.1,
-      "factor": 0.063
+      "factor": 0.218
      },
      {
       "from": "noScenarios",
@@ -1420,16 +1432,18 @@
     "residualFactorVsJshis": 0.702
    },
    "classSharesAtBaselineRp475": {
-    "levelPgvCmS": 379.6,
+    "levelPgvCmS": 110.4,
     "shares": {
-     "crustal": 0.0028,
-     "interplate": 0,
-     "intraslab": 0.0001,
-     "nankaiM9": 0.9971,
+     "crustal": 0.0478,
+     "interplate": 0.0026,
+     "intraslab": 0.0037,
+     "nankaiFullM89": 0.8735,
+     "nankaiEastM82": 0.0002,
+     "nankaiWestM83": 0.0723,
      "tokyoInland": 0
     },
-    "scenarioShareTotal": 0.9971,
-    "additivityResidual": 0.00000135
+    "scenarioShareTotal": 0.946,
+    "additivityResidual": 0.0000149
    }
   }
  ]

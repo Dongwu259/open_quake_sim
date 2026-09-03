@@ -223,7 +223,7 @@ test('psha — full frozen model smoke: Tokyo curve sane, conservation honoured'
   }
   const hz = Physics.hazardCurve(model, { lat: 35.68, lng: 139.76 }, 'pga', { years: 30 });
   assert.ok(hz.diagnostics.nCellsUsed > 1000);
-  assert.ok(hz.diagnostics.nScenarios === 2);
+  assert.ok(hz.diagnostics.nScenarios === 4); // v2: 3 Nankai modes + tokyoInland
   const at = (gal) => { const i = hz.imLevels.findIndex(v => v >= gal) - 1; return hz.meanRate[i]; };
   // documented sanity anchors (rock Vs30=600): 100 gal every few years near
   // Tokyo is consistent with observed shindo-5+ occurrence there; 800 gal is

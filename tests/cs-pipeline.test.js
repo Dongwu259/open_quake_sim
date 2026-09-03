@@ -26,17 +26,17 @@ test('cs-pipeline — frozen gate outcomes (honest FAILs locked)', () => {
   assert.equal(g.anchorExact.observedAbsMax, 0);
   // shape gates: all FAIL, numbers frozen
   assert.equal(g.bandAbsMax['0.1-0.5s'].pass, false);
-  assert.equal(g.bandAbsMax['0.1-0.5s'].hybridAbsMax, 1.108);
+  assert.equal(g.bandAbsMax['0.1-0.5s'].hybridAbsMax, 0.935); // v2 anchors re-freeze 2026-09-04
   assert.equal(g.bandAbsMax['0.5-2s'].pass, false);
-  assert.equal(g.bandAbsMax['0.5-2s'].hybridAbsMax, 0.384);
+  assert.equal(g.bandAbsMax['0.5-2s'].hybridAbsMax, 0.433);
   assert.equal(g.bandAbsMax['2-5s'].pass, false);
-  assert.equal(g.bandAbsMax['2-5s'].hybridAbsMax, 0.588);
+  assert.equal(g.bandAbsMax['2-5s'].hybridAbsMax, 0.576);
   assert.equal(g.containmentInSigma.pass, false);
-  assert.equal(g.containmentInSigma.observed, 0.282);
+  assert.equal(g.containmentInSigma.observed, 0.359);
   assert.equal(g.lpImprovementVsBrune.pass, true);
-  assert.equal(g.lpImprovementVsBrune.improvement, 0.661);
+  assert.equal(g.lpImprovementVsBrune.improvement, 0.691);
   assert.equal(g.pgaShapeNonRegressionVsBrune.pass, false);
-  assert.equal(g.pgaShapeNonRegressionVsBrune.deltaHybridMinusBrune, 0.144);
+  assert.equal(g.pgaShapeNonRegressionVsBrune.deltaHybridMinusBrune, 0.153);
 });
 
 test('cs-pipeline — MS-CS anchor identity and realization bookkeeping', () => {
@@ -82,7 +82,7 @@ test('cs-pipeline — perCase bias recomputable from stored realizations', () =>
 
 test('cs-pipeline — scale-factor transparency block frozen', () => {
   assert.equal(r.scaleFactors.hybrid.n, 150);
-  assert.equal(r.scaleFactors.hybrid.median, 1.467);
-  assert.equal(r.scaleFactors.brune.median, 1.086);
+  assert.equal(r.scaleFactors.hybrid.median, 1.33); // v2 anchors re-freeze 2026-09-04
+  assert.equal(r.scaleFactors.brune.median, 0.931);
   assert.ok(r.findings.summary.join(' ').includes('diagnostic'));
 });

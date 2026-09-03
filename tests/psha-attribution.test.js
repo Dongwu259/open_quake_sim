@@ -26,26 +26,27 @@ test('attribution — schema, arms and chain frozen', () => {
 });
 
 test('attribution — frozen decomposition numbers locked', () => {
-  assert.equal(r.aggregate.armRatioMedian.baseline, 5.967);
-  assert.equal(r.aggregate.armRatioMedian.zhaoOnly, 2.648);
+  // v2 segmented-source re-freeze (2026-09-04)
+  assert.equal(r.aggregate.armRatioMedian.baseline, 1.827);
+  assert.equal(r.aggregate.armRatioMedian.zhaoOnly, 1.395);
   assert.equal(r.aggregate.armRatioMedian.noScenarios, 0.923);
   assert.equal(r.aggregate.armRatioMedian.zhaoOnlyNoScenarios, 0.948);
-  assert.equal(r.aggregate.armRatioMedian.psv1p20, 5.942);
-  assert.equal(r.aggregate.armRatioMedian.psv1p35, 5.933);
-  assert.equal(r.aggregate.armRatioMedian.sigma0p80, 5.03);
+  assert.equal(r.aggregate.armRatioMedian.psv1p20, 1.756);
+  assert.equal(r.aggregate.armRatioMedian.psv1p35, 1.72);
+  assert.equal(r.aggregate.armRatioMedian.sigma0p80, 1.713);
   assert.equal(r.aggregate.armRatioMedian.gridZhaoPsv, 0.702);
-  assert.deepEqual(r.aggregate.chainMedian, { dropScenarios: 0.063, zhaoCollapse: 0.946, psvFactor: 0.741 });
+  assert.deepEqual(r.aggregate.chainMedian, { dropScenarios: 0.218, zhaoCollapse: 0.946, psvFactor: 0.741 });
   assert.deepEqual({ median: r.aggregate.scenarioShareMedian, min: r.aggregate.scenarioShareMin, max: r.aggregate.scenarioShareMax },
-    { median: 0.9974, min: 0.2873, max: 0.9996 });
+    { median: 0.9729, min: 0.0358, max: 0.9965 });
   assert.ok(r.aggregate.classRateAdditivityMaxRelative < 1e-4, 'class rates must re-sum to the baseline rate');
 });
 
 test('attribution — findings carry the honest direction and levers', () => {
-  assert.ok(r.findings.headline.includes('SCENARIO-SOURCE effect'));
-  assert.ok(r.findings.flipSide.includes('UNDERSHOOTS'));
-  assert.ok(r.findings.flipSide.includes('NOT a GMPE change'));
-  assert.ok(r.findings.branchNeutrality.includes('path-dependent'));
+  assert.ok(r.findings.headline.includes('v2 SEGMENTED source model'));
+  assert.ok(r.findings.residualStructure.includes('time-dependent engine is the honest next step'));
+  assert.ok(r.findings.scenarioDomination.includes('grid-dominated'));
   assert.ok(r.findings.honestyNote.includes('no engine parameter was tuned'));
+  assert.ok(r.findings.honestyNote.includes('INDEPENDENT source'));
 });
 
 test('attribution — monotonicity: removing sources can only lower the curve', () => {

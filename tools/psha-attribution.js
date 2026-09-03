@@ -98,20 +98,20 @@ function buildFindings(agg) {
   const f = (x) => (x == null ? 'n/a' : x.toFixed(2));
   const pct = (x) => (x * 100).toFixed(1);
   return {
-    headline: 'RP475 PGV overprediction vs J-SHIS is a SCENARIO-SOURCE effect, not a GMPE-branch or sigma effect: chain baseline x' + f(agg.armRatioMedian.baseline) +
-      ' -> dropScenarios x' + f(agg.chainMedian.dropScenarios) + ' -> zhaoCollapse x' + f(agg.chainMedian.zhaoCollapse) +
-      ' -> psvFactor x' + f(agg.chainMedian.psvFactor) + ' (median per-site multiplicative factors); endpoint x' + f(agg.armRatioMedian.gridZhaoPsv) +
-      ' vs baseline x' + f(agg.armRatioMedian.baseline) + '; scenario sources carry a median ' + pct(agg.scenarioShareMedian) + '% of the RP475 exceedance rate',
-    scenarioDomination: 'the two characteristic scenarios (Nankai M9 0.0462/yr + capital M7.3 0.0401/yr) supply ' + pct(agg.scenarioShareMedian) +
-      '% median [' + pct(agg.scenarioShareMin) + '..' + pct(agg.scenarioShareMax) + '%] of the RP475 exceedance rate — at 4 of 6 sites the published hazard is essentially two subjective characteristic-event rates, not the ComCat GR grid; any use of hazardCurve for site-specific decisions is bounded by these two rates',
-    flipSide: 'removing the scenarios flips the sign at Nankai-adjacent sites — grid-only UNDERSHOOTS J-SHIS at kochi/osaka/nagoya (site endpoint ratios ~0.10-0.33) while sendai and tokyo land within ~1% (44.4 vs 44.2, 64.9 vs 65.2 cm/s): J-SHIS carries real Nankai-characteristic hazard our GR grid lacks, and our single-M9-at-0.0462/yr characterization overshoots it by roughly 6-16x in level — the honest next lever is a segmented, rate-calibrated Nankai source (full-trough M9 recurrence is order 0.005-0.01/yr in the literature), NOT a GMPE change',
-    branchNeutrality: 'GMPE branch choice is path-dependent: with scenarios present, zhao-only halves the ratio (x' + f(agg.armRatioMedian.zhaoOnly) + ' vs x' + f(agg.armRatioMedian.baseline) +
-      ') because the M9-at-close-Rrup branches differ strongly between families; on the grid alone it is nearly neutral (chain factor x' + f(agg.chainMedian.zhaoCollapse) + ') — the pre-registered PSV->PGV hypothesis is confirmed as a real but secondary scale effect (x' + f(agg.chainMedian.psvFactor) + ' on the chain, ~x0.99 on the scenario-dominated full model)',
+    headline: 'on the v2 SEGMENTED source model the RP475 PGV overprediction vs J-SHIS falls to x' + f(agg.armRatioMedian.baseline) +
+      ' median [baseline; was x5.97 on v1 single-M9] — chain: dropScenarios x' + f(agg.chainMedian.dropScenarios) +
+      ' -> zhaoCollapse x' + f(agg.chainMedian.zhaoCollapse) + ' -> psvFactor x' + f(agg.chainMedian.psvFactor) +
+      '; scenario modes carry a median ' + pct(agg.scenarioShareMedian) + '% of the RP475 rate',
+    scenarioDomination: 'the characteristic scenarios (' + agg.scenarioList + ') supply ' + pct(agg.scenarioShareMedian) +
+      '% median [' + pct(agg.scenarioShareMin) + '..' + pct(agg.scenarioShareMax) + '%] of the RP475 exceedance rate — Nankai-adjacent sites are scenario-dominated as they should be, while sendai drops to ' + pct(agg.scenarioShareMin) + '% (grid-dominated): the v1 pathology (one subjective M9 rate owning 99.7% MEDIAN across ALL sites) is gone',
+    residualStructure: 'the residual x' + f(agg.armRatioMedian.baseline) + ' is no longer a single-cause effect: removing scenarios undershoots J-SHIS at Nankai sites (grid-only kochi ~17 vs 118 cm/s — J-SHIS carries real characteristic hazard), the zhao branch collapse moves x' + f(agg.armRatioMedian.baseline) + ' -> x' + f(agg.armRatioMedian.zhaoOnly) +
+      ', the PSV->PGV conversion factor x' + f(agg.armRatioMedian.psv1p35) + ' and the sigma arm x' + f(agg.armRatioMedian.sigma0p80) + ' — mid-band log10 rate ratios now flip NEGATIVE at kochi/nagoya (' + agg.midBandMin + '): the Poisson long-run engine underpredicts mid-levels where J-SHIS BPT-conditional rates are elevated (elapsed ~80 yr since 1946); a time-dependent engine is the honest next step, not further rate tuning',
     diagnosticSigma: 'the sigma x0.80 arm moves the RP475 ratio from x' + f(agg.armRatioMedian.baseline) + ' to x' + f(agg.armRatioMedian.sigma0p80) +
-      ' — sigma scale shapes the tail but cannot alone close the gap; it is a sensitivity bound, not a correction (J-SHIS integrates aleatory sigma too)',
-    honestyNote: 'this decomposition is a frozen measurement of pre-registered arm variants; no engine parameter was tuned from it (data-honesty rule). Chain factors are path-dependent (multiplicative substitution order baseline->noScenarios->zhaoOnly->PSV); per-class rate shares are exact (the engine is additive across sources, additivity residual <= ' + agg.classRateAdditivityMaxRelative + ')'
+      ' — sensitivity bound only, not a correction (J-SHIS integrates aleatory sigma too)',
+    honestyNote: 'this decomposition is a frozen measurement of pre-registered arm variants on quake-sim-psha-source-v2; no engine parameter was tuned from the J-SHIS side (the v2 segmented rates come from ERC plain-interval BPT statistics, an INDEPENDENT source; the live API was unreachable so the frozen embedded J-SHIS curves are reused verbatim). Chain factors are path-dependent (multiplicative substitution order baseline->noScenarios->zhaoOnly->PSV); per-class rate shares are exact (engine additivity, residual <= ' + agg.classRateAdditivityMaxRelative + ')'
   };
 }
+
 
 async function main() {
   const write = process.argv.includes('--write');
@@ -179,7 +179,7 @@ async function main() {
     const baseRate = rateAtLevel(patched(ARMS[0], () => Physics.hazardCurve(model, site, 'pgv', { imLevels: extLevels })), baseLv);
     additivityMax = Math.max(additivityMax, Math.abs(sum - baseRate) / baseRate);
     const shares = {}; for (const k of Object.keys(classRates)) shares[k] = +(classRates[k] / sum).toFixed(4);
-    const scenarioShare = shares.nankaiM9 + shares.tokyoInland;
+    const scenarioShare = model.scenarios.reduce(function(a, sc) { return a + (shares[sc.id] || 0); }, 0);
     scenarioShares.push(scenarioShare);
 
     sites.push({ site: fr.site, arms: rows, decomposition475: { levels: chainLv.map((v) => v == null ? null : +v.toFixed(1)), steps, residualFactorVsJshis: rows.gridZhaoPsv['475'].ratioOursOverJshis }, classSharesAtBaselineRp475: { levelPgvCmS: +baseLv.toFixed(1), shares, scenarioShareTotal: +scenarioShare.toFixed(4), additivityResidual: +(Math.abs(sum - baseRate) / baseRate).toExponential(2) } });
@@ -190,7 +190,10 @@ async function main() {
 
   const armRatioMedian = {};
   for (const a of ARMS) armRatioMedian[a.id] = armRatioRp475[a.id].length ? +median(armRatioRp475[a.id]).toFixed(3) : null;
+  const midBandLog10 = frozen.results.map((fr) => fr.midBand.medianLog10RateRatio).filter((v) => v != null);
   const agg = {
+    midBandMin: midBandLog10.length ? +Math.min(...midBandLog10).toFixed(3) : null,
+    scenarioList: model.scenarios.map((s) => s.id + ' ' + s.ratePerYear + '/yr').join(' + '),
     chainMedian: {
       dropScenarios: chainFactors.dropScenarios.length ? +median(chainFactors.dropScenarios).toFixed(3) : null,
       zhaoCollapse: chainFactors.zhaoCollapse.length ? +median(chainFactors.zhaoCollapse).toFixed(3) : null,
@@ -207,6 +210,7 @@ async function main() {
     schema: 'quake-sim-psha-attribution-v1',
     generatedAt: new Date().toISOString(),
     basis: {
+      sourceModel: model.schema,
       engine: 'Physics.hazardCurve (pgv, Vs30=600, extended level grid identical to the frozen comparison)',
       comparison: 'tools/data/jshis-comparison-report.json (frozen 2026-09-03, NIED J-SHIS Y2024 AVR TTL_MTTL T30 engineering-bedrock PGV) — NOT re-fetched',
       arms: ARMS.map((a) => ({ id: a.id, label: a.label })),

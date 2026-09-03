@@ -1,6 +1,6 @@
 {
   "_schema": "quake-sim-research-data-manifest-v1",
-  "snapshotDate": "2026-09-01",
+  "snapshotDate": "2026-09-04",
   "policy": "A resource is research-ready only when its source, license, date, SHA-256, CRS, datum/resolution where applicable, and processing history are declared. Demonstration or estimated data never pass silently.",
   "resources": [
     {
@@ -133,7 +133,7 @@
       "sourceUrl": "https://earthquake.usgs.gov/fdsnws/event/1/",
       "license": "USGS public domain (ComCat); scenario rates cite Earthquake Research Committee published 30-year probabilities",
       "releaseDate": "2026-09-01",
-      "sha256": "761375d48bf74d6db0038ef203495a3d451972d9d01f0e68710dd8597cc9688c",
+      "sha256": "7b63a58d219dc983841cd9295fa46c3505a8a47e43cd374f22452c1b6c654131",
       "crs": "EPSG:4326",
       "resolution": "0.25 degree gridded sources + finite-fault scenario patches",
       "processing": "tools/fetch-comcat-japan.js (frozen catalog) + tools/build-psha-source-model.js (decluster, completeness scan, adaptive top-hat smoothing with per-class mass renormalisation, Aki b); simplified self-computed model, NOT the official J-SHIS source model"

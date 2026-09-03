@@ -1,6 +1,6 @@
 {
  "schema": "quake-sim-experiment-manifest-v1",
- "generated": "2026-09-03T16:30:25.353Z",
+ "generated": "2026-09-03T17:25:04.904Z",
  "identityRule": "qsx1-<sha256[:16] of file bytes>; manifest excluded from its own listing",
  "entries": [
   {
@@ -49,13 +49,22 @@
    "mtime": "2026-09-01T07:00:12.733Z"
   },
   {
-   "id": "qsx1-44ddfdfa315e47bc",
+   "id": "qsx1-c7d64ae13ff9c58a",
+   "name": "cs-diagnosis-report.json",
+   "bytes": 11340,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-03T17:24:52.079Z"
+  },
+  {
+   "id": "qsx1-67eaa1dacb574e28",
    "name": "cs-pipeline-report.json",
-   "bytes": 146940,
+   "bytes": 145950,
    "kind": "experiment",
    "track": "v6.2 CS pipeline",
    "gate": "tests/cs-pipeline.test.js",
-   "mtime": "2026-09-03T16:26:18.943Z"
+   "mtime": "2026-09-03T17:24:52.045Z"
   },
   {
    "id": "qsx1-228c17a0c7536365",
@@ -166,13 +175,13 @@
    "mtime": "2026-08-25T05:05:11.113Z"
   },
   {
-   "id": "qsx1-cfdd1ce685ddb8a7",
+   "id": "qsx1-b4c62ca3f0862143",
    "name": "jshis-comparison-report.json",
-   "bytes": 25033,
+   "bytes": 25156,
    "kind": "scorecard",
    "track": "R8 external gate",
    "gate": "tests/jshis-comparison.test.js",
-   "mtime": "2026-09-03T16:26:18.980Z"
+   "mtime": "2026-09-03T17:24:51.973Z"
   },
   {
    "id": "qsx1-4f0a3b6bf344fcd4",
@@ -202,22 +211,22 @@
    "mtime": "2026-09-03T16:26:19.052Z"
   },
   {
-   "id": "qsx1-5780aec04d637af4",
+   "id": "qsx1-dfc77043cd860d91",
    "name": "psha-attribution-report.json",
-   "bytes": 32201,
+   "bytes": 32476,
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-09-03T16:26:19.015Z"
+   "mtime": "2026-09-03T17:24:52.009Z"
   },
   {
-   "id": "qsx1-42b5f96e66b17e9b",
+   "id": "qsx1-a54b2fd5c3a72333",
    "name": "psha-source-model-report.json",
-   "bytes": 7232,
+   "bytes": 7678,
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-09-01T07:00:12.692Z"
+   "mtime": "2026-09-03T17:24:51.938Z"
   },
   {
    "id": "qsx1-56d691a8bfa0a3ea",

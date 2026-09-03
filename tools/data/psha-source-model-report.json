@@ -1,6 +1,6 @@
 {
   "schema": "quake-sim-psha-source-model-report-v1",
-  "generatedAt": "2026-09-01T02:04:21.104Z",
+  "generatedAt": "2026-09-03T16:57:57.363Z",
   "catalogCount": 8883,
   "classCounts": {
     "interplate": 4815,
@@ -337,16 +337,39 @@
   },
   "scenarios": [
     {
-      "id": "nankaiM9",
-      "mw": 9,
-      "ratePerYear": 0.04621
+      "id": "nankaiFullM89",
+      "mw": 8.9,
+      "ratePerYear": 0.005698,
+      "patches": 217
+    },
+    {
+      "id": "nankaiEastM82",
+      "mw": 8.2,
+      "ratePerYear": 0.001425,
+      "patches": 101
+    },
+    {
+      "id": "nankaiWestM83",
+      "mw": 8.3,
+      "ratePerYear": 0.001425,
+      "patches": 139
     },
     {
       "id": "tokyoInland",
       "mw": 7.3,
-      "ratePerYear": 0.04013
+      "ratePerYear": 0.04013,
+      "patches": 0
     }
   ],
+  "scenarioSegments": {
+    "polylineTotalKm": 768.2,
+    "patchCountsBySegment": {
+      "tokai": 37,
+      "tonankai": 64,
+      "nankai": 75,
+      "hyuga": 41
+    }
+  },
   "preRegisteredB2": {
     "batch": "B2 broadband scorecard acceptance (frozen 2026-09-01, before any B2 implementation run)",
     "metrics": {
