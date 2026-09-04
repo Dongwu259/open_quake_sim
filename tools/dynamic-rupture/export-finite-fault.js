@@ -21,6 +21,23 @@ function exportFiniteFault(state, opts) {
   const mu = state.mu;
   const rigidityGPa = mu / 1e9;
   const patches = [];
+  // v6.2 tier-2 pipeline: dip-aware patch placement. The solver models the
+  // down-dip line through (lat0, lng0); for a dipping plane the patch centre
+  // at depth z lies at horizontal offset z/tan(dip) along the dip direction
+  // (bearing = strike + 90°). dip = 90 keeps the legacy vertical placement
+  // (zero offset) byte-identical.
+  const dipRad = dip * Math.PI / 180;
+  const downdipHorizFactor = Math.cos(dipRad) / Math.max(Math.sin(dipRad), 1e-6);
+  const dipDirRad = (strike + 90) * Math.PI / 180;
+  const cosLat0 = Math.max(1e-4, Math.cos(lat0 * Math.PI / 180));
+  function placeAt(depthM) {
+    const offKm = (depthM / 1000) * downdipHorizFactor;
+    if (offKm === 0) return { lat: lat0, lng: lng0 };
+    return {
+      lat: lat0 + offKm * Math.cos(dipDirRad) / 111.32,
+      lng: lng0 + offKm * Math.sin(dipDirRad) / (111.32 * cosLat0)
+    };
+  }
   let idx = 0;
   for (let j = 0; j < state.nz; j++) {
     const depth = state.zOf(j);
@@ -29,9 +46,10 @@ function exportFiniteFault(state, opts) {
     if (!(slip > 0)) continue;
     if (state.rupTime[j] == null || state.rupTime[j] < 0) continue;
     idx++;
+    const at = placeAt(depth);
     patches.push({
       id: String(idx),
-      lat: lat0, lng: lng0,                              // vertical fault: down-dip is straight down
+      lat: at.lat, lng: at.lng,
       depthKm: depth / 1000,
       strikeDeg: strike, dipDeg: dip, rakeDeg: rake,
       slipM: slip,

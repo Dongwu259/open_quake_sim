@@ -1652,6 +1652,28 @@ var RTEew = (function() {
     start: start,
     stop: stop,
     getActive: getActive,
+    // live-waveform P/S tick feed: currently tracked events with hypocenter
+    // fields (RTWave renders predicted P/S arrivals on the seismograms)
+    getActiveEvents: function() {
+      var out = [];
+      for (var id in tracker.events) {
+        var st = tracker.events[id];
+        if (!st || !st.latest) continue;
+        var l = st.latest;
+        if (l.isCancel) continue;
+        if (l.originMs == null || l.lat == null || l.lng == null) continue;
+        out.push({
+          id: id,
+          originMs: l.originMs,
+          lat: l.lat, lng: l.lng,
+          depthKm: (l.depth != null && isFinite(l.depth)) ? l.depth : 10,
+          mag: l.mag,
+          isFinal: !!l.isFinal,
+          isTraining: !!l.isTraining
+        });
+      }
+      return out;
+    },
     demo: demo,
     setDemoPinned: setDemoPinned,
     clearDemo: clearDemo,

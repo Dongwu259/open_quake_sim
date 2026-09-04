@@ -2,7 +2,27 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/) where practical.
 
-## [Unreleased] — 2026-09-04 science refresh
+## [Unreleased]
+## [Unreleased] — 2026-09-04 v6.2 功能批同步（实时波形 · 波形分析 · 断层系统升级 · 动力学破裂管线）
+
+同步自上游 quake_sim（cf6ad9e→cc8e3af 五批）：
+
+### 实时监测
+- **实时多台站活波形面板（RTWave）**：4 个环绕日本的开放 GSN 台站（IU MAJO 松代 / YSS 南萨哈林斯克 / INCN 仁川 / TATO 台湾坪林）实时迹线，30 s 刷新，5/10/20 分钟窗口，EEW 跟踪事件叠加 P/S 预计到时刻度；仪器原始计数（未标定）诚实标注
+- 服务端 `/api/waveform/live` 代理 + **纯 JS miniSEED v2.4 STEIM1/2 解码器**（libmseed 权威语义移植，含 5×6/6×5/7×4 密集模式；三方验证 = 官方夹具 + ObsPy 逐样本零失配 + 四站活流）
+
+### 波形分析
+- **报告页三站波形分析节**：最强 PGA / 最近 / 中等距离自动选站，滑移/能量/周期指标 + 矩速率曲线 + 波形 PGA 反演震级 vs 设定震级
+- **信息页波形分析工具**：台站选择 → PGA/PGV/PGD/Arias/CAV/D5-95/卓越周期/视拐角 + 震级反演对比
+
+### 断层系统
+- **von Kármán 滑移谱**（Mai & Beroza 2002 型各向异性，H=0.75，网格无关）+ 浅部滑移亏损旋钮（矩守恒）
+- **断层破裂详情卡**：断层面剖面（沿走向×深度，滑移/破裂时间着色，成核星，运行中动画）+ 矩速率/累积矩图 + 9 行统计
+- **分段弯折断层**：侧栏路径编辑器（地图点选 → 共节点段平面链，连续滑移场跨弯折，3D 走时）；诚实限制：平面段近似深部弯折间隙
+- **铲式几何**（faultListricDip 0–60°，默认 0 字节兼容）
+- **动力学破裂管线化**：`tools/dynamic-rupture/run-scenario.js` 场景 CLI（导出前过应用自带验证器）+ 2 个捆绑模型（SH 走滑 M7.45 / PSV 倾滑 M6.71）+ 导入卡一键加载
+
+ — 2026-09-04 science refresh
 
 Upstream science batch (quake_sim `6c82057`..`be463ba`), no app-version bump: segmented Nankai source model + CS shape-gate diagnosis. 上游科学批次：分段南海震源模型 + 条件谱形状门诊断。
 

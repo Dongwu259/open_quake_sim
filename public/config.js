@@ -129,6 +129,8 @@ var CFG_DEFAULTS = {
   aspSigmaJ:      { v:0.4,  min:0.1, max:0.8,  step:0.01,fmt:'%.2f',  cat:'fault' },
   hypocenterFrac: { v:0.35, min:0,   max:0.7,  step:0.01,fmt:'%.2f',  cat:'fault' },
   slipPerturbation:{v:0.4, min:0,    max:1,    step:0.01,fmt:'%.2f',  cat:'fault' },
+  shallowSlipDeficit:{v:0,  min:0,    max:0.85, step:0.01,fmt:'%.2f',  cat:'fault' }, // v6.2 tier-1: 近地表滑移亏损（大逆冲蠕动闭锁惯例；矩守恒）——上批因 grep|head 退出码吞掉 || 未落盘，本批补齐
+  faultListricDip:{v:0,   min:0,    max:60,   step:1,   fmt:'%.0f',  cat:'fault' }, // v6.2 tier-2: 铲式几何（底缘相对顶缘倾角减少量，度；0=平面，字节兼容）
   slipThreshold:  { v:0.30, min:0.1, max:0.6,  step:0.01,fmt:'%.2f',  cat:'fault' },
   ruptureMode:    { v:'bilateral', opts:['bilateral','unilateral'],     cat:'fault' },
 

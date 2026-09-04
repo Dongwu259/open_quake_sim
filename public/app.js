@@ -1420,6 +1420,13 @@ map.on('click', function(e) {
     if (typeof RTData !== 'undefined' && RTData.syncUserLocRow) RTData.syncUserLocRow();
     return;
   }
+  // v6.2 tier-2: an armed fault-path pick appends a polyline node.
+  if (_faultPathArmed) {
+    _faultPathDraft.push({ lat: e.latlng.lat, lng: e.latlng.lng });
+    _faultPathDraw();
+    _faultPathSyncUI();
+    return;
+  }
   var zoneHit=findTsunamiInundationZone(e.latlng);
   if(zoneHit){selectTsunamiInundationZone(zoneHit);return;}
   if (isRunning || isCountingDown) return;
@@ -1858,7 +1865,8 @@ function buildSourceModel(params) {
     mechanismProvenance:sourceTensor && sourceTensor.provenance,
     faultPlaneIndex:selectedPlaneIndex,
     sourceType:sourceType,faultOptions:faultOptions,generateSubSources:true,
-    rupSpeed:cfgGet('rupSpeed'),originTime:params.originTime || 0
+    rupSpeed:cfgGet('rupSpeed'),originTime:params.originTime || 0,
+    faultPath:(_faultPathNodes && _faultPathNodes.length >= 2) ? _faultPathNodes : undefined
   });
 }
 function genSubSources(la,ln,mw,strikeDeg,dipDeg,depthKm,sourceType){
@@ -3061,6 +3069,7 @@ function preComputeArrivals(params) {
   mw=canonicalSource.mw;strDeg=canonicalSource.strikeDeg;dipDeg=canonicalSource.dipDeg;
   var useFF = mw >= 6.5 || !!canonicalSource.finiteFault;
   var ff = useFF ? canonicalSource.geometry : null;
+  _lastRuptureGeometry = ff; // 断层破裂详情卡（信息页）读取的规范几何
   var subs = ff&&ff.subs ? ff.subs : null;
   // Resolve auto once so browser and Node validation use the same median model.
   var _gmpResolved = cfgGet('gmpModel');
@@ -6490,6 +6499,7 @@ function _captureReportSnapshot() {
     }),
     tsunami: zones.length ? { zones: zones.slice(0, 8) } : null,
     aftershocks: aft,
+    waveAnalysis: _captureWaveAnalysis((typeof eventMw !== 'undefined' && eventMw != null) ? eventMw : mag),
     spectrum: _lastSpectrumExport ? {
       station: _lastSpectrumExport.station,
       periods: _lastSpectrumExport.periods.slice(),
@@ -6500,10 +6510,205 @@ function _captureReportSnapshot() {
   return snap;
 }
 
+// ---- v6.2 波形分析:三站自动选择(最强/最近/中等距离,确定性规则) ----
+// Rule (frozen, documented in the report): A = highest predicted peak PGA;
+// B = nearest station to the hypocentre; C = among stations with peak PGA
+// >= 20% of the maximum, the median-distance one. Duplicates fall through
+// to the next candidate in the respective ordering.
+function _selectWaveAnalysisStations() {
+  var pool = [];
+  for (var key in _researchStationPeaks) pool.push(_researchStationPeaks[key]);
+  if (!pool.length || !epicenter) return [];
+  var byPga = pool.slice().sort(function (a, b) { return (b.peakPga || 0) - (a.peakPga || 0); });
+  var byDist = pool.slice().sort(function (a, b) {
+    return hypoDist(a.lat, a.lng) - hypoDist(b.lat, b.lng);
+  });
+  var strong = pool.filter(function (s) { return (s.peakPga || 0) >= 0.2 * (byPga[0].peakPga || 0); });
+  strong.sort(function (a, b) { return hypoDist(a.lat, a.lng) - hypoDist(b.lat, b.lng); });
+  var mid = strong.length ? strong[Math.floor((strong.length - 1) / 2)] : null;
+  var picked = [], seen = {};
+  var cand = [byPga[0], byDist[0], mid];
+  for (var i = 0; i < cand.length; i++) {
+    var c = cand[i];
+    if (!c || seen[c.id] != null) {
+      // dedupe fall-through: next strongest, then next nearest
+      var alt = (i === 0) ? byPga[1] : (i === 1) ? byDist[1] : byPga[2];
+      if (!alt || seen[alt.id] != null) continue;
+      c = alt;
+    }
+    seen[c.id] = true;
+    picked.push(c);
+  }
+  return picked.slice(0, 3);
+}
+
+function _analyzeStationWave(s, actualMw) {
+  var dist;
+  if (epicenter) dist = hypoDist(s.lat, s.lng);
+  else if (typeof map !== 'undefined' && map.getCenter) {
+    // no epicenter yet (pre-sim tool use): surface distance from the map
+    // center — the same reference the station selector sorts by
+    var c = map.getCenter();
+    dist = Physics.haversineDist(c.lat, c.lng, s.lat, s.lng);
+  } else return null;
+  if (!(dist > 0)) return null;
+  var site = soilAmp(s.lat, s.lng);
+  var target = Math.max(1, (s.peakPga || calcPGA(_liveMag, dist) * site));
+  var srcType = activeSrcType();
+  // per-station deterministic seed (id-derived) — co-located stations share a
+  // distance-derived default seed and would otherwise produce identical traces
+  var sid = (s.id != null && isFinite(Number(s.id))) ? Number(s.id) : 0;
+  var seed = (Math.imul(sid, 2654435761) + Math.round(dist * 17)) >>> 0;
+  try {
+    return WaveAnalysis.analyze({
+      physics: Physics,
+      mw: actualMw != null ? actualMw : _liveMag,
+      distKm: dist,
+      stressDropMPa: 10,
+      targetPgaGal: target,
+      seed: seed,
+      pgaForMw: function (m) { return Math.max(1e-6, calcPGAFor(m, dist, _liveDepth, srcType) * site); }
+    });
+  } catch (e) { return null; }
+}
+
+function _captureWaveAnalysis(actualMw) {
+  if (typeof WaveAnalysis === 'undefined' || !epicenter) return null;
+  var picks = _selectWaveAnalysisStations();
+  if (!picks.length) return null;
+  var rows = [];
+  for (var i = 0; i < picks.length; i++) {
+    var r = _analyzeStationWave(picks[i], actualMw);
+    if (r && r.ok) {
+      rows.push({
+        name: picks[i].name || String(picks[i].id),
+        role: i === 0 ? 'strongest' : (i === 1 ? 'nearest' : 'mid'),
+        distKm: +r.distKm.toFixed(1),
+        targetPgaGal: +r.pgaGal.vec.toFixed(1),
+        metrics: {
+          pgaGal: r.pgaGal, pgvKine: r.pgvKine, pgdCm: r.pgdCm,
+          ariasMs: r.ariasMs, cavGalS: r.cavGalS, d5d95S: r.d5d95S,
+          energyV2: r.energyV2,
+          dominantPeriodS: r.dominantPeriodS,
+          apparentCornerHz: r.apparentCornerHz,
+          theoreticalCornerHz: r.theoreticalCornerHz
+        },
+        magFromAmplitude: r.magFromAmplitude,
+        trace: r.trace
+      });
+    }
+  }
+  if (!rows.length) return null;
+  return {
+    actualMw: +(actualMw != null ? actualMw : _liveMag).toFixed(2),
+    stressDropMPa: 10,
+    selectionRule: 'strongest / nearest / median-distance-of-strong (peak PGA >= 20% of max)',
+    stations: rows
+  };
+}
+
 function _openReportPage() {
   _captureReportSnapshot(); // refresh from live state; no-op without an epicenter
   window.open('report.html', '_blank', 'noopener');
 }
+
+// ---- v6.2 波形分析工具 (info panel, on-demand) ----
+(function wireWaveAnalysisTool() {
+  var sel = document.getElementById('wfa-station');
+  var btn = document.getElementById('wfa-run');
+  var out = document.getElementById('wfa-result');
+  var note = document.getElementById('wfa-note');
+  var canvas = document.getElementById('wfa-canvas');
+  if (!sel || !btn || !out) return;
+  var lastResult = null;
+
+  function refreshStations() {
+    if (!rawLandGrid || !rawLandGrid.length) return;
+    var ref = epicenter || (typeof map !== 'undefined' && map.getCenter ? map.getCenter() : null);
+    if (!ref) return;
+    var sorted = rawLandGrid.slice().sort(function (a, b) {
+      var da = Physics.haversineDist(ref.lat, ref.lng, a.lat, a.lng);
+      var db = Physics.haversineDist(ref.lat, ref.lng, b.lat, b.lng);
+      return da - db;
+    }).slice(0, 40);
+    var prev = sel.value;
+    sel.innerHTML = '';
+    for (var i = 0; i < sorted.length; i++) {
+      var s = sorted[i];
+      var o = document.createElement('option');
+      o.value = String(s.id);
+      var d = Physics.haversineDist(ref.lat, ref.lng, s.lat, s.lng);
+      o.textContent = (s.name || ('#' + s.id)) + ' (' + Math.round(d) + 'km)';
+      sel.appendChild(o);
+    }
+    if (prev) sel.value = prev;
+  }
+
+  function drawTrace(r) {
+    if (!canvas || !r || !r.trace) return;
+    var ctx = canvas.getContext('2d');
+    var _whp = window.hidpiPrepCanvas(canvas), W = _whp.W, H = _whp.H;
+    ctx.clearRect(0, 0, W, H);
+    var z = r.trace.z, n = z.length;
+    if (n < 2) return;
+    var lo = 0, hi = 0;
+    for (var i = 0; i < n; i++) { if (z[i] < lo) lo = z[i]; if (z[i] > hi) hi = z[i]; }
+    if (!(hi > lo)) hi = lo + 1;
+    var pad = (hi - lo) * 0.12 + 1; lo -= pad; hi += pad;
+    var hasDark = false;
+    try { hasDark = document.body.classList.contains('dark-mode'); } catch (e) {}
+    ctx.strokeStyle = hasDark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.15)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, ((0 - lo) / (hi - lo)) * H); ctx.lineTo(W, ((0 - lo) / (hi - lo)) * H); ctx.stroke();
+    ctx.strokeStyle = hasDark ? '#7ec9ff' : '#1a5fa8';
+    ctx.lineWidth = Math.max(1, (canvas.width || W) / W);
+    ctx.beginPath();
+    for (var j = 0; j < n; j++) {
+      var x = j / (n - 1) * W, y = H - (z[j] - lo) / (hi - lo) * H;
+      if (j === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.fillStyle = hasDark ? '#9cc3e0' : '#4a6a8a';
+    ctx.font = '10px sans-serif';
+    ctx.fillText('Z ' + Math.max(Math.abs(lo + pad), Math.abs(hi - pad)).toFixed(0) + ' gal · ' + r.durationS + 's', 6, 12);
+  }
+
+  function row(label, value) {
+    return '<tr><td>' + escapeHTML(label) + '</td><td>' + value + '</td></tr>';
+  }
+
+  function run() {
+    var id = sel.value;
+    var st = null;
+    for (var i = 0; i < rawLandGrid.length; i++) if (String(rawLandGrid[i].id) === String(id)) { st = rawLandGrid[i]; break; }
+    if (!st) { out.innerHTML = ''; return; }
+    var actualMw = (typeof eventMw !== 'undefined' && eventMw != null) ? eventMw : _liveMag;
+    var r = _analyzeStationWave(st, actualMw);
+    if (!r || !r.ok) { out.innerHTML = '<div class="wfa-note">' + escapeHTML(t('info.wfa_fail', '分析失败')) + '</div>'; return; }
+    lastResult = r;
+    drawTrace(r);
+    var html = '<table class="wfa-table"><tbody>';
+    html += row(t('info.wfa_pga', 'PGA 合成'), r.pgaGal.vec.toFixed(1) + ' gal <span class="wfa-sub">(' + r.pgaGal.x.toFixed(0) + '/' + r.pgaGal.y.toFixed(0) + '/' + r.pgaGal.z.toFixed(0) + ')</span>');
+    html += row(t('info.wfa_pgv', 'PGV'), r.pgvKine.toFixed(1) + ' kine');
+    html += row(t('info.wfa_pgd', 'PGD'), r.pgdCm.toFixed(2) + ' cm');
+    html += row(t('info.wfa_arias', 'Arias 强度 Ia'), r.ariasMs + ' m/s');
+    html += row(t('info.wfa_cav', 'CAV'), r.cavGalS + ' gal·s');
+    html += row(t('info.wfa_d595', '显著持时 D5-95'), (r.d5d95S != null ? r.d5d95S.toFixed(1) : '—') + ' s');
+    html += row(t('info.wfa_energy', '能量指数 ∫v²dt'), r.energyV2 + ' cm²/s');
+    html += row(t('info.wfa_tp', '卓越周期 Tp'), (r.dominantPeriodS != null ? r.dominantPeriodS.toFixed(2) + ' s (' + r.dominantFreqHz.toFixed(2) + ' Hz)' : '—'));
+    html += row(t('info.wfa_fc', '视拐角频率'), (r.apparentCornerHz != null ? r.apparentCornerHz.toFixed(2) : '—') + ' Hz <span class="wfa-sub">' + t('info.wfa_theofc', '理论') + ' ' + r.theoreticalCornerHz + ' Hz</span>');
+    html += row('<strong>' + t('info.wfa_mag_actual', '设定震级') + '</strong>', '<strong>M' + (+r.inputMw).toFixed(2) + '</strong>');
+    html += row('<strong>' + t('info.wfa_mag_inv', '波形 PGA 反演震级') + '</strong>', '<strong>' + (r.magFromAmplitude != null ? 'M' + r.magFromAmplitude.toFixed(2) : '—') + '</strong>');
+    html += '</tbody></table>';
+    html += '<div class="wfa-note">' + escapeHTML(t('info.wfa_mag_note', '反演与幅值锚定同源（模型一致性检查，非独立验证）')) + '</div>';
+    out.innerHTML = html;
+  }
+
+  btn.addEventListener('click', function () { refreshStations(); run(); });
+  sel.addEventListener('change', run);
+  // populate once on load (deferred to first paint)
+  setTimeout(refreshStations, 800);
+})();
 
 (function wireReportEntries() {
   var side = document.getElementById('btn-report-page');
@@ -6551,6 +6756,7 @@ function endSimulation() {
 }
 
 function resetSimulation() {
+  _faultPathClearAll(); // v6.2 tier-2: reset reverts to the planar fault path
   _deactivateObservedFiniteFault('reset');
   exitPresenterMode(); // v5.2: leaving presenter mode restores the sidebar
   if (isRunning) { isRunning = false; if (animationId) { cancelAnimationFrame(animationId); animationId = null; } }
@@ -7202,6 +7408,47 @@ function _activatePresetFaultModel(id){
     }catch(error){_pendingFiniteFault=null;_renderFiniteFaultImport(null,error.message);}
   }
   input.addEventListener('change',function(){var file=input.files&&input.files[0];if(!file)return;fileName=file.name;var reader=new FileReader();reader.onload=function(){rawText=String(reader.result||'');parseCurrent();};reader.readAsText(file);});
+  // v6.2 tier-2 pipeline: bundled dynamic-rupture models (lazy registry fetch —
+  // landuse-loader precedent). Selecting one loads the model through the SAME
+  // parse/use path as a manual file import.
+  var bundledSel=document.getElementById('finite-fault-bundled');
+  if(bundledSel){
+    var registryLoaded=false;
+    function loadRegistry(){
+      if(registryLoaded)return Promise.resolve();
+      return fetch('geojson/fault-models/index.json',{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.json();}).then(function(reg){
+        (reg&&reg.models||[]).forEach(function(m){
+          var o=document.createElement('option');
+          o.value=m.file;
+          o.textContent=(m.label||m.id)+' · Mw'+(m.mw!=null?m.mw.toFixed(2):'?')+' · '+(m.patches||'?')+' patches';
+          o.dataset.provenance=String(m.provenance||'');
+          bundledSel.appendChild(o);
+        });
+        registryLoaded=true;
+      }).catch(function(){/* absent registry — the select stays empty */});
+    }
+    var host=bundledSel.closest('details');
+    if(host)host.addEventListener('toggle',function(){if(host.open)loadRegistry();});
+    bundledSel.addEventListener('change',function(){
+      var file=bundledSel.value;
+      if(!file)return;
+      loadRegistry().then(function(){
+        return fetch('geojson/fault-models/'+file,{cache:'no-store'});
+      }).then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.text();}).then(function(text){
+        rawText=text;fileName=file;
+        var opt=bundledSel.options[bundledSel.selectedIndex];
+        if(opt&&opt.dataset.provenance){
+          var src=document.getElementById('finite-fault-source');
+          if(src&&!src.value.trim())src.value=opt.dataset.provenance;
+        }
+        parseCurrent();
+      }).catch(function(e){
+        _pendingFiniteFault=null;
+        _renderFiniteFaultImport(null,String(e&&e.message||e));
+      });
+    });
+  }
+
   ['finite-fault-source','finite-fault-url','finite-fault-license'].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener('change',parseCurrent);});
   if(useButton)useButton.addEventListener('click',function(){
     if(!_pendingFiniteFault||isRunning)return;
@@ -9061,7 +9308,7 @@ async function init() {
   initMobileToggle();
   // Register service worker for offline PWA support (non-critical)
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js?v=451016').catch(function(e) {
+    navigator.serviceWorker.register('sw.js?v=490974').catch(function(e) {
       console.warn('SW registration failed (non-critical):', e);
     });
   }

@@ -994,3 +994,36 @@ body.presenter-mode .autofocus-label{left:290px;bottom:44px}
   height: auto; min-height: 100vh; width: auto; max-width: 100vw;
   user-select: text; -webkit-user-select: text;
 }
+
+/* v6.2 realtime: live multi-station seismogram panel (RTWave) — four open GSN
+   stations through /api/waveform/live; raw instrument counts (no calibration);
+   EEW predicted P/S arrival ticks drawn over each trace */
+.rt-wave-box { display: flex; flex-direction: column; gap: 4px; padding: 6px 8px;
+  border: 1px solid var(--border); border-radius: 8px; background: var(--panel, transparent); }
+.rt-wave-head { display: flex; align-items: center; justify-content: space-between;
+  gap: 6px; cursor: pointer; user-select: none; -webkit-user-select: none; }
+.rt-wave-head .rt-wave-controls { display: flex; align-items: center; gap: 6px; }
+.rt-wave-head .rt-select { flex: 0 0 auto; width: 62px; }
+.rt-wave-rows { display: flex; flex-direction: column; gap: 4px; }
+.rt-wave-row { display: flex; align-items: center; gap: 6px; }
+.rt-wave-label { flex: 0 0 64px; font-size: 10px; line-height: 1.25; color: var(--text-secondary); }
+.rt-wave-canvas { flex: 1 1 auto; min-width: 0; height: 54px; width: 100%;
+  border: 1px solid var(--border); border-radius: 4px; }
+.rt-wave-status { flex: 0 0 52px; font-size: 9px; line-height: 1.3; color: var(--text-secondary); text-align: right; }
+.rt-wave-note { font-size: 9px; color: var(--text-secondary); opacity: .8; }
+
+/* v6.2 info-panel waveform-analysis tool (WaveAnalysis engine) */
+.wfa-table { width: 100%; font-size: 11px; border-collapse: collapse; margin-top: 4px; }
+.wfa-table td { padding: 2px 6px; border-bottom: 1px solid var(--border); }
+.wfa-table td:first-child { color: var(--text-secondary); width: 46%; }
+.wfa-sub { color: var(--text-secondary); font-size: 10px; }
+.wfa-note { font-size: 9px; color: var(--text-secondary); opacity: .85; margin-top: 4px; line-height: 1.4; }
+
+/* v6.2 tier-2: bent fault path editor row (sidebar fault section) */
+.fault-path-row { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; margin: 2px 0; }
+.fault-path-status { font-size: 10px; color: var(--text-secondary); line-height: 1.3; }
+
+/* v6.2 tier-2: bundled dynamic-rupture model select (finite-fault import card) */
+.finite-fault-bundled-row { display: flex; align-items: center; gap: 6px; margin: 4px 0; }
+.finite-fault-bundled-row label { font-size: 11px; color: var(--text-secondary); flex: 0 0 auto; }
+.finite-fault-bundled-row .rt-select { flex: 1 1 auto; min-width: 0; }

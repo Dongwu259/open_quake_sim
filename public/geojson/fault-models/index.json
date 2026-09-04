@@ -1,0 +1,27 @@
+{
+ "schema": "quake-sim-fault-models-index-v1",
+ "models": [
+  {
+   "id": "dynrup-dipslip-psv",
+   "file": "dynrup-dipslip-psv.json",
+   "label": "generic whole-space spontaneous rupture (PSV / mode II)",
+   "mw": 6.71,
+   "patches": 60,
+   "peakSlipM": 3.17,
+   "durationS": 1.3,
+   "kind": "dynamic-rupture",
+   "provenance": "generic whole-space spontaneous rupture (PSV / mode II) — offline pipeline (tools/dynamic-rupture/run-scenario.js)"
+  },
+  {
+   "id": "dynrup-strikeslip-sh",
+   "file": "dynrup-strikeslip-sh.json",
+   "label": "SCEC TPV5-AP (anti-plane, official stresses)",
+   "mw": 7.45,
+   "patches": 135,
+   "peakSlipM": 11.96,
+   "durationS": 2.7,
+   "kind": "dynamic-rupture",
+   "provenance": "SCEC TPV5-AP (anti-plane, official stresses) — offline pipeline (tools/dynamic-rupture/run-scenario.js)"
+  }
+ ]
+}

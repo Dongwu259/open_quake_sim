@@ -881,6 +881,60 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // GET /api/waveform/live?sta=MAJO&windowSec=600 — live multi-station seismogram
+  // proxy (realtime monitoring panel). Frozen GSN whitelist (open EarthScope NGF
+  // data, verified anonymous 2026-09-03); 30 s LRU cache with stale-if-error;
+  // miniSEED STEIM1/2 decoded server-side. Instrument counts — no calibration.
+  // NOTE: exact-match MUST stay above the legacy ObsPy `/api/waveform` prefix
+  // route below (it spawns a Python subprocess and would otherwise swallow /live).
+  if (reqPath === '/api/waveform/live' && req.method === 'GET') {
+    var waveUrl = new URL(req.url, 'http://localhost');
+    var waveSta = (waveUrl.searchParams.get('sta') || '').trim().toUpperCase();
+    var waveWin = parseInt(waveUrl.searchParams.get('windowSec'), 10);
+    // Quantise to 60 s steps — keeps the cache key space bounded (20 windows × 4 stations)
+    if (Number.isFinite(waveWin)) waveWin = Math.round(waveWin / 60) * 60;
+    if (!(waveWin >= 60 && waveWin <= 1200)) waveWin = 600;
+    var waveMeta = WAVEFORM_LIVE_STATIONS[waveSta];
+    if (!waveMeta) {
+      sendError(res, 403, 'FORBIDDEN', 'Station not in the live-waveform whitelist');
+      return;
+    }
+    if (!_waveformRateAllow(_reqIp)) {
+      sendError(res, 429, 'RATE_LIMITED', 'Too many live-waveform requests; retry in a minute');
+      return;
+    }
+    var waveNow = Date.now();
+    var waveKey = waveSta + '|' + waveWin;
+    var waveCached = _waveformCache[waveKey];
+    if (waveCached && waveNow - waveCached.fetchedAt < 30000) {
+      res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' });
+      res.end(waveCached.body);
+      return;
+    }
+    _waveformFetchLive(waveMeta, waveWin, function(werr, wpayload) {
+      if (!werr && wpayload) {
+        _waveformCachePut(waveKey, wpayload);
+        res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' });
+        res.end(wpayload);
+      } else if (!werr && wpayload === null) {
+        // 204-class no-data is the upstream's current truth (e.g. station outage)
+        // and wins over stale cached traces — never fabricate a flat line.
+        var nodata = JSON.stringify({ station: waveSta, nodata: true, segments: [], nsamples: 0, fetchedAt: new Date().toISOString() });
+        _waveformCachePut(waveKey, nodata);
+        res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' });
+        res.end(nodata);
+      } else if (waveCached && Date.now() - waveCached.fetchedAt < 600000) {
+        // Stale on upstream error (up to 10 min) — the traces carry their own
+        // timestamps so the panel can flag them stale.
+        res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' });
+        res.end(waveCached.body);
+      } else {
+        sendError(res, 502, 'UPSTREAM_ERROR', 'Waveform source unavailable');
+      }
+    });
+    return;
+  }
+
   // Waveform data from FDSN (via ObsPy Python script)
   if (reqPath.startsWith('/api/waveform')) {
     // Rate limit: 5 req/min per IP (spawns Python subprocess)
@@ -2089,6 +2143,353 @@ function _upstreamGet(url, cb) {
 // Injectable for tests (same shape as _kmoniImgFetchFn)
 var _geoipFetchFn = _upstreamGet;
 
+// ====================================================================
+// Live waveform proxy — EarthScope NGF FDSN dataselect (open GSN data;
+// anonymous access verified 2026-09-03, old IRIS irisws/timeseries is dead)
+// + miniSEED v2.4 STEIM1/2 decoding (server-side, zero-dependency).
+// ====================================================================
+// Frozen whitelist — IU (GSN) stations ringing Japan with verified recent
+// open BHZ streams on the merged NGF source. INU/ERM/KAPI/GNI return 204
+// (not carried anonymously) and are deliberately absent.
+var WAVEFORM_LIVE_STATIONS = {
+  MAJO: { net: 'IU', sta: 'MAJO', loc: '00', cha: 'BHZ', lat: 36.54567, lng: 138.20406 }, // 松代 (長野)
+  YSS:  { net: 'IU', sta: 'YSS',  loc: '00', cha: 'BHZ', lat: 46.9587,  lng: 142.7604  }, // ユジノサハリンスク
+  INCN: { net: 'IU', sta: 'INCN', loc: '00', cha: 'BHZ', lat: 37.47768, lng: 126.62436 }, // 仁川
+  TATO: { net: 'IU', sta: 'TATO', loc: '00', cha: 'BHZ', lat: 24.9735,  lng: 121.4971  }  // 坪林 (台湾)
+};
+var WAVEFORM_UPSTREAM = 'https://service.earthscope.org/fdsnws/dataselect/1/query';
+var WAVEFORM_LATENCY_SEC = 30;  // telemetry margin behind real time
+var _waveformCache = {};        // "STA|windowSec" -> {body, fetchedAt} (30 s TTL, stale-if-error 10 min)
+var WAVEFORM_CACHE_MAX = 16;
+var _waveformRateBuckets = {};  // client IP -> {tokens, refilledAt}
+
+function _waveformCachePut(key, body) {
+  _waveformCache[key] = { body: body, fetchedAt: Date.now() };
+  var excess = Object.keys(_waveformCache).length - WAVEFORM_CACHE_MAX;
+  while (excess-- > 0) {
+    var oldestKey = null, oldestAt = Infinity;
+    for (var k in _waveformCache) {
+      if (_waveformCache[k].fetchedAt < oldestAt) { oldestAt = _waveformCache[k].fetchedAt; oldestKey = k; }
+    }
+    if (oldestKey === null) break;
+    delete _waveformCache[oldestKey];
+  }
+}
+
+// 20 requests/min per IP (token bucket; the 30 s cache bounds the upstream
+// even under a deliberately-varied windowSec sweep).
+function _waveformRateAllow(ip) {
+  var now = Date.now();
+  var b = _waveformRateBuckets[ip];
+  if (!b) { b = _waveformRateBuckets[ip] = { tokens: 20, refilledAt: now }; }
+  b.tokens = Math.min(20, b.tokens + (now - b.refilledAt) / 60000 * 20);
+  b.refilledAt = now;
+  if (b.tokens < 1) return false;
+  b.tokens -= 1;
+  return true;
+}
+
+// Fetch one station window from the upstream and decode to JSON, or
+// cb(null, null) on upstream 204 (no data — honest empty, not an error).
+function _waveformFetchLive(meta, windowSec, cb) {
+  var endMs = Date.now() - WAVEFORM_LATENCY_SEC * 1000;
+  var startMs = endMs - windowSec * 1000;
+  var iso = function(ms) {
+    var d = new Date(ms);
+    return d.toISOString().replace(/\.\d{3}Z$/, '');
+  };
+  var u = WAVEFORM_UPSTREAM +
+    '?net=' + encodeURIComponent(meta.net) +
+    '&sta=' + encodeURIComponent(meta.sta) +
+    '&loc=' + encodeURIComponent(meta.loc) +
+    '&cha=' + encodeURIComponent(meta.cha) +
+    '&starttime=' + iso(startMs) + '&endtime=' + iso(endMs);
+  _waveformFetchFn(u, function(err, status, buf) {
+    if (err) { cb(err); return; }
+    if (status === 204) { cb(null, null); return; }
+    if (status !== 200 || !buf || !buf.length) { cb(new Error('upstream ' + status)); return; }
+    var decoded;
+    try { decoded = decodeMiniSEED(buf); }
+    catch (e) { cb(e); return; }
+    var out = {
+      station: meta.sta, net: meta.net, loc: meta.loc, cha: meta.cha,
+      lat: meta.lat, lng: meta.lng,
+      windowSec: windowSec,
+      fetchedAt: new Date().toISOString(),
+      source: 'earthscope-ngf-fdsnws-dataselect',
+      nsamples: 0, gaps: 0, nodata: false,
+      droppedRecords: decoded.droppedRecords || 0,
+      xnMismatches: decoded.xnMismatches || 0,
+      segments: decoded.segments
+    };
+    for (var i = 0; i < decoded.segments.length; i++) out.nsamples += decoded.segments[i].counts.length;
+    out.gaps = Math.max(0, decoded.segments.length - 1);
+    if (!out.nsamples) out.nodata = true;
+    cb(null, JSON.stringify(out));
+  });
+}
+// Injectable for tests
+var _waveformFetchFn = _waveformFetchHttp;
+
+// Binary upstream GET for miniSEED bodies (utf8 conversion would destroy the
+// bytes — this variant keeps the Buffer, tolerates 204, 4 MB / 15 s caps).
+function _waveformFetchHttp(url, cb) {
+  var https = require('https');
+  var settled = false;
+  function done(err, status, buf) {
+    if (settled) return;
+    settled = true;
+    cb(err, status, buf);
+  }
+  var req = https.get(url, {
+    agent: _httpsAgent,
+    headers: { 'Accept-Encoding': 'identity', 'User-Agent': 'QuakeSim/6.0 Waveform Proxy' }
+  }, function(r) {
+    if (r.statusCode === 204) { r.resume(); done(null, 204, null); return; }
+    if (r.statusCode !== 200) { r.resume(); done(new Error('upstream ' + r.statusCode), r.statusCode, null); return; }
+    var chunks = [], bodyLen = 0;
+    r.on('data', function(c) { bodyLen += c.length; if (bodyLen <= 4194304) chunks.push(c); });
+    r.on('end', function() {
+      if (bodyLen > 4194304) { done(new Error('upstream too large'), 200, null); return; }
+      done(null, 200, Buffer.concat(chunks, bodyLen));
+    });
+    r.on('error', function(e) { done(e, 0, null); });
+  });
+  req.on('error', function(e) { done(e, 0, null); });
+  req.setTimeout(15000, function() { req.destroy(new Error('upstream timeout')); });
+}
+
+// ---- miniSEED v2.4 decoding ----------------------------------------
+// Supports the encodings open FDSN dataselect actually serves for the
+// whitelisted GSN channels: 10 (STEIM1), 11 (STEIM2), 1/3 (INT16/32),
+// 4/5 (FLOAT32/64). Fixed-header fields are big-endian (SEED standard);
+// data words follow the blockette-1000 word-order flag. Semantics are a
+// faithful port of libmseed's msr_decode_steim1/2 (EarthScope libmseed,
+// unpackdata.c): X0 = first sample, the FIRST diff of the record is
+// skipped (it links to the previous record), Xn mismatches are counted
+// as diagnostics (libmseed warns and serves; so do we).
+function decodeMiniSEED(buf) {
+  if (!Buffer.isBuffer(buf) || buf.length < 64) return { segments: [], droppedRecords: 0, xnMismatches: 0 };
+  var segments = [], dropped = 0, dropReasons = [], xnMismatch = 0, offset = 0, recLen = 512;
+  while (offset + 64 <= buf.length) {
+    var rec;
+    try { rec = _mseedRecord(buf, offset, recLen); }
+    catch (e) { rec = null; }
+    if (!rec || rec.recLen == null) {
+      dropped++; dropReasons.push(rec && rec.error ? rec.error : 'exception');
+      break;
+    }
+    recLen = rec.recLen; // records in one stream share the length
+    if (offset + recLen > buf.length) break; // truncated tail
+    if (rec.xnMismatch) xnMismatch++;
+    if (rec.error || !rec.counts || !rec.counts.length) {
+      dropped++; dropReasons.push(rec.error || 'empty');
+    } else {
+      _mseedAppend(segments, rec);
+    }
+    offset += recLen;
+  }
+  return { segments: segments, droppedRecords: dropped, dropReasons: dropReasons, xnMismatches: xnMismatch };
+}
+
+function _mseedAppend(segments, rec) {
+  var last = segments.length ? segments[segments.length - 1] : null;
+  var tol = 600 / Math.min(rec.sps, 1000) + 1; // ms — contiguous within half a sample
+  if (last && last.sps === rec.sps &&
+      Math.abs((rec.startMs + 1000 / rec.sps) - (last.startMs + (last.counts.length) * 1000 / last.sps)) <= tol) {
+    for (var i = 0; i < rec.counts.length; i++) last.counts.push(rec.counts[i]);
+  } else {
+    segments.push({ startMs: rec.startMs, sps: rec.sps, counts: rec.counts });
+  }
+}
+
+function _mseedRecord(buf, base, defaultRecLen) {
+  var yr = buf.readUInt16BE(base + 20);
+  if (yr < 1970 || yr > 2200) return { error: 'bad-year', recLen: null };
+  var day = buf.readUInt16BE(base + 22);
+  var h = buf[base + 24], mi = buf[base + 25], se = buf[base + 26];
+  var tenthMs = buf[base + 27] * 100; // SEED tenths field (often 0 in miniSEED)
+  var nsamp = buf.readUInt16BE(base + 30);
+  var rateF = buf.readInt16BE(base + 32), rateM = buf.readInt16BE(base + 34);
+  var numBlk = buf[base + 39];
+  var dataOff = buf.readUInt16BE(base + 44);
+  var blkOff = buf.readUInt16BE(base + 46);
+
+  // walk blockettes: 1000 (encoding/word-order/record-length), 100 (rate), 1001 (µs)
+  var encoding = -1, wordOrder = 1, recLenExp = -1, sps100 = 0, microsec = 0;
+  var t = blkOff;
+  for (var bi = 0; bi < numBlk && t >= 48 && t + 8 <= 4088 && base + t + 8 <= buf.length; bi++) {
+    var btype = buf.readUInt16BE(base + t);
+    var bnext = buf.readUInt16BE(base + t + 2);
+    if (btype === 1000) {
+      encoding = buf[base + t + 4];
+      wordOrder = buf[base + t + 5];
+      recLenExp = buf[base + t + 6];
+    } else if (btype === 100) {
+      sps100 = buf.readFloatBE(base + t + 4);
+    } else if (btype === 1001) {
+      microsec = buf.readInt8(base + t + 5);
+    }
+    if (!bnext) break;
+    t = bnext;
+  }
+  if (recLenExp < 6 || recLenExp > 20) return { error: 'no-blockette-1000', recLen: null };
+  var recLen = 1 << recLenExp;
+  if (dataOff < 64 || dataOff >= recLen || !nsamp) return { error: 'no-data', recLen: recLen };
+  if (base + recLen > buf.length) return { error: 'truncated', recLen: recLen };
+
+  // sample rate — SEED nominal-rate rules (libmseed ms_nomsamprate)
+  var sps;
+  if (rateF > 0) sps = (rateM > 0) ? rateF * rateM : rateF / -rateM;
+  else if (rateF < 0) sps = (rateM > 0) ? -rateM / rateF : -1 / (rateF * rateM);
+  else sps = sps100;
+  if (!(sps > 0 && sps <= 500)) return { error: 'bad-rate', recLen: recLen };
+
+  var startMs = Date.UTC(yr, 0, day, h, mi, se) + tenthMs + microsec / 1000;
+  var dv = new DataView(buf.buffer, buf.byteOffset + base, recLen);
+  var le = wordOrder === 0; // 1 = big-endian (default for IU/GE)
+  var counts, xnMismatch = false;
+  if (encoding === 10 || encoding === 11) {
+    counts = _steimDecode(dv, dataOff, recLen, le, nsamp, encoding === 11);
+    if (!counts) return { error: 'steim', recLen: recLen };
+    if (counts._xnOk === false) xnMismatch = true;
+    delete counts._xnOk;
+  } else if (encoding === 1 || encoding === 3) {
+    counts = [];
+    var step = encoding === 1 ? 2 : 4;
+    for (var i = 0; i < nsamp && dataOff + (i + 1) * step <= recLen; i++) {
+      counts.push(encoding === 1 ? dv.getInt16(dataOff + i * 2, le) : dv.getInt32(dataOff + i * 4, le));
+    }
+  } else if (encoding === 4) {
+    counts = [];
+    for (var i2 = 0; i2 < nsamp && dataOff + (i2 + 1) * 4 <= recLen; i2++) counts.push(dv.getFloat32(dataOff + i2 * 4, le));
+    counts = counts.map(Math.round);
+  } else if (encoding === 5) {
+    counts = [];
+    for (var i3 = 0; i3 < nsamp && dataOff + (i3 + 1) * 8 <= recLen; i3++) counts.push(Math.round(dv.getFloat64(dataOff + i3 * 8, le)));
+  } else {
+    return { error: 'unsupported-encoding-' + encoding, recLen: recLen };
+  }
+  if (counts.length !== nsamp) return { error: 'short-counts', recLen: recLen };
+  return { startMs: startMs, sps: sps, counts: counts, recLen: recLen, xnMismatch: xnMismatch };
+}
+
+// Decode one record's STEIM1/STEIM2 data section — a faithful port of
+// libmseed msr_decode_steim1/2 (EarthScope libmseed unpackdata.c):
+//   - frame 0 W1 = X0 (FIRST sample, written to out[0]), W2 = Xn (last-sample check)
+//   - the FIRST difference of the record is DISCARDED (it links to the
+//     previous record's last sample) — libmseed's "(frameidx == 0) ? 1 : 0"
+//   - STEIM1: nib1 = 4×i8 (file-byte order), nib2 = 2×i16 (shifts 16,0), nib3 = 1×i32
+//   - STEIM2: nib1 = 4×i8; nib2: dn1 → 1×i30, dn2 → 2×i15 (shifts 15,0),
+//     dn3 → 3×i10 (shifts 20,10,0), dn0 → INVALID;
+//     nib3: dn0 → 5×i6 (shifts 24,18,12,6,0), dn1 → 6×i5 (25,20,15,10,5,0),
+//     dn2 → 7×i4 (24,20,16,12,8,4,0), dn3 → INVALID
+// Table verified sample-by-sample against the libmseed Steim2-AllDifferences
+// fixture + ObsPy and live NGF MAJO/YSS/INCN/TATO streams (2026-09-03).
+function _steimDecode(dv, dataOff, recLen, le, nsamp, isSteim2) {
+  var nFrames = Math.floor((recLen - dataOff) / 64);
+  if (nFrames < 1) return null;
+  var out = new Array(nsamp);
+  var x0 = 0, xn = 0;
+  try {
+    x0 = dv.getInt32(dataOff + 4, le);  // frame 0 W1
+    xn = dv.getInt32(dataOff + 8, le);  // frame 0 W2
+  } catch (e) { return null; }
+  out[0] = x0;
+  var si = 1, diffPos = 0;
+  for (var f = 0; f < nFrames && si < nsamp; f++) {
+    var fo = dataOff + f * 64;
+    var w0 = dv.getUint32(fo, le);
+    var wFirst = (f === 0) ? 3 : 1; // frame 0: W0 header, W1 X0, W2 Xn
+    for (var w = wFirst; w <= 15 && si < nsamp; w++) {
+      var nib = (w0 >>> (30 - 2 * w)) & 3;
+      if (nib === 0) continue;
+      var word = dv.getUint32(fo + w * 4, le);
+      var diffs;
+      if (nib === 1) {
+        // 4×i8 in FILE byte order (libmseed reads the raw bytes via union)
+        diffs = [
+          ((word >>> 24) << 24 >> 24),
+          (((word >>> 16) & 0xff) << 24 >> 24),
+          (((word >>> 8) & 0xff) << 24 >> 24),
+          ((word & 0xff) << 24 >> 24)
+        ];
+      } else if (isSteim2) {
+        var dnib = (word >>> 30) & 3;
+        if (nib === 2) {
+          if (dnib === 1) {
+            diffs = [((word & 0x3fffffff) << 2 >> 2)];
+          } else if (dnib === 2) {
+            diffs = [
+              (((word >>> 15) & 0x7fff) << 17 >> 17),
+              ((word & 0x7fff) << 17 >> 17)
+            ];
+          } else if (dnib === 3) {
+            diffs = [
+              (((word >>> 20) & 0x3ff) << 22 >> 22),
+              (((word >>> 10) & 0x3ff) << 22 >> 22),
+              ((word & 0x3ff) << 22 >> 22)
+            ];
+          } else {
+            return null; // dnib 0 with nibble 2 is undefined in Steim2
+          }
+        } else if (nib === 3) {
+          if (dnib === 0) {
+            diffs = [
+              (((word >>> 24) & 0x3f) << 26 >> 26),
+              (((word >>> 18) & 0x3f) << 26 >> 26),
+              (((word >>> 12) & 0x3f) << 26 >> 26),
+              (((word >>> 6) & 0x3f) << 26 >> 26),
+              ((word & 0x3f) << 26 >> 26)
+            ];
+          } else if (dnib === 1) {
+            diffs = [
+              (((word >>> 25) & 0x1f) << 27 >> 27),
+              (((word >>> 20) & 0x1f) << 27 >> 27),
+              (((word >>> 15) & 0x1f) << 27 >> 27),
+              (((word >>> 10) & 0x1f) << 27 >> 27),
+              (((word >>> 5) & 0x1f) << 27 >> 27),
+              ((word & 0x1f) << 27 >> 27)
+            ];
+          } else if (dnib === 2) {
+            diffs = [
+              (((word >>> 24) & 0xf) << 28 >> 28),
+              (((word >>> 20) & 0xf) << 28 >> 28),
+              (((word >>> 16) & 0xf) << 28 >> 28),
+              (((word >>> 12) & 0xf) << 28 >> 28),
+              (((word >>> 8) & 0xf) << 28 >> 28),
+              (((word >>> 4) & 0xf) << 28 >> 28),
+              ((word & 0xf) << 28 >> 28)
+            ];
+          } else {
+            return null; // dnib 3 with nibble 3 is undefined in Steim2
+          }
+        } else {
+          return null;
+        }
+      } else {
+        // STEIM1
+        if (nib === 2) {
+          diffs = [
+            ((word >>> 16) << 16 >> 16),
+            ((word & 0xffff) << 16 >> 16)
+          ];
+        } else {
+          diffs = [(word | 0)];
+        }
+      }
+      for (var di = 0; di < diffs.length && si < nsamp; di++) {
+        if (diffPos++ === 0) continue; // discard the very first diff (record link)
+        out[si] = (out[si - 1] + diffs[di]) | 0;
+        si++;
+      }
+    }
+  }
+  if (si !== nsamp) return null; // fewer diffs than nsamp-1 — malformed
+  out._xnOk = (out[nsamp - 1] === xn);
+  return out;
+}
+
 function _kmoniFetchSitelist(cb) {
   var https = require('https');
   var settled = false;
@@ -2512,5 +2913,20 @@ module.exports._test = {
   geoipSetFetcher: function(fn) { _geoipFetchFn = (typeof fn === 'function') ? fn : _upstreamGet; },
   geoipCache: function() { return _geoipCache; },
   geoipReset: function() { _geoipCache = {}; },
+  // live-waveform proxy test hooks: stub the upstream (fn(url, cb(err,status,Buffer))),
+  // reset cache + rate buckets, and reach the miniSEED decoder directly
+  waveformSetFetcher: function(fn) { _waveformFetchFn = (typeof fn === 'function') ? fn : _waveformFetchHttp; },
+  waveformReset: function() { _waveformCache = {}; _waveformRateBuckets = {}; },
+  waveformCache: function() { return _waveformCache; },
+  waveformStations: WAVEFORM_LIVE_STATIONS,
+  decodeMiniSEED: decodeMiniSEED,
+  waveformDecodeRecord: _mseedRecord,
+  waveformBuildUpstreamUrl: function(sta, windowSec, nowMs) {
+    var meta = WAVEFORM_LIVE_STATIONS[sta];
+    var endMs = (nowMs || Date.now()) - WAVEFORM_LATENCY_SEC * 1000;
+    var iso = function(ms) { return new Date(ms).toISOString().replace(/\.\d{3}Z$/, ''); };
+    return WAVEFORM_UPSTREAM + '?net=' + meta.net + '&sta=' + meta.sta + '&loc=' + meta.loc +
+      '&cha=' + meta.cha + '&starttime=' + iso(endMs - windowSec * 1000) + '&endtime=' + iso(endMs);
+  },
   exportRateLimitReset: function() { _exportRateLimit = {}; }
 };

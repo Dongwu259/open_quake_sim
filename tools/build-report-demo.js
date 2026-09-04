@@ -123,6 +123,75 @@ function main() {
     };
   }
 
+  // v6.2 waveform analysis: same 3-station auto-selection rule as the app
+  // (_selectWaveAnalysisStations): strongest PGA / nearest / median-distance
+  // of the strong set (>= 20% of max PGA). Analysis engine is shared with
+  // the info-panel tool (public/waveform-analysis.js), trace anchored to the
+  // same zhao2006 forecast PGA that produced the station tables, and the
+  // magnitude inversion inverts the SAME forward relation — deterministic.
+  let waveAnalysis = null;
+  if (rows.length >= 3) {
+    const WaveAnalysis = require('../public/waveform-analysis.js');
+    const byPga = rows.slice(); // rows already sorted by descending PGA
+    const byDist = rows.slice().sort((a, b) => a.rRup - b.rRup);
+    const strong = rows.filter((r) => r.pga >= 0.2 * byPga[0].pga).sort((a, b) => a.rRup - b.rRup);
+    const mid = strong.length ? strong[Math.floor((strong.length - 1) / 2)] : null;
+    const picks = [];
+    const seen = new Set();
+    for (const cand of [byPga[0], byDist[0], mid]) {
+      let c = cand;
+      if (!c || seen.has(c.name)) {
+        c = cand === byPga[0] ? byPga[1] : (cand === byDist[0] ? byDist[1] : byPga[2]);
+        if (!c || seen.has(c.name)) continue;
+      }
+      seen.add(c.name);
+      picks.push(c);
+      if (picks.length === 3) break;
+    }
+    const stations = [];
+    const roles = ['strongest', 'nearest', 'mid'];
+    for (let pi = 0; pi < picks.length; pi++) {
+      const s = picks[pi];
+      const vs30 = vs30At(s.lat, s.lng);
+      const forward = (m) => Physics.pgaZhao2006(m, s.rRup, EV.depth, srcType, vs30, EV.rake);
+      // Quantise the analysis inputs to 1 decimal and store them verbatim in
+      // the snapshot — tests rebuild bit-for-bit from the frozen inputs.
+      const distQ = +s.rRup.toFixed(1);
+      const targetQ = +s.pga.toFixed(1);
+      // per-station deterministic seed (index-derived) — co-located stations
+      // share a distance-derived default seed and would produce identical traces
+      const seed = (Math.imul(pi + 7, 2654435761) + Math.round(distQ * 17)) >>> 0;
+      const r = WaveAnalysis.analyze({
+        physics: Physics, mw: EV.mag, distKm: distQ, stressDropMPa: 10,
+        targetPgaGal: targetQ, pgaForMw: forward, seed
+      });
+      if (r && r.ok) {
+        stations.push({
+          name: s.name, role: roles[pi],
+          distKm: distQ,
+          targetPgaGal: targetQ,
+          seed,
+          metrics: {
+            pgaGal: r.pgaGal, pgvKine: r.pgvKine, pgdCm: r.pgdCm,
+            ariasMs: r.ariasMs, cavGalS: r.cavGalS, d5d95S: r.d5d95S,
+            energyV2: r.energyV2, dominantPeriodS: r.dominantPeriodS,
+            apparentCornerHz: r.apparentCornerHz, theoreticalCornerHz: r.theoreticalCornerHz
+          },
+          magFromAmplitude: r.magFromAmplitude,
+          trace: r.trace
+        });
+      }
+    }
+    if (stations.length) {
+      waveAnalysis = {
+        actualMw: EV.mag,
+        stressDropMPa: 10,
+        selectionRule: 'strongest / nearest / median-distance-of-strong (peak PGA >= 20% of max)',
+        stations
+      };
+    }
+  }
+
   const snap = {
     schema: 'quake-sim-report-snapshot-v1',
     kind: 'demo',
@@ -134,7 +203,7 @@ function main() {
       faultModel: null, chainCount: null
     },
     summary, prefectures: prefs.slice(0, 15), stations: top12,
-    tsunami: null, aftershocks: null, spectrum,
+    tsunami: null, aftershocks: null, spectrum, waveAnalysis,
     provenance: {
       builder: 'tools/build-report-demo.js',
       model: 'zhao2006 + shipped modelBias, point-source equal-area Rrup proxy — static forecast, no time simulation',
@@ -146,6 +215,9 @@ function main() {
   console.log('wrote ' + OUT);
   console.log('top pref: ' + prefs[0].name + ' ' + prefs[0].shindo + ' | max PGA ' + summary.maxPgaGal + ' gal at ' + (maxRow && maxRow.name));
   console.log('stations scored: ' + rows.length + (spectrum ? ' | spectrum @ ' + spectrum.station : ' | no spectrum'));
+  if (waveAnalysis) {
+    console.log('wave analysis: ' + waveAnalysis.stations.map((s) => s.name + '[' + s.role + '] inv M' + s.magFromAmplitude).join(', '));
+  }
 }
 
 try { main(); } catch (e) { console.error(e); process.exit(1); }

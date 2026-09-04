@@ -43,3 +43,44 @@ test('report demo — top station PGA re-derivable through the frozen path', () 
   const peak = Math.max(...DEMO.spectrum.psaGal);
   assert.ok(peak > 100 && peak < 5000, 'spectrum peak ' + peak);
 });
+
+test('report demo — waveform analysis section: 3 auto-selected stations, inversion lands on the input M', () => {
+  const wa = DEMO.waveAnalysis;
+  assert.ok(wa, 'waveAnalysis block present');
+  assert.equal(wa.actualMw, 7.3);
+  assert.equal(wa.stressDropMPa, 10);
+  assert.ok(wa.selectionRule.includes('strongest'));
+  assert.equal(wa.stations.length, 3);
+  const roles = wa.stations.map((s) => s.role);
+  assert.deepEqual(roles.sort(), ['mid', 'nearest', 'strongest']);
+  for (const s of wa.stations) {
+    // metrics in physically plausible bands for M7.3 near-field
+    assert.ok(s.metrics.pgaGal.vec > 100, s.name + ' PGA ' + s.metrics.pgaGal.vec);
+    assert.ok(s.metrics.pgvKine > 5, s.name + ' PGV ' + s.metrics.pgvKine);
+    assert.ok(s.metrics.ariasMs > 0.5, s.name + ' Ia ' + s.metrics.ariasMs);
+    assert.ok(s.metrics.dominantPeriodS > 0.2 && s.metrics.dominantPeriodS < 10, s.name + ' Tp');
+    assert.ok(s.trace.z.length >= 100 && s.trace.z.length <= 256, s.name + ' trace length');
+    // the PGA inversion shares the zhao2006 anchor — must land on the input M
+    assert.ok(Math.abs(s.magFromAmplitude - 7.3) <= 0.05, s.name + ' inv M ' + s.magFromAmplitude);
+  }
+  // per-station seeds: co-located stations (KOTO/KAWASAKI share rRup) must
+  // NOT produce identical traces
+  assert.notDeepEqual(wa.stations[0].trace.z, wa.stations[1].trace.z, 'distinct realizations');
+});
+
+test('report demo — wave analysis is deterministic on rebuild (seeded, no RNG drift)', () => {
+  const WaveAnalysis = require('../public/waveform-analysis.js');
+  const cal = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'public', 'geojson', 'gmpe-calibration.json'), 'utf8'));
+  Physics.setGmpeCalibration(cal);
+  const s = DEMO.waveAnalysis.stations[0];
+  const dist = s.distKm;
+  // rebuild from the frozen snapshot inputs (the builder quantises dist/target
+  // to 1 dp and stores the per-station seed verbatim)
+  const r = WaveAnalysis.analyze({
+    physics: Physics, mw: 7.3, distKm: s.distKm, stressDropMPa: 10,
+    targetPgaGal: s.targetPgaGal, seed: s.seed
+  });
+  assert.ok(r.ok);
+  assert.deepEqual(r.trace.z, s.trace.z, 'trace reproduces bit-for-bit');
+  assert.equal(r.pgaGal.vec, s.metrics.pgaGal.vec, 'anchor PGA reproduces');
+});

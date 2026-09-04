@@ -25,12 +25,12 @@
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <title>地震模拟器 v6.2 | Earthquake Simulator Pro</title>
 <link rel="stylesheet" href="leaflet/leaflet.css?v=f885c4">
-<link rel="stylesheet" href="style.css?v=cdd3bd">
+<link rel="stylesheet" href="style.css?v=fea5a9">
 <link rel="preload" href="leaflet/leaflet.js?v=5a640f" as="script">
-<link rel="preload" href="app.js?v=b3b066" as="script">
-<link rel="preload" href="style.css?v=cdd3bd" as="style">
-<link rel="preload" href="config.js?v=925c43" as="script">
-<link rel="preload" href="physics.js?v=1b9b57" as="script">
+<link rel="preload" href="app.js?v=537cf4" as="script">
+<link rel="preload" href="style.css?v=fea5a9" as="style">
+<link rel="preload" href="config.js?v=d01e23" as="script">
+<link rel="preload" href="physics.js?v=1ec433" as="script">
 </head>
 <body>
 <a href="#map" class="skip-link" data-i18n="aria.skip">跳转到内容</a>
@@ -38,7 +38,7 @@
   <div id="sidebar" role="complementary" aria-label="控制面板">
     <div id="sidebar-header">
       <h1 data-i18n="app.title">地震模拟器 v6.2</h1>
-      <div id="build-ver" style="font-size:.65em;color:var(--text-secondary);opacity:.5;margin-top:-2px" data-sw="sw.js=v451016">(······)</div>
+      <div id="build-ver" style="font-size:.65em;color:var(--text-secondary);opacity:.5;margin-top:-2px" data-sw="sw.js=v490974">(······)</div>
       <button id="btn-report-page" class="report-entry-btn" type="button" data-i18n="report.entry_btn">📋 体验报告</button>
       <button id="btn-guide-page" class="report-entry-btn" type="button" data-i18n="guide.entry_btn">🧭 使用说明</button>
       <button id="btn-help" class="help-link" type="button" data-i18n="help.title">使用帮助</button>
@@ -184,6 +184,12 @@
           <summary><span data-i18n="basic.layers">地图与分析图层</span></summary>
           <div class="disclosure-body switch-list two-column">
             <label class="switch-row"><input type="checkbox" id="fault-polygon-enable" checked><span class="switch-ui"></span><span data-i18n="fault.polygon">断层多边形</span></label>
+            <div class="fault-path-row" id="fault-path-row">
+              <button type="button" id="btn-fault-path" class="rt-mini-btn" data-i18n="fault.path_btn">✎ 弯折断层</button>
+              <button type="button" id="btn-fault-path-done" class="rt-mini-btn" style="display:none" data-i18n="fault.path_done">完成</button>
+              <button type="button" id="btn-fault-path-clear" class="rt-mini-btn" style="display:none" data-i18n="fault.path_clear">清除</button>
+              <span id="fault-path-status" class="fault-path-status"></span>
+            
             <label class="switch-row"><input type="checkbox" id="3d-enable" checked><span class="switch-ui"></span><span data-i18n="3d.enable">3D模式（信息页面）</span></label>
             <label class="switch-row"><input type="checkbox" id="isoseismal-enable" checked><span class="switch-ui"></span><span data-i18n="chk.isoseismal">等震度线</span></label>
             <label class="switch-row"><input type="checkbox" id="plates-enable" checked><span class="switch-ui"></span><span data-i18n="chk.plates">板块边界</span></label>
@@ -358,7 +364,8 @@
           <div class="adv-row" data-cfg="aspSigmaI"><span data-i18n="adv.aspSigI">凹凸体 σ 走向</span><input type="range"><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div>
           <div class="adv-row" data-cfg="aspSigmaJ"><span data-i18n="adv.aspSigJ">凹凸体 σ 倾向</span><input type="range"><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div>
           <div class="adv-row" data-cfg="hypocenterFrac"><span data-i18n="adv.hypoFrac">震源深度比</span><input type="range"><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div>
-          <div class="adv-row" data-cfg="slipPerturbation"><span data-i18n="adv.slipPert">滑移扰动</span><input type="range"><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div>
+          <div class="adv-row" data-cfg="slipPerturbation"><span data-i18n="adv.slipPert">滑移扰动</span><input type="range"><span class="adv-val"></span><button class="adv-rst">&#8634;</button>
+          <div class="adv-row" data-cfg="shallowSlipDeficit"><span data-i18n="adv.shallowSlipDeficit">浅部滑移亏损</span><input type="range"><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div><div class="adv-row" data-cfg="faultListricDip"><span data-i18n="adv.faultListricDip">铲式倾角减量</span><input type="range"><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div></div>
           <div class="adv-row" data-cfg="slipThreshold"><span data-i18n="adv.slipThr">滑移阈值</span><input type="range"><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div>
           <div class="adv-row" data-cfg="ruptureMode"><span data-i18n="adv.rupMode">破裂模式</span><select></select><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div>
         </div>
@@ -426,9 +433,23 @@
               <div class="chart-block"><div class="info-mini-hdr"><span data-i18n="info.spectrum">加速度反应谱 PSA(T)</span><button class="chart-download" data-canvas="spectrum-canvas" data-i18n-aria="info.download_chart" aria-label="Download chart">&#11015;</button></div><canvas id="spectrum-canvas" width="320" height="90" class="info-plot" role="img" data-i18n-aria="a11y.canvas.spectrum" aria-label="Response spectrum"></canvas></div>
               <div class="chart-block"><div class="info-mini-hdr"><span data-i18n="info.atten_curve">PGA 距离衰减曲线</span><button class="chart-download" data-canvas="atten-canvas" data-i18n-aria="info.download_chart" aria-label="Download chart">&#11015;</button></div><canvas id="atten-canvas" width="320" height="120" class="info-plot" role="img" data-i18n-aria="a11y.canvas.attenuation" aria-label="Attenuation curve"></canvas></div>
               <div class="chart-block"><div class="info-mini-hdr"><span data-i18n="info.gmpe_compare">GMPE模型对比</span><button class="chart-download" data-canvas="gmpe-compare-canvas" data-i18n-aria="info.download_chart" aria-label="Download chart">&#11015;</button></div><canvas id="gmpe-compare-canvas" width="320" height="130" class="info-plot" role="img" data-i18n-aria="a11y.canvas.gmpe" aria-label="GMPE comparison"></canvas></div>
-              <div class="chart-block"><div class="info-mini-hdr"><span data-i18n="info.azimuth">方位角 PGA 方向性</span><button class="chart-download" data-canvas="azimuth-canvas" data-i18n-aria="info.download_chart" aria-label="Download chart">&#11015;</button></div><canvas id="azimuth-canvas" width="200" height="200" class="info-plot info-plot-sq" role="img" data-i18n-aria="a11y.canvas.azimuth" aria-label="Azimuth directivity"></canvas></div>
+              <div class="chart-block"><div class="info-mini-hdr"><span data-i18n="info.azimuth">方位角 PGA 方向性</span><button class="chart-download" data-canvas="azimuth-canvas" data-i18n-aria="info.download_chart" aria-label="Download chart">&#11015;</button></div><canvas id="azimuth-canvas" width="200" height="200" class="info-plot info-plot-sq" role="img" data-i18n-aria="a11y.canvas.azimuth" aria-label="Azimuth directivity"></canvas>
+              <div class="chart-block" id="wfa-block"><div class="info-mini-hdr"><span data-i18n="info.wfa_title">波形分析工具</span><select id="wfa-station" class="rt-select rt-select-narrow" aria-label="station"></select><button id="wfa-run" class="rt-mini-btn" type="button" data-i18n="info.wfa_run">分析</button></div>
+                <canvas id="wfa-canvas" width="320" height="80" class="info-plot" role="img" data-i18n-aria="a11y.canvas.wfa" aria-label="Waveform analysis"></canvas>
+                <div id="wfa-result"></div>
+                <div class="wfa-note" id="wfa-note" data-i18n="info.wfa_note">确定性合成载体（Brune 谱）锚定 GMPE PGA；震级反演与锚定同源，为模型一致性检查。应力降假定 10 MPa。</div>
             </div>
           </details>
+          <details class="info-card" id="fault-rupture-card">
+            <summary><span data-i18n="info.frv_title">断层破裂详情</span></summary>
+            <div class="info-card-body">
+              <div class="info-mini-hdr"><span data-i18n="info.frv_xsec">断层面剖面（沿走向 × 深度）</span><select id="frv-colorby" class="rt-select rt-select-narrow" aria-label="color"><option value="slip" data-i18n="info.frv_color_slip">滑移</option><option value="time" data-i18n="info.frv_color_time">破裂时间</option></select></div>
+              <canvas id="frv-xsec-canvas" width="320" height="150" class="info-plot" role="img" data-i18n-aria="a11y.canvas.frv" aria-label="Fault rupture cross-section"></canvas>
+              <div class="info-mini-hdr"><span data-i18n="info.frv_mrf">矩速率 / 累积释放矩</span></div>
+              <canvas id="frv-mrf-canvas" width="320" height="70" class="info-plot" role="img" data-i18n-aria="a11y.canvas.frv_mrf" aria-label="Moment rate"></canvas>
+              <div id="frv-stats"></div>
+              <div class="wfa-note" data-i18n="info.frv_note">合成断层为 von Kármán 谱非均匀滑移场（Mai &amp; Beroza 2002 型，H=0.75，沿走向/下倾各向异性）；导入模型为实测反演补片。矩速率为补片 STF 之差分合成。</div>
+            </div>
           <details class="info-card" id="psha-card">
             <summary><span data-i18n="info.psha">地震危险性 (PSHA)</span></summary>
             <div class="info-card-body">
@@ -546,6 +567,7 @@
             <summary><span data-i18n="info.finite_fault_import">实测有限断层导入</span></summary>
             <div class="info-card-body finite-fault-import">
               <p data-i18n="info.finite_fault_import_hint">导入标准有限断层 JSON、USGS 风格 GeoJSON 或 SRCMOD/FSP。每个子断层的四角坐标、滑移、机制和破裂时间将直接进入 Rrup、地图及 3D 计算。</p>
+              <div class="finite-fault-bundled-row"><label data-i18n="info.finite_fault_bundled">捆绑动力学破裂模型</label><select id="finite-fault-bundled" class="rt-select"><option value="" data-i18n="info.finite_fault_bundled_none">— 选择模型 —</option></select>
               <input type="file" id="finite-fault-file" accept=".json,.geojson,.fsp,.txt,application/json,application/geo+json,text/plain">
               <div class="finite-fault-provenance">
                 <input type="text" id="finite-fault-source" data-i18n-ph="info.finite_fault_source_ph" placeholder="数据来源">
@@ -712,14 +734,16 @@
 
 <script src="leaflet/leaflet.js?v=5a640f"></script>
 <script src="turf/turf.min.js?v=07f3b6"></script>
-<script src="config.js?v=925c43"></script>
+<script src="config.js?v=d01e23"></script>
 <script src="sim-utils.js?v=b2aa4c"></script>
 <script src="research.js?v=d9aad6"></script>
 <script src="data-catalog.js?v=bee20f"></script>
 <script src="grid-package.js?v=865d26"></script>
-<script src="i18n.js?v=db604f"></script>
+<script src="i18n.js?v=b44263"></script>
 <script src="dc3d.js?v=2865dd"></script>
-<script src="physics.js?v=1b9b57"></script>
+<script src="physics.js?v=1ec433"></script>
+
+<script src="waveform-analysis.js?v=c86267"></script>
 <script src="tsunami-solver-host.js?v=2432a8"></script>
 <script src="ensemble-solver-host.js?v=153d61"></script>
 <script src="reference-backend.js?v=3ead82"></script>
@@ -816,14 +840,16 @@ window._loadThreeJS = function(cb) {
     </div>
   </div>
 </div>
-<script src="app.js?v=b3b066"></script>
+<script src="app.js?v=537cf4"></script>
 <script src="aftershock.js?v=e29837"></script>
-<script src="rt-data.js?v=cc4e9a"></script>
+<script src="rt-data.js?v=27ac29"></script>
 <script src="rt-kmoni.js?v=b581c5"></script>
-<script src="rt-eew.js?v=e3de03"></script>
+<script src="rt-eew.js?v=222d18"></script>
 <script src="rt-demo.js?v=c99e56"></script>
 <script src="rt-quakeinfo.js?v=b6b2bc"></script>
 <script src="rt-tsunami.js?v=d59204"></script>
+
+<script src="rt-waveform.js?v=61c0cb"></script>
 <script src="info-panel.js?v=f09267"></script>
 <script src="renderer.js?v=c4072c"></script>
 <div id="help-overlay" class="help-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="help-dialog-title">

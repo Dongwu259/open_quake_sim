@@ -331,7 +331,17 @@ Physics.createSourceModel = function(params) {
   var geometryMismatch = !importedFiniteFault && !!geometry && (Math.abs(Number(geometry.mw) - mw) > 1e-6 ||
     _faultUndirectedStrikeDifference(geometry.strikeDeg, strike) > 1e-6 || Math.abs(Number(geometry.dipDeg) - dip) > 1e-6);
   if (!geometry || geometryMismatch) {
-    if (params.generateSubSources === true && typeof Physics.genSubSources === 'function') {
+    // v6.2 tier-2: an explicit faultPath (surface-trace polyline, >= 2 nodes)
+    // builds a segmented bent geometry instead of the single planar rectangle
+    if (Array.isArray(params.faultPath) && params.faultPath.length >= 2 &&
+        typeof Physics.genSegmentedFault === 'function') {
+      var segOpts = {};
+      for (var so in (faultOptions || {})) segOpts[so] = faultOptions[so];
+      if (segOpts.dipDeg == null) segOpts.dipDeg = dip;
+      if (segOpts.depthKm == null) segOpts.depthKm = depth;
+      if (segOpts.rakeDeg == null && params.rakeDeg != null) segOpts.rakeDeg = params.rakeDeg;
+      geometry = Physics.genSegmentedFault(params.faultPath, mw, segOpts);
+    } else if (params.generateSubSources === true && typeof Physics.genSubSources === 'function') {
       geometry = Physics.genSubSources(Number(params.lat)||0, Number(params.lng)||0, mw, strike, dip, depth,
         Number(params.rupSpeed)||2.8, faultOptions);
     } else {
@@ -3335,6 +3345,26 @@ Physics.momentMagnitude = function(momentNm) {
 };
 
 // Canonical fault geometry shared by distances, subsources and rendering.
+// v6.2 tier-2: down-dip row anchors for listric planes (dip decreasing with
+// depth). Returns cumulative {depth, horiz} offsets at each row BOUNDARY
+// (j*dW steps) using the local dip of the row below each boundary. With
+// amount == 0 the anchors reduce exactly to the closed-form j*dW*(sin,cos)
+// values, so the default path stays byte-identical to the legacy geometry.
+Physics.dipRowAnchors = function(dipDeg, listricAmountDeg, W, nDip) {
+  var dW = W / Math.max(1, nDip);
+  var amount = Math.max(0, Math.min(60, Number(listricAmountDeg) || 0));
+  var rows = [{ depth: 0, horiz: 0 }];
+  var depth = 0, horiz = 0;
+  for (var j = 0; j < nDip; j++) {
+    var dipEff = (dipDeg - amount * ((j + 0.5) / nDip)) * Math.PI / 180;
+    dipEff = Math.max(0.05, Math.min(89.95, dipEff));
+    depth += dW * Math.sin(dipEff);
+    horiz += dW * Math.cos(dipEff);
+    rows.push({ depth: depth, horiz: horiz });
+  }
+  return rows;
+};
+
 Physics.buildFaultGeometry = function(lat, lng, mw, strikeDeg, dipDeg, depthKm, opts) {
   opts = opts || {};
   if (mw < 6.5) return null;
@@ -3377,13 +3407,24 @@ Physics.buildFaultGeometry = function(lat, lng, mw, strikeDeg, dipDeg, depthKm, 
   var cosLat = Math.max(0.0001, Math.cos(lat * Math.PI / 180));
   var halfL = L / 2;
 
+  var listric = Math.max(0, Math.min(60, Number(opts.listricDipDeg) || 0));
+  var rowAnchors = Physics.dipRowAnchors(dip, listric, W, nDip);
+  // interpolate the cumulative listric anchors at an arbitrary down-dip offset
+  function downDipOffsets(downDip) {
+    if (listric <= 0) return { depth: downDip * sinDip, horiz: downDip * cosDip };
+    var dWl = W / nDip;
+    var jf = Math.max(0, Math.min(nDip, downDip / dWl));
+    var j0 = Math.min(nDip - 1, Math.floor(jf)), f = jf - j0;
+    var a0 = rowAnchors[j0], a1 = rowAnchors[j0 + 1];
+    return { depth: a0.depth + f * (a1.depth - a0.depth), horiz: a0.horiz + f * (a1.horiz - a0.horiz) };
+  }
   function point(alongStrike, downDip) {
-    var dipHoriz = downDip * cosDip;
+    var dd = downDipOffsets(downDip);
     var dLat = alongStrike * Math.cos(strikeRad) / 111.32
-      + dipHoriz * Math.cos(dipDirRad) / 111.32;
+      + dd.horiz * Math.cos(dipDirRad) / 111.32;
     var dLng = alongStrike * Math.sin(strikeRad) / (111.32 * cosLat)
-      + dipHoriz * Math.sin(dipDirRad) / (111.32 * cosLat);
-    return {lat: lat + dLat, lng: lng + dLng, depth: depthKm + downDip * sinDip};
+      + dd.horiz * Math.sin(dipDirRad) / (111.32 * cosLat);
+    return {lat: lat + dLat, lng: lng + dLng, depth: depthKm + dd.depth};
   }
   function leafletPoint(alongStrike, downDip) {
     var p = point(alongStrike, downDip);
@@ -3392,7 +3433,7 @@ Physics.buildFaultGeometry = function(lat, lng, mw, strikeDeg, dipDeg, depthKm, 
 
   return {
     lat: lat, lng: lng, mw: mw, depth: depthKm, sourceType: sourceType,
-    strikeDeg: strikeDeg, dipDeg: dip, L: L, W: W, nominalW: nominalW,
+    strikeDeg: strikeDeg, dipDeg: dip, listricDipDeg: listric, L: L, W: W, nominalW: nominalW,
     nominalL:L, nominalArea:dims.area, actualArea:L*W, aspectRatio:L/W,
     widthRatio:W/nominalW, widthTruncated:widthTruncated,
     geometryQuality:widthTruncated ? 'depth-limited' : 'nominal',
@@ -3437,8 +3478,18 @@ Physics.rehydrateFaultGeometry = function(geom) {
   if (!isFinite(topOffset)) topOffset = -0.35 * W;
   var nStrike = Math.max(1, Math.round(Number(geom.nStrike) || 1));
   var nDip = Math.max(1, Math.round(Number(geom.nDip) || 1));
+  var listricR = Math.max(0, Math.min(60, Number(geom.listricDipDeg) || 0));
+  var rowAnchorsR = Physics.dipRowAnchors(dip, listricR, W, Math.max(1, Math.round(W / (Number(geom.targetPatchKm) || 14))));
   function point(alongStrike, downDip) {
     var dipHoriz = downDip * cosDip;
+    var depthOff = downDip * sinDip;
+    if (listricR > 0) {
+      var nR = rowAnchorsR.length - 1;
+      var jfR = Math.max(0, Math.min(nR, downDip / (W / nR)));
+      var j0R = Math.min(nR - 1, Math.floor(jfR)), fR = jfR - j0R;
+      dipHoriz = rowAnchorsR[j0R].horiz + fR * (rowAnchorsR[j0R + 1].horiz - rowAnchorsR[j0R].horiz);
+      depthOff = rowAnchorsR[j0R].depth + fR * (rowAnchorsR[j0R + 1].depth - rowAnchorsR[j0R].depth);
+    }
     var dLat = alongStrike * Math.cos(strikeRad) / 111.32
       + dipHoriz * Math.cos(dipDirRad) / 111.32;
     var dLng = alongStrike * Math.sin(strikeRad) / (111.32 * cosLat)
@@ -3545,7 +3596,15 @@ Physics.rrupDistance = function(staLat, staLng, faultParams) {
 
 Physics.genSubSources = function(la, ln, m, strikeDeg, dipDeg, depthKm, rupSpeed, opts) {
   opts = opts || {};
-  var geometry = Physics.buildFaultGeometry(la, ln, m, strikeDeg, dipDeg, depthKm, opts);
+  var listricOpt = opts.listricDipDeg != null ? opts.listricDipDeg
+    : ((typeof cfgGet === 'function') ? cfgGet('faultListricDip') : 0);
+  var geoOpts = opts;
+  if (listricOpt) {
+    geoOpts = {};
+    for (var lk in opts) geoOpts[lk] = opts[lk];
+    geoOpts.listricDipDeg = listricOpt;
+  }
+  var geometry = Physics.buildFaultGeometry(la, ln, m, strikeDeg, dipDeg, depthKm, geoOpts);
   if (!geometry) return null;
   var L = geometry.L, W = geometry.W;
   var nStrike = geometry.nStrike, nDip = geometry.nDip;
@@ -3570,30 +3629,46 @@ Physics.genSubSources = function(la, ln, m, strikeDeg, dipDeg, depthKm, rupSpeed
   var perturbSeed = (Math.floor((Math.abs(la)*1000 + Math.abs(ln)*100 + m*1000 + strikeDeg*7 + dipDeg*11)) ^ ((Number(opts.randomSeed) || 0) >>> 0)) >>> 0;
   function perturbRand() { perturbSeed = (1664525*perturbSeed + 1013904223) >>> 0; return perturbSeed/4294967296; }
   // Low-wavenumber random field. Independent cell noise made the inferred slip
-  // change with mesh resolution and produced a salt-and-pepper rupture. A small
-  // Fourier sum gives deterministic, spatially correlated heterogeneity.
+  // change with mesh resolution and produced a salt-and-pepper rupture. The
+  // field is synthesized as a FIXED cosine sum over a wavenumber grid and
+  // evaluated at the patches' normalized coordinates — a continuous function,
+  // so refining the mesh samples the same field (mesh-independent).
+  // v6.2 tier-1 upgrade: Mai & Beroza (2002)-style anisotropic von Kármán
+  // spectrum — amplitude ∝ (1+(kx·a_x)²+(ky·a_y)²)^-(H+1)/2 with Hurst H=0.75,
+  // along-strike correlation (a_x=0.50, fraction of L) longer than down-dip
+  // (a_y=0.22, fraction of W), replacing the old 10-mode k^-1.3 sketch.
   var perturbModes = [];
-  for (var pm = 0; pm < 10; pm++) {
-    var modeKs=1+(pm%4),modeKd=1+((pm*2+1)%3);
-    perturbModes.push({
-      ks:modeKs,kd:modeKd,phase:2*Math.PI*perturbRand(),
-      amp:1/Math.pow(modeKs*modeKs+modeKd*modeKd,0.65)
-    });
-  }
-  function correlatedPerturb(i, j) {
-    var x=(i+0.5)/nStrike, y=(j+0.5)/nDip, value=0, norm=0;
-    for (var pmi=0;pmi<perturbModes.length;pmi++) {
-      var mode=perturbModes[pmi];
-      value += mode.amp*Math.cos(2*Math.PI*(mode.ks*x+mode.kd*y)+mode.phase);
-      norm += mode.amp;
+  var perturbNorm = 0;
+  var VK_HURST = 0.75, VK_AX = 0.50, VK_AY = 0.22;
+  for (var pkx = 0; pkx <= 6; pkx++) {
+    for (var pky = 0; pky <= 6; pky++) {
+      if (pkx === 0 && pky === 0) continue; // no DC — the asperity carries the mean
+      var kDen = 1 + (pkx / VK_AX) * (pkx / VK_AX) + (pky / VK_AY) * (pky / VK_AY);
+      var kAmp = Math.pow(kDen, -(VK_HURST + 1) / 2);
+      perturbModes.push({ kx: pkx, ky: pky, phase: 2 * Math.PI * perturbRand(), amp: kAmp });
+      perturbNorm += kAmp;
     }
-    return norm > 0 ? value/norm : 0;
+  }
+  function correlatedPerturb(x, y) {
+    var value = 0;
+    for (var pmi = 0; pmi < perturbModes.length; pmi++) {
+      var mode = perturbModes[pmi];
+      value += mode.amp * Math.cos(2 * Math.PI * (mode.kx * x + mode.ky * y) + mode.phase);
+    }
+    return perturbNorm > 0 ? value / perturbNorm : 0;
   }
   function edgeTaper(i, j) {
     var tx=Math.sin(Math.PI*(i+0.5)/nStrike), ty=Math.sin(Math.PI*(j+0.5)/nDip);
     return Math.pow(Math.max(0.001,tx*ty),0.55);
   }
   var aspList = (opts && opts.aspList && opts.aspList.length) ? opts.aspList : null;
+  // Shallow slip deficit (v6.2 tier-1): near-surface slip impoverishment of
+  // large thrust ruptures (creep/SSD literature convention). Factor
+  // 1 − ssd·exp(−d/0.22): strongest at the top edge, e-folding over ~22% of
+  // the down-dip width; moment stays conserved through the wSum normalisation.
+  var ssd = opts.shallowSlipDeficit != null ? Number(opts.shallowSlipDeficit)
+    : ((typeof cfgGet === 'function') ? Number(cfgGet('shallowSlipDeficit')) : 0);
+  ssd = Math.max(0, Math.min(0.85, isFinite(ssd) ? ssd : 0));
   if (aspList) {
     for (var i = 0; i < nStrike; i++) {
       for (var j = 0; j < nDip; j++) {
@@ -3603,9 +3678,10 @@ Physics.genSubSources = function(la, ln, m, strikeDeg, dipDeg, depthKm, rupSpeed
           var ci = (nStrike - 1) * (a.sFrac != null ? a.sFrac : 0.5);
           var cj = (nDip - 1) * (a.dFrac != null ? a.dFrac : 0.5);
           var di2 = (i - ci) / aspSigmaI, dj2 = (j - cj) / aspSigmaJ;
-          w += (a.weight != null ? a.weight : 1) * Math.exp(-(di2*di2 + dj2*dj2) / 2);
+          w += (a.weight != null ? a.weight : 1) * Math.exp(-(di2 * di2 + dj2 * dj2) / 2);
         }
-        w *= edgeTaper(i,j) * Math.exp(perturbation * correlatedPerturb(i,j));
+        w *= edgeTaper(i,j) * Math.exp(perturbation * correlatedPerturb((i+0.5)/nStrike, (j+0.5)/nDip));
+        if (ssd > 0) w *= 1 - ssd * Math.exp(-((j + 0.5) / nDip) / 0.22);
         rawWeights.push(w); wSum += w;
       }
     }
@@ -3613,8 +3689,9 @@ Physics.genSubSources = function(la, ln, m, strikeDeg, dipDeg, depthKm, rupSpeed
     for (var i = 0; i < nStrike; i++) {
       for (var j = 0; j < nDip; j++) {
         var di = (i - aspI) / aspSigmaI, dj = (j - aspJ) / aspSigmaJ;
-        var w = 0.5 + 1.3 * Math.exp(-(di*di + dj*dj) / 2); // range ~0.5 to 1.8
-        w *= edgeTaper(i,j) * Math.exp(perturbation * correlatedPerturb(i,j));
+        var w = 0.5 + 1.3 * Math.exp(-(di * di + dj * dj) / 2); // range ~0.5 to 1.8
+        w *= edgeTaper(i,j) * Math.exp(perturbation * correlatedPerturb((i+0.5)/nStrike, (j+0.5)/nDip));
+        if (ssd > 0) w *= 1 - ssd * Math.exp(-((j + 0.5) / nDip) / 0.22);
         rawWeights.push(w); wSum += w;
       }
     }
@@ -3699,6 +3776,279 @@ Physics.genSubSources = function(la, ln, m, strikeDeg, dipDeg, depthKm, rupSpeed
   return geometry;
 };
 
+// v6.2 tier-2 — segmented bent faults for custom scenarios. A surface-trace
+// polyline (>= 2 nodes) becomes a chain of connected rectangular planes:
+// per-segment strike from the node bearings (or explicit), per-segment dip,
+// ONE continuous von Kármán slip field over the global along-strike
+// coordinate (no artificial cliff at bends — the edge taper only applies at
+// the two chain ENDS and the down-dip edges), rupture times from true 3D
+// distances to the hypocentre, listric per segment. Consumers (renderer,
+// 3-D view, GMPE patch path, rupture card) read the same subs/cellCorner
+// contract as planar geometries.
+Physics.genSegmentedFault = function(nodes, mw, opts) {
+  opts = opts || {};
+  if (!Array.isArray(nodes) || nodes.length < 2) return null;
+  if (!(mw >= 6.5)) return null;
+  var P = Physics;
+  var sourceType = opts.sourceType || 'crustal';
+  var dims = P.faultDimensions(mw, sourceType);
+  var nominalW = opts.widthKm != null ? Number(opts.widthKm) : dims.W;
+  if (!(nominalW > 1)) return null;
+  var rigidityGPa = Number(opts.rigidityGPa);
+  if (!(rigidityGPa > 0)) rigidityGPa = sourceType === 'intraslab' ? 50 : (sourceType === 'interplate' ? 40 : 30);
+
+  // ---- segment frame: strike + length + dip per node-to-node leg ----
+  var segs = [];
+  for (var k = 0; k < nodes.length - 1; k++) {
+    var a = nodes[k], b = nodes[k + 1];
+    var alat = Number(a.lat), alng = Number(a.lng), blat = Number(b.lat), blng = Number(b.lng);
+    if (!isFinite(alat) || !isFinite(alng) || !isFinite(blat) || !isFinite(blng)) return null;
+    var lenKm = Number(a.lengthKm);
+    if (!(lenKm > 0)) lenKm = P.haversineDist(alat, alng, blat, blng);
+    if (!(lenKm > 1)) continue; // degenerate leg (duplicate node) — skip it
+    var strike;
+    if (a.strikeDeg != null) strike = Number(a.strikeDeg);
+    else strike = P.bearingRad(alat, alng, blat, blng) * 180 / Math.PI;
+    var dip = Number(a.dipDeg != null ? a.dipDeg : opts.dipDeg);
+    if (!isFinite(dip)) dip = 60;
+    dip = Math.max(0.1, Math.min(90, dip));
+    var rake = Number(a.rakeDeg != null ? a.rakeDeg : (opts.rakeDeg != null ? opts.rakeDeg : 90));
+    segs.push({ lat: alat, lng: alng, strikeDeg: strike, dipDeg: dip, rakeDeg: rake, lenKm: lenKm, listric: Number(opts.listricDipDeg) || 0 });
+  }
+  var L = segs.reduce(function (s2, g) { return s2 + g.lenKm; }, 0);
+  if (!(L > 2)) return null;
+
+  // ---- grid: global nStrike proportional to leg length, shared nDip ----
+  var targetPatchKm = Math.max(10, Math.min(16, Number(opts.targetPatchKm) || 14));
+  var nStrikeTotal = Math.min(72, Math.max(6, Math.ceil(L / targetPatchKm)));
+  var nDip = Math.min(20, Math.max(3, Math.ceil(nominalW / targetPatchKm)));
+  var nStrikeAssigned = 0;
+  for (k = 0; k < segs.length; k++) {
+    var nS = (k === segs.length - 1)
+      ? Math.max(2, nStrikeTotal - nStrikeAssigned)
+      : Math.max(2, Math.round(segs[k].lenKm / L * nStrikeTotal));
+    if (k < segs.length - 1) nStrikeAssigned += nS;
+    segs[k].nStrike = nS;
+  }
+  nStrikeTotal = segs.reduce(function (s2, g) { return s2 + g.nStrike; }, 0);
+
+  // ---- depths: uniform top edge + per-segment listric anchors ----
+  var depthKm = Number(opts.depthKm);
+  if (!isFinite(depthKm)) depthKm = Math.max(10, 0.35 * nominalW);
+  var hpFrac = 0.35;
+  var topDepth = Number(opts.topDepthKm);
+  if (!isFinite(topDepth)) {
+    topDepth = sourceType === 'interplate' ? 2 : Math.max(1, depthKm - 0.35 * nominalW);
+  }
+  topDepth = Math.min(topDepth, depthKm - 0.5);
+  for (k = 0; k < segs.length; k++) {
+    segs[k].anchors = P.dipRowAnchors(segs[k].dipDeg, segs[k].listric, nominalW, nDip);
+  }
+
+  // ---- ONE continuous slip field on the global normalized coordinates ----
+  var perturbation = opts.slipPerturbation != null ? Number(opts.slipPerturbation)
+    : ((typeof cfgGet === 'function') ? Number(cfgGet('slipPerturbation')) : 0.4);
+  perturbation = Math.max(0, Math.min(1, isFinite(perturbation) ? perturbation : 0));
+  var seedBase = (Number(opts.randomSeed) || 0) >>> 0;
+  var perturbSeed = (Math.floor(Math.abs(nodes[0].lat * 1000 + nodes[0].lng * 100 + mw * 1000)) ^ seedBase) >>> 0;
+  function perturbRand() { perturbSeed = (1664525 * perturbSeed + 1013904223) >>> 0; return perturbSeed / 4294967296; }
+  var VK_HURST = 0.75, VK_AX = 0.50, VK_AY = 0.22;
+  var perturbModes = [], perturbNorm = 0;
+  for (var pkx = 0; pkx <= 6; pkx++) {
+    for (var pky = 0; pky <= 6; pky++) {
+      if (pkx === 0 && pky === 0) continue;
+      var kDen = 1 + (pkx / VK_AX) * (pkx / VK_AX) + (pky / VK_AY) * (pky / VK_AY);
+      var kAmp = Math.pow(kDen, -(VK_HURST + 1) / 2);
+      perturbModes.push({ kx: pkx, ky: pky, phase: 2 * Math.PI * perturbRand(), amp: kAmp });
+      perturbNorm += kAmp;
+    }
+  }
+  function correlatedPerturb(x, y) {
+    var value = 0;
+    for (var pmi = 0; pmi < perturbModes.length; pmi++) {
+      var mode = perturbModes[pmi];
+      value += mode.amp * Math.cos(2 * Math.PI * (mode.kx * x + mode.ky * y) + mode.phase);
+    }
+    return perturbNorm > 0 ? value / perturbNorm : 0;
+  }
+  // global edge taper: chain ENDS only + down-dip edges (continuous through bends)
+  function edgeTaperGlobal(iGlobal, j) {
+    var tx = Math.sin(Math.PI * (iGlobal + 0.5) / nStrikeTotal);
+    var ty = Math.sin(Math.PI * (j + 0.5) / nDip);
+    return Math.pow(Math.max(0.001, tx * ty), 0.55);
+  }
+  var aspList = (opts.aspList && opts.aspList.length) ? opts.aspList : null;
+  var aspSigmaI = nStrikeTotal * 0.35, aspSigmaJ = nDip * 0.4;
+  var ssd = opts.shallowSlipDeficit != null ? Number(opts.shallowSlipDeficit)
+    : ((typeof cfgGet === 'function') ? Number(cfgGet('shallowSlipDeficit')) : 0);
+  ssd = Math.max(0, Math.min(0.85, isFinite(ssd) ? ssd : 0));
+
+  // ---- hypocentre: patch nearest to a global along-fraction (default 0.35) ----
+  var hypoFrac = opts.hypoAlongFrac != null ? Math.max(0.02, Math.min(0.98, opts.hypoAlongFrac)) : 0.35;
+  var hypoDipFrac = opts.hypoDipFrac != null ? Math.max(0.05, Math.min(0.95, opts.hypoDipFrac)) : 0.35;
+  var hypoIndexGlobal = Math.floor(hypoFrac * (nStrikeTotal - 1));
+
+  // ---- patch synthesis ----
+  var totalMoment = P.seismicMoment(mw);
+  var rupSpeed = Math.max(0.5, Number(opts.rupSpeed) || 2.8);
+  var velocityModel = opts.ruptureVelocityModel || 'slip-depth';
+  var sourceTimeFunction = opts.sourceTimeFunction || 'half-cosine';
+  var subs = [], rawWeights = [], wSum = 0;
+  var iGlobal = 0;
+  var patchFrames = []; // per global strike row: segment + local row geometry for cellCorner
+  for (k = 0; k < segs.length; k++) {
+    var seg = segs[k];
+    var dL = seg.lenKm / seg.nStrike;
+    var strikeRad = seg.strikeDeg * Math.PI / 180;
+    var dipDirRad = strikeRad + Math.PI / 2;
+    var cosLat = Math.max(0.0001, Math.cos(seg.lat * Math.PI / 180));
+    function segPoint(alongKm, dipFracRow) {
+      // interpolate the segment's listric anchors at fractional down-dip
+      var jf = Math.max(0, Math.min(nDip, dipFracRow));
+      var j0 = Math.min(nDip - 1, Math.floor(jf)), f = jf - j0;
+      var a0 = seg.anchors[j0], a1 = seg.anchors[j0 + 1];
+      var horiz = a0.horiz + f * (a1.horiz - a0.horiz);
+      var depthOff = a0.depth + f * (a1.depth - a0.depth);
+      var dLat = alongKm * Math.cos(strikeRad) / 111.32 + horiz * Math.cos(dipDirRad) / 111.32;
+      var dLng = alongKm * Math.sin(strikeRad) / (111.32 * cosLat) + horiz * Math.sin(dipDirRad) / (111.32 * cosLat);
+      return { lat: seg.lat + dLat, lng: seg.lng + dLng, depth: topDepth + depthOff, horiz: horiz };
+    }
+    for (var is = 0; is < seg.nStrike; is++, iGlobal++) {
+      var alongKm = (is + 0.5) * dL;
+      patchFrames.push({ seg: k, alongKm: alongKm, dL: dL });
+      for (var j = 0; j < nDip; j++) {
+        var xG = (iGlobal + 0.5) / nStrikeTotal;
+        var yG = (j + 0.5) / nDip;
+        var w;
+        if (aspList) {
+          w = 0.5;
+          for (var ai = 0; ai < aspList.length; ai++) {
+            var aa = aspList[ai];
+            var ci = (nStrikeTotal - 1) * (aa.sFrac != null ? aa.sFrac : 0.5);
+            var cj = (nDip - 1) * (aa.dFrac != null ? aa.dFrac : 0.5);
+            var d2 = (iGlobal - ci) / aspSigmaI, e2 = (j - cj) / aspSigmaJ;
+            w += (aa.weight != null ? aa.weight : 1) * Math.exp(-(d2 * d2 + e2 * e2) / 2);
+          }
+        } else {
+          var ci2 = (nStrikeTotal - 1) * 0.55, cj2 = (nDip - 1) * 0.6;
+          var di3 = (iGlobal - ci2) / aspSigmaI, dj3 = (j - cj2) / aspSigmaJ;
+          w = 0.5 + 1.3 * Math.exp(-(di3 * di3 + dj3 * dj3) / 2);
+        }
+        w *= edgeTaperGlobal(iGlobal, j) * Math.exp(perturbation * correlatedPerturb(xG, yG));
+        if (ssd > 0) w *= 1 - ssd * Math.exp(-yG / 0.22);
+        rawWeights.push(w); wSum += w;
+      }
+    }
+  }
+
+  // hypocentre 3D position (approximated at its patch centre)
+  function patchPos(iG, jG) {
+    var pf = patchFrames[iG], sg = segs[pf.seg];
+    var step = nominalW / nDip;
+    return segPosOf(sg, pf.alongKm, (jG + 0.5) * step);
+  }
+  function segPosOf(sg, alongKm, downDip) {
+    var strikeRad2 = sg.strikeDeg * Math.PI / 180;
+    var dipDirRad2 = strikeRad2 + Math.PI / 2;
+    var jf = Math.max(0, Math.min(nDip, downDip / (nominalW / nDip)));
+    var j0 = Math.min(nDip - 1, Math.floor(jf)), f = jf - j0;
+    var a0 = sg.anchors[j0], a1 = sg.anchors[j0 + 1];
+    var horiz = a0.horiz + f * (a1.horiz - a0.horiz);
+    var depthOff = a0.depth + f * (a1.depth - a0.depth);
+    var cosLat2 = Math.max(0.0001, Math.cos(sg.lat * Math.PI / 180));
+    var dLat = alongKm * Math.cos(strikeRad2) / 111.32 + horiz * Math.cos(dipDirRad2) / 111.32;
+    var dLng = alongKm * Math.sin(strikeRad2) / (111.32 * cosLat2) + horiz * Math.sin(dipDirRad2) / (111.32 * cosLat2);
+    return { lat: sg.lat + dLat, lng: sg.lng + dLng, depth: topDepth + depthOff };
+  }
+  var hypo = patchPos(hypoIndexGlobal, Math.floor(hypoDipFrac * (nDip - 1)));
+
+  iGlobal = 0;
+  var maxRT = 0, wi = 0;
+  for (k = 0; k < segs.length; k++) {
+    var seg2 = segs[k];
+    var dL2 = seg2.lenKm / seg2.nStrike;
+    for (var is2 = 0; is2 < seg2.nStrike; is2++, iGlobal++) {
+      for (var j2 = 0; j2 < nDip; j2++, wi++) {
+        var pos = patchPos(iGlobal, j2);
+        var rawWeight = rawWeights[wi];
+        var momentFraction = rawWeight / wSum;
+        var patchMoment = totalMoment * momentFraction;
+        var slipW = momentFraction * (nStrikeTotal * nDip);
+        var surf = P.haversineDist(hypo.lat, hypo.lng, pos.lat, pos.lng);
+        var dDepth = pos.depth - hypo.depth;
+        var dist3D = Math.sqrt(surf * surf + dDepth * dDepth);
+        var speedFactor = 1;
+        if (velocityModel === 'slip-depth' || velocityModel === 'depth') {
+          speedFactor = Math.max(0.65, Math.min(1.25, 0.82 + 0.18 * Math.sqrt(Math.max(0.1, slipW))));
+        }
+        var localSpeed = Math.max(0.5, rupSpeed * speedFactor);
+        var rt = dist3D / localSpeed;
+        var patchAreaM2 = dL2 * (nominalW / nDip) * 1e6;
+        var slipM = patchMoment / (rigidityGPa * 1e9 * patchAreaM2);
+        var riseTime = Math.max(0.5, Math.min(20, 0.8 * Math.sqrt(dL2 * (nominalW / nDip)) / rupSpeed * Math.sqrt(Math.max(0.2, slipW))));
+        if (rt > maxRT) maxRT = rt;
+        subs.push({
+          lat: pos.lat, lng: pos.lng, depth: pos.depth,
+          m: P.momentMagnitude(patchMoment), moment: patchMoment, momentFraction: momentFraction,
+          slipWeight: slipW, slipM: slipM, areaKm2: dL2 * (nominalW / nDip),
+          alongStrikeKm: cumulativeAlong(iGlobal), downDipKm: (j2 + 0.5) * (nominalW / nDip),
+          strikeIndex: iGlobal, dipIndex: j2, segIndex: k,
+          strikeDeg: seg2.strikeDeg, dipDeg: seg2.dipDeg, rakeDeg: seg2.rakeDeg,
+          ruptureTime: rt, riseTime: riseTime, ruptureSpeedKmS: localSpeed,
+          sourceTimeFunction: sourceTimeFunction
+        });
+      }
+    }
+  }
+  function cumulativeAlong(iG) {
+    var acc = 0;
+    for (var q = 0; q < iG; q++) acc += patchFrames[q].dL;
+    return acc + patchFrames[iG].dL * 0.5;
+  }
+  var geometry = {
+    kind: 'synthetic-segmented',
+    lat: nodes[0].lat, lng: nodes[0].lng, mw: mw, depth: depthKm,
+    sourceType: sourceType,
+    strikeDeg: segs[0].strikeDeg, dipDeg: segs[0].dipDeg,
+    listricDipDeg: Number(opts.listricDipDeg) || 0,
+    L: L, W: nominalW, nStrike: nStrikeTotal, nDip: nDip,
+    segments: segs.map(function (g) {
+      return { lat: g.lat, lng: g.lng, strikeDeg: g.strikeDeg, dipDeg: g.dipDeg, rakeDeg: g.rakeDeg, lenKm: g.lenKm, nStrike: g.nStrike };
+    }),
+    topDepth: topDepth,
+    subs: subs, nSub: subs.length,
+    maxRuptureTime: maxRT,
+    totalMoment: totalMoment,
+    rigidityGPa: rigidityGPa,
+    averageSlipM: totalMoment / (rigidityGPa * 1e9 * L * nominalW * 1e6),
+    maxSlipM: subs.reduce(function (mx, s3) { return Math.max(mx, s3.slipM); }, 0),
+    maxSlipWeight: subs.reduce(function (mx, s3) { return Math.max(mx, s3.slipWeight); }, 0),
+    hypocenter: hypo,
+    hypocenterStrikeFrac: hypoFrac, hypocenterDipFrac: hypoDipFrac,
+    ruptureSpeedKmS: rupSpeed,
+    ruptureVelocityModel: velocityModel,
+    sourceTimeFunction: sourceTimeFunction,
+    // surface-trace polyline for map fallbacks
+    corners: segs.map(function (g) { return [g.lat, g.lng]; }).concat([[nodes[nodes.length - 1].lat, nodes[nodes.length - 1].lng]]),
+    cellCorner: function (i, j, alongFrac, dipFrac) {
+      var pf = patchFrames[Math.max(0, Math.min(patchFrames.length - 1, i))];
+      var sg = segs[pf.seg];
+      var p = segPosOf(sg, (i - segRowStart(pf.seg)) * sg.lenKm / sg.nStrike + alongFrac * sg.lenKm / sg.nStrike, (j + dipFrac) * (nominalW / nDip));
+      return [p.lat, p.lng];
+    },
+    cellPoint: function (i, j, alongFrac, dipFrac) {
+      var c = this.cellCorner(i, j, alongFrac, dipFrac);
+      return { lat: c[0], lng: c[1], depth: topDepth + segs[patchFrames[Math.max(0, Math.min(patchFrames.length - 1, i))].seg].anchors[Math.min(nDip, j + dipFrac)].depth };
+    }
+  };
+  function segRowStart(segIdx) {
+    var acc3 = 0;
+    for (var q3 = 0; q3 < segIdx; q3++) acc3 += segs[q3].nStrike;
+    return acc3;
+  }
+  return geometry;
+};
+
 Physics.rupturePatchFraction = function(patch, elapsed) {
   if(!patch)return 0;
   var x=(Number(elapsed)-Number(patch.ruptureTime||0))/Math.max(0.01,Number(patch.riseTime)||1);
@@ -3724,6 +4074,128 @@ Physics.ruptureState = function(geometry, elapsed) {
   }
   return {releasedMomentFraction:Math.max(0,Math.min(1,released)),activePatches:active,
     completedPatches:complete,totalPatches:subs.length,endTime:endTime};
+};
+
+// v6.2 断层破裂详情 — rupture summary statistics for the info-panel card.
+// Works for BOTH synthetic geometry (genSubSources subs) and imported
+// finite-fault patches (observed-fault-models: slipM/ruptureTimeS/riseTimeS);
+// field-name normalization is done here so callers pass patches as-is.
+// Returns null when no usable patches are present.
+Physics.faultRuptureStats = function(patches, geometry) {
+  var subs = Array.isArray(patches) ? patches : (geometry && geometry.subs);
+  if (!Array.isArray(subs) || !subs.length) return null;
+  function num(v, fb) { v = Number(v); return isFinite(v) ? v : fb; }
+  var n = 0, slipSum = 0, slipMax = 0, slipMin = Infinity;
+  var areaSum = 0, asperityArea = 0, rtMax = 0, riseSum = 0, riseMax = 0;
+  var velSum = 0, velMin = Infinity, velMax = 0, velN = 0;
+  var momentSum = 0, bestSlip = null, depths = [], alongs = [];
+  var items = [];
+  for (var i = 0; i < subs.length; i++) {
+    var s = subs[i];
+    var slip = num(s.slipM, NaN);
+    if (!isFinite(slip)) continue;
+    var rt = num(s.ruptureTime, num(s.ruptureTimeS, 0));
+    var rise = num(s.riseTime, num(s.riseTimeS, 0));
+    var depth = num(s.depth, num(s.centerDepthKm, NaN));
+    var along = num(s.alongStrikeKm, NaN);
+    n++;
+    slipSum += slip;
+    if (slip > slipMax) { slipMax = slip; bestSlip = s; }
+    if (slip < slipMin) slipMin = slip;
+    var area = num(s.areaKm2, 0);
+    areaSum += area;
+    momentSum += num(s.moment, 0);
+    if (rt > rtMax) rtMax = rt;
+    riseSum += rise;
+    if (rise > riseMax) riseMax = rise;
+    if (depth === depth) depths.push(depth);
+    if (along === along) alongs.push(along);
+    var vel = num(s.ruptureSpeedKmS, NaN);
+    if (vel === vel) { velSum += vel; velN++; if (vel < velMin) velMin = vel; if (vel > velMax) velMax = vel; }
+    items.push({ slip: slip, area: area, rt: rt });
+  }
+  if (!n) return null;
+  var meanSlip = slipSum / n;
+  var aspThreshold = 1.5 * meanSlip;
+  for (i = 0; i < items.length; i++) {
+    if (items[i].slip >= aspThreshold) asperityArea += items[i].area;
+  }
+  // moment conservation check (synthetic subs carry exact fractions)
+  var totalMoment = geometry && geometry.totalMoment;
+  var momentRelErr = (isFinite(totalMoment) && totalMoment > 0 && momentSum > 0)
+    ? Math.abs(momentSum - totalMoment) / totalMoment : null;
+  return {
+    patches: n,
+    meanSlipM: meanSlip,
+    maxSlipM: slipMax,
+    minSlipM: slipMin,
+    asperityAreaFraction: areaSum > 0 ? asperityArea / areaSum : null,
+    ruptureDurationS: rtMax,
+    meanRiseTimeS: riseSum / n,
+    maxRiseTimeS: riseMax,
+    ruptureVelKmS: velN ? { mean: velSum / velN, min: velMin, max: velMax } : null,
+    momentRelErr: momentRelErr,
+    depthRangeKm: depths.length ? { min: Math.min.apply(null, depths), max: Math.max.apply(null, depths) } : null,
+    alongStrikeRangeKm: alongs.length ? { min: Math.min.apply(null, alongs), max: Math.max.apply(null, alongs) } : null,
+    maxSlipAt: bestSlip ? {
+      alongStrikeKm: num(bestSlip.alongStrikeKm, null),
+      depthKm: num(bestSlip.depth, num(bestSlip.centerDepthKm, null)),
+      ruptureTimeS: num(bestSlip.ruptureTime, num(bestSlip.ruptureTimeS, null))
+    } : null
+  };
+};
+
+// v6.2 断层破裂详情 — event moment-rate / cumulative-moment time series from
+// the per-patch source-time functions (finite-difference of the cumulative
+// released moment, reusing rupturePatchFraction so every STF flavour is
+// honoured). Grid: dt seconds from 0 to endTime + one step.
+Physics.momentRateSeries = function(patches, geometry, dt) {
+  var subs = Array.isArray(patches) ? patches : (geometry && geometry.subs);
+  if (!Array.isArray(subs) || !subs.length) return null;
+  dt = Number(dt) > 0 ? Number(dt) : 0.25;
+  var endTime = 0, totalWeight = 0, hasFraction = false;
+  var i, s, rt, rise, mf;
+  var weights = new Array(subs.length);
+  for (i = 0; i < subs.length; i++) {
+    s = subs[i];
+    rt = Number(s.ruptureTime != null ? s.ruptureTime : s.ruptureTimeS) || 0;
+    rise = Number(s.riseTime != null ? s.riseTime : s.riseTimeS) || 0;
+    if (rt + rise > endTime) endTime = rt + rise;
+    mf = Number(s.momentFraction);
+    if (isFinite(mf) && mf > 0) {
+      weights[i] = mf; totalWeight += mf; hasFraction = true;
+    } else {
+      // imported patches carry no momentFraction — fall back to a
+      // slip×area proxy (relative units, labelled as such)
+      weights[i] = (Number(s.slipM) || 0) * (Number(s.areaKm2) || 1);
+      totalWeight += weights[i];
+    }
+  }
+  if (!(endTime > 0) || !(totalWeight > 0)) return null;
+  if (hasFraction && Math.abs(totalWeight - 1) > 1e-6) {
+    // normalise any fractional shortfall so the curve always ends at 1
+    for (i = 0; i < weights.length; i++) weights[i] /= totalWeight;
+  } else if (!hasFraction) {
+    for (i = 0; i < weights.length; i++) weights[i] /= totalWeight;
+  }
+  var nStep = Math.min(4000, Math.ceil((endTime + dt) / dt));
+  var t = [], cum = [], rate = [];
+  for (i = 0; i <= nStep; i++) {
+    var tt = i * dt, c = 0;
+    for (var k = 0; k < subs.length; k++) {
+      var sub = subs[k];
+      var frac = Physics.rupturePatchFraction(sub, tt);
+      if (frac > 0) c += weights[k] * frac;
+    }
+    t.push(tt);
+    cum.push(c);
+    rate.push(i === 0 ? 0 : (c - cum[i - 1]) / dt);
+  }
+  var peakRate = 0, peakAt = 0;
+  for (i = 0; i < rate.length; i++) if (rate[i] > peakRate) { peakRate = rate[i]; peakAt = t[i]; }
+  return { t: t, cum: cum, rate: rate, dt: dt, endTime: endTime,
+    peakRate: peakRate, peakRateAt: peakAt, finalCum: cum[cum.length - 1],
+    weightUnits: hasFraction ? 'moment-fraction' : 'slip-area-proxy' };
 };
 
 /**

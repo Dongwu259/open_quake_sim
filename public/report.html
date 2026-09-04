@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title data-i18n="report.page_title">地震模拟体验报告 · Earthquake Simulator Pro</title>
-  <link rel="stylesheet" href="style.css?v=cdd3bd">
+  <link rel="stylesheet" href="style.css?v=fea5a9">
   <style>
     /* report page — full-window standalone; relies on style.css theme vars */
     .report-page-body { margin:0; background:var(--bg); color:var(--text); font-family:inherit; }
@@ -48,6 +48,14 @@
     .shindo-cell { display:inline-block; min-width:44px; padding:2px 8px; border-radius:6px; color:#fff; text-align:center; font-weight:600; }
     .report-spectrum-wrap { background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:12px; }
     .report-spectrum-wrap canvas { width:100%; height:260px; display:block; }
+    .report-wave-summary { font-size:.88em; color:var(--text-secondary); margin:2px 0 10px; }
+    .report-wave-station { background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:12px; margin-bottom:14px; break-inside:avoid; }
+    .report-wave-head { display:flex; gap:10px; align-items:baseline; flex-wrap:wrap; margin-bottom:8px; }
+    .report-wave-role { font-size:.78em; color:var(--text-secondary); border:1px solid var(--border); border-radius:8px; padding:1px 8px; }
+    .report-wave-station canvas { width:100%; height:120px; display:block; border-radius:8px; }
+    .report-wave-table { width:100%; margin-top:8px; font-size:.88em; }
+    .report-wave-table td { padding:3px 8px; }
+    .report-wave-table td:first-child { color:var(--text-secondary); width:38%; }
     .report-footer { margin-top:34px; padding-top:14px; border-top:1px solid var(--border); color:var(--text-secondary); font-size:.78em; line-height:1.6; }
     @media print {
       .report-actions, #report-back { display:none !important; }
@@ -154,6 +162,12 @@
       </div>
     </section>
 
+    <section class="report-section" id="sec-wave" hidden>
+      <h2 data-i18n="report.wave_section">观测点波形分析（3 站自动选取）</h2>
+      <p class="report-wave-summary" id="wave-summary"></p>
+      <div id="wave-body"></div>
+    </section>
+
     <footer class="report-footer">
       <p data-i18n="report.disclaimer">免责声明：本报告由地震模拟器生成，全部数值为模型模拟/预测结果，不构成对真实地震的预测或工程决策依据。</p>
       <p id="report-footer-meta"></p>
@@ -161,7 +175,7 @@
   </section>
 </main>
 
-<script src="i18n.js?v=db604f"></script>
+<script src="i18n.js?v=b44263"></script>
 <script>
 (function () {
   'use strict';
@@ -186,6 +200,76 @@
       var d = new Date(iso);
       return d.toLocaleString(lang === 'ja' ? 'ja-JP' : (lang === 'en' ? 'en-GB' : 'zh-CN'), { hour12: false });
     } catch (e) { return iso || ''; }
+  }
+
+  // v6.2 waveform-analysis section: three auto-selected stations, frozen
+  // metrics + magnitude comparison + trace thumbnails from the snapshot
+  function renderWave(wa) {
+    var sec = el('sec-wave');
+    if (!wa || !wa.stations || !wa.stations.length) { sec.hidden = true; return; }
+    sec.hidden = false;
+    var roleKey = { strongest: 'report.wave_role_strongest', nearest: 'report.wave_role_nearest', mid: 'report.wave_role_mid' };
+    var invs = [], html = '';
+    for (var i = 0; i < wa.stations.length; i++) {
+      var w = wa.stations[i], m = w.metrics || {};
+      if (w.magFromAmplitude != null) invs.push(w.magFromAmplitude);
+      html += '<div class="report-wave-station">';
+      html += '<div class="report-wave-head"><strong>' + esc(w.name) + '</strong>' +
+        '<span class="report-wave-role">' + t(roleKey[w.role] || 'report.wave_role_mid') + '</span>' +
+        '<span>' + t('report.wave_dist') + ' ' + Number(w.distKm).toFixed(0) + ' km</span></div>';
+      html += '<canvas id="wave-tr-' + i + '" width="860" height="120" role="img" aria-label="waveform trace"></canvas>';
+      html += '<table class="report-wave-table"><tbody>';
+      function wrow(label, value) { return '<tr><td>' + esc(label) + '</td><td>' + value + '</td></tr>'; }
+      html += wrow(t('report.wave_pga'), Number(m.pgaGal ? m.pgaGal.vec : w.targetPgaGal).toFixed(1) + ' gal');
+      html += wrow(t('report.wave_pgv'), (m.pgvKine != null ? Number(m.pgvKine).toFixed(1) : '—') + ' kine');
+      html += wrow(t('report.wave_pgd'), (m.pgdCm != null ? Number(m.pgdCm).toFixed(2) : '—') + ' cm');
+      html += wrow(t('report.wave_arias'), m.ariasMs != null ? m.ariasMs + ' m/s' : '—');
+      html += wrow(t('report.wave_cav'), m.cavGalS != null ? m.cavGalS + ' gal·s' : '—');
+      html += wrow(t('report.wave_d595'), m.d5d95S != null ? Number(m.d5d95S).toFixed(1) + ' s' : '—');
+      html += wrow(t('report.wave_tp'), m.dominantPeriodS != null ? Number(m.dominantPeriodS).toFixed(2) + ' s' : '—');
+      html += wrow(t('report.wave_fc'), m.apparentCornerHz != null ? Number(m.apparentCornerHz).toFixed(2) + ' Hz' : '—');
+      html += wrow(t('report.wave_mag_inv'), w.magFromAmplitude != null ? 'M' + Number(w.magFromAmplitude).toFixed(2) : '—');
+      html += '</tbody></table></div>';
+    }
+    el('wave-body').innerHTML = html;
+    var invMean = invs.length ? invs.reduce(function (a, b) { return a + b; }, 0) / invs.length : null;
+    el('wave-summary').textContent = t('report.wave_summary', {
+      actual: 'M' + Number(wa.actualMw).toFixed(2),
+      inv: invMean != null ? 'M' + invMean.toFixed(2) : '—',
+      n: invs.length
+    });
+    for (var k = 0; k < wa.stations.length; k++) {
+      drawWaveTrace(el('wave-tr-' + k), wa.stations[k].trace);
+    }
+  }
+
+  function drawWaveTrace(canvas, trace) {
+    if (!canvas || !trace || !trace.z || trace.z.length < 2) return;
+    var ctx = canvas.getContext('2d');
+    var W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+    var z = trace.z, n = z.length, lo = 0, hi = 0;
+    for (var i = 0; i < n; i++) { if (z[i] < lo) lo = z[i]; if (z[i] > hi) hi = z[i]; }
+    if (!(hi > lo)) hi = lo + 1;
+    var pad = (hi - lo) * 0.12 + 1; lo -= pad; hi += pad;
+    var dark = document.body.classList.contains('light-mode') === false; // report body defaults dark-theme vars
+    ctx.strokeStyle = 'rgba(128,128,128,0.4)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, ((0 - lo) / (hi - lo)) * H);
+    ctx.lineTo(W, ((0 - lo) / (hi - lo)) * H);
+    ctx.stroke();
+    ctx.strokeStyle = '#7ec9ff';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    for (var j = 0; j < n; j++) {
+      var x = j / (n - 1) * W, y = H - (z[j] - lo) / (hi - lo) * H;
+      if (j === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(127,150,170,0.9)';
+    ctx.font = '12px sans-serif';
+    ctx.fillText('Z · ' + Math.max(Math.abs(lo + pad), Math.abs(hi - pad)).toFixed(0) + ' gal/div', 8, 14);
   }
 
   function render(snap) {
@@ -246,6 +330,8 @@
       el('sec-aftershocks').hidden = false;
       el('aft-summary').textContent = t('report.aft_line', { n: af.count, m: af.maxMag != null ? af.maxMag.toFixed(1) : '—' });
     }
+    // waveform analysis (3 auto-selected stations)
+    renderWave(snap.waveAnalysis);
     // spectrum
     var sp = snap.spectrum;
     if (sp && sp.periods && sp.periods.length > 2) {

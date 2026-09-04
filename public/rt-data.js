@@ -1502,8 +1502,9 @@ var RTData = (function() {
       if (typeof RTKmoni !== 'undefined' && RTKmoni.stop) { try { RTKmoni.stop(); } catch(e) {} }
       if (typeof RTEew !== 'undefined' && RTEew.stop) { try { RTEew.stop(); } catch(e) {} }
       if (typeof RTTsunami !== 'undefined' && RTTsunami.stop) { try { RTTsunami.stop(); } catch(e) {} }
-      if (typeof RTQuakeInfo !== 'undefined' && RTQuakeInfo.stop) { try { RTQuakeInfo.stop(); } catch(e) {} }
-      if (mapLayer) { mapLayer.clearLayers(); mapMarkers = []; }
+    if (typeof RTQuakeInfo !== 'undefined' && RTQuakeInfo.stop) { try { RTQuakeInfo.stop(); } catch(e) {} }
+    if (typeof RTWave !== 'undefined' && RTWave.stop) { try { RTWave.stop(); } catch(e) {} }
+    if (mapLayer) { mapLayer.clearLayers(); mapMarkers = []; }
     }
     return mode;
   }
@@ -1535,6 +1536,14 @@ var RTData = (function() {
         if (mode) RTQuakeInfo.start();
         else RTQuakeInfo.stop();
       } catch(e) { console.warn('RTQuakeInfo sync:', e); }
+    }
+    // Live multi-station seismograms (no toggle — always on with realtime,
+    // same policy as the EEW rings and tsunami overlays)
+    if (typeof RTWave !== 'undefined') {
+      try {
+        if (mode) RTWave.start();
+        else RTWave.stop();
+      } catch(e) { console.warn('RTWave sync:', e); }
     }
   }
 
