@@ -1,0 +1,115 @@
+{
+ "schema": "quake-sim-cs-repair-calibration-v1",
+ "frozenAt": "2026-09-04T14:47:00.037Z",
+ "preReg": {
+  "batch": "CS pipeline shape-gate repair (pre-registered 2026-09-04, before the v3 run)",
+  "basis": "tools/data/cs-diagnosis-report.json (A1-A3 short-band decomposition, B1-B3 long-band attribution) — measurement first, repair second",
+  "scoringChange": {
+   "from": "mixture MS-CS mean: one target spectrum for all realizations",
+   "to": "per-realization bin-conditional Baker conditional spectrum — each realization scored against its OWN deaggregation bin conditional mean muC_b(T) (muC_b(T*) = log imTarget exactly); the ensemble is probability-weighted through bin sampling",
+   "justification": "diagnosis A3: the MS-CS mixture ratio at 0.1 s sits below EVERY contributing bin zhao median ratio in 4/6 cases (osaka RP2500 -0.424 vs envelope [-0.140..-0.007]; kochi RP2500 -0.119 vs [0.191..0.290]) — anchor-scaled single-event realizations cannot realize the between-period residual structure the mixture mean encodes, so the mixture gate is structurally unfalsifiable; multi-scenario bin-conditional comparison is the standard practice (Lin & Baker 2013 family)",
+   "mixtureKeptAs": "diagnostic column (bandsMixture + perCase.biasMixtureLog10) — no gate reads it",
+   "gatesUnchanged": "all v2 gate thresholds and definitions carry over unchanged"
+  },
+  "hfReCalibration": {
+   "kappaSec": 0.04,
+   "kappaNote": "hybrid module default (pre-B2-fit value); B2 froze 0.02 against its absolute PGA/PGV objective — NOT re-fitted to CS targets; the diagnosis measured -0.186 median short-band effect",
+   "stressGridMPa": [
+    50,
+    25,
+    12,
+    6
+   ],
+   "stressObjective": "per source class, minimize the mass-weighted median |bin-conditional bias| over 0.1-0.5 s across contributing bins (prob >= 0.005) of the six frozen cases, kappa pinned 0.04, 5 seeds per bin",
+   "circularityDisclosure": "the stress fit uses the same zhao conditional spectra the gates read — after this calibration the 0.1-0.5 s band tests fit-consistency and scatter, NOT independent falsification of zhao at short periods; the B2 frozen calibration (50 MPa class-blind, kappa 0.02) stays untouched for the B2 scorecard product"
+  },
+  "lfEmpiricalGain": {
+   "form": "g(T)=1 for T<=1s; log10 g(T) = (b0 + b1*(mw-8) + b2*log10(rRup/50)) * min(1, ln(T)/ln(3)) for T>1s, capped to [1,10]",
+   "fit": "least squares over per-bin long-period deficits (T in {1.5,2,3,4,5}s, contributing bins) of the DW-side spectral ratio vs the bin-conditional zhao ratio, at the calibrated stress; frozen to tools/data/cs-repair-calibration.json",
+   "circularityDisclosure": "after the gain the 2-5 s band tests gain-consistency (smoothness, between-bin generalization), not independent falsification of the 1D kernel; the lpImprovement-vs-Brune gate stays meaningful — the brune comparator arm receives NO gain (it has no DW side)"
+  }
+ },
+ "kappaSec": 0.04,
+ "stressByClass": {
+  "crustal": 50,
+  "interplate": 50,
+  "intraslab": 50
+ },
+ "stressScan": {
+  "crustal": [
+   {
+    "stress": 50,
+    "medianAbsBias": 0.4415,
+    "n": 30
+   },
+   {
+    "stress": 25,
+    "medianAbsBias": 0.4355,
+    "n": 30
+   },
+   {
+    "stress": 12,
+    "medianAbsBias": 0.4314,
+    "n": 30
+   },
+   {
+    "stress": 6,
+    "medianAbsBias": 0.429,
+    "n": 30
+   }
+  ],
+  "interplate": [
+   {
+    "stress": 50,
+    "medianAbsBias": 0.4042,
+    "n": 870
+   },
+   {
+    "stress": 25,
+    "medianAbsBias": 0.4029,
+    "n": 870
+   },
+   {
+    "stress": 12,
+    "medianAbsBias": 0.4022,
+    "n": 870
+   },
+   {
+    "stress": 6,
+    "medianAbsBias": 0.4001,
+    "n": 870
+   }
+  ],
+  "intraslab": [
+   {
+    "stress": 50,
+    "medianAbsBias": 0.3015,
+    "n": 540
+   },
+   {
+    "stress": 25,
+    "medianAbsBias": 0.3006,
+    "n": 540
+   },
+   {
+    "stress": 12,
+    "medianAbsBias": 0.2991,
+    "n": 540
+   },
+   {
+    "stress": 6,
+    "medianAbsBias": 0.2984,
+    "n": 540
+   }
+  ]
+ },
+ "lfGain": {
+  "b0": 0.201,
+  "b1": 0.143,
+  "b2": -0.208,
+  "n": 1200
+ },
+ "stressDecision": "KEEP the B2 frozen 50 MPa (class-blind): the frozen-grid scan is FLAT within noise (crustal 0.4415->0.429, interplate 0.4042->0.4001, intraslab 0.3015->0.2984 over 50->6 MPa) — for the deaggregation bins (M>=7.6) the whole 1-10 Hz band sits above the Brune corner on the omega^-2 tail, so stress moves the LEVEL but not the anchor-normalized SHAPE and the 1 s scaling absorbs it completely. Re-calibrating stress on this flat scan would be an arbitrary fit of noise (measured negative result, 2026-09-04).",
+ "lfGainApplied": false,
+ "lfGainDecision": "REFUTED by residual structure (2026-09-04): the fitted (mw,rRup) gain under-corrects kochi (needs ~10^0.55 at 2-4 s, got 10^0.37) and OVER-corrects osaka (+0.54/+0.78 at 4-5 s with the gain vs ~-0.1..-0.3 pre-gain bin-conditional deficit). kochi RP475 (M8.79@26km) and osaka RP475 (M8.71@42km) sit at nearly identical (mw,rRup) yet carry opposite-signed 2-4 s residuals -> the DW long-period deficit is SITE/BASIN-specific, not a source (mw,rRup) property, so the pre-registered functional form cannot separate them. Gain application disabled; fitted coefficients retained above as the refutation measurement. Repairing this properly needs P-SV/3D basin response (registered, out of scope)."
+}

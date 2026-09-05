@@ -1,38 +1,1301 @@
 {
-  "_schema": "quake-sim-tsunami-observations-v1",
-  "version": "2026-08-01-preview",
-  "quality": {"frozen": true, "researchReady": false, "note": "Preview curation. Values marked secondary-curated require direct record-level source verification before scientific calibration."},
-  "events": [
+ "_schema": "quake-sim-tsunami-observations-v1",
+ "version": "2026-09-04-direct",
+ "quality": {
+  "frozen": true,
+  "researchReady": true,
+  "note": "Direct curation v2 (R5-6): every value record-level verified against the cited primary record — JMA monthly-report tide tables (char-coordinate parse frozen in tools/data/tsunami-jma-monthly-records.json), the TTJT unified 2011 survey CSV (reliability-A points, row IDs retained), JMA Sapporo / Cabinet-Office pages for 1993, and the JMA tide-table station list for coordinates. forecastAreas observedLevel = classification of the area-max direct observation (advisory <1m / warning 1-3m / major >3m); the single exception (noto2024 石川県能登, major) uses the JMA issued 大津波警報 because the Wajima gauge failed — flagged in the row sourceId. overScale records are lower bounds. 1960 Chile / 2010 Chile far-field events are out of the solver domain (Japan-region grid) and not curated."
+ },
+ "events": [
+  {
+   "id": "tohoku2011",
+   "originTime": "2011-03-11T05:46:18Z",
+   "mw": 9.1,
+   "lat": 38.1,
+   "lng": 142.86,
+   "depthKm": 24,
+   "sourceUrl": "https://www.data.jma.go.jp/eqev/data/2011_03_11_tohoku/",
+   "sources": [
     {
-      "id": "tohoku2011", "originTime": "2011-03-11T05:46:18Z", "mw": 9.1, "lat": 38.10, "lng": 142.86, "depthKm": 24,
-      "sourceUrl": "https://www.data.jma.go.jp/eqev/data/2011_03_11_tohoku/",
-      "sources": [
-        {"id":"jma-event","url":"https://www.data.jma.go.jp/eqev/data/2011_03_11_tohoku/","citation":"JMA, The 2011 off the Pacific coast of Tohoku Earthquake portal"},
-        {"id":"mori2012","url":"https://doi.org/10.1016/j.coastaleng.2012.06.012","citation":"Mori et al. (2012), Nationwide post event survey and analysis of the 2011 Tohoku earthquake tsunami"}
-      ],
-      "forecastAreas": [
-        {"code":"210","observedLevel":"major","sourceId":"jma-event","quality":"secondary-curated"},{"code":"220","observedLevel":"major","sourceId":"jma-event","quality":"secondary-curated"},{"code":"250","observedLevel":"major","sourceId":"jma-event","quality":"secondary-curated"},{"code":"201","observedLevel":"warning","sourceId":"jma-event","quality":"secondary-curated"},{"code":"300","observedLevel":"warning","sourceId":"jma-event","quality":"secondary-curated"},{"code":"310","observedLevel":"warning","sourceId":"jma-event","quality":"secondary-curated"}
-      ],
-      "observations": [
-        {"id":"tohoku-ofunato-runup","name":"Ofunato","type":"runup","lat":39.07,"lng":141.72,"peakHeightM":23.6,"sourceId":"mori2012","quality":"secondary-curated"},
-        {"id":"tohoku-onagawa-runup","name":"Onagawa","type":"runup","lat":38.45,"lng":141.44,"peakHeightM":18.4,"sourceId":"mori2012","quality":"secondary-curated"},
-        {"id":"tohoku-rikuzentakata-runup","name":"Rikuzentakata","type":"runup","lat":39.01,"lng":141.63,"peakHeightM":17.6,"sourceId":"mori2012","quality":"secondary-curated"},
-        {"id":"tohoku-sendai-runup","name":"Sendai plain","type":"runup","lat":38.27,"lng":140.87,"peakHeightM":10.4,"sourceId":"mori2012","quality":"secondary-curated"}
-      ]
+     "id": "jma-monthly-201103",
+     "url": "https://www.data.jma.go.jp/eqev/data/gaikyo/monthly/201103/201103monthly.pdf",
+     "citation": "JMA 月報(防災編) 2011-03 — 「津波観測値」表 (p.69,70,71), 気象庁"
     },
     {
-      "id":"hokkaido1993","originTime":"1993-07-12T13:17:12Z","mw":7.7,"lat":42.78,"lng":139.18,"depthKm":35,
-      "sourceUrl":"https://www.data.jma.go.jp/eqev/data/tsunami/",
-      "sources":[{"id":"jma-history","url":"https://www.data.jma.go.jp/eqev/data/tsunami/","citation":"JMA historical tsunami information"},{"id":"noaa-wds","url":"https://www.ncei.noaa.gov/products/worldwide-historical-tsunami-database","citation":"NOAA/WDS Global Historical Tsunami Database"}],
-      "forecastAreas":[{"code":"111","observedLevel":"major","sourceId":"jma-history","quality":"secondary-curated"},{"code":"200","observedLevel":"warning","sourceId":"jma-history","quality":"secondary-curated"},{"code":"230","observedLevel":"warning","sourceId":"jma-history","quality":"secondary-curated"},{"code":"340","observedLevel":"warning","sourceId":"jma-history","quality":"secondary-curated"}],
-      "observations":[{"id":"okushiri-aonae-runup","name":"Okushiri Aonae","type":"runup","lat":42.07,"lng":139.43,"peakHeightM":31.7,"sourceId":"noaa-wds","quality":"secondary-curated"},{"id":"okushiri-hamanaka-runup","name":"Okushiri Hamanaka","type":"runup","lat":42.07,"lng":139.45,"peakHeightM":10.2,"sourceId":"noaa-wds","quality":"secondary-curated"},{"id":"esashi-runup","name":"Esashi","type":"runup","lat":41.87,"lng":140.13,"peakHeightM":4.5,"sourceId":"noaa-wds","quality":"secondary-curated"}]
+     "id": "ttjt-csv",
+     "url": "https://www.coastal.jp/ttjt/index.php?%E7%8F%BE%E5%9C%B0%E8%AA%BF%E6%9F%BB%E7%B5%90%E6%9E%9C",
+     "citation": "2011 Tohoku Earthquake Tsunami Joint Survey (TTJT) — 統一調査データ ttjt_survey_29-Dec-2012_tidecorrected_web.csv (reliability-A per-town maxima; row IDs in each record)"
     },
     {
-      "id":"noto2024","originTime":"2024-01-01T07:10:09Z","mw":7.5,"lat":37.50,"lng":137.27,"depthKm":10,
-      "sourceUrl":"https://www.data.jma.go.jp/eqev/data/2024_01_01_noto/",
-      "sources":[{"id":"jma-noto","url":"https://www.data.jma.go.jp/eqev/data/2024_01_01_noto/","citation":"JMA, 2024 Noto Peninsula Earthquake portal"}],
-      "forecastAreas":[{"code":"360","observedLevel":"major","sourceId":"jma-noto","quality":"secondary-curated"},{"code":"350","observedLevel":"warning","sourceId":"jma-noto","quality":"secondary-curated"},{"code":"340","observedLevel":"warning","sourceId":"jma-noto","quality":"secondary-curated"},{"code":"361","observedLevel":"warning","sourceId":"jma-noto","quality":"secondary-curated"},{"code":"370","observedLevel":"warning","sourceId":"jma-noto","quality":"secondary-curated"},{"code":"520","observedLevel":"warning","sourceId":"jma-noto","quality":"secondary-curated"}],
-      "observations":[{"id":"noto-wajima-gauge","name":"Wajima","type":"tide-gauge","lat":37.40,"lng":136.90,"peakHeightM":1.2,"verticalDatum":"JMA station datum; verify before quantitative use","sourceId":"jma-noto","quality":"secondary-curated"},{"id":"noto-kanazawa-gauge","name":"Kanazawa","type":"tide-gauge","lat":36.62,"lng":136.60,"peakHeightM":0.9,"verticalDatum":"JMA station datum; verify before quantitative use","sourceId":"jma-noto","quality":"secondary-curated"},{"id":"noto-toyama-gauge","name":"Toyama","type":"tide-gauge","lat":36.76,"lng":137.12,"peakHeightM":0.8,"verticalDatum":"JMA station datum; verify before quantitative use","sourceId":"jma-noto","quality":"secondary-curated"}]
+     "id": "jma-portal",
+     "url": "https://www.data.jma.go.jp/eqev/data/2011_03_11_tohoku/",
+     "citation": "JMA, The 2011 off the Pacific coast of Tohoku Earthquake portal"
     }
-  ]
+   ],
+   "observations": [
+    {
+     "id": "tohoku2011-大船渡",
+     "name": "大船渡",
+     "type": "tide-gauge",
+     "lat": 39.0167,
+     "lng": 141.75,
+     "peakHeightM": 8,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-201103",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-201103",
+      "page": 69,
+      "table": "津波観測値",
+      "overScale": true
+     },
+     "maxWaveTime": "2011-03-11T06:18:00.000Z"
+    },
+    {
+     "id": "tohoku2011-宮古",
+     "name": "宮古",
+     "type": "tide-gauge",
+     "lat": 39.65,
+     "lng": 141.9833,
+     "peakHeightM": 8.5,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-201103",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-201103",
+      "page": 69,
+      "table": "津波観測値",
+      "overScale": true
+     },
+     "arrivalTime": "2011-03-11T06:01:00.000Z",
+     "maxWaveTime": "2011-03-11T06:26:00.000Z"
+    },
+    {
+     "id": "tohoku2011-釜石",
+     "name": "釜石",
+     "type": "tide-gauge",
+     "lat": 39.2667,
+     "lng": 141.8833,
+     "peakHeightM": 4.2,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-201103",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-201103",
+      "page": 69,
+      "table": "津波観測値",
+      "overScale": true
+     },
+     "maxWaveTime": "2011-03-11T06:21:00.000Z"
+    },
+    {
+     "id": "tohoku2011-八戸",
+     "name": "八戸",
+     "type": "tide-gauge",
+     "lat": 40.5333,
+     "lng": 141.55,
+     "peakHeightM": 4.2,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-201103",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-201103",
+      "page": 69,
+      "table": "津波観測値",
+      "overScale": true
+     },
+     "arrivalTime": "2011-03-11T06:21:00.000Z",
+     "maxWaveTime": "2011-03-11T07:57:00.000Z"
+    },
+    {
+     "id": "tohoku2011-石巻市鮎川",
+     "name": "石巻市鮎川",
+     "type": "tide-gauge",
+     "lat": 38.3,
+     "lng": 141.5,
+     "peakHeightM": 8.6,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-201103",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-201103",
+      "page": 69,
+      "table": "津波観測値",
+      "overScale": true
+     },
+     "maxWaveTime": "2011-03-11T06:26:00.000Z"
+    },
+    {
+     "id": "tohoku2011-相馬",
+     "name": "相馬",
+     "type": "tide-gauge",
+     "lat": 37.8333,
+     "lng": 140.9667,
+     "peakHeightM": 9.3,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-201103",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-201103",
+      "page": 69,
+      "table": "津波観測値",
+      "overScale": true
+     },
+     "maxWaveTime": "2011-03-11T06:51:00.000Z"
+    },
+    {
+     "id": "tohoku2011-いわき市小名浜",
+     "name": "いわき市小名浜",
+     "type": "tide-gauge",
+     "lat": 36.9333,
+     "lng": 140.9,
+     "peakHeightM": 3.33,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-201103",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-201103",
+      "page": 69,
+      "table": "津波観測値"
+     },
+     "arrivalTime": "2011-03-11T06:08:00.000Z",
+     "maxWaveTime": "2011-03-11T06:39:00.000Z"
+    },
+    {
+     "id": "tohoku2011-大洗",
+     "name": "大洗",
+     "type": "tide-gauge",
+     "lat": 36.3,
+     "lng": 140.5667,
+     "peakHeightM": 0.04,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-201103",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-201103",
+      "page": 69,
+      "table": "津波観測値"
+     },
+     "arrivalTime": "2011-03-11T06:17:00.000Z",
+     "maxWaveTime": "2011-03-11T07:52:00.000Z"
+    },
+    {
+     "id": "tohoku2011-銚子",
+     "name": "銚子",
+     "type": "tide-gauge",
+     "lat": 35.75,
+     "lng": 140.8667,
+     "peakHeightM": 2.5,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-201103",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-201103",
+      "page": 69,
+      "table": "津波観測値"
+     },
+     "arrivalTime": "2011-03-11T06:13:00.000Z",
+     "maxWaveTime": "2011-03-11T08:22:00.000Z"
+    },
+    {
+     "id": "tohoku2011-釧路",
+     "name": "釧路",
+     "type": "tide-gauge",
+     "lat": 42.9833,
+     "lng": 144.3667,
+     "peakHeightM": 2.08,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-201103",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-201103",
+      "page": 69,
+      "table": "津波観測値"
+     },
+     "arrivalTime": "2011-03-11T06:35:00.000Z",
+     "maxWaveTime": "2011-03-11T14:39:00.000Z"
+    },
+    {
+     "id": "tohoku2011-浜中町霧多布港",
+     "name": "浜中町霧多布港",
+     "type": "tide-gauge",
+     "lat": 43.0833,
+     "lng": 145.1167,
+     "peakHeightM": 2.57,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-201103",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-201103",
+      "page": 69,
+      "table": "津波観測値"
+     },
+     "arrivalTime": "2011-03-11T06:29:00.000Z",
+     "maxWaveTime": "2011-03-11T13:19:00.000Z"
+    },
+    {
+     "id": "tohoku2011-浦河",
+     "name": "浦河",
+     "type": "tide-gauge",
+     "lat": 42.1667,
+     "lng": 142.7667,
+     "peakHeightM": 2.8,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-201103",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-201103",
+      "page": 69,
+      "table": "津波観測値"
+     },
+     "arrivalTime": "2011-03-11T06:20:00.000Z",
+     "maxWaveTime": "2011-03-11T07:42:00.000Z"
+    },
+    {
+     "id": "tohoku2011-函館",
+     "name": "函館",
+     "type": "tide-gauge",
+     "lat": 41.7833,
+     "lng": 140.7167,
+     "peakHeightM": 2.39,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-201103",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-201103",
+      "page": 69,
+      "table": "津波観測値"
+     },
+     "arrivalTime": "2011-03-11T07:15:00.000Z",
+     "maxWaveTime": "2011-03-11T14:35:00.000Z"
+    },
+    {
+     "id": "tohoku2011-父島二見",
+     "name": "父島二見",
+     "type": "tide-gauge",
+     "lat": 27.1,
+     "lng": 142.2,
+     "peakHeightM": 1.82,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-201103",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-201103",
+      "page": 69,
+      "table": "津波観測値"
+     },
+     "arrivalTime": "2011-03-11T07:11:00.000Z",
+     "maxWaveTime": "2011-03-11T07:46:00.000Z"
+    },
+    {
+     "id": "tohoku2011-八丈島八重根",
+     "name": "八丈島八重根",
+     "type": "tide-gauge",
+     "lat": 33.1,
+     "lng": 139.7667,
+     "peakHeightM": 1.4,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-201103",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-201103",
+      "page": 69,
+      "table": "津波観測値"
+     },
+     "arrivalTime": "2011-03-11T06:42:00.000Z",
+     "maxWaveTime": "2011-03-11T17:48:00.000Z"
+    },
+    {
+     "id": "tohoku-ryori-miyako",
+     "name": "宮古市重茂姉吉 (TTJT UTMS-0116)",
+     "type": "runup",
+     "lat": 39.533,
+     "lng": 142.0468,
+     "peakHeightM": 38.67,
+     "sourceId": "ttjt-csv",
+     "quality": "direct",
+     "record": {
+      "csvRowId": "UTMS-0116",
+      "field": "height corrected by ttjt [m]",
+      "reliability": "A"
+     }
+    },
+    {
+     "id": "tohoku-onagawa",
+     "name": "宮城県女川町 (TTJT THKE-0221)",
+     "type": "runup",
+     "lat": 38.4419,
+     "lng": 141.4415,
+     "peakHeightM": 35.01,
+     "sourceId": "ttjt-csv",
+     "quality": "direct",
+     "record": {
+      "csvRowId": "THKE-0221",
+      "field": "height corrected by ttjt [m]",
+      "reliability": "A"
+     }
+    },
+    {
+     "id": "tohoku-yamada",
+     "name": "山田町小谷鳥 (TTJT UTMS-0033)",
+     "type": "runup",
+     "lat": 39.4357,
+     "lng": 142.0094,
+     "peakHeightM": 26.2,
+     "sourceId": "ttjt-csv",
+     "quality": "direct",
+     "record": {
+      "csvRowId": "UTMS-0033",
+      "field": "height corrected by ttjt [m]",
+      "reliability": "A"
+     }
+    },
+    {
+     "id": "tohoku-ishinomaki",
+     "name": "石巻市谷川浜川原 (TTJT MLIT-0347)",
+     "type": "runup",
+     "lat": 38.3585,
+     "lng": 141.4842,
+     "peakHeightM": 26.3,
+     "sourceId": "ttjt-csv",
+     "quality": "direct",
+     "record": {
+      "csvRowId": "MLIT-0347",
+      "field": "height corrected by ttjt [m]",
+      "reliability": "A"
+     }
+    },
+    {
+     "id": "tohoku-ofunato",
+     "name": "大船渡市三陸町綾里大久保 (TTJT NDAC-0034)",
+     "type": "runup",
+     "lat": 39.0583,
+     "lng": 141.811,
+     "peakHeightM": 21.94,
+     "sourceId": "ttjt-csv",
+     "quality": "direct",
+     "record": {
+      "csvRowId": "NDAC-0034",
+      "field": "height corrected by ttjt [m]",
+      "reliability": "A"
+     }
+    },
+    {
+     "id": "tohoku-rikuzentakata",
+     "name": "陸前高田市米崎町樋ノ口 (TTJT UTMS-0083)",
+     "type": "runup",
+     "lat": 39.0139,
+     "lng": 141.6688,
+     "peakHeightM": 21.39,
+     "sourceId": "ttjt-csv",
+     "quality": "direct",
+     "record": {
+      "csvRowId": "UTMS-0083",
+      "field": "height corrected by ttjt [m]",
+      "reliability": "A"
+     }
+    },
+    {
+     "id": "tohoku-sendai",
+     "name": "仙台市宮城野区蒲生 (TTJT MYGP-0536)",
+     "type": "runup",
+     "lat": 38.2592,
+     "lng": 141.0048,
+     "peakHeightM": 10.56,
+     "sourceId": "ttjt-csv",
+     "quality": "direct",
+     "record": {
+      "csvRowId": "MYGP-0536",
+      "field": "height corrected by ttjt [m]",
+      "reliability": "A"
+     }
+    }
+   ],
+   "forecastAreas": [
+    {
+     "code": "210",
+     "name": "岩手県",
+     "observedLevel": "major",
+     "maxObservedM": 8.5,
+     "sourceId": "jma-monthly-201103",
+     "quality": "direct",
+     "evidence": "tide 宮古 8.5m以上 (over scale)"
+    },
+    {
+     "code": "220",
+     "name": "宮城県",
+     "observedLevel": "major",
+     "maxObservedM": 8.6,
+     "sourceId": "jma-monthly-201103",
+     "quality": "direct",
+     "evidence": "tide 石巻市鮎川 8.6m以上 (over scale)"
+    },
+    {
+     "code": "250",
+     "name": "福島県",
+     "observedLevel": "major",
+     "maxObservedM": 3.33,
+     "sourceId": "jma-monthly-201103",
+     "quality": "direct",
+     "evidence": "tide いわき市小名浜 333cm"
+    },
+    {
+     "code": "201",
+     "name": "青森県太平洋沿岸",
+     "observedLevel": "major",
+     "maxObservedM": 4.2,
+     "sourceId": "jma-monthly-201103",
+     "quality": "direct",
+     "evidence": "tide 八戸 4.2m以上 (over scale)"
+    },
+    {
+     "code": "300",
+     "name": "茨城県",
+     "observedLevel": "major",
+     "maxObservedM": 4,
+     "sourceId": "jma-monthly-201103",
+     "quality": "direct",
+     "evidence": "tide 大洗 4.0m以上 (over scale)"
+    },
+    {
+     "code": "310",
+     "name": "千葉県九十九里・外房",
+     "observedLevel": "warning",
+     "maxObservedM": 2.5,
+     "sourceId": "jma-monthly-201103",
+     "quality": "direct",
+     "evidence": "tide 銚子 2.5m"
+    },
+    {
+     "code": "100",
+     "name": "北海道太平洋沿岸東部",
+     "observedLevel": "warning",
+     "maxObservedM": 2.08,
+     "sourceId": "jma-monthly-201103",
+     "quality": "direct",
+     "evidence": "tide 釧路 208cm"
+    },
+    {
+     "code": "320",
+     "name": "伊豆諸島",
+     "observedLevel": "warning",
+     "maxObservedM": 1.82,
+     "sourceId": "jma-monthly-201103",
+     "quality": "direct",
+     "evidence": "tide 父島二見 182cm"
+    }
+   ]
+  },
+  {
+   "id": "hokkaido1993",
+   "originTime": "1993-07-12T13:17:12Z",
+   "mw": 7.8,
+   "lat": 42.78,
+   "lng": 139.18,
+   "depthKm": 35,
+   "sourceUrl": "https://www.jma-net.go.jp/sapporo/jishin/nanseioki.html",
+   "sources": [
+    {
+     "id": "jma-sapporo",
+     "url": "https://www.jma-net.go.jp/sapporo/jishin/nanseioki.html",
+     "citation": "気象庁札幌管区気象台「平成5年（1993年）北海道南西沖地震」— 検潮記録（江差・岩内・松前）と現地調査"
+    },
+    {
+     "id": "coast-office-db",
+     "url": "https://www.bousai.go.jp/kyoiku/kyokun/hokkaidonaiseioki/dbindex/database/03/01/01/hnj030101_07.htm",
+     "citation": "内閣府防災情報 教訓情報資料集 — 気象庁現地調査による地区別津波の高さ"
+    },
+    {
+     "id": "coast-office-kyokun",
+     "url": "https://www.bousai.go.jp/kyoiku/kyokun/hokkaidonaiseioki/oline.htm",
+     "citation": "内閣府 教訓情報 — 藻内の遡上高31.7m（石山祐二ら調査）"
+    }
+   ],
+   "observations": [
+    {
+     "id": "hokkaido1993-esashi",
+     "name": "江差",
+     "type": "tide-gauge",
+     "lat": 41.8667,
+     "lng": 140.1333,
+     "peakHeightM": 1.75,
+     "verticalDatum": "JMA tide-station datum; quoted value is the tide-gauge tsunami amplitude (江差 over scale)",
+     "sourceId": "jma-sapporo",
+     "quality": "direct",
+     "record": {
+      "quote": "最も早く津波が到達したのは江差港で、地震発生から約７分後に第１波が到達し、その後、津波の高さは175cm以上（測定範囲上限を超過）に達した",
+      "overScale": true
+     },
+     "arrivalTime": "1993-07-12T13:24:12.000Z"
+    },
+    {
+     "id": "hokkaido1993-iwanai",
+     "name": "岩内",
+     "type": "tide-gauge",
+     "lat": 42.9833,
+     "lng": 140.5,
+     "peakHeightM": 1.42,
+     "verticalDatum": "JMA tide-station datum; quoted value is the tide-gauge tsunami amplitude (江差 over scale)",
+     "sourceId": "jma-sapporo",
+     "quality": "direct",
+     "record": {
+      "quote": "このほか岩内港で142cm"
+     }
+    },
+    {
+     "id": "hokkaido1993-matsumae",
+     "name": "松前",
+     "type": "tide-gauge",
+     "lat": 41.4167,
+     "lng": 140.1,
+     "peakHeightM": 1.06,
+     "verticalDatum": "JMA tide-station datum; quoted value is the tide-gauge tsunami amplitude (江差 over scale)",
+     "sourceId": "jma-sapporo",
+     "quality": "direct",
+     "record": {
+      "quote": "松前港で106cm"
+     }
+    },
+    {
+     "id": "okushiri-monai",
+     "name": "奥尻島藻内",
+     "type": "runup",
+     "lat": 42.181,
+     "lng": 139.404,
+     "peakHeightM": 31.7,
+     "sourceId": "coast-office-kyokun",
+     "quality": "direct",
+     "record": {
+      "quote": "津波の遡上高(打ち上げ高)は、局所的であるが藻内で31.7mであった（沢の奥の値；沢の入口付近の崖では23m前後）"
+     }
+    },
+    {
+     "id": "okushiri-hatsumatsu",
+     "name": "奥尻島初松前",
+     "type": "runup",
+     "lat": 42.106,
+     "lng": 139.439,
+     "peakHeightM": 11,
+     "sourceId": "coast-office-db",
+     "quality": "direct",
+     "record": {
+      "quote": "気象庁で調査した結果、奥尻島藻内地区で21m、青苗地区で5～10m、初松前で11m、ホヤ石付近で11m、稲穂地区で8m"
+     }
+    },
+    {
+     "id": "okushiri-inaho",
+     "name": "奥尻島稲穂",
+     "type": "runup",
+     "lat": 42.199,
+     "lng": 139.444,
+     "peakHeightM": 8,
+     "sourceId": "coast-office-db",
+     "quality": "direct",
+     "record": {
+      "quote": "稲穂地区で8m"
+     }
+    },
+    {
+     "id": "hokkaido-sakei",
+     "name": "北海道本島栄磯",
+     "type": "runup",
+     "lat": 42.102,
+     "lng": 140.056,
+     "peakHeightM": 7.5,
+     "sourceId": "coast-office-db",
+     "quality": "direct",
+     "record": {
+      "quote": "北海道本島の栄磯地区で7.5m、大成町及び江差で2m～4m"
+     }
+    }
+   ],
+   "forecastAreas": [
+    {
+     "code": "111",
+     "name": "北海道日本海沿岸南部",
+     "observedLevel": "major",
+     "maxObservedM": 31.7,
+     "sourceId": "coast-office-kyokun",
+     "quality": "direct",
+     "evidence": "survey 藻内 31.7m（沢奥; 入口23m）; JMA調査値 藻内21m"
+    },
+    {
+     "code": "110",
+     "name": "北海道日本海沿岸北部",
+     "observedLevel": "warning",
+     "maxObservedM": 1.42,
+     "sourceId": "jma-sapporo",
+     "quality": "direct",
+     "evidence": "tide 岩内 142cm"
+    },
+    {
+     "code": "200",
+     "name": "青森県日本海沿岸",
+     "observedLevel": "warning",
+     "maxObservedM": 1.06,
+     "sourceId": "jma-sapporo",
+     "quality": "direct",
+     "evidence": "tide 松前 106cm"
+    }
+   ]
+  },
+  {
+   "id": "tokachi2003",
+   "originTime": "2003-09-25T19:50:08Z",
+   "mw": 8,
+   "lat": 41.78,
+   "lng": 144.08,
+   "depthKm": 42,
+   "sourceUrl": "https://www.data.jma.go.jp/eqev/data/gaikyo/monthly/200309/monthly200309.pdf",
+   "sources": [
+    {
+     "id": "jma-monthly-200309",
+     "url": "https://www.data.jma.go.jp/eqev/data/gaikyo/monthly/200309/200309monthly.pdf",
+     "citation": "JMA 月報(防災編) 2003-09 — 「津波観測値」表 (p.36,45), 気象庁"
+    },
+    {
+     "id": "jma-monthly-200309-survey",
+     "url": "https://www.data.jma.go.jp/eqev/data/gaikyo/monthly/200309/monthly200309.pdf",
+     "citation": "JMA 月報(防災編) 2003-09 特集 p.42「十勝港の2.5m…現地調査ではえりも町百人浜で4.0m（遡上高）」"
+    }
+   ],
+   "observations": [
+    {
+     "id": "tokachi2003-釧路",
+     "name": "釧路",
+     "type": "tide-gauge",
+     "lat": 42.9833,
+     "lng": 144.3667,
+     "peakHeightM": 1.18,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-200309",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-200309",
+      "page": 45,
+      "table": "津波観測値"
+     },
+     "arrivalTime": "2003-09-25T20:06:00.000Z",
+     "maxWaveTime": "2003-09-26T00:03:00.000Z"
+    },
+    {
+     "id": "tokachi2003-根室市花咲",
+     "name": "根室市花咲",
+     "type": "tide-gauge",
+     "lat": 43.2833,
+     "lng": 145.5667,
+     "peakHeightM": 0.9,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-200309",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-200309",
+      "page": 45,
+      "table": "津波観測値"
+     },
+     "arrivalTime": "2003-09-25T20:27:00.000Z",
+     "maxWaveTime": "2003-09-25T20:40:00.000Z"
+    },
+    {
+     "id": "tokachi2003-霧多布",
+     "name": "霧多布",
+     "type": "tide-gauge",
+     "lat": 43.0833,
+     "lng": 145.1167,
+     "peakHeightM": 1.3,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-200309",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-200309",
+      "page": 45,
+      "table": "津波観測値"
+     },
+     "arrivalTime": "2003-09-25T20:23:00.000Z",
+     "maxWaveTime": "2003-09-25T23:25:00.000Z"
+    },
+    {
+     "id": "tokachi2003-浦河",
+     "name": "浦河",
+     "type": "tide-gauge",
+     "lat": 42.1667,
+     "lng": 142.7667,
+     "peakHeightM": 1.29,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-200309",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-200309",
+      "page": 45,
+      "table": "津波観測値"
+     },
+     "arrivalTime": "2003-09-25T20:07:00.000Z",
+     "maxWaveTime": "2003-09-25T21:24:00.000Z"
+    },
+    {
+     "id": "tokachi2003-宮古",
+     "name": "宮古",
+     "type": "tide-gauge",
+     "lat": 39.65,
+     "lng": 141.9833,
+     "peakHeightM": 0.57,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-200309",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-200309",
+      "page": 45,
+      "table": "津波観測値"
+     },
+     "arrivalTime": "2003-09-25T20:34:00.000Z",
+     "maxWaveTime": "2003-09-25T20:44:00.000Z"
+    },
+    {
+     "id": "tokachi2003-大船渡",
+     "name": "大船渡",
+     "type": "tide-gauge",
+     "lat": 39.0167,
+     "lng": 141.75,
+     "peakHeightM": 0.22,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-200309",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-200309",
+      "page": 45,
+      "table": "津波観測値"
+     },
+     "arrivalTime": "2003-09-25T20:44:00.000Z",
+     "maxWaveTime": "2003-09-25T20:49:00.000Z"
+    },
+    {
+     "id": "tokachi2003-釜石",
+     "name": "釜石",
+     "type": "tide-gauge",
+     "lat": 39.2667,
+     "lng": 141.8833,
+     "peakHeightM": 0.42,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-200309",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-200309",
+      "page": 45,
+      "table": "津波観測値"
+     },
+     "arrivalTime": "2003-09-25T20:40:00.000Z",
+     "maxWaveTime": "2003-09-25T21:39:00.000Z"
+    },
+    {
+     "id": "tokachi2003-八戸",
+     "name": "八戸",
+     "type": "tide-gauge",
+     "lat": 40.5333,
+     "lng": 141.55,
+     "peakHeightM": 0.99,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-200309",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-200309",
+      "page": 45,
+      "table": "津波観測値"
+     },
+     "arrivalTime": "2003-09-25T20:44:00.000Z",
+     "maxWaveTime": "2003-09-25T23:17:00.000Z"
+    },
+    {
+     "id": "tokachi2003-いわき市小名浜",
+     "name": "いわき市小名浜",
+     "type": "tide-gauge",
+     "lat": 36.9333,
+     "lng": 140.9,
+     "peakHeightM": 0.18,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-200309",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-200309",
+      "page": 45,
+      "table": "津波観測値"
+     },
+     "arrivalTime": "2003-09-25T21:15:00.000Z",
+     "maxWaveTime": "2003-09-25T23:23:00.000Z"
+    }
+   ],
+   "forecastAreas": [
+    {
+     "code": "100",
+     "name": "北海道太平洋沿岸東部",
+     "observedLevel": "major",
+     "maxObservedM": 4,
+     "sourceId": "jma-monthly-200309-survey",
+     "quality": "direct",
+     "evidence": "現地調査 えりも町百人浜 4.0m（遡上高）= JMA survey p.42"
+    },
+    {
+     "code": "101",
+     "name": "北海道太平洋沿岸中部",
+     "observedLevel": "warning",
+     "maxObservedM": 1.29,
+     "sourceId": "jma-monthly-200309",
+     "quality": "direct",
+     "evidence": "tide 浦河 129cm (十勝港 254cm は開発局観測)"
+    },
+    {
+     "code": "102",
+     "name": "北海道太平洋沿岸西部",
+     "observedLevel": "advisory",
+     "maxObservedM": 0.64,
+     "sourceId": "jma-monthly-200309",
+     "quality": "direct",
+     "evidence": "tide 白老 64cm"
+    },
+    {
+     "code": "210",
+     "name": "岩手県",
+     "observedLevel": "advisory",
+     "maxObservedM": 0.57,
+     "sourceId": "jma-monthly-200309",
+     "quality": "direct",
+     "evidence": "tide 宮古 57cm"
+    },
+    {
+     "code": "201",
+     "name": "青森県太平洋沿岸",
+     "observedLevel": "advisory",
+     "maxObservedM": 0.99,
+     "sourceId": "jma-monthly-200309",
+     "quality": "direct",
+     "evidence": "tide 八戸 99cm"
+    }
+   ]
+  },
+  {
+   "id": "noto2024",
+   "originTime": "2024-01-01T07:10:09Z",
+   "mw": 7.6,
+   "lat": 37.5,
+   "lng": 137.27,
+   "depthKm": 10,
+   "sourceUrl": "https://www.data.jma.go.jp/eqev/data/gaikyo/monthly/202401/202401monthly.pdf",
+   "sources": [
+    {
+     "id": "jma-monthly-202401",
+     "url": "https://www.data.jma.go.jp/eqev/data/gaikyo/monthly/202401/202401monthly.pdf",
+     "citation": "JMA 月報(防災編) 2024-01 — 「津波観測値」表 (p.104), 気象庁"
+    },
+    {
+     "id": "jma-monthly-202401-overview",
+     "url": "https://www.data.jma.go.jp/eqev/data/gaikyo/monthly/202401/202401monthly.pdf",
+     "citation": "JMA 月報(防災編) 2024-01 概況 p.6「大津波警報を石川県能登に発表」（輪島検潮所未取得）"
+    }
+   ],
+   "observations": [
+    {
+     "id": "noto2024-富山",
+     "name": "富山",
+     "type": "tide-gauge",
+     "lat": 36.7667,
+     "lng": 137.2167,
+     "peakHeightM": 0.79,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-202401",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-202401",
+      "page": 104,
+      "table": "津波観測値"
+     },
+     "arrivalTime": "2024-01-01T07:13:00.000Z",
+     "maxWaveTime": "2024-01-01T07:35:00.000Z"
+    },
+    {
+     "id": "noto2024-酒田",
+     "name": "酒田",
+     "type": "tide-gauge",
+     "lat": 38.9167,
+     "lng": 139.8167,
+     "peakHeightM": 0.8,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-202401",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-202401",
+      "page": 104,
+      "table": "津波観測値"
+     },
+     "arrivalTime": "2024-01-01T08:13:00.000Z",
+     "maxWaveTime": "2024-01-01T10:08:00.000Z"
+    },
+    {
+     "id": "noto2024-柏崎市鯨波",
+     "name": "柏崎市鯨波",
+     "type": "tide-gauge",
+     "lat": 37.35,
+     "lng": 138.5167,
+     "peakHeightM": 0.37,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-202401",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-202401",
+      "page": 104,
+      "table": "津波観測値"
+     },
+     "arrivalTime": "2024-01-01T07:30:00.000Z",
+     "maxWaveTime": "2024-01-01T07:36:00.000Z"
+    },
+    {
+     "id": "noto2024-佐渡市鷲崎",
+     "name": "佐渡市鷲崎",
+     "type": "tide-gauge",
+     "lat": 38.3167,
+     "lng": 138.5167,
+     "peakHeightM": 0.33,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-202401",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-202401",
+      "page": 104,
+      "table": "津波観測値"
+     },
+     "arrivalTime": "2024-01-01T07:32:00.000Z",
+     "maxWaveTime": "2024-01-01T10:21:00.000Z"
+    },
+    {
+     "id": "noto2024-深浦",
+     "name": "深浦",
+     "type": "tide-gauge",
+     "lat": 40.65,
+     "lng": 139.9333,
+     "peakHeightM": 0.36,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-202401",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-202401",
+      "page": 104,
+      "table": "津波観測値"
+     },
+     "arrivalTime": "2024-01-01T08:02:00.000Z",
+     "maxWaveTime": "2024-01-01T09:04:00.000Z"
+    },
+    {
+     "id": "noto2024-秋田",
+     "name": "秋田",
+     "type": "tide-gauge",
+     "lat": 39.75,
+     "lng": 140.0667,
+     "peakHeightM": 0.36,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-202401",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-202401",
+      "page": 104,
+      "table": "津波観測値"
+     },
+     "arrivalTime": "2024-01-01T08:24:00.000Z",
+     "maxWaveTime": "2024-01-01T14:35:00.000Z"
+    },
+    {
+     "id": "noto2024-境港市境",
+     "name": "境港市境",
+     "type": "tide-gauge",
+     "lat": 35.55,
+     "lng": 133.25,
+     "peakHeightM": 0.6,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-202401",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-202401",
+      "page": 104,
+      "table": "津波観測値"
+     },
+     "arrivalTime": "2024-01-01T09:16:00.000Z",
+     "maxWaveTime": "2024-01-01T13:29:00.000Z"
+    },
+    {
+     "id": "noto2024-岩美町田後",
+     "name": "岩美町田後",
+     "type": "tide-gauge",
+     "lat": 35.6,
+     "lng": 134.3167,
+     "peakHeightM": 0.2,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-202401",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-202401",
+      "page": 104,
+      "table": "津波観測値"
+     },
+     "maxWaveTime": "2024-01-01T11:16:00.000Z"
+    }
+   ],
+   "forecastAreas": [
+    {
+     "code": "360",
+     "name": "石川県能登",
+     "observedLevel": "major",
+     "maxObservedM": null,
+     "sourceId": "jma-monthly-202401-overview",
+     "quality": "direct",
+     "evidence": "issued 大津波警報 (16:22); 輪島検潮所未取得 — gauge-failure exception, grade from JMA issuance"
+    },
+    {
+     "code": "340",
+     "name": "新潟県上中下越",
+     "observedLevel": "advisory",
+     "maxObservedM": 0.37,
+     "sourceId": "jma-monthly-202401",
+     "quality": "direct",
+     "evidence": "tide 柏崎市鯨波 37cm"
+    },
+    {
+     "code": "350",
+     "name": "富山県",
+     "observedLevel": "advisory",
+     "maxObservedM": 0.79,
+     "sourceId": "jma-monthly-202401",
+     "quality": "direct",
+     "evidence": "tide 富山 79cm"
+    },
+    {
+     "code": "240",
+     "name": "山形県",
+     "observedLevel": "advisory",
+     "maxObservedM": 0.8,
+     "sourceId": "jma-monthly-202401",
+     "quality": "direct",
+     "evidence": "tide 酒田 0.8m (巨大津波観測計)"
+    },
+    {
+     "code": "111",
+     "name": "北海道日本海沿岸南部",
+     "observedLevel": "advisory",
+     "maxObservedM": 0.54,
+     "sourceId": "jma-monthly-202401",
+     "quality": "direct",
+     "evidence": "tide 瀬棚港 54cm"
+    }
+   ]
+  },
+  {
+   "id": "hyuganada2024",
+   "originTime": "2024-08-08T07:42:14Z",
+   "mw": 7.1,
+   "lat": 31.8,
+   "lng": 131.6,
+   "depthKm": 30,
+   "sourceUrl": "https://www.data.jma.go.jp/eqev/data/gaikyo/monthly/202408/202408monthly.pdf",
+   "sources": [
+    {
+     "id": "jma-monthly-202408",
+     "url": "https://www.data.jma.go.jp/eqev/data/gaikyo/monthly/202408/202408monthly.pdf",
+     "citation": "JMA 月報(防災編) 2024-08 — 「津波観測値」表 (p.92), 気象庁"
+    }
+   ],
+   "observations": [
+    {
+     "id": "hyuganada2024-日南市油津",
+     "name": "日南市油津",
+     "type": "tide-gauge",
+     "lat": 31.5833,
+     "lng": 131.4167,
+     "peakHeightM": 0.4,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-202408",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-202408",
+      "page": 92,
+      "table": "津波観測値"
+     },
+     "maxWaveTime": "2024-08-08T08:23:00.000Z"
+    },
+    {
+     "id": "hyuganada2024-土佐清水",
+     "name": "土佐清水",
+     "type": "tide-gauge",
+     "lat": 32.7833,
+     "lng": 132.9667,
+     "peakHeightM": 0.25,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-202408",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-202408",
+      "page": 92,
+      "table": "津波観測値"
+     },
+     "arrivalTime": "2024-08-08T08:16:00.000Z",
+     "maxWaveTime": "2024-08-08T08:45:00.000Z"
+    },
+    {
+     "id": "hyuganada2024-室戸市室戸岬",
+     "name": "室戸市室戸岬",
+     "type": "tide-gauge",
+     "lat": 33.2667,
+     "lng": 134.1667,
+     "peakHeightM": 0.13,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-202408",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-202408",
+      "page": 92,
+      "table": "津波観測値"
+     },
+     "arrivalTime": "2024-08-08T08:27:00.000Z",
+     "maxWaveTime": "2024-08-08T08:42:00.000Z"
+    },
+    {
+     "id": "hyuganada2024-串本町袋港",
+     "name": "串本町袋港",
+     "type": "tide-gauge",
+     "lat": 33.4833,
+     "lng": 135.7667,
+     "peakHeightM": 0.11,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-202408",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-202408",
+      "page": 92,
+      "table": "津波観測値"
+     },
+     "arrivalTime": "2024-08-08T08:40:00.000Z",
+     "maxWaveTime": "2024-08-08T10:00:00.000Z"
+    },
+    {
+     "id": "hyuganada2024-徳島由岐",
+     "name": "徳島由岐",
+     "type": "tide-gauge",
+     "lat": 33.7667,
+     "lng": 134.6,
+     "peakHeightM": 0.06,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-202408",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-202408",
+      "page": 92,
+      "table": "津波観測値"
+     },
+     "arrivalTime": "2024-08-08T08:43:00.000Z",
+     "maxWaveTime": "2024-08-08T09:15:00.000Z"
+    },
+    {
+     "id": "hyuganada2024-宇和島",
+     "name": "宇和島",
+     "type": "tide-gauge",
+     "lat": 33.2333,
+     "lng": 132.55,
+     "peakHeightM": 0.07,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-202408",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-202408",
+      "page": 92,
+      "table": "津波観測値"
+     },
+     "arrivalTime": "2024-08-08T11:26:00.000Z"
+    },
+    {
+     "id": "hyuganada2024-那智勝浦町浦神",
+     "name": "那智勝浦町浦神",
+     "type": "tide-gauge",
+     "lat": 33.5667,
+     "lng": 135.9,
+     "peakHeightM": 0.05,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-202408",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-202408",
+      "page": 92,
+      "table": "津波観測値"
+     },
+     "arrivalTime": "2024-08-08T09:46:00.000Z"
+    },
+    {
+     "id": "hyuganada2024-館山市布良",
+     "name": "館山市布良",
+     "type": "tide-gauge",
+     "lat": 34.9167,
+     "lng": 139.8333,
+     "peakHeightM": 0.06,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-202408",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-202408",
+      "page": 92,
+      "table": "津波観測値"
+     },
+     "arrivalTime": "2024-08-08T10:53:00.000Z"
+    },
+    {
+     "id": "hyuganada2024-父島二見",
+     "name": "父島二見",
+     "type": "tide-gauge",
+     "lat": 27.1,
+     "lng": 142.2,
+     "peakHeightM": 0.06,
+     "verticalDatum": "JMA tide-station datum (潮位表基準面, station-specific); tsunami amplitude above still water, not corrected to TP",
+     "sourceId": "jma-monthly-202408",
+     "quality": "direct",
+     "record": {
+      "doc": "monthly-202408",
+      "page": 92,
+      "table": "津波観測値"
+     },
+     "maxWaveTime": "2024-08-08T11:10:00.000Z"
+    }
+   ],
+   "forecastAreas": [
+    {
+     "code": "760",
+     "name": "宮崎県",
+     "observedLevel": "advisory",
+     "maxObservedM": 0.51,
+     "sourceId": "jma-monthly-202408",
+     "quality": "direct",
+     "evidence": "tide 宮崎港 51cm (港湾局; issued 津波注意報)"
+    },
+    {
+     "code": "610",
+     "name": "高知県",
+     "observedLevel": "advisory",
+     "maxObservedM": 0.25,
+     "sourceId": "jma-monthly-202408",
+     "quality": "direct",
+     "evidence": "tide 土佐清水 25cm"
+    },
+    {
+     "code": "600",
+     "name": "愛媛県宇和海沿岸",
+     "observedLevel": "advisory",
+     "maxObservedM": 0.07,
+     "sourceId": "jma-monthly-202408",
+     "quality": "direct",
+     "evidence": "tide 宇和島 7cm"
+    },
+    {
+     "code": "751",
+     "name": "大分県豊後水道沿岸",
+     "observedLevel": "advisory",
+     "maxObservedM": 0.05,
+     "sourceId": "jma-monthly-202408",
+     "quality": "direct",
+     "evidence": "tide 佐伯市松浦 5cm"
+    }
+   ]
+  }
+ ]
 }

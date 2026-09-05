@@ -1,8 +1,8 @@
 {
   "schema": "quake-sim-version-report-v1",
-  "appVersion": "6.1.0",
-  "generatedAt": "2026-09-01T07:56:35.074Z",
-  "gitHead": "b07f2e54f5bbacc556538e6f75a8c258a043af30",
+  "appVersion": "6.2.0",
+  "generatedAt": "2026-09-05T01:42:02.100Z",
+  "gitHead": "8202f28992bdfb6b99ecfdec576aea946d5fb4cb",
   "reports": {
     "strong-motion-report.json": {
       "present": true,
@@ -12,12 +12,12 @@
     "tsunami-scorecard-report.json": {
       "present": true,
       "schema": "quake-sim-tsunami-validation-report-v1",
-      "generatedAt": "2026-08-26T06:18:08.348Z"
+      "generatedAt": "2026-09-04T14:01:07.934Z"
     },
     "tsunami-scorecard-predictions.json": {
       "present": true,
       "schema": "quake-sim-tsunami-predictions-v1",
-      "generatedAt": "2026-08-26T06:15:55.031Z"
+      "generatedAt": "2026-09-04T13:58:26.140Z"
     },
     "site-response-report.json": {
       "present": true,
@@ -62,7 +62,7 @@
     "model-bias-loeo-report.json": {
       "present": true,
       "schema": "quake-sim-model-bias-loeo-bundle-v1",
-      "generatedAt": "2026-08-23T17:22:29.797Z"
+      "generatedAt": "2026-09-03T11:31:03.515Z"
     },
     "gmpe-loeo-report.json": {
       "present": true,
@@ -158,15 +158,15 @@
   },
   "summary": {
     "strongMotion": {
-      "intensityBias": -0.0459,
-      "intensityRms": 0.6945,
-      "n": 4887
+      "intensityBias": -0.0395,
+      "intensityRms": 0.6757,
+      "n": 6917
     },
     "tsunami": {
-      "hitRate": 0.5,
+      "hitRate": 0.48,
       "falseAlarmRate": 0,
-      "runupBias": -12.726171999108692,
-      "arrivalResidualCount": 0
+      "runupBias": -16.98160005742168,
+      "arrivalResidualCount": 20
     },
     "dispersion": {
       "allPass": true,

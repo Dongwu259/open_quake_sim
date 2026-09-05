@@ -38,6 +38,7 @@
 //  HF-only when requested and must not be used at periods beyond ~2 s.
 // =====================================================================
 const core = require('./core.js');
+const psv = require('./psv.js');
 const Physics = require('../../public/physics.js');
 
 /** Double-couple moment tensor (N*m) in the geographic frame
@@ -241,6 +242,19 @@ function hybridSynthesis(opts) {
     lfF[i + 1] = v;
     lfF[NF - i - 1] = [v[0], -v[1]];
   }
+  // v3 CS repair (2026-09-04): optional empirical long-period gain on the LF
+  // channel — the 1D SH kernel underestimates 2-4 s vs the GMPE the pipeline
+  // targets (zhao embeds 3D/basin amplification the DW kernel lacks). The
+  // gain is fitted OUTSIDE (cs-pipeline calibration, frozen) and applied as a
+  // smooth frequency multiplier; absent option = byte-identical output.
+  if (typeof opts.lfGainFn === 'function') {
+    for (let i = 0; i < lfFreqs.length; i++) {
+      const g = opts.lfGainFn(lfFreqs[i]);
+      if (g === 1) continue;
+      lfF[i + 1] = core.cscale(lfF[i + 1], g);
+      lfF[NF - i - 1] = core.cscale(lfF[NF - i - 1], g);
+    }
+  }
 
   // ---- HF: absolute stochastic FAS ---------------------------------------
   const vs30 = opts.vs30 || 600;
@@ -275,6 +289,42 @@ function hybridSynthesis(opts) {
   hfScale = Math.min(clamp[1], Math.max(clamp[0], hfScale));
   const hfF = buildHfSpectrum(NF, df, hfCtx, seed, hfScale);
 
+  // ---- v4 (2026-09-04): optional P-SV radial/vertical LF channels --------
+  // opts.psv adds the deterministic LF radial/vertical from
+  // tools/broadband/psv.js (R1-R6 anchored) on the FULL rotated double
+  // couple, plus an HF vertical carrier (independent seed, half amplitude —
+  // the registered V/H convention; the horizontal HF is untouched). Without
+  // opts.psv the output is byte-identical to the SH-only pipeline.
+  // opts.psvCache: Map shared across realizations of the same (site, source
+  // depth) — the per-(k,omega) compliance solves are strike-independent.
+  let psvRadialLf = null, psvVerticalLf = null, hfVertTime = null;
+  if (opts.psv) {
+    const cache = (opts.psvCache instanceof Map) ? opts.psvCache : new Map();
+    const Mr = psv.rotateFullTensor({ mxx: M.xx, myy: M.yy, mzz: M.zz, mxy: M.xy, mxz: M.xz, myz: M.yz }, az);
+    const radialF = new Array(NF).fill(0).map(() => [0, 0]);
+    const verticalF = new Array(NF).fill(0).map(() => [0, 0]);
+    for (let i = 0; i < lfFreqs.length; i++) {
+      const fHz = lfFreqs[i];
+      const spec = psv.psvMomentSpectrumAtFrequency(opts.stack, 2 * Math.PI * fHz, {
+        rKm: distKm, zSourceKm: opts.sourceDepthKm,
+        mxx: Mr.mxx, myy: Mr.myy, mzz: Mr.mzz, mxy: Mr.mxy, mxz: Mr.mxz, myz: Mr.myz,
+        dkInvKm: opts.dkInvKm || 0.01, kMaxInvKm: opts.kMaxInvKm || 5,
+        qShear: opts.qShear || 50, dhM: opts.psvDhM || 0.5, cache
+      });
+      const w = 2 * Math.PI * fHz;
+      const den = [1, w / fcSrc];
+      const fac = core.cdiv([0, w], core.cmul(den, den));
+      const vr = core.cscale(core.cmul(spec.ur, fac), sr);
+      const vz = core.cscale(core.cmul(spec.uz, fac), sr);
+      radialF[i + 1] = vr; radialF[NF - i - 1] = [vr[0], -vr[1]];
+      verticalF[i + 1] = vz; verticalF[NF - i - 1] = [vz[0], -vz[1]];
+    }
+    psvRadialLf = ifftReal(spectralFilter(radialF, 'lp', fcHz, df), NF);
+    psvVerticalLf = ifftReal(spectralFilter(verticalF, 'lp', fcHz, df), NF);
+    const hfVertF = buildHfSpectrum(NF, df, hfCtx, seed + 1, 0.5 * hfScale);
+    hfVertTime = ifftReal(spectralFilter(hfVertF, 'hp', fcHz, df), NF);
+  }
+
   // ---- filter + separate inverse FFTs (both sides already acceleration) --
   const lfFilt = spectralFilter(lfF, 'lp', fcHz, df);
   const hfFilt = spectralFilter(hfF, 'hp', fcHz, df);
@@ -288,10 +338,12 @@ function hybridSynthesis(opts) {
     const lf = t < pT ? 0 : lfTime[i];
     transverse.push(lf + hfTime[i] * envelopeAt(t, pT, sT, ramp));
   }
-  const radial = [];
+  const radial = [], vertical = [];
   for (let i = 0; i < NF; i++) {
     const t = i / sr;
-    radial.push(hfTime[i] * envelopeAt(t, pT, sT, ramp));
+    const env = envelopeAt(t, pT, sT, ramp);
+    radial.push((psvRadialLf && t >= pT ? psvRadialLf[i] : 0) + hfTime[i] * env);
+    if (hfVertTime) vertical.push((t >= pT ? psvVerticalLf[i] : 0) + hfVertTime[i] * env);
   }
 
   const bandLevel = (arr, f) => {
@@ -299,15 +351,19 @@ function hybridSynthesis(opts) {
     return i > 0 && i < NF / 2 ? core.cabs(arr[i]) : null;
   };
   return {
-    transverse, radial, sampleRateHz: sr, nSamples: NF, units: 'm/s^2',
+    transverse, radial, vertical, sampleRateHz: sr, nSamples: NF, units: 'm/s^2',
     meta: {
       distKm, azimuthDeg: az, fcHz, sourceCornerHz: fcSrc, durationS: dur,
       pTravelS: pT, sTravelS: sT, hfScale, hfScaleRaw,
       betaKmS, rhoGcm3, cB, siteAmp: site,
       lfFas: { '0.2': bandLevel(lfF, 0.2), '0.5': bandLevel(lfF, 0.5), '1': bandLevel(lfF, 1.0) },
       hfFas: { '0.2': bandLevel(hfF, 0.2), '0.5': bandLevel(hfF, 0.5), '1': bandLevel(hfF, 1.0) },
-      lfOnly: 'transverse', radialIsHfOnly: true,
-      note: 'SH-only LF (P-SV not implemented); radial channel is HF-only and unusable beyond ~2 s'
+      psv: !!opts.psv,
+      lfOnly: opts.psv ? null : 'transverse',
+      radialIsHfOnly: !opts.psv,
+      note: opts.psv
+        ? '3-component: SH + P-SV LF (R1-R6 anchored); vertical HF = independent-seed Boore at half amplitude'
+        : 'SH-only LF (P-SV off); radial channel is HF-only and unusable beyond ~2 s'
     }
   };
 }

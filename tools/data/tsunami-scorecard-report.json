@@ -1,7 +1,7 @@
 {
   "schema": "quake-sim-tsunami-validation-report-v1",
-  "createdAt": "2026-08-26T06:18:08.348Z",
-  "datasetResearchReady": false,
+  "createdAt": "2026-09-04T14:01:07.934Z",
+  "datasetResearchReady": true,
   "confusionMatrix": {
     "labels": [
       "none",
@@ -17,52 +17,52 @@
         0
       ],
       [
-        0,
+        11,
         0,
         0,
         0
       ],
       [
-        8,
-        0,
+        1,
         3,
+        2,
         0
       ],
       [
+        1,
         0,
-        1,
-        1,
+        4,
         3
       ]
     ]
   },
   "classification": {
-    "total": 16,
-    "hits": 8,
-    "misses": 8,
+    "total": 25,
+    "hits": 12,
+    "misses": 13,
     "falseAlarms": 0,
-    "hitRate": 0.5,
+    "hitRate": 0.48,
     "falseAlarmRate": 0
   },
   "heightByType": {
-    "runup": {
-      "count": 7,
-      "bias": -12.726171999108692,
-      "rms": 15.810961196845618,
-      "mae": 12.726171999108692
-    },
     "tide-gauge": {
-      "count": 3,
-      "bias": -0.6747860590616863,
-      "rms": 0.7036016832001413,
-      "mae": 0.6747860590616863
+      "count": 44,
+      "bias": -0.904969552018138,
+      "rms": 2.247904058042597,
+      "mae": 1.3842811582726735
+    },
+    "runup": {
+      "count": 11,
+      "bias": -16.98160005742168,
+      "rms": 18.865749987629112,
+      "mae": 16.98160005742168
     }
   },
   "arrivalMinutes": {
-    "count": 0,
-    "bias": null,
-    "rms": null,
-    "mae": null
+    "count": 20,
+    "bias": -37.336666666666666,
+    "rms": 64.37318433253952,
+    "mae": 40.665
   },
   "missingEvents": [],
   "missingObservations": 0,

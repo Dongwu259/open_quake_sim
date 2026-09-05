@@ -1,6 +1,6 @@
 {
  "schema": "quake-sim-experiment-manifest-v1",
- "generated": "2026-09-03T17:25:04.904Z",
+ "generated": "2026-09-05T01:42:02.270Z",
  "identityRule": "qsx1-<sha256[:16] of file bytes>; manifest excluded from its own listing",
  "entries": [
   {
@@ -49,6 +49,15 @@
    "mtime": "2026-09-01T07:00:12.733Z"
   },
   {
+   "id": "qsx1-cec2295e2a91444b",
+   "name": "cs-arbiter-report.json",
+   "bytes": 19309,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-05T01:32:02.397Z"
+  },
+  {
    "id": "qsx1-c7d64ae13ff9c58a",
    "name": "cs-diagnosis-report.json",
    "bytes": 11340,
@@ -58,13 +67,22 @@
    "mtime": "2026-09-03T17:24:52.079Z"
   },
   {
-   "id": "qsx1-67eaa1dacb574e28",
+   "id": "qsx1-e1810e09a68efc3f",
    "name": "cs-pipeline-report.json",
-   "bytes": 145950,
+   "bytes": 202893,
    "kind": "experiment",
    "track": "v6.2 CS pipeline",
    "gate": "tests/cs-pipeline.test.js",
-   "mtime": "2026-09-03T17:24:52.045Z"
+   "mtime": "2026-09-05T01:32:02.397Z"
+  },
+  {
+   "id": "qsx1-bcd5dfa5b00a8e57",
+   "name": "cs-repair-calibration.json",
+   "bytes": 5301,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-05T01:41:47.331Z"
   },
   {
    "id": "qsx1-228c17a0c7536365",
@@ -175,13 +193,13 @@
    "mtime": "2026-08-25T05:05:11.113Z"
   },
   {
-   "id": "qsx1-b4c62ca3f0862143",
+   "id": "qsx1-466d45ab30bbbf82",
    "name": "jshis-comparison-report.json",
-   "bytes": 25156,
+   "bytes": 25119,
    "kind": "scorecard",
    "track": "R8 external gate",
    "gate": "tests/jshis-comparison.test.js",
-   "mtime": "2026-09-03T17:24:51.973Z"
+   "mtime": "2026-09-05T01:32:02.397Z"
   },
   {
    "id": "qsx1-4f0a3b6bf344fcd4",
@@ -211,13 +229,13 @@
    "mtime": "2026-09-03T16:26:19.052Z"
   },
   {
-   "id": "qsx1-dfc77043cd860d91",
+   "id": "qsx1-8e77c43480fa7967",
    "name": "psha-attribution-report.json",
    "bytes": 32476,
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-09-03T17:24:52.009Z"
+   "mtime": "2026-09-05T01:32:02.397Z"
   },
   {
    "id": "qsx1-a54b2fd5c3a72333",
@@ -292,31 +310,49 @@
    "mtime": "2026-08-26T11:54:17.638Z"
   },
   {
-   "id": "qsx1-8addeada8555c54e",
+   "id": "qsx1-fd1c8cd570700255",
+   "name": "tsunami-jma-monthly-records.json",
+   "bytes": 117839,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-05T01:41:47.331Z"
+  },
+  {
+   "id": "qsx1-bbaac4f5cba7266d",
    "name": "tsunami-scorecard-predictions.json",
-   "bytes": 4068,
+   "bytes": 11788,
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-08-26T11:54:17.754Z"
+   "mtime": "2026-09-05T01:32:02.401Z"
   },
   {
-   "id": "qsx1-f9198cd782580424",
+   "id": "qsx1-f82f25c79de6202f",
    "name": "tsunami-scorecard-report.json",
-   "bytes": 1139,
+   "bytes": 1171,
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-08-26T11:54:17.872Z"
+   "mtime": "2026-09-05T01:32:02.401Z"
   },
   {
-   "id": "qsx1-18121561134bc1e0",
+   "id": "qsx1-7186d09e18814b2a",
+   "name": "tsunami-station-coordinates.json",
+   "bytes": 23866,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-05T01:41:47.331Z"
+  },
+  {
+   "id": "qsx1-ce8e970f9e481604",
    "name": "version-report.json",
-   "bytes": 5955,
+   "bytes": 5956,
    "kind": "envelope",
    "track": "R7-5",
    "gate": "tuning-read audit",
-   "mtime": "2026-09-01T07:56:35.132Z"
+   "mtime": "2026-09-05T01:42:02.162Z"
   }
  ]
 }

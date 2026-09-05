@@ -1,6 +1,6 @@
 {
  "schema": "quake-sim-psha-attribution-v1",
- "generatedAt": "2026-09-03T17:02:15.596Z",
+ "generatedAt": "2026-09-04T15:47:30.512Z",
  "basis": {
   "sourceModel": "quake-sim-psha-source-v2",
   "engine": "Physics.hazardCurve (pgv, Vs30=600, extended level grid identical to the frozen comparison)",

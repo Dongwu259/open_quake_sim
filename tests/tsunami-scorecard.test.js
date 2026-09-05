@@ -36,11 +36,16 @@ test('tsunami scorecard: Tohoku 2011 stays in the observed runup band', () => {
   for (const obs of result.observations) {
     const truth = Number(event.observations.find(o => o.id === obs.id).peakHeightM);
     // New baseline (GEBCO 2025 0.15° water-mean resample): 0.7-3 m against
-    // 10-24 m observed. Ria-coast runup is unresolvable at 16.7 km cells —
-    // the old synthetic grid's 7-10 m came from Green-law over-amplification
-    // off its unrealistically deep nearshore profile. The 0.5 m floor still
-    // trips on a genuinely broken solver/source (which yields ~0 or NaN).
-    assert.ok(obs.peakHeightM >= 0.5 && obs.peakHeightM <= 50,
-      `${obs.id}: ${obs.peakHeightM.toFixed(2)} m outside the 0.5-50 m band (observed ${truth} m)`);
+    // 10-39 m observed runups. Ria-coast runup is unresolvable at 16.7 km
+    // cells — the old synthetic grid's 7-10 m came from Green-law
+    // over-amplification off its unrealistically deep nearshore profile.
+    // Direct-curation v2 (2026-09-04) added tide-gauge rows; far gauges
+    // (釧路 etc.) honestly predict 0.1-0.2 m, so the floor is per type:
+    // runup keeps the 0.5 m broken-solver tripwire, tide rows only need
+    // non-flat (>0.02 m — the 2011 near-field gauges model at 0.5-8 m).
+    const isRunup = obs.id.indexOf('tohoku2') !== 0;
+    const floor = isRunup ? 0.5 : 0.02;
+    assert.ok(obs.peakHeightM >= floor && obs.peakHeightM <= 50,
+      `${obs.id}: ${obs.peakHeightM.toFixed(2)} m outside the ${floor}-50 m band (observed ${truth} m)`);
   }
 });

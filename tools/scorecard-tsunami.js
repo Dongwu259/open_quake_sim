@@ -32,7 +32,7 @@ const dataset = require(path.join(ROOT, 'public/geojson/historical_tsunami_obser
 // Events whose epicenter sits inside a bundled high-resolution regional grid
 // (public/geojson/grids/, GEBCO 2025 0.025° resamples) run on that grid —
 // ria-coast runup is resolution-limited on the 0.15° global grid.
-const EVENT_REGIONAL_GRIDS = { tohoku2011: 'jp-sanriku', noto2024: 'jp-noto', hokkaido1993: 'jp-hokkaido-sw' };
+const EVENT_REGIONAL_GRIDS = { tohoku2011: 'jp-sanriku', noto2024: 'jp-noto', hokkaido1993: 'jp-hokkaido-sw', hyuganada2024: 'jp-nankai' };
 // Diagnostic override (does not touch the default path or written reports):
 //   --grid=tohoku2011:jp-sanriku-gsi  — run one event on a merged/pilot grid.
 const GRID_OVERRIDES = {};
@@ -65,7 +65,7 @@ const dflt = k => CFG[k].v;
 
 // Observed slip models bundled for some events; the rest use a synthetic
 // Wells & Coppersmith / Strasser plane with an assumed mechanism (noted).
-const EVENT_MODELS = { tohoku2011: 'tohoku', noto2024: 'noto2024' };
+const EVENT_MODELS = { tohoku2011: 'tohoku', noto2024: 'noto2024', tokachi2003: 'tokachi2003', hyuganada2024: 'hyuganada2024' };
 const SYNTHETIC_MECHANISMS = {
   // 1993-07-12 Hokkaido Nansei-oki: JMA/Harvard CMT reverse fault on the
   // Japan trench-ward margin of the Sea of Japan — assumed mechanism.

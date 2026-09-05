@@ -1,31 +1,119 @@
 {
   "schema": "quake-sim-tsunami-predictions-v1",
-  "generatedAt": "2026-08-26T06:15:55.031Z",
+  "generatedAt": "2026-09-04T13:58:26.140Z",
   "events": [
     {
       "id": "tohoku2011",
       "nested": true,
-      "solverSeconds": 66.1,
+      "solverSeconds": 46,
       "model": "tohoku",
       "observations": [
         {
-          "id": "tohoku-ofunato-runup",
-          "peakHeightM": 2.6755433082580566,
+          "id": "tohoku2011-大船渡",
+          "peakHeightM": 13.113072111335482,
           "arrivalTime": "2011-03-11T05:47:18.000Z"
         },
         {
-          "id": "tohoku-onagawa-runup",
+          "id": "tohoku2011-宮古",
+          "peakHeightM": 5.282782076934468,
+          "arrivalTime": "2011-03-11T05:47:18.000Z"
+        },
+        {
+          "id": "tohoku2011-釜石",
+          "peakHeightM": 8.483426349891005,
+          "arrivalTime": "2011-03-11T05:47:18.000Z"
+        },
+        {
+          "id": "tohoku2011-八戸",
+          "peakHeightM": 1.3004048403035715,
+          "arrivalTime": "2011-03-11T05:47:18.000Z"
+        },
+        {
+          "id": "tohoku2011-石巻市鮎川",
+          "peakHeightM": 2.0666890144348145,
+          "arrivalTime": "2011-03-11T05:47:18.000Z"
+        },
+        {
+          "id": "tohoku2011-相馬",
+          "peakHeightM": 0.7658340303941323,
+          "arrivalTime": "2011-03-11T05:47:18.000Z"
+        },
+        {
+          "id": "tohoku2011-いわき市小名浜",
+          "peakHeightM": 1.5039119720458984,
+          "arrivalTime": "2011-03-11T05:47:18.000Z"
+        },
+        {
+          "id": "tohoku2011-大洗",
+          "peakHeightM": 1.188356876373291,
+          "arrivalTime": "2011-03-11T05:47:18.000Z"
+        },
+        {
+          "id": "tohoku2011-銚子",
+          "peakHeightM": 1.2674780513731458,
+          "arrivalTime": "2011-03-11T05:47:18.000Z"
+        },
+        {
+          "id": "tohoku2011-釧路",
+          "peakHeightM": 0.13726427989617523,
+          "arrivalTime": "2011-03-11T05:48:18.000Z"
+        },
+        {
+          "id": "tohoku2011-浜中町霧多布港",
+          "peakHeightM": 0.062082767486572266,
+          "arrivalTime": "2011-03-11T05:48:18.000Z"
+        },
+        {
+          "id": "tohoku2011-浦河",
+          "peakHeightM": 0.4107517698344531,
+          "arrivalTime": "2011-03-11T05:47:18.000Z"
+        },
+        {
+          "id": "tohoku2011-函館",
+          "peakHeightM": 0.0291169778452349
+        },
+        {
+          "id": "tohoku2011-父島二見",
+          "peakHeightM": 0.022041489390973938
+        },
+        {
+          "id": "tohoku2011-八丈島八重根",
+          "peakHeightM": 0.7110996078725765,
+          "arrivalTime": "2011-03-11T05:48:18.000Z"
+        },
+        {
+          "id": "tohoku-ryori-miyako",
+          "peakHeightM": 7.367330186827542,
+          "arrivalTime": "2011-03-11T05:47:18.000Z"
+        },
+        {
+          "id": "tohoku-onagawa",
           "peakHeightM": 15.802245006789448,
           "arrivalTime": "2011-03-11T05:47:18.000Z"
         },
         {
-          "id": "tohoku-rikuzentakata-runup",
-          "peakHeightM": 7.047353744506836,
+          "id": "tohoku-yamada",
+          "peakHeightM": 2.7184205731706865,
           "arrivalTime": "2011-03-11T05:47:18.000Z"
         },
         {
-          "id": "tohoku-sendai-runup",
-          "peakHeightM": 1.2993812561035156,
+          "id": "tohoku-ishinomaki",
+          "peakHeightM": 8.232107162475586,
+          "arrivalTime": "2011-03-11T05:47:18.000Z"
+        },
+        {
+          "id": "tohoku-ofunato",
+          "peakHeightM": 9.16940624036675,
+          "arrivalTime": "2011-03-11T05:47:18.000Z"
+        },
+        {
+          "id": "tohoku-rikuzentakata",
+          "peakHeightM": 5.533535957336426,
+          "arrivalTime": "2011-03-11T05:47:18.000Z"
+        },
+        {
+          "id": "tohoku-sendai",
+          "peakHeightM": 1.2029576301574707,
           "arrivalTime": "2011-03-11T05:47:18.000Z"
         }
       ],
@@ -59,50 +147,152 @@
           "code": "310",
           "physicalHeightM": 1.267,
           "predictedLevel": "warning"
+        },
+        {
+          "code": "100",
+          "physicalHeightM": 0.428,
+          "predictedLevel": "advisory"
+        },
+        {
+          "code": "320",
+          "physicalHeightM": 1.281,
+          "predictedLevel": "warning"
         }
       ]
     },
     {
       "id": "hokkaido1993",
       "nested": true,
-      "solverSeconds": 37.3,
+      "solverSeconds": 25.3,
       "model": "synthetic",
       "observations": [
         {
-          "id": "okushiri-aonae-runup",
-          "peakHeightM": 0.20752424924095214,
+          "id": "hokkaido1993-esashi",
+          "peakHeightM": 0.0977780818939209,
+          "arrivalTime": "1993-07-12T13:40:12.000Z"
+        },
+        {
+          "id": "hokkaido1993-iwanai",
+          "peakHeightM": 0.46721816062927246,
+          "arrivalTime": "1993-07-12T13:33:12.000Z"
+        },
+        {
+          "id": "hokkaido1993-matsumae",
+          "peakHeightM": 0.0835575615435456,
           "arrivalTime": "1993-07-12T13:18:12.000Z"
         },
         {
-          "id": "okushiri-hamanaka-runup",
-          "peakHeightM": 0.21128929293336893,
+          "id": "okushiri-monai",
+          "peakHeightM": 0.7504774493207982,
           "arrivalTime": "1993-07-12T13:18:12.000Z"
         },
         {
-          "id": "esashi-runup",
-          "peakHeightM": 0.07345914840698242,
-          "arrivalTime": "1993-07-12T13:41:12.000Z"
+          "id": "okushiri-hatsumatsu",
+          "peakHeightM": 0.32092369186981773,
+          "arrivalTime": "1993-07-12T13:18:12.000Z"
+        },
+        {
+          "id": "okushiri-inaho",
+          "peakHeightM": 0.231126070022583,
+          "arrivalTime": "1993-07-12T13:18:12.000Z"
+        },
+        {
+          "id": "hokkaido-sakei",
+          "peakHeightM": 0.14386940002441406,
+          "arrivalTime": "1993-07-12T13:18:12.000Z"
         }
       ],
       "forecastAreas": [
         {
           "code": "111",
-          "physicalHeightM": 0.823,
+          "physicalHeightM": 1.063,
+          "predictedLevel": "warning"
+        },
+        {
+          "code": "110",
+          "physicalHeightM": 0.381,
           "predictedLevel": "advisory"
         },
         {
           "code": "200",
-          "physicalHeightM": 0.07,
+          "physicalHeightM": 0.101,
+          "predictedLevel": "none"
+        }
+      ]
+    },
+    {
+      "id": "tokachi2003",
+      "nested": false,
+      "solverSeconds": 7,
+      "model": "tokachi2003",
+      "observations": [
+        {
+          "id": "tokachi2003-釧路",
+          "peakHeightM": 0.05688564544833038,
+          "arrivalTime": "2003-09-25T20:16:08.000Z"
+        },
+        {
+          "id": "tokachi2003-根室市花咲",
+          "peakHeightM": 0.020441892636438006
+        },
+        {
+          "id": "tokachi2003-霧多布",
+          "peakHeightM": 0.07025957107543945,
+          "arrivalTime": "2003-09-25T19:51:08.000Z"
+        },
+        {
+          "id": "tokachi2003-浦河",
+          "peakHeightM": 0.37121083116529985,
+          "arrivalTime": "2003-09-25T19:51:08.000Z"
+        },
+        {
+          "id": "tokachi2003-宮古",
+          "peakHeightM": 0.16263433237269714,
+          "arrivalTime": "2003-09-25T20:26:08.000Z"
+        },
+        {
+          "id": "tokachi2003-大船渡",
+          "peakHeightM": 0.10314027442539295,
+          "arrivalTime": "2003-09-25T20:42:08.000Z"
+        },
+        {
+          "id": "tokachi2003-釜石",
+          "peakHeightM": 0.15597197672643148,
+          "arrivalTime": "2003-09-25T20:33:08.000Z"
+        },
+        {
+          "id": "tokachi2003-八戸",
+          "peakHeightM": 0.06638726069385754
+        },
+        {
+          "id": "tokachi2003-いわき市小名浜",
+          "peakHeightM": 0.0018714154914785356
+        }
+      ],
+      "forecastAreas": [
+        {
+          "code": "100",
+          "physicalHeightM": 0.134,
           "predictedLevel": "none"
         },
         {
-          "code": "230",
-          "physicalHeightM": 0.042,
+          "code": "101",
+          "physicalHeightM": 0.399,
+          "predictedLevel": "advisory"
+        },
+        {
+          "code": "102",
+          "physicalHeightM": 0.13,
           "predictedLevel": "none"
         },
         {
-          "code": "340",
-          "physicalHeightM": 0.01,
+          "code": "210",
+          "physicalHeightM": 0.189,
+          "predictedLevel": "none"
+        },
+        {
+          "code": "201",
+          "physicalHeightM": 0.195,
           "predictedLevel": "none"
         }
       ]
@@ -110,22 +300,42 @@
     {
       "id": "noto2024",
       "nested": true,
-      "solverSeconds": 29.9,
+      "solverSeconds": 24.2,
       "model": "noto2024",
       "observations": [
         {
-          "id": "noto-wajima-gauge",
-          "peakHeightM": 0.803032398223877,
+          "id": "noto2024-富山",
+          "peakHeightM": 0.0956746421487382,
+          "arrivalTime": "2024-01-01T07:20:09.000Z"
+        },
+        {
+          "id": "noto2024-酒田",
+          "peakHeightM": 0.0032859450981205253
+        },
+        {
+          "id": "noto2024-柏崎市鯨波",
+          "peakHeightM": 0.02134227752685547
+        },
+        {
+          "id": "noto2024-佐渡市鷲崎",
+          "peakHeightM": 0.015340766466624741
+        },
+        {
+          "id": "noto2024-深浦",
+          "peakHeightM": 0.0019265923401499134
+        },
+        {
+          "id": "noto2024-秋田",
+          "peakHeightM": 0.001953125,
           "arrivalTime": "2024-01-01T07:11:09.000Z"
         },
         {
-          "id": "noto-kanazawa-gauge",
-          "peakHeightM": 0.045178890228271484,
-          "arrivalTime": "2024-01-01T07:46:09.000Z"
+          "id": "noto2024-境港市境",
+          "peakHeightM": 0.0015156807548854193
         },
         {
-          "id": "noto-toyama-gauge",
-          "peakHeightM": 0.02743053436279297
+          "id": "noto2024-岩美町田後",
+          "peakHeightM": 0.004083570240110744
         }
       ],
       "forecastAreas": [
@@ -135,28 +345,91 @@
           "predictedLevel": "warning"
         },
         {
-          "code": "350",
-          "physicalHeightM": 0.112,
-          "predictedLevel": "none"
-        },
-        {
           "code": "340",
           "physicalHeightM": 0.1,
           "predictedLevel": "none"
         },
         {
-          "code": "361",
-          "physicalHeightM": 0.062,
+          "code": "350",
+          "physicalHeightM": 0.112,
           "predictedLevel": "none"
         },
         {
-          "code": "370",
-          "physicalHeightM": 0.056,
+          "code": "240",
+          "physicalHeightM": 0.006,
           "predictedLevel": "none"
         },
         {
-          "code": "520",
-          "physicalHeightM": 0.005,
+          "code": "111",
+          "physicalHeightM": 0.003,
+          "predictedLevel": "none"
+        }
+      ]
+    },
+    {
+      "id": "hyuganada2024",
+      "nested": true,
+      "solverSeconds": 59.2,
+      "model": "hyuganada2024",
+      "observations": [
+        {
+          "id": "hyuganada2024-日南市油津",
+          "peakHeightM": 0.0426133566099147
+        },
+        {
+          "id": "hyuganada2024-土佐清水",
+          "peakHeightM": 0.0007993580634357114
+        },
+        {
+          "id": "hyuganada2024-室戸市室戸岬",
+          "peakHeightM": 0.0002728658431597923
+        },
+        {
+          "id": "hyuganada2024-串本町袋港",
+          "peakHeightM": 0.0000629425048828125
+        },
+        {
+          "id": "hyuganada2024-徳島由岐",
+          "peakHeightM": 0.00014972686767578125
+        },
+        {
+          "id": "hyuganada2024-宇和島",
+          "peakHeightM": 0.0005702972412109375,
+          "arrivalTime": "2024-08-08T07:43:14.000Z"
+        },
+        {
+          "id": "hyuganada2024-那智勝浦町浦神",
+          "peakHeightM": 0.0000629425048828125,
+          "arrivalTime": "2024-08-08T07:43:14.000Z"
+        },
+        {
+          "id": "hyuganada2024-館山市布良",
+          "peakHeightM": 0.000016402477378478795
+        },
+        {
+          "id": "hyuganada2024-父島二見",
+          "peakHeightM": 0
+        }
+      ],
+      "forecastAreas": [
+        {
+          "code": "760",
+          "physicalHeightM": 0.105,
+          "predictedLevel": "none"
+        },
+        {
+          "code": "610",
+          "physicalHeightM": 0.002,
+          "predictedLevel": "none"
+        },
+        {
+          "code": "600",
+          "physicalHeightM": 0.001,
+          "predictedLevel": "none"
+        },
+        {
+          "code": "751",
+          "physicalHeightM": 0.002,
           "predictedLevel": "none"
         }
       ]

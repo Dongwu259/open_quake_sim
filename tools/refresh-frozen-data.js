@@ -73,9 +73,13 @@ const SOURCES = [
   {
     id: 'ncei-tsunami-observations',
     bundled: 'public/geojson/historical_tsunami_observations.json',
-    upstream: 'https://www.ngdc.noaa.gov/hazard/tsu_db.shtml',
+    upstream: 'https://www.data.jma.go.jp/eqev/data/gaikyo/',
     async probe() { return httpGet(this.upstream, 15000); }
-    // Curation source for R5-6 arrival-time fields and event expansion.
+    // R5-6 direct curation v2 (2026-09-04): primary records are the JMA
+    // monthly reports / TTJT survey CSV / JMA Sapporo + Cabinet-Office 1993
+    // pages (see tools/fetch-tsunami-observations.py and
+    // tools/build-tsunami-observations.js). ngdc.noaa.gov stays unreachable
+    // from this network; NCEI remains a secondary cross-check only.
   }
 ];
 

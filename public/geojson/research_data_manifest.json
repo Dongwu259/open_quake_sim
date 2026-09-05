@@ -81,17 +81,18 @@
     {
       "id": "historical-tsunami-observations-v1",
       "role": "tsunami-observations",
-      "state": "degraded",
-      "researchReady": false,
+      "state": "ready",
+      "researchReady": true,
       "dataset": "Curated historical tsunami validation records",
       "path": "geojson/historical_tsunami_observations.json",
-      "sourceUrl": "https://www.data.jma.go.jp/eqev/data/tsunami/",
+      "sourceUrl": "https://www.data.jma.go.jp/eqev/data/gaikyo/monthly/ (per-record citations in the dataset; JMA 月報 / TTJT unified survey CSV / JMA Sapporo & Cabinet-Office lesson DB)",
       "license": "Individual records retain their cited JMA, NOAA/WDS or publication source",
-      "releaseDate": "2026-08-01",
+      "releaseDate": "2026-09-04",
       "crs": "EPSG:4326",
       "verticalDatum": "per-record; mixed run-up and tide-gauge values are never merged without type labels",
       "resolution": "event/observation points and forecast areas",
-      "processing": "Schema and evaluator are bundled; certification remains blocked until every retained record has a direct citation and observation type"
+      "processing": "Direct curation v2 (R5-6): every observation and forecast-area row cites its primary record (JMA monthly tide tables parsed at char-coordinate level, TTJT reliability-A survey rows, JMA Sapporo / Cabinet-Office 1993 pages); station coordinates from the JMA tide-table station list. Builder: tools/build-tsunami-observations.js; frozen extracts: tools/data/tsunami-jma-monthly-records.json",
+      "sha256": "cf056e742ebd66aad6060d3f26fcaa3b6f150d32fef0438176f1401b4a4dc48d"
     },
     {
       "id": "jshis-vs30-grid-2020-005deg",

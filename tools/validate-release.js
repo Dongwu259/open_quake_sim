@@ -138,7 +138,10 @@ function checkResearchData() {
   check(tsunamiObservationCheck.valid, `historical tsunami dataset is invalid: ${tsunamiObservationCheck.errors.join(', ')}`);
   check(tsunamiObservationCheck.eventCount >= 3 && tsunamiObservationCheck.observationCount >= 10 && tsunamiObservationCheck.areaCount >= 10,
     'historical tsunami validation coverage is below the v5.1 release minimum');
-  check(tsunamiObservationCheck.researchReady === false, 'secondary-curated tsunami observations must not be research-certified');
+  check(tsunamiObservationCheck.researchReady === true,
+    'historical tsunami observations must stay research-certified (direct curation v2, R5-6): researchReady regressed');
+  check(tsunamiObservationCheck.directCount === tsunamiObservationCheck.observationCount + tsunamiObservationCheck.areaCount,
+    'historical tsunami dataset carries non-direct records; every observation and area must cite its primary record');
 
   const areas = json('public/geojson/jma_tsunami_forecast_areas.json');
   check(areas.type === 'FeatureCollection' && areas.features.length === 66, `expected 66 JMA tsunami areas, got ${areas.features && areas.features.length}`);
