@@ -297,7 +297,7 @@ function checkDocumentation() {
     check(notice.length > 20, `${language} scientific disclaimer is missing`);
   }
   check(/v6\.2/.test(json('public/manifest.json').description || ''), 'manifest version is not v6.2');
-  check(json('package.json').version === '6.2.0', 'package version is not the 6.2.0 release');
+  check(json('package.json').version === '6.2.1', 'package version is not the 6.2.1 release');
   // v5.2 presenter (live/recording) mode wiring
   check(html.includes('id="presenter-mode"') && html.includes('id="presenter-panel"') && html.includes('id="btn-presenter-exit"'), 'presenter mode markup is missing');
   check(/function enterPresenterMode\(\)[\s\S]{0,300}updatePresenterPanel\(\)/.test(app) && /function exitPresenterMode\(\)/.test(app), 'presenter mode enter/exit is not wired in app.js');
