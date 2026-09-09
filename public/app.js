@@ -10243,11 +10243,18 @@ function _pshaCompute() {
   var site = _pshaSite();
   if (!site || !_pshaSourceModel) return null;
   var rp = cfgGet('pshaReturnPeriod') || 475;
-  var key = site.lat.toFixed(3) + '|' + site.lng.toFixed(3) + '|' + rp + '|' + site.vs30;
+  var td = !!cfgGet('pshaTimeDependent');
+  var key = site.lat.toFixed(3) + '|' + site.lng.toFixed(3) + '|' + rp + '|' + site.vs30 + (td ? '|td' : '');
   if (_pshaResultCache && _pshaResultCache.key === key) return _pshaResultCache;
-  var hazard = Physics.hazardCurve(_pshaSourceModel, site, 'pga', { years: 50 });
-  var uhs = Physics.uhs(_pshaSourceModel, site, [rp], { periods: PSHA_UHS_PERIODS });
-  _pshaResultCache = { key: key, hazard: hazard, uhs: uhs, rp: rp, site: site };
+  // time-dependent mode (v6.2 BPT UI batch): BPT renewal scenarios over the
+  // Poisson background; both engines return a 50-year-annualized rate curve,
+  // so the chart/inversion semantics are shared. TD skips the epistemic
+  // ensemble band (branch sets are a Poisson-engine artifact).
+  var hazard = td
+    ? Physics.hazardCurveTimeDependent(_pshaSourceModel, site, 'pga', { horizonYears: 50 })
+    : Physics.hazardCurve(_pshaSourceModel, site, 'pga', { years: 50 });
+  var uhs = Physics.uhs(_pshaSourceModel, site, [rp], { periods: PSHA_UHS_PERIODS, timeDependent: td, years: 50 });
+  _pshaResultCache = { key: key, hazard: hazard, uhs: uhs, rp: rp, site: site, td: td };
   return _pshaResultCache;
 }
 
@@ -10259,7 +10266,8 @@ function _pshaScheduleCompute() {
   var site = _pshaSite();
   if (!site || !_pshaSourceModel) return null;
   var rp = cfgGet('pshaReturnPeriod') || 475;
-  var key = site.lat.toFixed(3) + '|' + site.lng.toFixed(3) + '|' + rp + '|' + site.vs30;
+  var tdKey = cfgGet('pshaTimeDependent') ? '|td' : '';
+  var key = site.lat.toFixed(3) + '|' + site.lng.toFixed(3) + '|' + rp + '|' + site.vs30 + tdKey;
   if (_pshaResultCache && _pshaResultCache.key === key) return _pshaResultCache;
   if (_pshaComputeTimer) clearTimeout(_pshaComputeTimer);
   _pshaComputeTimer = setTimeout(function() {
@@ -10298,9 +10306,10 @@ function drawPshaHazard() {
   // axes
   ctx.strokeStyle = '#333'; ctx.lineWidth = 0.5;
   ctx.beginPath(); ctx.moveTo(30, 5); ctx.lineTo(30, H - 15); ctx.lineTo(W - 5, H - 15); ctx.stroke();
-  // ensemble band (epistemic branch sets) + mean curve
+  // ensemble band (epistemic branch sets) + mean curve — the band exists
+  // only on the Poisson engine; the time-dependent result carries none
   ctx.strokeStyle = 'rgba(102,204,255,0.35)'; ctx.lineWidth = 1;
-  hz.ensemble.forEach(function(curve) {
+  if (hz.ensemble) hz.ensemble.forEach(function(curve) {
     ctx.beginPath();
     var started = false;
     for (var i = 0; i < hz.imLevels.length; i++) {
@@ -10333,6 +10342,15 @@ function drawPshaHazard() {
   var p50 = Physics._pshaInvertCurve(hz.imLevels, hz.meanRate, -Math.log(0.5) / 50);
   ctx.fillText('50y PGA(50%): ' + (p50 ? Math.round(p50) + ' gal' : '—') + ' | RP' + res.rp + ': ' +
     (res.uhs.pga[String(res.rp)] ? Math.round(res.uhs.pga[String(res.rp)]) + ' gal' : '>grid'), 34, 12);
+  // time-dependent badge: BPT source count + full-segment conditional prob
+  if (res.td && hz.timeDependent) {
+    var tds = hz.timeDependent.sources || [];
+    var m89 = null;
+    for (var tb = 0; tb < tds.length; tb++) if (tds[tb].id === 'nankaiFullM89') m89 = tds[tb];
+    ctx.fillStyle = '#66ccff'; ctx.font = '8px monospace';
+    ctx.fillText('BPT x' + tds.length + (m89 ? ('  P(' + hz.timeDependent.horizonYears + 'y|M8.9)=' +
+      Math.round(m89.conditionalProb * 100) + '%') : ''), 34, 22);
+  }
 }
 
 function drawPshaUhs() {
@@ -10480,6 +10498,17 @@ if (focalDownload) focalDownload.addEventListener('click',function(){
     try { pshaRp.value = String(cfgGet('pshaReturnPeriod') || 475); } catch (e) { /* default */ }
     pshaRp.addEventListener('change', function() {
       cfgSet('pshaReturnPeriod', +pshaRp.value);
+      _pshaResultCache = null;
+      _redrawInfoCharts();
+    });
+  }
+  // PSHA time-dependent toggle (v6.2 BPT UI batch): BPT renewal scenarios
+  // for the Nankai sources; same cache-invalidation contract as the RP select
+  var pshaTimed = document.getElementById('psha-timed-toggle');
+  if (pshaTimed) {
+    try { pshaTimed.checked = !!cfgGet('pshaTimeDependent'); } catch (e) { /* default */ }
+    pshaTimed.addEventListener('change', function() {
+      cfgSet('pshaTimeDependent', pshaTimed.checked ? 1 : 0);
       _pshaResultCache = null;
       _redrawInfoCharts();
     });

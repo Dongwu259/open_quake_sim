@@ -95,22 +95,25 @@ describe('broadband scorecard frozen results (2026-09-01)', function () {
   });
 
   it('froze the exact band/scalar AbsMax numbers', function () {
-    // re-frozen 2026-09-06 with the SH-kernel Bessel-aliasing guard
-    // (dk floors at (2*pi/r)/10; band-level impact <= 0.05 log10, brune
-    // arm byte-identical). The pre-guard freeze lives in git history.
-    assert.strictEqual(sc.bands['0.1-0.5s'].hybrid.absMax, 1.404);
-    assert.strictEqual(sc.bands['0.5-2s'].hybrid.absMax, 1.585);
-    assert.strictEqual(sc.bands['2-10s'].hybrid.absMax, 2.231); // Love-window refreeze (v8): left-edge sum -> windows+trapezoid
+    // re-frozen 2026-09-09 with the SH guard divisor ladder outcome
+    // (core.SH_GUARD_DIV 10 -> 80; tools/broadband/sh-alias-ladder.js chose
+    // 80 as the smallest rung meeting far max <= 0.10). Band-level movement
+    // vs the div-10 freeze: 2-10s +0.051, PGV +0.003, 0.1-0.5s -0.001 —
+    // the long-period band carries the far-range correction as expected.
+    // The pre-ladder freeze lives in git history.
+    assert.strictEqual(sc.bands['0.1-0.5s'].hybrid.absMax, 1.403);
+    assert.strictEqual(sc.bands['0.5-2s'].hybrid.absMax, 1.587);
+    assert.strictEqual(sc.bands['2-10s'].hybrid.absMax, 2.282); // div-80 refreeze: far-range LF correction lands here
     assert.strictEqual(sc.bands['2-10s'].brune.absMax, 2.371);
-    assert.strictEqual(sc.scalars.pga.hybrid.absMax, 1.342);
+    assert.strictEqual(sc.scalars.pga.hybrid.absMax, 1.343);
     assert.strictEqual(sc.scalars.pga.brune.absMax, 0.902);
     assert.strictEqual(sc.scalars.pga.gmpe.absMax, 0.538);
-    assert.strictEqual(sc.scalars.pgv.hybrid.absMax, 2.066); // Love-window refreeze (v8)
+    assert.strictEqual(sc.scalars.pgv.hybrid.absMax, 2.069); // div-80 refreeze
   });
 
   it('gate verdicts frozen: long-period improvement PASS, absolute gates FAIL, JMA N/A', function () {
     assert.strictEqual(sc.gates.longPeriodImprovementVsBrune.pass, true);
-    assert.strictEqual(sc.gates.longPeriodImprovementVsBrune.improvement, 0.14); // Love-window refreeze (v8)
+    assert.strictEqual(sc.gates.longPeriodImprovementVsBrune.improvement, 0.089); // div-80 refreeze (was 0.14 at div 10)
     assert.strictEqual(sc.gates.pgaLog10BiasAbsMax.pass, false);
     assert.strictEqual(sc.gates.pgvLog10BiasAbsMax.pass, false);
     assert.strictEqual(sc.gates.pgaNonRegressionVsBrune.pass, false);

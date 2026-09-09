@@ -10,6 +10,12 @@
 //       hazardCurve's Poisson curve exactly (channel roundtrip)
 //   B6  BPT scenario channel only ADDS exceedance; conditional probability
 //       reaches the engine per bptConditionalProb; curve stays finite
+//   B7  uhs timeDependent passthrough (v6.2 BPT UI batch): flag routes the
+//       engine per period, BPT sources surface in bptSources, and the TD
+//       UHS at a Nankai site exceeds the Poisson UHS at the same RP
+//   B8  uhs far-site identity: where the scenario p(exceed) collapses to 0,
+//       the TD UHS reproduces the Poisson UHS (multiplicative channel is
+//       exactly neutral)
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('path');
@@ -116,4 +122,32 @@ test('B6 — BPT scenario channel adds exceedance and records diagnostics', () =
     assert.ok(td.poissonProb[i] >= stationary.poissonProb[i] - 1e-12,
       `time-dependent total below stationary at ${imLevels[i]} gal`);
   }
+});
+
+test('B7 — uhs timeDependent passthrough: flag, sources, and Nankai uplift', () => {
+  const model = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'public', 'geojson', 'psha-source-model.json'), 'utf8'));
+  const site = { lat: 33.0, lng: 135.0, vs30: 600 }; // Nankai-adjacent
+  const pois = Physics.uhs(model, site, [475], { periods: ['0.50', '1.00'] });
+  const td = Physics.uhs(model, site, [475], { periods: ['0.50', '1.00'], timeDependent: true, years: 50 });
+  assert.equal(pois.timeDependent, false, 'legacy call must be flagged non-time-dependent');
+  assert.equal(pois.bptSources, undefined, 'legacy call must not carry bptSources');
+  assert.equal(td.timeDependent, true, 'flagged call must report timeDependent');
+  assert.ok(Array.isArray(td.bptSources) && td.bptSources.length >= 3,
+    'TD UHS must surface the recognised BPT sources');
+  const pPga = pois.pga['475'], tPga = td.pga['475'];
+  assert.ok(pPga != null && tPga != null, 'both UHS PGA anchors must invert inside the grid');
+  assert.ok(tPga > pPga * 1.01,
+    `TD UHS PGA ${tPga.toFixed(1)} must exceed Poisson ${pPga.toFixed(1)} at an overdue Nankai source`);
+  for (const v of td.uhs['475']) if (v != null) assert.ok(isFinite(v) && v > 0, 'TD spectral values must be finite');
+});
+
+test('B8 — uhs far-site identity: collapsed scenario channel reproduces Poisson', () => {
+  const model = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'public', 'geojson', 'psha-source-model.json'), 'utf8'));
+  const site = { lat: 41.0, lng: 141.0, vs30: 600 }; // Tohoku — far from all BPT sources
+  const pois = Physics.uhs(model, site, [475], { periods: ['0.50'] });
+  const td = Physics.uhs(model, site, [475], { periods: ['0.50'], timeDependent: true, years: 50 });
+  const pPga = pois.pga['475'], tPga = td.pga['475'];
+  assert.ok(pPga != null && tPga != null, 'far-site RP475 PGA must invert inside the grid');
+  assert.ok(Math.abs(tPga - pPga) < 1e-6 * pPga,
+    `far-site TD PGA ${tPga} must reproduce Poisson ${pPga} (neutral multiplicative channel)`);
 });

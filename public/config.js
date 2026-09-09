@@ -29,6 +29,11 @@ var CFG_DEFAULTS = {
   // v6.1 P2: PSHA return period (years) for the info-tab hazard/UHS card;
   // also driven by the in-card #psha-rp-select (same cfg key)
   pshaReturnPeriod: { v:475, opts:[475, 1000, 2500, 5000], fmt:'%.0f', cat:'atten' },
+  // v6.2 BPT UI batch: time-dependent hazard toggle for the PSHA card —
+  // BPT renewal scenarios (Nankai Trough, ERC 1/117yr) over the Poisson
+  // background; default 0 = pure-Poisson legacy path byte-compatible.
+  // Driven by the in-card #psha-timed-toggle (same cfg key, no adv row).
+  pshaTimeDependent: { v:0, fmt:'%.0f', cat:'atten' },
   attA:         { v:0.42, min:0.10, max:1.50, step:0.01, fmt:'%.2f',      cat:'atten' },
   attB:         { v:1.34, min:0.50, max:2.50, step:0.01, fmt:'%.2f',      cat:'atten' },
   attC:         { v:0.31, min:-1.0, max:2.00, step:0.01, fmt:'%.2f',      cat:'atten' },

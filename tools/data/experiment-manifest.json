@@ -1,6 +1,6 @@
 {
  "schema": "quake-sim-experiment-manifest-v1",
- "generated": "2026-09-09T11:22:05.488Z",
+ "generated": "2026-09-09T21:03:52.111Z",
  "identityRule": "qsx1-<sha256[:16] of file bytes>; manifest excluded from its own listing",
  "entries": [
   {
@@ -40,13 +40,13 @@
    "mtime": "2026-09-01T07:56:21.439Z"
   },
   {
-   "id": "qsx1-c80776d26aeac800",
+   "id": "qsx1-47654bd24604b25a",
    "name": "broadband-scorecard.json",
-   "bytes": 25283,
+   "bytes": 25287,
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-09-09T11:10:34.502Z"
+   "mtime": "2026-09-09T21:01:29.478Z"
   },
   {
    "id": "qsx1-cec2295e2a91444b",
@@ -193,13 +193,13 @@
    "mtime": "2026-08-25T05:05:11.113Z"
   },
   {
-   "id": "qsx1-466d45ab30bbbf82",
+   "id": "qsx1-4c0fe41eae711485",
    "name": "jshis-comparison-report.json",
-   "bytes": 25119,
+   "bytes": 38097,
    "kind": "scorecard",
    "track": "R8 external gate",
    "gate": "tests/jshis-comparison.test.js",
-   "mtime": "2026-09-05T01:32:02.397Z"
+   "mtime": "2026-09-09T21:01:29.372Z"
   },
   {
    "id": "qsx1-4f0a3b6bf344fcd4",
@@ -247,13 +247,13 @@
    "mtime": "2026-09-03T17:24:51.938Z"
   },
   {
-   "id": "qsx1-32e76c7690779a0d",
+   "id": "qsx1-9b9b36c1eb26fa32",
    "name": "psv-scale-diagnosis.json",
-   "bytes": 19229,
+   "bytes": 20441,
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-09-09T11:10:34.425Z"
+   "mtime": "2026-09-09T21:01:29.409Z"
   },
   {
    "id": "qsx1-56d691a8bfa0a3ea",
@@ -265,13 +265,13 @@
    "mtime": "2026-08-26T12:09:53.533Z"
   },
   {
-   "id": "qsx1-a11167e597aaef0b",
+   "id": "qsx1-366276b0b3c534f7",
    "name": "sh-alias-exposure.json",
-   "bytes": 5174,
+   "bytes": 4375,
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-09-09T11:10:34.465Z"
+   "mtime": "2026-09-09T21:01:29.443Z"
   },
   {
    "id": "qsx1-b8438e14075fc9b9",

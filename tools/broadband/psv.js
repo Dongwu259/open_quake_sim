@@ -215,16 +215,29 @@ function m2inv(A) {
  *  and lam w^2/a^2 = rho w^2 (lam+2mu)/lam — = -(rho w^2 - 2 mu k^2). */
 function psvEigenvectors(layer, omega, k, opts) {
   var kp = typeof k === 'number' ? [k, 0] : k;
-  var mu = layer.rhoGcm3 * 1000 * Math.pow(layer.vsKmS * 1000, 2);
+  // DAMPED MODULI (2026-09-09 damped-RK4-anchor fix): the traction rows of
+  // the eigenvector matrix carry the COMPLEX mu* = rho vs^2 (1 - i/qs),
+  // matching the constitutive law tau = mu* gamma used by the propagator's
+  // state convention (and its 2026-09-09 back-transform fix). The old real
+  // mu here left the halfspace admittance on a mixed real-moduli/complex-nu
+  // convention — invisible while every anchor was undamped, measured at
+  // 1.4% on the halfspace compliance (R10) and amplified to O(1) in
+  // near-cancellation layered regimes (R11). sigma_zz(P) = 2 mu* k^2 - rho
+  // w^2 keeps its closed form (the identity (lam* + 2 mu*) nu_a^2 = rho w^2
+  // - rho c*^2 k^2 holds for complex moduli). q = 0 -> mu* = muR real ->
+  // every expression byte-identical to the legacy path.
+  var qs = (opts && opts.qShear) || 0;
+  var muR = layer.rhoGcm3 * 1000 * Math.pow(layer.vsKmS * 1000, 2);
+  var mu = qs > 0 ? [muR, -muR / qs] : [muR, 0];
   var nuA = nuOf(layer.vpKmS, omega, kp, opts && opts.qP);
   var nuB = nuOf(layer.vsKmS, omega, kp, opts && opts.qShear);
   var ik = cmul(kp, CI);
   var iA = cmul(nuA, CI), iB = cmul(nuB, CI);
-  var szP = csub(cmul(cmul([2 * mu, 0], kp), kp), [layer.rhoGcm3 * 1000 * omega * omega, 0]);
-  var svs = cmul([mu, 0], csub(cmul(kp, kp), cmul(nuB, nuB)));
-  var m2kA = cmul(cmul([-2 * mu, 0], nuA), kp);
-  var p2kA = cmul(cmul([2 * mu, 0], nuA), kp);
-  var m2kB = cmul(cmul([2 * mu, 0], nuB), kp);
+  var szP = csub(cmul(cmul(cscale(mu, 2), kp), kp), [layer.rhoGcm3 * 1000 * omega * omega, 0]);
+  var svs = cmul(mu, csub(cmul(kp, kp), cmul(nuB, nuB)));
+  var m2kA = cmul(cmul(cscale(mu, -2), nuA), kp);
+  var p2kA = cmul(cmul(cscale(mu, 2), nuA), kp);
+  var m2kB = cmul(cmul(cscale(mu, 2), nuB), kp);
   return [
     [ik, ik, iB, cscale(iB, -1)],
     [iA, cscale(iA, -1), cscale(ik, -1), cscale(ik, -1)],

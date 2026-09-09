@@ -1,14 +1,15 @@
 // sh-alias-exposure.test.js — tripwire for the frozen SH-kernel long-range
-// aliasing exposure report (tools/data/sh-alias-exposure.json). The B1 SH
-// kernel sampled the J2(k r)-weighted integral with the fixed production
-// dkInvKm=0.01/km — alias-safe only to ~63 km, while 69% of the frozen
-// Kyoshin scorecard paths lie beyond (median 88 km). The 2026-09-06 batch
-// landed the range-adaptive floor dk >= (2*pi/r)/10 in
-// core.shSpectrumAtFrequency and froze this quantification: point-level
-// pre-guard LF spectral ratios vs a 4x-refined grid swung ~0.5-3x at
-// 90-180 km; the guarded grid agrees with the refined grid at the percent
-// level. The kernel still has NO Love-mode pole windows — that separate,
-// inherited exposure is recorded as the registered follow-up.
+// aliasing reports (tools/data/sh-alias-exposure.json). History: the B1 SH
+// kernel originally sampled the J2(k r)-weighted integral with the fixed
+// production dkInvKm=0.01/km (alias-safe only to ~63 km; 69% of the frozen
+// Kyoshin scorecard paths beyond, median 88 km). v1 (2026-09-06) landed the
+// range-adaptive floor dk >= (2*pi/r)/10 and quantified the exposure;
+// v2 measured that the Love-pole windows did NOT move the 0.797 residual —
+// the real mechanism is the production lattice under-sampling the
+// J2*compliance PRODUCT. v3 (2026-09-09) executed the v2 registered cure as
+// a guard-divisor LADDER (tools/broadband/sh-alias-ladder.js, 48 points x 8
+// freqs vs 16x/32x-refined references): div 80 is the smallest rung meeting
+// the pre-registered far max <= 0.10 gate and SHIPS as core.SH_GUARD_DIV.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('fs');
@@ -18,47 +19,42 @@ const REPORT = path.join(__dirname, '..', 'tools', 'data', 'sh-alias-exposure.js
 const r = JSON.parse(fs.readFileSync(REPORT, 'utf8'));
 
 test('sh-alias-exposure — schema, guard, verdict frozen', () => {
-  assert.equal(r.schema, 'quake-sim-sh-alias-exposure-v2');
-  assert.equal(r.verdict, 'guard_landed_exposure_quantified');
-  assert.equal(r.guard.aliasSafeRangeKm, 62.8);
-  assert.equal(r.guard.rule, 'dk = min(dkInvKm, (2*pi/r)/10)');
-  assert.ok(r.reading.includes('RETIRED by measurement'), 'the v1 pole-grid-luck attribution must stay retired on record');
-  assert.ok(r.reading.includes('Love-pole windows'), 'the v2 reading must record that the windows landed');
-  assert.ok(r.registeredFollowUp.includes('range-adaptive divisor') || r.registeredFollowUp.includes('compliance-scale'),
-    'the residual far-range sampling gap must stay registered with a cure');
+  assert.equal(r.schema, 'quake-sim-sh-alias-exposure-v3');
+  assert.equal(r.verdict, 'guard_div80_landed_residual_quantified');
+  assert.equal(r.guard.aliasSafeRangeKm, 7.9);
+  assert.equal(r.guard.rule, 'dk = min(dkInvKm, (2*pi/r)/80)');
+  // the v1 pole-grid-luck attribution must stay retired on record
+  assert.ok(r.history.v2.includes('RETIRED'), 'v1 attribution retirement must persist');
+  assert.ok(r.registeredFollowUp.includes('div 80') || r.reading.includes('div 80'),
+    'the shipped divisor must be on record');
 });
 
-test('sh-alias-exposure — distance distribution locked (69% beyond the old safe range)', () => {
+test('sh-alias-exposure — distance distribution locked (basis unchanged)', () => {
   const d = r.distanceDistribution;
   assert.ok(d.scoredPaths >= 700, 'scored path count drifted: ' + d.scoredPaths);
   assert.equal(d.median, 88);
-  assert.ok(d.beyondFraction > 0.6 && d.beyondFraction < 0.8,
-    'beyond-fraction drifted: ' + d.beyondFraction);
+  // rSafe is now 7.9 km under the div-80 rule, so essentially every scored
+  // path is guard-managed — a drop would mean the rule text and the stats
+  // disagree
+  assert.ok(d.beyondFraction > 0.99, 'beyond-fraction drifted: ' + d.beyondFraction);
   assert.equal(d.perEvent.length, 13, 'the frozen 13-event set must stay the basis');
 });
 
-test('sh-alias-exposure — pre-guard exposure evidence locked (far-field spread)', () => {
-  const e = r.perPointExposure;
-  assert.ok(e.fixedVsFine_farOnly.n >= 20, 'far-field sample count drifted: ' + e.fixedVsFine_farOnly.n);
-  assert.ok(e.fixedVsFine_farOnly.max > 1.0,
-    'far-field exposure evidence weakened (max |ratio-1| = ' + e.fixedVsFine_farOnly.max + ') — re-measure before relying on this tripwire');
-});
-
-test('sh-alias-exposure — guarded grid tracks the refined grid where the guard applies', () => {
-  const e = r.perPointExposure;
-  // the guard removes the pure J-aliasing component (near field: exact);
-  // the residual far-field swings are the UNCOVERED Love-pole grid luck
-  // (registered follow-up — the kernel has no modal pole windows). The
-  // tripwire bounds catastrophic regression only.
-  assert.ok(e.guardedVsFine_all.max <= 0.9,
-    'guarded kernel drifted catastrophically from the refined grid: max |ratio-1| = ' + e.guardedVsFine_all.max);
-  // the Love windows (v7->v8) did NOT move this residual (0.80 -> 0.797):
-  // it is the J2*compliance product sampling gap, not pole grid luck — the
-  // windows must stay in the kernel or this number regresses silently.
-  assert.ok(r.reading.includes('0.797'), 'the post-window residual must stay on record');
-  assert.ok(e.guardedVsFine_all.median <= 0.05,
-    'guarded kernel median drift: ' + e.guardedVsFine_all.median);
-  // the guard must beat the pre-guard kernel on the far field (worst case)
-  assert.ok(e.guardedVsFine_all.max < e.fixedVsFine_farOnly.max,
-    'guard no longer improves the far field — re-measure');
+test('sh-alias-exposure — v3 divisor ladder frozen (div 80 ships, gate met)', () => {
+  const L = r.divisorLadder;
+  assert.equal(L.points, 48);
+  assert.equal(L.farPoints, 40);
+  // the monotone improvement ladder — the measured reason for div 80
+  assert.equal(L.farStatsByDivisor.div10.max, 0.7976);
+  assert.equal(L.farStatsByDivisor.div40.max, 0.1637);
+  assert.deepEqual(L.farStatsByDivisor.div80, { p90: 0.0274, p95: 0.034, max: 0.0701 });
+  assert.ok(L.decision.includes('div 80'), 'the decision must name the shipped divisor');
+  // pre-registered gate: far max <= 0.10 — div 80 meets it, div 40 does not
+  assert.ok(L.farStatsByDivisor.div80.max <= 0.10);
+  assert.ok(L.farStatsByDivisor.div40.max > 0.10);
+  // reference self-stability honestly recorded (p95 marginally above 0.02)
+  assert.ok(L.referenceStability.all.p95 > 0.02 && L.referenceStability.all.p95 < 0.03,
+    'reference stability must stay on record: ' + JSON.stringify(L.referenceStability.all));
+  // the per-point arms are retired in light mode with the cost note
+  assert.ok(r.perPointExposure.retired.includes('superseded by the divisor ladder'));
 });

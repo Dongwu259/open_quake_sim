@@ -281,6 +281,12 @@ function shSourceJump(mxx, myy, mxy, k, phi) {
 
 var shLovePoleCache = new Map();
 
+// SH Bessel-aliasing guard divisor: dk = min(dkInvKm, (2*pi/r)/SH_GUARD_DIV).
+// 80 chosen by the sh-alias v3 divisor ladder (tools/data/sh-alias-ladder.js,
+// frozen in sh-alias-exposure.json v3): far-range residual vs a 16x-refined
+// reference falls to p90 0.027 / max 0.070 (div 10 measured 0.33 / 0.80).
+var SH_GUARD_DIV = 80;
+
 function shLovePoles(stack, omega, kMaxInvKm, opts) {
   var qS = (opts && opts.qShear) || 0;
   var key = stack.length + ':' + qS + ':' + omega.toFixed(8) + ':' + kMaxInvKm;
@@ -380,14 +386,15 @@ function shLovePoles(stack, omega, kMaxInvKm, opts) {
 function shSpectrumAtFrequency(stack, omega, params) {
   var rM = params.rKm * 1000, phi = params.phiRad;
   var dk = params.dkInvKm / 1000, kMax = params.kMaxInvKm / 1000; // 1/m
-  // Bessel-aliasing guard (2026-09-06): the integrand oscillates at the
-  // J2 period 2*pi/r, so the sample step may never exceed ~1/10 of that
-  // period. The production dkInvKm=0.01/km is alias-safe only to ~63 km;
-  // the frozen Kyoshin scorecard samples 69% of its paths beyond that, and
-  // per-point LF spectral ratios at 90-180 km swung 0.5-3x between the
-  // production grid and a 4x-refined grid (tools/data/sh-alias-exposure.json)
-  // — the long-range numbers were grid-lucky. Range-adaptive floor wins.
-  var dkAlias = (2 * Math.PI / rM) / 10;
+  // Range-adaptive alias floor. guardDiv (2026-09-09, sh-alias v3): the
+  // divisor of the J2 period — 10 leaves the J2*compliance PRODUCT sampled
+  // coarsely at far range (the compliance adds its own k-structure, so the
+  // product oscillates faster than J2 alone); the v3 divisor ladder
+  // (tools/data/sh-alias-exposure.json) measured the residual against a
+  // 16x-refined reference and picked the shipped default. params.guardDiv
+  // overrides for experiments; absent = the shipped default.
+  var guardDiv = (params && params.guardDiv) || SH_GUARD_DIV;
+  var dkAlias = (2 * Math.PI / rM) / guardDiv;
   if (dk > dkAlias) dk = dkAlias;
   // Sample set: the production lattice + tiered Love-pole windows (layered
   // stacks only; the full-space reference has no poles), integrated by the
@@ -492,5 +499,5 @@ module.exports = {
   shFullSpaceCompliance: shFullSpaceCompliance, shSourceJump: shSourceJump,
   shSpectrumAtFrequency: shSpectrumAtFrequency, shGreenSpectrum: shGreenSpectrum,
   fullSpaceClosedForm: fullSpaceClosedForm, shDispersionFunction: shDispersionFunction,
-  shLovePoles: shLovePoles
+  shLovePoles: shLovePoles, SH_GUARD_DIV: SH_GUARD_DIV
 };

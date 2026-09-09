@@ -2858,15 +2858,23 @@ Physics.uhs = function(sourceModel, site, returnPeriods, options) {
     ['0.10', '0.20', '0.30', '0.50', '0.70', '1.00', '1.50', '2.00', '3.00', '5.00'];
   var periodsSec = periodKeys.map(function(k) { return parseFloat(k); });
 
-  var pgaCurve = Physics.hazardCurve(sourceModel, site, 'pga', {
-    vs30: options.vs30, maxDistKm: options.maxDistKm, mStep: options.mStep
-  });
+  // timeDependent passthrough (v6.2 BPT UI batch): route every period's
+  // engine call through hazardCurveTimeDependent (BPT renewal scenarios over
+  // the Poisson background) and invert the equivalent-Poisson rate curves —
+  // downstream RP inversion semantics unchanged. Flag off = the legacy
+  // pure-Poisson path with identical call arguments (byte-compatible).
+  var td = !!options.timeDependent;
+  var engine = td ? Physics.hazardCurveTimeDependent : Physics.hazardCurve;
+  var baseOpts = td
+    ? { vs30: options.vs30, maxDistKm: options.maxDistKm, mStep: options.mStep,
+        horizonYears: options.years, currentYear: options.currentYear, alpha: options.alpha }
+    : { vs30: options.vs30, maxDistKm: options.maxDistKm, mStep: options.mStep };
+
+  var pgaCurve = engine(sourceModel, site, 'pga', baseOpts);
   var pga = {};
   var curves = [];
   for (var pi = 0; pi < periodKeys.length; pi++) {
-    curves.push(Physics.hazardCurve(sourceModel, site, 'sa:' + periodKeys[pi], {
-      vs30: options.vs30, maxDistKm: options.maxDistKm, mStep: options.mStep
-    }));
+    curves.push(engine(sourceModel, site, 'sa:' + periodKeys[pi], baseOpts));
   }
   // string RP keys keep JSON round-trips exact
   var uhs = {};
@@ -2883,6 +2891,8 @@ Physics.uhs = function(sourceModel, site, returnPeriods, options) {
   return {
     periodsSec: periodsSec, uhs: uhs, pga: pgaOut, units: 'gal',
     vs30: pgaCurve.diagnostics.vs30,
+    timeDependent: td,
+    bptSources: td && pgaCurve.timeDependent ? pgaCurve.timeDependent.sources : undefined,
     diagnostics: {
       nCellsUsed: pgaCurve.diagnostics.nCellsUsed,
       nPeriods: periodKeys.length, singleModel: true,

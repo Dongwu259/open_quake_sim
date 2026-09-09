@@ -31,6 +31,15 @@
 // products can separate (cap30 vs cap10 series differ ~30x; 3 isolated
 // band nulls at 0.555/0.585/0.620/km), registered: compliance-chain cap
 // study or per-layer Schur-admittance stepping.
+// v9 (2026-09-09, R3 opening batch) re-measured the series on the
+// mu*-corrected halfspace admittance (R10 fixed psvEigenvectors traction
+// rows): the fullTensor below-floor series changed from erratic
+// non-monotone collapse to a CLEAN MONOTONE DIVERGENCE (28.1 -> 54.6 over
+// dk 0.002 -> 0.0005, spread 1.95) while deviatoric stays converged
+// (spread 1.055) — the crest-band OPEN is re-confirmed on a trustworthy
+// baseline; residue/Schur-admittance remains the registered cure, and a
+// P-SV-side guard-divisor ladder is newly registered (the P-SV kernel
+// still clamps at (2*pi/r)/10 — the SH v3 ladder moved SH to 80).
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('fs');
@@ -40,8 +49,9 @@ const REPORT = path.join(__dirname, '..', 'tools', 'data', 'psv-scale-diagnosis.
 const r = JSON.parse(fs.readFileSync(REPORT, 'utf8'));
 
 test('psv-scale-diagnosis — schema, verdict, config frozen', () => {
-  assert.equal(r.schema, 'quake-sim-psv-scale-diagnosis-v8');
-  assert.equal(r.verdict, 'fullspace_anchored_layered_mgs_chain_cap_study_negative_full_tensor_open');
+  assert.equal(r.schema, 'quake-sim-psv-scale-diagnosis-v9');
+  assert.equal(r.verdict, 'fullspace_anchored_layered_mgs_chain_v9_rebased_full_tensor_monotone_open');
+  assert.ok(String(r.reMeasure).includes('psvEigenvectors'), 'the v9 re-measure provenance must be recorded');
   assert.equal(r.config.fHz, 0.5);
   assert.equal(r.config.mw, 7.7);
   assert.equal(r.config.sourceDepthKm, 73);
@@ -59,6 +69,9 @@ test('psv-scale-diagnosis — schema, verdict, config frozen', () => {
   assert.ok(r.history.v5verdict === 'fullspace_anchored_layered_qp_defaulted_dev_converged_fullext_open', 'v5 verdict must be preserved');
   assert.ok(r.history.v6verdict === 'fullspace_anchored_layered_attenuation_restored_dev_converged_degenerate_band_open', 'v6 verdict must be preserved');
   assert.ok(r.history.v7verdict === 'fullspace_anchored_layered_mgs_chain_dev_converged_full_tensor_cap_open', 'v7 verdict must be preserved');
+  assert.ok(r.history.v8verdict === 'fullspace_anchored_layered_mgs_chain_cap_study_negative_full_tensor_open', 'v8 verdict must be preserved');
+  assert.ok(r.history.v8caveat.includes('PRE-mu*-fix') || r.history.v8caveat.includes('real-mu'), 'the v8 pre-fix caveat must be preserved');
+  assert.ok(r.layeredContext.capStudy.caveat.includes('PRE-mu*-fix'), 'the cap-study literal must carry the pre-fix caveat');
   assert.ok(r.context.includes('NEGATIVE') || r.context.includes('negative'), 'the cap-study negative outcome must be recorded');
   // the cap-study freeze: every tightened cap is internally dk-converged ...
   const cs = r.layeredContext.capStudy;
@@ -93,12 +106,26 @@ test('psv-scale-diagnosis — aliasing-guard clamp locked above the floor', () =
 test('psv-scale-diagnosis — deviatoric series CONVERGED below the alias floor', () => {
   // the v5 gate: with qP defaulted off the real axis, the deviatoric
   // channel converges — the v4 series spread of ~1.05 (and the v4-era
-  // chaos) must not come back.
+  // chaos) must not come back. v9 re-measure on the corrected kernel:
+  // spread 1.055.
   const sd = r.layeredContext.machinerySeriesUrm.deviatoric;
   const a = sd['dk0.002'], b = sd['dk0.001'], c = sd['dk0.0005'];
   assert.ok(a > 0 && b > 0 && c > 0, 'below-floor series values must be present and positive');
   const spread = Math.max(a, b, c) / Math.min(a, b, c);
   assert.ok(spread < 1.1, 'deviatoric below-floor series regressed (spread ' + spread.toFixed(3) + ') — re-freeze');
+});
+
+test('psv-scale-diagnosis — fullTensor series MONOTONE NON-CONVERGENT on the corrected kernel (v9)', () => {
+  // the v9 re-baseline: the erratic pre-fix collapse became a clean
+  // monotone divergence — the crest-band OPEN is real, not an admittance
+  // artifact. This lock pins the measured monotone divergence.
+  const s = r.layeredContext.machinerySeriesUrm.fullTensor;
+  const a = s['dk0.002'], b = s['dk0.001'], c = s['dk0.0005'];
+  assert.ok(a > 0 && b > a && c > b, 'fullTensor below-floor series must stay monotone increasing (' + a + ' -> ' + b + ' -> ' + c + ')');
+  const spread = c / a;
+  assert.ok(spread > 1.15, 'fullTensor series unexpectedly converged (spread ' + spread.toFixed(3) + ') — re-examine the OPEN verdict if real');
+  assert.ok(r.registeredNextStep.includes('RE-CONFIRMED'), 'the re-confirmed residue cure must stay registered');
+  assert.ok(r.registeredNextStep.includes('P-SV-side aliasing-guard'), 'the P-SV guard-divisor ladder must stay registered');
 });
 
 test('psv-scale-diagnosis — root tables recorded from the compliance-ridge detector', () => {

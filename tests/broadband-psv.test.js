@@ -20,6 +20,13 @@
 //      end-to-end machinery validation
 //   R9 production grid independence: two very different (dk, kMax) grids
 //      agree at production Q (the v3-era plain-sum grid-luck failure mode)
+//   R10 DAMPED independent RK4 ODE cross-check (v6.2 R1 扩展): the R2 anchor
+//      built its reference from REAL moduli, so the halfspace-admittance
+//      real-μ convention was invisible to it (the same blindness that hid
+//      the psvPropagator back-transform bug until the single-layer damped
+//      check); this anchor complexifies moduli AND radiation wavenumbers
+//   R11 damped multi-layer cross-check: the layer-Q path through the
+//      propagator loop (the 2026-09-06 expm real-moduli bug class)
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('path');
@@ -66,7 +73,11 @@ test('R1 — halfspace Rayleigh root lands on the Rayleigh cubic root', () => {
 function odeCompliance(stack, omega, k, zs) {
   const lay = psv.prepare(stack, zs);
   function deriv(s, z) {
-    const layer = lay.layers.find((l) => z >= l.topKm - 1e-9 && z < l.bottomKm - 1e-9) || lay.layers[lay.layers.length - 1];
+    // z is METRES, layer boundaries are KILOMETRES (see the note in
+    // odeComplianceDamped); on the single-material HALF stacks this lookup
+    // was accidentally correct either way, which is why R2 never noticed.
+    const zKm = z / 1000;
+    const layer = lay.layers.find((l) => zKm >= l.topKm - 1e-9 && zKm < l.bottomKm - 1e-9) || lay.layers[lay.layers.length - 1];
     const m1 = layer.rhoGcm3 * 1000 * Math.pow(layer.vsKmS * 1000, 2);
     const l1 = layer.rhoGcm3 * 1000 * (Math.pow(layer.vpKmS * 1000, 2) - 2 * Math.pow(layer.vsKmS * 1000, 2));
     const r1 = layer.rhoGcm3 * 1000;
@@ -315,5 +326,163 @@ test('R9 — production grid independence at production Q (window-resolved)', ()
     const rel = (x, y) => Math.hypot(x[0] - y[0], x[1] - y[1]) / Math.max(1e-30, Math.hypot(y[0], y[1]));
     assert.ok(rel(a.ur, b.ur) < 0.10, 'f=' + fHz + ' u_r grid independence ' + rel(a.ur, b.ur).toExponential(2));
     assert.ok(rel(a.uz, b.uz) < 0.10, 'f=' + fHz + ' u_z grid independence ' + rel(a.uz, b.uz).toExponential(2));
+  }
+});
+
+// --- damped independent RK4 ODE reference (R10/R11) ----------------------
+// Same system as odeCompliance above but with the COMPLEX moduli
+// mu* = rho vs^2 (1 - i/qs), lam* = rho (vp^2 (1-i/qp) - 2 vs^2 (1-i/qs))
+// in the ODE AND a complex-nu halfspace radiation condition with mu* in the
+// traction rows — fully independent of psvEigenvectors' convention choices.
+function odeComplianceDamped(stack, omega, k, zs, qS, qP) {
+  const lay = psv.prepare(stack, zs);
+  function deriv(s, z) {
+    // z here is METRES (the RK4 step unit); prepare()'s layer boundaries are
+    // KILOMETRES — the lookup must convert or every multi-layer stack
+    // silently integrates with the halfspace moduli below z = 12 m (the
+    // units bug that made the first R11 draft "diverge" from production;
+    // single-layer HALF anchors never noticed because one material covers
+    // the whole column either way).
+    const zKm = z / 1000;
+    const layer = lay.layers.find((l) => zKm >= l.topKm - 1e-9 && zKm < l.bottomKm - 1e-9) || lay.layers[lay.layers.length - 1];
+    const rho = layer.rhoGcm3 * 1000;
+    const vp2 = rho * Math.pow(layer.vpKmS * 1000, 2), vs2 = rho * Math.pow(layer.vsKmS * 1000, 2);
+    const mC = [vs2, qS > 0 ? -vs2 / qS : 0];
+    // lam* = rho*vp*^2(1-i/qp) - 2 rho vs*^2 (1-i/qs)
+    const lC = [vp2 - 2 * vs2, (qP > 0 ? -vp2 / qP : 0) - 2 * mC[1]];
+    const lMu = [lC[0] + 2 * mC[0], lC[1] + 2 * mC[1]];
+    const ik = [0, k];
+    const kk2 = k * k;
+    const dup = csub(cdiv(s[2], mC), cmul(ik, s[1]));
+    const t0 = cmul(cmul(ik, lC), s[0]);
+    const dzp = cdiv(csub(s[3], t0), lMu);
+    const c1 = csub(cdiv(cmul([kk2, 0], csub(lMu, cdiv(cmul(lC, lC), lMu))), [1, 0]), [omega * omega * rho, 0]);
+    const dtr = cadd(cmul(c1, s[0]), cmul(cmul(cscale(ik, -1), cdiv(lC, lMu)), s[3]));
+    const dsz = csub(cmul([-omega * omega * rho, 0], s[1]), cmul(ik, s[2]));
+    return [dup, dzp, dtr, dsz];
+  }
+  const h = 2;
+  let s1 = [[1, 0], [0, 0], [0, 0], [0, 0]];
+  let s2 = [[0, 0], [1, 0], [0, 0], [0, 0]];
+  // W pair: unit traction jumps AT THE SOURCE, propagated DOWN with the
+  // surface states to the halfspace top (production's phase-2 path). The
+  // first draft kept rW = identity — equivalent ONLY when the source sits
+  // at the halfspace top (the R2/HALF special case) and wrong by O(1) on
+  // any layered stack.
+  let w1 = [[0, 0], [0, 0], [1, 0], [0, 0]];
+  let w2 = [[0, 0], [0, 0], [0, 0], [1, 0]];
+  const halfTopM = lay.layers[lay.halfIndex].topKm * 1000;
+  const srcM = zs * 1000;
+  const nStepsAll = Math.round(Math.max(srcM, halfTopM) / h);
+  for (let i = 0; i < nStepsAll; i++) {
+    const step = (s) => {
+      const a = deriv(s, i * h);
+      const b = deriv(s.map((v, j) => cadd(v, cscale(a[j], h / 2))), i * h + h / 2);
+      const c = deriv(s.map((v, j) => cadd(v, cscale(b[j], h / 2))), i * h + h / 2);
+      const d = deriv(s.map((v, j) => cadd(v, cscale(c[j], h))), i * h + h);
+      return s.map((v, j) => cadd(v, cscale(cadd(cadd(a[j], cscale(b[j], 2)), cadd(c[j], cscale(d[j], 2))), h / 6)));
+    };
+    s1 = step(s1); s2 = step(s2);
+    if (i * h >= srcM - 1e-9) { w1 = step(w1); w2 = step(w2); } // W moves only below the source
+    if (i % 200 === 199) {
+      const mx = Math.max(...s1.flat().map(cabs), ...s2.flat().map(cabs), ...w1.flat().map(cabs), ...w2.flat().map(cabs));
+      if (mx > 1e100) {
+        const inv = 1 / mx;
+        s1 = s1.map((v) => cscale(v, inv)); s2 = s2.map((v) => cscale(v, inv));
+        w1 = w1.map((v) => cscale(v, inv)); w2 = w2.map((v) => cscale(v, inv));
+      }
+    }
+  }
+  // complex-nu halfspace radiation with mu* in the traction rows
+  const half = lay.layers[lay.halfIndex];
+  const rhoH = half.rhoGcm3 * 1000;
+  const mH = [rhoH * Math.pow(half.vsKmS * 1000, 2), qS > 0 ? -rhoH * Math.pow(half.vsKmS * 1000, 2) / qS : 0];
+  // nuOf convention: nu^2 = omega^2 / c*^2 - k^2, Im >= 0 — c*^2 is the
+  // squared VELOCITY (m^2/s^2), not the impedance modulus
+  const nuSq = (c2re, c2im) => {
+    const den = c2re * c2re + c2im * c2im;
+    const val = [omega * omega * c2re / den - k * k, -omega * omega * c2im / den];
+    // complex sqrt, Im >= 0
+    const r = Math.hypot(val[0], val[1]);
+    const re = Math.sqrt((r + val[0]) / 2);
+    const im = Math.sqrt((r - val[0]) / 2);
+    return [re, im];
+  };
+  const vpSi2 = Math.pow(half.vpKmS * 1000, 2), vsSi2 = Math.pow(half.vsKmS * 1000, 2);
+  const nA = nuSq(vpSi2, qP > 0 ? -vpSi2 / qP : 0);
+  const nB = nuSq(vsSi2, qS > 0 ? -vsSi2 / qS : 0);
+  const ik = [0, k];
+  const iAv = [ -nA[1], nA[0] ], iBv = [ -nB[1], nB[0] ]; // i*nu
+  const M1 = [[ik, iBv], [iAv, cscale(ik, -1)]];
+  const M2 = [
+    [cmul(cmul(cscale(mH, -2), nA), [k, 0]), cmul(mH, [k * k - (nB[0] * nB[0] - nB[1] * nB[1]), -2 * nB[0] * nB[1]])],
+    [csub(cmul(cscale(mH, 2), [k * k, 0]), [rhoH * omega * omega, 0]), cmul(cmul(cscale(mH, 2), nB), [k, 0])]
+  ];
+  const det = csub(cmul(M1[0][0], M1[1][1]), cmul(M1[0][1], M1[1][0]));
+  const Y = [
+    [cdiv(csub(cmul(M2[0][0], M1[1][1]), cmul(M2[0][1], M1[1][0])), det), cdiv(csub(cmul(M2[0][1], M1[0][0]), cmul(M2[0][0], M1[0][1])), det)],
+    [cdiv(csub(cmul(M2[1][0], M1[1][1]), cmul(M2[1][1], M1[1][0])), det), cdiv(csub(cmul(M2[1][1], M1[0][0]), cmul(M2[1][0], M1[0][1])), det)]
+  ];
+  const res = (s) => [csub(s[2], cadd(cmul(Y[0][0], s[0]), cmul(Y[0][1], s[1]))),
+                      csub(s[3], cadd(cmul(Y[1][0], s[0]), cmul(Y[1][1], s[1])))];
+  const rA0 = res(s1), rA1 = res(s2);
+  const rW0 = res(w1), rW1 = res(w2);
+  const m2inv = (A) => { const dd = csub(cmul(A[0][0], A[1][1]), cmul(A[0][1], A[1][0])); return [[cdiv(A[1][1], dd), cscale(cdiv(A[0][1], dd), -1)], [cscale(cdiv(A[1][0], dd), -1), cdiv(A[0][0], dd)]]; };
+  const m2mul = (A, B) => [[cadd(cmul(A[0][0], B[0][0]), cmul(A[0][1], B[1][0])), cadd(cmul(A[0][0], B[0][1]), cmul(A[0][1], B[1][1]))],
+                           [cadd(cmul(A[1][0], B[0][0]), cmul(A[1][1], B[1][0])), cadd(cmul(A[1][0], B[0][1]), cmul(A[1][1], B[1][1]))]];
+  const Cc = m2mul(m2inv([[rA0[0], rA1[0]], [rA0[1], rA1[1]]]), [[rW0[0], rW1[0]], [rW0[1], rW1[1]]]);
+  return [[cscale(Cc[0][0], -1), cscale(Cc[0][1], -1)], [cscale(Cc[1][0], -1), cscale(Cc[1][1], -1)]];
+}
+
+test('R10 — damped halfspace compliance: propagator chain matches damped RK4 ODE', () => {
+  const omega = 2 * Math.PI * 0.5;
+  // reference self-check: with q=0 the damped reference must reproduce the
+  // proven undamped odeCompliance bit-for-bit in structure
+  const u0 = odeCompliance(HALF, omega, 0.3 / 1000, 15);
+  const d0 = odeComplianceDamped(HALF, omega, 0.3 / 1000, 15, 0, 0);
+  for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) {
+    const rel = Math.hypot(u0[i][j][0] - d0[i][j][0], u0[i][j][1] - d0[i][j][1]) / cabs(u0[i][j]);
+    assert.ok(rel < 1e-9, 'damped reference q=0 self-check entry[' + i + '][' + j + '] rel ' + rel.toExponential(2));
+  }
+  const qS = 50, qP = 100;
+  for (const kKm of [0.2, 0.5]) {
+    const a = psv.psvSurfaceCompliance(HALF, omega, kKm / 1000, 15, { qShear: qS, qP: qP });
+    const b = odeComplianceDamped(HALF, omega, kKm / 1000, 15, qS, qP);
+    for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) {
+      const na = cabs(b[i][j]);
+      assert.ok(na > 0, 'damped ODE compliance entry unexpectedly zero');
+      const rel = Math.hypot(a[i][j][0] - b[i][j][0], a[i][j][1] - b[i][j][1]) / na;
+      assert.ok(rel < 0.01, 'k=' + kKm + ' 1/km entry[' + i + '][' + j + '] rel err ' + rel.toExponential(2));
+    }
+  }
+});
+
+test('R11 — layered compliance: propagator chain vs independent RK4 (undamped + damped)', () => {
+  const omega = 2 * Math.PI * 0.8;
+  const qS = 40, qP = 80;
+  const stack = [
+    { topKm: 0, bottomKm: 3, vsKmS: 1.6, vpKmS: 2.8, rhoGcm3: 2.2 },
+    { topKm: 3, bottomKm: 12, vsKmS: 2.6, vpKmS: 4.5, rhoGcm3: 2.5 },
+    { topKm: 12, bottomKm: Infinity, vsKmS: 3.4, vpKmS: 5.9, rhoGcm3: 2.8 }
+  ];
+  // UNDAMPED layered anchor first: the W-pair path (unit jumps propagated
+  // from the source down to the halfspace top) is exercised here for the
+  // first time by an independent reference — R2's HALF special case never
+  // crossed an interface below the source.
+  const a0 = psv.psvSurfaceCompliance(stack, omega, 0.3 / 1000, 8, {});
+  const b0 = odeComplianceDamped(stack, omega, 0.3 / 1000, 8, 0, 0);
+  for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) {
+    const na = cabs(b0[i][j]);
+    assert.ok(na > 0, 'undamped ODE compliance entry unexpectedly zero');
+    const rel = Math.hypot(a0[i][j][0] - b0[i][j][0], a0[i][j][1] - b0[i][j][1]) / na;
+    assert.ok(rel < 0.01, 'undamped layered entry[' + i + '][' + j + '] rel err ' + rel.toExponential(2));
+  }
+  const a = psv.psvSurfaceCompliance(stack, omega, 0.3 / 1000, 8, { qShear: qS, qP: qP });
+  const b = odeComplianceDamped(stack, omega, 0.3 / 1000, 8, qS, qP);
+  for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) {
+    const na = cabs(b[i][j]);
+    assert.ok(na > 0, 'damped ODE compliance entry unexpectedly zero');
+    const rel = Math.hypot(a[i][j][0] - b[i][j][0], a[i][j][1] - b[i][j][1]) / na;
+    assert.ok(rel < 0.01, 'entry[' + i + '][' + j + '] rel err ' + rel.toExponential(2));
   }
 });
