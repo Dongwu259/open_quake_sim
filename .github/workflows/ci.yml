@@ -43,7 +43,23 @@ jobs:
           [ -n "$BUF" ] && echo "::error title=logchunk-end::$BUF"
           echo "::error title=loglines::$L"
       - name: Release validation (versioned assets, PWA markers, i18n, a11y, data catalogs)
-        run: node tools/validate-release.js
+        run: set -o pipefail && node tools/validate-release.js 2>&1 | tee vr-output.log
+      - name: Report release-validation failure details
+        if: failure()
+        run: |
+          L=$(wc -l < vr-output.log)
+          S=$((L>24 ? L-24 : 1))
+          CHUNK=0
+          BUF=""
+          sed -n "${S},\$p" vr-output.log | while IFS= read -r line || [ -n "$line" ]; do
+            BUF="$BUF$line%0A"
+            CHUNK=$((CHUNK+1))
+            if [ $CHUNK -ge 6 ]; then
+              echo "::error title=vr-chunk::$BUF"
+              CHUNK=0; BUF=""
+            fi
+          done
+          [ -n "$BUF" ] && echo "::error title=vr-chunk-end::$BUF"
       - name: Cache-busting version gate
         run: node tools/bump-versions.js --check
       - name: Audio asset validation
