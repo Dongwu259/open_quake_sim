@@ -268,6 +268,112 @@ function shSourceJump(mxx, myy, mxy, k, phi) {
   return cmul(CI, [-k * c2, 0]); // -i k C2
 }
 
+// ---- Love-mode pole windows (v8, 2026-09-09) ----------------------------
+//  The layered SH compliance has trapped Love-mode poles on/near the real-k
+//  axis (zeros of shDispersionFunction). The pre-v8 plain lattice sampled
+//  them by grid luck: the frozen sh-alias-exposure measurement recorded
+//  far-field point residuals up to max 0.80 exactly at pole neighbourhoods.
+//  The detector + tiered windows mirror tools/broadband/psv.js's modal
+//  machinery, scalar (2x2) case: fine log|det| scan, prominence vs a linear
+//  background, golden-section refine, HWHM walk for the gamma width (floored
+//  at the material k/(2Q)), halvespace-S-branch exclusion, module cache per
+//  (stack, omega, q, kMax) — poles are source/receiver independent.
+
+var shLovePoleCache = new Map();
+
+function shLovePoles(stack, omega, kMaxInvKm, opts) {
+  var qS = (opts && opts.qShear) || 0;
+  var key = stack.length + ':' + qS + ':' + omega.toFixed(8) + ':' + kMaxInvKm;
+  for (var i0 = 0; i0 < stack.length; i0++) {
+    var l0 = stack[i0];
+    key += '|' + l0.topKm + ',' + l0.bottomKm + ',' + l0.vsKmS + ',' + (l0.vpKmS || 0) + ',' + l0.rhoGcm3;
+  }
+  var hit = shLovePoleCache.get(key);
+  if (hit) return hit;
+  var lo = 0.02, N = 800;
+  var hi = Math.max(kMaxInvKm, 0.2);
+  var step = (hi - lo) / N;
+  var vsHalf = stack[stack.length - 1].vsKmS;
+  var kBranch = (omega / (vsHalf * 1000)) * 1000; // 1/km — halvespace S kink
+  function f(kk) {
+    var d = shDispersionFunction(stack, omega, kk);
+    if (!d || !isFinite(d[0]) || !isFinite(d[1])) return null;
+    return Math.log(cabs(d) + 1e-300);
+  }
+  function val(kk) {
+    var v = f(kk);
+    return (v == null || !isFinite(v)) ? 1e6 : v; // killed samples read as maxima
+  }
+  function nearBranch(kk) {
+    return Math.abs(kk - kBranch) < 0.04;
+  }
+  var lc = [];
+  for (var i1 = 0; i1 <= N; i1++) lc.push(val(lo + step * i1));
+  // linear background over +-0.25/km (skip +-0.02 around the candidate)
+  function bgFit(j0) {
+    var k0 = lo + step * j0;
+    var sx = 0, sy = 0, sxx = 0, sxy = 0, n = 0;
+    var jA = Math.max(0, j0 - Math.round(0.25 / step)), jB = Math.min(N, j0 + Math.round(0.25 / step));
+    var skip = Math.max(1, Math.round(0.02 / step));
+    for (var q = jA; q <= jB; q++) {
+      if (Math.abs(q - j0) < skip) continue;
+      var kx = lo + step * q;
+      if (nearBranch(kx)) continue;
+      sx += kx; sy += lc[q]; sxx += kx * kx; sxy += kx * lc[q]; n++;
+    }
+    if (n < 6) return null;
+    var den = n * sxx - sx * sx;
+    if (Math.abs(den) < 1e-30) return sy / n;
+    var slope = (n * sxy - sx * sy) / den, icpt = (sy - slope * sx) / n;
+    return icpt + slope * k0;
+  }
+  var found = [];
+  for (var j1 = 1; j1 < N; j1++) {
+    var kj = lo + step * j1;
+    if (nearBranch(kj)) continue;
+    if (lc[j1] > lc[j1 - 1] || lc[j1] > lc[j1 + 1]) continue; // local MIN (ties pass)
+    var bg = bgFit(j1);
+    if (bg == null) continue;
+    if (!(bg - lc[j1] > 0.5)) continue;
+    var dup = false;
+    for (var fd = 0; fd < found.length; fd++) if (Math.abs(found[fd].k - kj) < 4 * step) { dup = true; break; }
+    if (dup) continue;
+    // golden-section refine (minimise log|det|)
+    var ga = kj - 2 * step, gb = kj + 2 * step, gr = 0.6180339887;
+    var c1 = gb - gr * (gb - ga), d1 = ga + gr * (gb - ga), fc = val(c1), fd = val(d1);
+    for (var it = 0; it < 40 && (gb - ga) > 1e-6 * step; it++) {
+      if (fc < fd) { gb = d1; d1 = c1; fd = fc; c1 = gb - gr * (gb - ga); fc = val(c1); }
+      else { ga = c1; c1 = d1; fc = fd; d1 = ga + gr * (gb - ga); fd = val(d1); }
+    }
+    var kpk = (ga + gb) / 2;
+    if (nearBranch(kpk)) continue;
+    var dup2 = false;
+    for (var f2 = 0; f2 < found.length; f2++) if (Math.abs(found[f2].k - kpk) < 0.02) { dup2 = true; break; }
+    if (dup2) continue;
+    // gamma from the HWHM walk of the det dip, floored at the material width
+    var lmin = val(kpk);
+    function hwhmWalk(sgn) {
+      var dd = Math.max(step / 2, 1e-5);
+      for (var w = 0; w < 60; w++) {
+        if (val(kpk + sgn * dd) > lmin + Math.LN2) return dd;
+        dd *= 1.35;
+        if (dd > 0.4 * kpk) break;
+      }
+      return 0;
+    }
+    var hL = hwhmWalk(-1), hR = hwhmWalk(1);
+    var hwhm = (hL > 0 && hR > 0) ? (hL + hR) / 2 : Math.max(hL, hR);
+    var gMat = qS > 0 ? kpk / (2 * qS) : 1e-4 * kpk;
+    var gamma = Math.max(hwhm, 2 * step, gMat / 16);
+    if (!(gamma < 0.4 * kpk)) continue;
+    found.push({ k: kpk, gammaKm: gamma });
+  }
+  if (found.length > 12) found = found.slice(0, 12); // bound the integration cost
+  shLovePoleCache.set(key, found);
+  if (shLovePoleCache.size > 300) shLovePoleCache.clear();
+  return found;
+}
+
 /** DW spectrum at one frequency. params: {rKm, phiRad, zSourceKm,
  *  zReceiverKm, mxx, myy, mxy, dkInvKm, kMaxInvKm, halfSpace (bool)}.
  *  k grid is specified in 1/km for convenience and converted to SI 1/m. */
@@ -283,16 +389,55 @@ function shSpectrumAtFrequency(stack, omega, params) {
   // — the long-range numbers were grid-lucky. Range-adaptive floor wins.
   var dkAlias = (2 * Math.PI / rM) / 10;
   if (dk > dkAlias) dk = dkAlias;
+  // Sample set: the production lattice + tiered Love-pole windows (layered
+  // stacks only; the full-space reference has no poles), integrated by the
+  // plain trapezoid over the sorted samples. The left-edge sum this replaces
+  // could not see a Love resonance narrower than the lattice step at all
+  // (sh-alias-exposure: far-field pole-neighbourhood residuals to 0.80 were
+  // grid luck).
+  var klist = [];
+  var seen = {};
+  function addK(kk) {
+    if (!(kk > 0) || kk > kMax + 1e-15) return;
+    var key = kk.toPrecision(14);
+    if (seen[key]) return;
+    seen[key] = true;
+    klist.push(kk);
+  }
+  for (var k0 = dk; k0 <= kMax + 1e-15; k0 += dk) addK(k0);
+  if (!params.halfSpace && params.loveWindows !== false && stack.length > 1) {
+    var poles = shLovePoles(stack, omega, kMax / 1000, params);
+    for (var p = 0; p < poles.length; p++) {
+      var kp = poles[p].k / 1000; // 1/m
+      var gm = Math.max(poles[p].gammaKm / 1000, 1e-12);
+      addK(kp);
+      var stepA = gm / 32, nA = 16;
+      var stepB = gm / 8, stepC = gm / 4;
+      for (var m1 = 1; m1 <= nA; m1++) { addK(kp - m1 * stepA); addK(kp + m1 * stepA); }
+      for (var m2 = Math.ceil(nA * stepA / stepB); m2 <= nA + 12; m2++) { addK(kp - m2 * stepB); addK(kp + m2 * stepB); }
+      for (var m3 = Math.ceil((nA + 12) * stepB / stepC); m3 <= nA + 12 + 24; m3++) { addK(kp - m3 * stepC); addK(kp + m3 * stepC); }
+      var tail = 8 * gm, tailCap = Math.min(Math.max(100 * gm, 4 * dk), kMax);
+      for (var t2 = 0; t2 < 14; t2++) {
+        tail *= 1.6;
+        if (tail > tailCap) break;
+        addK(kp - tail); addK(kp + tail);
+      }
+    }
+  }
+  klist.sort(function (a, b) { return a - b; });
   var sum = [0, 0];
-  for (var k = dk; k <= kMax + 1e-15; k += dk) {
+  var prevG = null, prevK = 0;
+  for (var i5 = 0; i5 < klist.length; i5++) {
+    var k = klist[i5];
     var j2 = besselJ(2, k * rM);
-    if (Math.abs(j2) < 1e-14) continue;
     var dTau = shSourceJump(params.mxx, params.myy, params.mxy, k, phi);
     var Y = params.halfSpace
       ? shFullSpaceCompliance(stack[0], omega, k, params.zSourceKm, params.zReceiverKm, params)
       : shUnitJumpResponse(stack, omega, k, params.zSourceKm, params.zReceiverKm, params);
-    if (!Y || !isFinite(Y[0]) || !isFinite(Y[1])) continue;
-    sum = cadd(sum, cmul(cmul(dTau, Y), [k * dk * j2, 0]));
+    if (!Y || !isFinite(Y[0]) || !isFinite(Y[1])) { prevK = k; continue; } // hold prevG: bridge the gap
+    var g = cmul(cmul(dTau, Y), [k * j2, 0]);
+    if (prevG) sum = cadd(sum, cscale(cadd(prevG, g), (k - prevK) / 2));
+    prevG = g; prevK = k;
   }
   return cscale(sum, 1 / (2 * Math.PI));
 }
@@ -346,5 +491,6 @@ module.exports = {
   shPropagator: shPropagator, shUnitJumpResponse: shUnitJumpResponse,
   shFullSpaceCompliance: shFullSpaceCompliance, shSourceJump: shSourceJump,
   shSpectrumAtFrequency: shSpectrumAtFrequency, shGreenSpectrum: shGreenSpectrum,
-  fullSpaceClosedForm: fullSpaceClosedForm, shDispersionFunction: shDispersionFunction
+  fullSpaceClosedForm: fullSpaceClosedForm, shDispersionFunction: shDispersionFunction,
+  shLovePoles: shLovePoles
 };

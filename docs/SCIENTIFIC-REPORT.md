@@ -202,9 +202,15 @@ fullTensor 残余 = **Rc 基简并带**:k≈0.53–0.56/km(0.5 Hz,vs_half 以上
 4. **测量结论(生产配置 qP=qShear=50,cap 30)**:deviatoric below-floor 序列 0.01414/0.01409/0.01427,**spread 1.3%,与 v6 raw 链尺度一致(差 2.5%)**——v6 的绝对尺度结论保留;带内 raw 链的精确 null 全部恢复有限值(残余孤立 null 3 个:0.555/0.585/0.620/km)。
 5. **fullTensor 保持 OPEN,病因更锐**:不是 det-null 坍缩(已消),而是 **subdivide 指数帽依赖**——每子层指数帽限制 MGS 内积可分离的动态范围,cap 30 下泄漏 P 峰顶带(偶极通道骑乘)欠分辨:点位 cap30/cap10 差至 10×、系列差 ~30×;cap10/cap4 点位收敛到 16%。cap10 系列(dk 0.02/0.001:dev 0.0391/0.0366,full 1787.7/1641.2)入冻结记录。生产 `opts.psv` 继续 BLOCKED。登记下一步:compliance 链 cap 研究(成本 ~3× 子层)或逐层 Schur 导纳步进。
 
-### 6.8 P-SV 锚集(测试即规格)
+### 6.8 v8(cap 收官批,2026-09-09):cap 研究阴性——离散化旋钮不是答案
 
-R1 Rayleigh 根(Rayleigh 三次方程)· R2 RK4 独立积分 · R3 辐射零节点 · R4 逐波数 α 数值装配 · R5 偶极深度 FD 收敛 · R6 频带稳定 · R7 SI 闭式柱柔度 · R8 加宽 Q 暴力对拍 ≤5% · R9 网格无关 ≤10% · A1 Kelvin 静态极限 · A2 κ 域=空间闭式 · A2c 约定钉死 · A3 全空间块参照。**19/19 绿为本批提交先决条件。**
+登记的"subdivide-cap 研究"执行完毕,结论**阴性**:cap 2/4/6/10/30 每一档都给出**内部 dk 收敛**的序列(cap4 fullTensor below-floor spread 0.45%、cap2 1.7%),但**跨 cap 值无单调收敛**——fullTensor 0.79(cap6)/1.23(cap4)/0.92(cap2)/2245(cap10)/7-59(cap30);deviatoric 同样漂移(0.0083/0.0096/0.0141/0.027)。即:每个 cap 模式解析了泄漏 P 峰顶带的不同部分,偶极(深度 FD)通道直接继承该模式敏感性。**离散化收紧不能关闭峰顶带表征问题**;登记下一步=逐极点物理表征(残量法模态综合或逐层 Schur 导纳步进)。生产 cap 保持 30,opts.psv 继续 BLOCKED。
+
+同批交付:**BPT 时间依赖引擎**(BPT=IG(μ,λ=μ/α²) 闭式 CDF,尾部渐近 Φ 防 e^{2/α²} 因子对多项式 Φ 噪声的放大——实测 ±0.02 的 CDF 污染;`hazardCurveTimeDependent` 把 BPT 场景源的条件破裂概率与 Poisson 背景按独立通道乘法合成;Nankai 全域 P30=87%(μ117/elapsed 318.75/α0.24)落在 ERC 公表「80%程度」带内=外部锚)与 **SH Love 极点窗**(core.shLovePoles 检测器+阶梯窗+梯形积分;窗 vs 32× 细 brute ≤5%)——后者同时**测量推翻了 v1 的「Love 极点网格运气」归因**:双侧带窗后远场残差 0.797 不动,真机制=格点对 J2×柔度乘积的采样不足(sh-alias-exposure v2,登记收紧 range-adaptive 除数)。
+
+### 6.9 P-SV 锚集(测试即规格)
+
+R1 Rayleigh 根(Rayleigh 三次方程)· R2 RK4 独立积分 · R3 辐射零节点 · R4 逐波数 α 数值装配 · R5 偶极深度 FD 收敛 · R6 频带稳定 · R7 SI 闭式柱柔度 · R8 加宽 Q 暴力对拍 ≤5% · R9 网格无关 ≤10% · A1 Kelvin 静态极限 · A2 κ 域=空间闭式 · A2c 约定钉死 · A3 全空间块参照 · SH 侧 L1-L4(Love 窗 vs 32× 细 brute ≤5%)· PSHA 侧 B1-B6(BPT 一致性/单调性/ERC 外部锚/TD 通道往返)· psv-scale-diagnosis v8(cap 研究阴性锁)。**全绿为每批提交先决条件。**
 
 ---
 

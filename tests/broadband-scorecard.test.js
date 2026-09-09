@@ -100,17 +100,17 @@ describe('broadband scorecard frozen results (2026-09-01)', function () {
     // arm byte-identical). The pre-guard freeze lives in git history.
     assert.strictEqual(sc.bands['0.1-0.5s'].hybrid.absMax, 1.404);
     assert.strictEqual(sc.bands['0.5-2s'].hybrid.absMax, 1.585);
-    assert.strictEqual(sc.bands['2-10s'].hybrid.absMax, 2.228);
+    assert.strictEqual(sc.bands['2-10s'].hybrid.absMax, 2.231); // Love-window refreeze (v8): left-edge sum -> windows+trapezoid
     assert.strictEqual(sc.bands['2-10s'].brune.absMax, 2.371);
     assert.strictEqual(sc.scalars.pga.hybrid.absMax, 1.342);
     assert.strictEqual(sc.scalars.pga.brune.absMax, 0.902);
     assert.strictEqual(sc.scalars.pga.gmpe.absMax, 0.538);
-    assert.strictEqual(sc.scalars.pgv.hybrid.absMax, 2.065);
+    assert.strictEqual(sc.scalars.pgv.hybrid.absMax, 2.066); // Love-window refreeze (v8)
   });
 
   it('gate verdicts frozen: long-period improvement PASS, absolute gates FAIL, JMA N/A', function () {
     assert.strictEqual(sc.gates.longPeriodImprovementVsBrune.pass, true);
-    assert.strictEqual(sc.gates.longPeriodImprovementVsBrune.improvement, 0.143);
+    assert.strictEqual(sc.gates.longPeriodImprovementVsBrune.improvement, 0.14); // Love-window refreeze (v8)
     assert.strictEqual(sc.gates.pgaLog10BiasAbsMax.pass, false);
     assert.strictEqual(sc.gates.pgvLog10BiasAbsMax.pass, false);
     assert.strictEqual(sc.gates.pgaNonRegressionVsBrune.pass, false);

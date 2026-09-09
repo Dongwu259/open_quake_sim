@@ -18,12 +18,14 @@ const REPORT = path.join(__dirname, '..', 'tools', 'data', 'sh-alias-exposure.js
 const r = JSON.parse(fs.readFileSync(REPORT, 'utf8'));
 
 test('sh-alias-exposure — schema, guard, verdict frozen', () => {
-  assert.equal(r.schema, 'quake-sim-sh-alias-exposure-v1');
+  assert.equal(r.schema, 'quake-sim-sh-alias-exposure-v2');
   assert.equal(r.verdict, 'guard_landed_exposure_quantified');
   assert.equal(r.guard.aliasSafeRangeKm, 62.8);
   assert.equal(r.guard.rule, 'dk = min(dkInvKm, (2*pi/r)/10)');
-  assert.ok(r.reading.includes('grid-lucky'), 'reading must record the pre-guard exposure');
-  assert.ok(r.registeredFollowUp.includes('pole windows'), 'the uncovered Love-pole exposure must stay registered');
+  assert.ok(r.reading.includes('RETIRED by measurement'), 'the v1 pole-grid-luck attribution must stay retired on record');
+  assert.ok(r.reading.includes('Love-pole windows'), 'the v2 reading must record that the windows landed');
+  assert.ok(r.registeredFollowUp.includes('range-adaptive divisor') || r.registeredFollowUp.includes('compliance-scale'),
+    'the residual far-range sampling gap must stay registered with a cure');
 });
 
 test('sh-alias-exposure — distance distribution locked (69% beyond the old safe range)', () => {
@@ -50,6 +52,10 @@ test('sh-alias-exposure — guarded grid tracks the refined grid where the guard
   // tripwire bounds catastrophic regression only.
   assert.ok(e.guardedVsFine_all.max <= 0.9,
     'guarded kernel drifted catastrophically from the refined grid: max |ratio-1| = ' + e.guardedVsFine_all.max);
+  // the Love windows (v7->v8) did NOT move this residual (0.80 -> 0.797):
+  // it is the J2*compliance product sampling gap, not pole grid luck — the
+  // windows must stay in the kernel or this number regresses silently.
+  assert.ok(r.reading.includes('0.797'), 'the post-window residual must stay on record');
   assert.ok(e.guardedVsFine_all.median <= 0.05,
     'guarded kernel median drift: ' + e.guardedVsFine_all.median);
   // the guard must beat the pre-guard kernel on the far field (worst case)

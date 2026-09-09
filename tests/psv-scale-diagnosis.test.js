@@ -40,8 +40,8 @@ const REPORT = path.join(__dirname, '..', 'tools', 'data', 'psv-scale-diagnosis.
 const r = JSON.parse(fs.readFileSync(REPORT, 'utf8'));
 
 test('psv-scale-diagnosis — schema, verdict, config frozen', () => {
-  assert.equal(r.schema, 'quake-sim-psv-scale-diagnosis-v7');
-  assert.equal(r.verdict, 'fullspace_anchored_layered_mgs_chain_dev_converged_full_tensor_cap_open');
+  assert.equal(r.schema, 'quake-sim-psv-scale-diagnosis-v8');
+  assert.equal(r.verdict, 'fullspace_anchored_layered_mgs_chain_cap_study_negative_full_tensor_open');
   assert.equal(r.config.fHz, 0.5);
   assert.equal(r.config.mw, 7.7);
   assert.equal(r.config.sourceDepthKm, 73);
@@ -58,6 +58,16 @@ test('psv-scale-diagnosis — schema, verdict, config frozen', () => {
   assert.ok(r.history.v4verdict === 'fullspace_anchored_layered_roots_tracked_branch_cusp_open', 'v4 verdict must be preserved');
   assert.ok(r.history.v5verdict === 'fullspace_anchored_layered_qp_defaulted_dev_converged_fullext_open', 'v5 verdict must be preserved');
   assert.ok(r.history.v6verdict === 'fullspace_anchored_layered_attenuation_restored_dev_converged_degenerate_band_open', 'v6 verdict must be preserved');
+  assert.ok(r.history.v7verdict === 'fullspace_anchored_layered_mgs_chain_dev_converged_full_tensor_cap_open', 'v7 verdict must be preserved');
+  assert.ok(r.context.includes('NEGATIVE') || r.context.includes('negative'), 'the cap-study negative outcome must be recorded');
+  // the cap-study freeze: every tightened cap is internally dk-converged ...
+  const cs = r.layeredContext.capStudy;
+  assert.ok(cs.belowFloorSpreads.cap4.fullTensor < 1.05, 'cap4 fullTensor internal spread must stay locked');
+  assert.ok(cs.belowFloorSpreads.cap2.fullTensor < 1.05, 'cap2 fullTensor internal spread must stay locked');
+  // ... while cross-cap values disagree without monotone convergence (the NEGATIVE)
+  assert.ok(cs.crossCapFullTensor.cap6_vs_cap4_dk0005 < 0.95 || cs.crossCapFullTensor.cap6_vs_cap4_dk0005 > 1.05,
+    'cap6/cap4 disagreement is the measured negative — it must stay on record');
+  assert.ok(cs.belowFloorSpreads.cap30.fullTensor > 3, 'production-cap fullTensor must stay non-converged on record');
   assert.ok(r.history.v4bruteExhibits && r.history.note.includes('cannot converge'), 'the retired v4 brute exhibits must stay on record with the correction note');
 });
 
@@ -125,8 +135,8 @@ test('psv-scale-diagnosis — fullTensor open item locked (crest cap-resolution 
   // sensitivity the corrupted-triMul interim run suppressed): still fully
   // non-converged — the lock holds at 1.03 until the crest resolution lands.
   assert.ok(spread > 1.03, 'fullTensor below-floor series unexpectedly converged (spread ' + spread.toFixed(3) + ') — upgrade the verdict and re-freeze');
-  assert.ok(r.layeredContext.openItem.includes('cap'), 'openItem must name the cap dependence');
-  assert.ok(r.layeredContext.openItem.includes('Schur') || r.layeredContext.openItem.includes('cap study'), 'openItem must name a registered cure');
+  assert.ok(r.layeredContext.openItem.includes('NEGATIVE'), 'openItem must record the cap-study negative');
+  assert.ok(r.layeredContext.openItem.includes('Schur') || r.layeredContext.openItem.includes('residue'), 'openItem must name a registered cure');
   // the cap-dependence measurement itself is part of the freeze
   const c10 = r.layeredContext.cap10SeriesUrm.fullTensor;
   assert.ok(c10['dk0.02'] > 0 && c10['dk0.001'] > 0, 'cap10 series record missing');

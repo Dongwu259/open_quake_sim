@@ -2379,6 +2379,85 @@ Physics.poissonRateFromProb = function(prob, years) {
   return -Math.log(1 - prob) / years;
 };
 
+/** Standard normal CDF (Abramowitz-Stegun 7.1.26 erf, |eps| <= 1.5e-7).
+ *  Shared by the BPT renewal engine and any tail-form exceedance math. */
+Physics.normCdf = function(x) {
+  var sign = x < 0 ? -1 : 1;
+  var az = Math.abs(x) / Math.SQRT2;
+  var t = 1 / (1 + 0.3275911 * az);
+  var erf = sign * (1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-az * az));
+  return 0.5 * (1 + erf);
+};
+
+// ================================================================
+//  BPT (Brownian passage time) renewal source — time-dependent
+//  characteristic-earthquake recurrence (Matthews, Ellsworth & Reasenberg
+//  2002). The renewal density is the inverse Gaussian IG(mu, lambda =
+//  mu/alpha^2): mean interval mu (yr), aperiodicity alpha = sigma/mu
+//  (coefficient of variation of the interval distribution).
+//
+//  Closed-form CDF (standard IG): F(t) = Phi(sqrt(l/t)(t/mu - 1))
+//    + exp(2l/mu) * Phi(-sqrt(l/t)(t/mu + 1)),  l = mu/alpha^2.
+//  The exp(2l/mu) factor overflows double range for alpha < ~0.053
+//  (2l/mu = 2/alpha^2 > 709); alpha below 0.06 is clamped (documented
+//  engine limit — every published Nankai BPT aperiodicity sits at or above
+//  0.2). All inputs in years.
+// ================================================================
+
+/** BPT renewal density at elapsed time t (yr). */
+Physics.bptDensity = function(tYears, muYears, alpha) {
+  if (!(tYears > 0) || !(muYears > 0) || !(alpha > 0)) return 0;
+  var d = tYears - muYears;
+  return Math.sqrt(muYears / (2 * Math.PI * alpha * alpha * Math.pow(tYears, 3))) *
+    Math.exp(-(d * d) / (2 * alpha * alpha * muYears * tYears));
+};
+
+/** Tail-normal CDF for |arg| > 5.5: 0.5*erfc(x/sqrt2) via the asymptotic
+ *  series (relative ~1e-6 at x = 5.9, improving fast). The BPT CDF's second
+ *  term multiplies Phi(-b) by exp(2/alpha^2) ~ 1e15 — the polynomial erf's
+ *  1.5e-7 ABSOLUTE noise there becomes ±0.02+ CDF error (measured B2/B3
+ *  failures), so the tail branch is mandatory, not cosmetic. */
+function bptPhiTail(b) {
+  // Phi(-b) = exp(-b^2/2) / (b*sqrt(2*pi)) * (1 - 1/b^2 + 3/b^4 - 15/b^6 + ...)
+  var b2 = b * b;
+  var series = 1 - 1 / b2 + 3 / (b2 * b2) - 15 / (b2 * b2 * b2) + 105 / (b2 * b2 * b2 * b2);
+  return Math.exp(-b2 / 2) / (b * Math.sqrt(2 * Math.PI)) * series;
+}
+
+/** BPT CDF: probability the interval has completed by t (yr). */
+Physics.bptCdf = function(tYears, muYears, alpha) {
+  if (!(tYears > 0)) return 0;
+  alpha = Math.max(alpha, 0.06);
+  var lam = muYears / (alpha * alpha);
+  var sq = Math.sqrt(lam / tYears);
+  var ratio = tYears / muYears;
+  var b = sq * (ratio + 1);
+  var phiNegB = b > 5.5 ? bptPhiTail(b) : Physics.normCdf(-b);
+  return Physics.normCdf(sq * (ratio - 1)) +
+    Math.exp(2 * lam / muYears) * phiNegB;
+};
+
+/** Probability of rupture within `horizonYears` given `elapsedYears` of
+ *  quiescence: (F(s+T) - F(s)) / (1 - F(s)). This is the number the ERC
+ *  style 時間猶予確率 maps publish. */
+Physics.bptConditionalProb = function(horizonYears, elapsedYears, muYears, alpha) {
+  if (!(horizonYears > 0)) return 0;
+  var s = elapsedYears > 0 ? elapsedYears : 0;
+  var f0 = Physics.bptCdf(s, muYears, alpha);
+  var f1 = Physics.bptCdf(s + horizonYears, muYears, alpha);
+  var survival = 1 - f0;
+  if (!(survival > 0)) return 1;
+  return Math.max(0, Math.min(1, (f1 - f0) / survival));
+};
+
+/** BPT instantaneous hazard rate f(t)/(1 - F(t)) (per year) — the renewal
+ *  rate whose average over a horizon reproduces the conditional probability. */
+Physics.bptInstantaneousRate = function(tYears, muYears, alpha) {
+  var survival = 1 - Physics.bptCdf(tYears, muYears, alpha);
+  if (!(survival > 0)) return Infinity;
+  return Physics.bptDensity(tYears, muYears, alpha) / survival;
+};
+
 /** Class-level rake simplification for hazard integration. */
 Physics.PSHA_CLASS_RAKE = { crustal: 0, interplate: 90, intraslab: 0 };
 
@@ -2564,6 +2643,186 @@ Physics.hazardCurve = function(sourceModel, site, imt, options) {
       branchSets: ['crustal', 'interplate', 'intraslab'].map(function(cls) {
         return Physics._pshaBranchesFor(cls, imtKey).map(function(b) { return b.model; });
       })
+    }
+  };
+};
+
+/** Time-dependent hazard curve: BPT renewal sources (scenario entries with a
+ *  `bpt` block, or the registered PSHA_BPT_SOURCES table) contribute their
+ *  CONDITIONAL rupture probability over the horizon instead of a Poisson
+ *  rate; everything else (GR grid cells, plain scenarios) stays stationary
+ *  Poisson. Total exceedance per IM level combines the independent channels
+ *  multiplicatively: 1 - (1-p_bg) * prod_scen (1 - pChar_s * pExceed_s(IM)).
+ *
+ *  options: { horizonYears (=30), currentYear (=2025.75), elapsedYears
+ *  (global override), alpha (global override, default 0.24), vs30,
+ *  maxDistKm, mStep, imLevels }. A scenario opts in via sourceModel entry
+ *  `bpt: {muYears, alpha?, lastEventYear}` or the registered default table;
+ *  `elapsedYears` inside the bpt block wins over lastEventYear arithmetic.
+ *  Returns the hazardCurve shape plus a `timeDependent` diagnostics block
+ *  (per-BPT-source: mu, alpha, elapsed, conditional probability) and
+ *  `meanRate` recomputed as the equivalent Poisson rate of the total
+ *  exceedance (so downstream UHS/inversion code stays well-defined). */
+Physics.PSHA_BPT_SOURCES = {
+  nankaiFullM89: { muYears: 117, lastEventYear: 1707 },   // Hoei-type full-segment episode
+  nankaiEastM82: { muYears: 468, lastEventYear: 1944 },   // Tonankai single-segment (1/4 mode share of 1/117yr)
+  nankaiWestM83: { muYears: 468, lastEventYear: 1946 }    // Nankai single-segment (1/4 mode share)
+};
+
+Physics.hazardCurveTimeDependent = function(sourceModel, site, imt, options) {
+  options = options || {};
+  var isSa = imt.slice(0, 3) === 'sa:';
+  var imtKey = imt === 'pgv' ? 'pgv' : (isSa ? imt : 'pga');
+  var vs30 = site && site.vs30 != null ? site.vs30 : (options.vs30 != null ? options.vs30 : 600);
+  var maxDistKm = options.maxDistKm != null ? options.maxDistKm : 500;
+  var mStep = options.mStep || 0.1;
+  var years = options.horizonYears != null ? options.horizonYears : 30;
+  var currentYear = options.currentYear != null ? options.currentYear : 2025.75;
+  var globalAlpha = options.alpha;
+  var imLevels = options.imLevels;
+  if (!imLevels || !imLevels.length) {
+    imLevels = [];
+    var lo = imtKey === 'pga' ? 3 : (isSa ? 0.01 : 0.3);
+    var hi = imtKey === 'pga' ? 3000 : (isSa ? 3000 : 300);
+    var nLv = isSa ? 50 : 40;
+    for (var q0 = 0; q0 < nLv; q0++) imLevels.push(+(lo * Math.pow(hi / lo, q0 / (nLv - 1))).toPrecision(3));
+  }
+  var nIm = imLevels.length;
+  var meanRate = new Array(nIm).fill(0);
+  var logIm = imLevels.map(function(v) { return Math.log10(v); });
+  var mc = sourceModel.mc, mMin = sourceModel.mMin != null ? sourceModel.mMin : 5.0;
+  var nCells = 0, nBins = 0;
+
+  function accumulate(srcType, mag, rRupKm, depthKm, rate) {
+    var branches = Physics._pshaBranchesFor(srcType, imtKey);
+    var rake = Physics.PSHA_CLASS_RAKE[srcType] || 0;
+    for (var bi = 0; bi < branches.length; bi++) {
+      var motion = Physics._pshaBranchMotion(branches[bi].model, imtKey, srcType, mag, rRupKm, depthKm, vs30, rake);
+      if (!motion || !(motion.median > 0)) continue;
+      var medLog = Math.log10(motion.median);
+      var sig = motion.sigmaLog10;
+      for (var ii = 0; ii < nIm; ii++) {
+        var z = (logIm[ii] - medLog) / sig;
+        var sign = z < 0 ? -1 : 1, az = Math.abs(z) / Math.SQRT2;
+        var t = 1 / (1 + 0.3275911 * az);
+        var erf = sign * (1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-az * az));
+        var p = Math.max(0, Math.min(1, 0.5 * (1 - erf)));
+        if (p <= 0) continue;
+        meanRate[ii] += branches[bi].weight * rate * p;
+      }
+    }
+  }
+  /** Branch-mixture exceedance given ONE event (no rate): P(IM > x | rupture). */
+  function exceedGivenEvent(srcType, mag, rRupKm, depthKm) {
+    var branches = Physics._pshaBranchesFor(srcType, imtKey);
+    var rake = Physics.PSHA_CLASS_RAKE[srcType] || 0;
+    var out = new Array(nIm).fill(0);
+    for (var bi = 0; bi < branches.length; bi++) {
+      var motion = Physics._pshaBranchMotion(branches[bi].model, imtKey, srcType, mag, rRupKm, depthKm, vs30, rake);
+      if (!motion || !(motion.median > 0)) continue;
+      var medLog = Math.log10(motion.median);
+      var sig = motion.sigmaLog10;
+      for (var ii = 0; ii < nIm; ii++) {
+        var z = (logIm[ii] - medLog) / sig;
+        var sign = z < 0 ? -1 : 1, az = Math.abs(z) / Math.SQRT2;
+        var t = 1 / (1 + 0.3275911 * az);
+        var erf = sign * (1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-az * az));
+        var p = Math.max(0, Math.min(1, 0.5 * (1 - erf)));
+        out[ii] += branches[bi].weight * p;
+      }
+    }
+    return out;
+  }
+
+  // --- stationary background: GR grid cells + plain scenarios (Poisson) ---
+  var cells = sourceModel.cells || [];
+  for (var ci = 0; ci < cells.length; ci++) {
+    var c = cells[ci];
+    var hd = Physics.haversineDist(site.lat, site.lng, c.lat, c.lng);
+    if (hd > maxDistKm) continue;
+    nCells++;
+    var b = sourceModel.bValues[c.srcType];
+    var mMax = (sourceModel.mMaxByClass || {})[c.srcType] || 7.5;
+    if (!(b > 0) || !(c.rateMc > 0)) continue;
+    var hypDist = Math.sqrt(hd * hd + c.depthKm * c.depthKm);
+    var mLo = Math.ceil(mMin / mStep - 1e-9) * mStep;
+    for (var m = mLo; m <= mMax + 1e-9; m += mStep) {
+      var lam = c.rateMc * (Math.pow(10, -b * (m - mc)) - Math.pow(10, -b * (m + mStep - mc)));
+      if (!(lam > 1e-9)) continue;
+      nBins++;
+      var mm = Math.min(m + mStep / 2, mMax);
+      var rRup = Physics._pshaPointRrup(hypDist, mm, c.srcType);
+      accumulate(c.srcType, mm, rRup, c.depthKm, lam);
+    }
+  }
+
+  // --- scenarios: BPT renewal sources vs plain Poisson sources ---
+  var bptUsed = [];
+  var scenarios = sourceModel.scenarios || [];
+  for (var si = 0; si < scenarios.length; si++) {
+    var s = scenarios[si];
+    var rRupS, depthS;
+    if (s.patches && s.patches.length) {
+      rRupS = Infinity; depthS = s.depthKm != null ? s.depthKm : 0;
+      for (var pi = 0; pi < s.patches.length; pi++) {
+        var pp = s.patches[pi];
+        var d3 = Math.sqrt(Math.pow(Physics.haversineDist(site.lat, site.lng, pp[0], pp[1]), 2) + pp[2] * pp[2]);
+        if (d3 < rRupS) rRupS = d3;
+      }
+    } else {
+      depthS = s.depthKm != null ? s.depthKm : 15;
+      var hdS = Physics.haversineDist(site.lat, site.lng, s.lat != null ? s.lat : 0, s.lng != null ? s.lng : 0);
+      rRupS = Physics._pshaPointRrup(Math.sqrt(hdS * hdS + depthS * depthS), s.mw, s.sourceType || 'crustal');
+    }
+    rRupS = Math.max(rRupS, 0.1);
+    var bptCfg = s.bpt || Physics.PSHA_BPT_SOURCES[s.id] || null;
+    var isBpt = !!(bptCfg && (options.elapsedYears != null || bptCfg.lastEventYear != null || bptCfg.elapsedYears != null));
+    if (!isBpt) {
+      accumulate(s.sourceType || 'crustal', s.mw, rRupS, depthS, s.ratePerYear);
+      continue;
+    }
+    var muYears = bptCfg.muYears;
+    var alpha = globalAlpha != null ? globalAlpha : (bptCfg.alpha != null ? bptCfg.alpha : 0.24);
+    var elapsed = options.elapsedYears != null ? options.elapsedYears :
+      (bptCfg.elapsedYears != null ? bptCfg.elapsedYears : currentYear - bptCfg.lastEventYear);
+    var pChar = Physics.bptConditionalProb(years, elapsed, muYears, alpha);
+    var ex = exceedGivenEvent(s.sourceType || 'crustal', s.mw, rRupS, depthS);
+    bptUsed.push({
+      id: s.id, mw: s.mw, muYears: muYears, alpha: alpha,
+      elapsedYears: +elapsed.toFixed(2), horizonYears: years,
+      conditionalProb: +pChar.toPrecision(4),
+      rRupKm: +rRupS.toFixed(1), srcType: s.sourceType || 'crustal',
+      pExceedGivenEvent: ex
+    });
+  }
+
+  // --- combine independent channels: Poisson background x BPT scenarios ---
+  var bgProb = meanRate.map(function(r) { return Physics.poissonExceedProb(r, years); });
+  var totalProb = new Array(nIm);
+  for (var ii3 = 0; ii3 < nIm; ii3++) {
+    var survive = 1 - bgProb[ii3];
+    for (var bj = 0; bj < bptUsed.length; bj++) {
+      survive *= 1 - bptUsed[bj].conditionalProb * bptUsed[bj].pExceedGivenEvent[ii3];
+    }
+    totalProb[ii3] = 1 - survive;
+  }
+  var eqRate = totalProb.map(function(p) { return p >= 1 ? Infinity : -Math.log(1 - p) / years; });
+
+  return {
+    imt: imtKey, imLevels: imLevels, meanRate: eqRate, poissonProb: totalProb, years: years,
+    timeDependent: {
+      horizonYears: years, currentYear: currentYear,
+      alphaDefault: globalAlpha != null ? globalAlpha : 0.24,
+      sources: bptUsed.map(function(b) {
+        return { id: b.id, mw: b.mw, muYears: b.muYears, alpha: b.alpha,
+                 elapsedYears: b.elapsedYears, horizonYears: b.horizonYears,
+                 conditionalProb: b.conditionalProb, rRupKm: b.rRupKm, srcType: b.srcType };
+      })
+    },
+    diagnostics: {
+      nCellsUsed: nCells, nMagnitudeBins: nBins, mStep: mStep, maxDistKm: maxDistKm, vs30: vs30,
+      singleModel: isSa,
+      nBptSources: bptUsed.length
     }
   };
 };

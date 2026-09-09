@@ -150,7 +150,7 @@ function main() {
   };
 
   const report = {
-    schema: 'quake-sim-sh-alias-exposure-v1',
+    schema: 'quake-sim-sh-alias-exposure-v2',
     generatedAt: new Date().toISOString(),
     kernel: 'tools/broadband/core.js shSpectrumAtFrequency (B1 SH discrete wavenumber, production dkInvKm=0.01/km, kMaxInvKm=5, qShear=50)',
     guard: {
@@ -167,9 +167,9 @@ function main() {
       perEvent
     },
     perPointExposure: exposure,
-    reading: 'The pre-guard fixed grid mis-sampled the J2 oscillation on the majority of scored paths (the long-range LF numbers were grid-lucky): point-level ratios vs a 4x-refined grid swung up to ~3x at 90-180 km. The guard removes that component (worst points improve: 3.08->1.71, 2.42->0.96, 2.05->0.67) but the residual O(1) far-range swings (max |ratio-1| ~0.8 vs the refined grid) are the UNCOVERED Love-pole grid luck: the kernel has no modal pole windows, so the narrow resonant peaks are still sampled at whatever the grid catches — exactly the disease the P-SV layered-roots batch cured on its side (tools/broadband/psv.js v6). Registered as the follow-up, not closed by this batch.',
+    reading: 'v2 re-measure after the Love-pole windows landed (core.shLovePoles + tiered windows + trapezoid, both the guarded production grid and the 4x-refined reference carry them): the far-field residual is UNCHANGED (max |ratio-1| 0.797 vs 0.80 pre-windows) — the v1 attribution (Love-pole grid luck) is RETIRED by measurement. The persistent far-range swings are the production lattice sampling the PRODUCT J2(k r)*C(k) coarsely: the alias floor gives 10 samples per J2 period, but the compliance multiplies its own k-structure on top, and at 90-180 km the product oscillates faster than either component alone — a 4x-refined grid resolves it, the production grid does not. Registered cure: tighten the range-adaptive divisor (cost: linear in samples) or derive the local k-step from the compliance scale, not just the J2 period.',
     verdict: 'guard_landed_exposure_quantified',
-    registeredFollowUp: 'the re-frozen Kyoshin scorecard (tools/data/broadband-scorecard.json, same date) carries the guard; band-metric deltas vs the previous freeze are the recalibration record — the SH kernel still has NO Love-mode pole windows (the plain sum samples narrow modal peaks at grid luck); that exposure is inherited from the B1 design and is NOT covered by the alias guard',
+    registeredFollowUp: 'Love-mode pole windows LANDED (core.shLovePoles, this batch) and the trapezoid integration replaced the plain sum; the remaining far-range residual is the production-lattice sampling of the J2*compliance product (see reading) — registered cure: range-adaptive divisor tightening (cost study) or compliance-scale k-stepping. The re-frozen Kyoshin scorecard (tools/data/broadband-scorecard.json, same date) carries windows + guard; band-metric deltas vs the previous freeze are the recalibration record.',
     history: {
       preGuardScorecard: 'the 2026-09-05 freeze of tools/data/broadband-scorecard.json was produced by the fixed-grid kernel; it remains in git history as the pre-guard measurement'
     }
