@@ -53,10 +53,19 @@ test('arbiter — measured columns locked (kappa, component split, synth-vs-obs)
   for (const b of Object.keys(bands)) assert.ok(bands[b]['D0.2'] < -0.1, 'band ' + b + ' must confirm the synth-side excess');
 });
 
-test('arbiter — one event re-derived from the package (tokachi 2003, paired D at 0.2 s)', () => {
+test('arbiter — one event re-derived from the package (tokachi 2003, paired D at 0.2 s)', (t) => {
+  // the Kyoshin waveform packages are account-gated downloads (tools/fetch-
+  // kyoshin-waveforms.js) and intentionally NOT committed — on a fresh clone
+  // (CI) this re-derivation has no data and must SKIP, not fail (2026-09-09:
+  // the unguarded read made every CI run red while local runs passed).
+  const pkgPath = path.join(ROOT, 'public', 'geojson', 'strong-motion-waveforms', '20030926045007.json');
+  if (!fs.existsSync(pkgPath)) {
+    t.skip('Kyoshin waveform package not bundled (account-gated download)');
+    return;
+  }
   const Physics = require(path.join(ROOT, 'public', 'physics.js'));
   const hybrid = require(path.join(ROOT, 'tools', 'broadband', 'hybrid.js'));
-  const ev = JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'strong-motion-waveforms', '20030926045007.json'), 'utf8'));
+  const ev = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
   const meta = { mj: 8.0, depthKm: 42, srcType: 'interplate' };
   const PERIODS = [0.1, 0.2, 1.0];
   const st = ev.stations[0];
