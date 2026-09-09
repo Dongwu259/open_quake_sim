@@ -254,7 +254,7 @@ function main() {
     findings: {
       absoluteGates: 'ALL FAIL — the hybrid underpredicts by 0.4-2.2 log10 across events/bands. Two structural causes are separable in the arms: (1) the zhao2006 GMPE reference arm ITSELF scores -0.54 (PGA) to -1.14 (PGV) on these same gates — the Kyoshin packages are intensity-selected top-station sets and the comparison uses the event-specific transverse component vs a geometric-mean-horizontal GMM, so an absolute-bias floor around -0.5 exists for ANY calibrated model on this set; (2) the stochastic/hybrid arms carry a further ~0.3-0.7 (single-corner point source, envelope peak factor, simplified site columns).',
       longPeriod: 'PASS — the DW low-frequency side improves the 2-10 s band over the Brune baseline (AbsMax 2.228 vs 2.371, improvement +0.143 >= 0.05), the pre-registered purpose of the hybrid.',
-      pgaRegression: 'FAIL — hybrid PGA AbsMax 1.344 vs baseline 0.902: the 1 Hz high-pass removes PGA-band energy the full-band baseline keeps; the remaining deficit is shared between arms.',
+      pgaRegression: 'FAIL — hybrid PGA AbsMax 1.342 vs baseline 0.902: the 1 Hz high-pass removes PGA-band energy the full-band baseline keeps; the remaining deficit is shared between arms.',
       jma: 'N/A — P-SV not implemented; no honest 3-component JMA intensity exists for the SH-only hybrid.'
     }
   };

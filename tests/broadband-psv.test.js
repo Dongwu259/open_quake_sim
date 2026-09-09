@@ -15,6 +15,11 @@
 //   R5 dipole depth-FD convergence
 //   R6 band stability (no NaN/overflow over the production band)
 //   R7 absolute scale: k->0 column limit vs the exact SI 1D closed form
+//   R8 pole-separated integration vs brute-force fine-grid quadrature of
+//      the SAME integrand at an artificially widened pole (heavy Q) —
+//      end-to-end machinery validation
+//   R9 production grid independence: two very different (dk, kMax) grids
+//      agree at production Q (the v3-era plain-sum grid-luck failure mode)
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('path');
@@ -152,34 +157,40 @@ test('R7 — absolute scale: k->0 sigma_zz column matches the exact 1D column co
   }
 });
 
-test('R3 — radiation nodes: pure Mxy gives zero radial/vertical; pure Mzz gives zero radial', () => {
+test('R3 — radiation nodes: pure Mxy gives zero radial/vertical; pure Mzz has nonzero radial', () => {
   const omega = 2 * Math.PI * 0.5;
   const base = { rKm: 30, zSourceKm: 15, dkInvKm: 0.05, kMaxInvKm: 3, mxx: 0, myy: 0, mzz: 0, mxy: 0, mxz: 0, myz: 0 };
   const ss = psv.psvMomentSpectrumAtFrequency(HALF, omega, Object.assign({}, base, { mxy: 1e18 }));
   assert.ok(cabs(ss.ur) < 1e-30 && cabs(ss.uz) < 1e-30, 'strike-slip radial/vertical must be structurally zero');
+  // A vertical dipole is axisymmetric about the source's vertical axis: its
+  // response at an off-axis receiver lives in the meridian plane, so u_r is
+  // NONZERO (−Mzz·∂zC_rz·I1). The old "pure Mzz → zero radial node" was the
+  // missing-term defect, enshrined; the closed-form anchor corrected it.
   const ex = psv.psvMomentSpectrumAtFrequency(HALF, omega, Object.assign({}, base, { mzz: 1e18 }));
-  assert.ok(cabs(ex.ur) < 1e-30, 'explosive radial must be structurally zero');
   assert.ok(cabs(ex.uz) > 0, 'explosive vertical must be nonzero');
+  assert.ok(cabs(ex.ur) > 1e-6 * cabs(ex.uz), 'Mzz radial must be nonzero (meridian-plane response)');
 });
 
-test('R4 — identity assembly matches direct numerical alpha quadrature', () => {
+test('R4 — identity assembly matches direct numerical alpha quadrature, per wavenumber', () => {
   const omega = 2 * Math.PI * 0.5;
   const params = { rKm: 30, zSourceKm: 15, dkInvKm: 0.05, kMaxInvKm: 3,
     mxx: 3e17, myy: -1e17, mzz: 5e16, mxy: 2e17, mxz: 4e17, myz: -3e17 };
-  const assembled = psv.psvMomentSpectrumAtFrequency(HALF, omega, params);
-  const kMax = params.kMaxInvKm / 1000, dk = params.dkInvKm / 1000;
   const rM = params.rKm * 1000, N = 2048, dh = 0.5 / 1000;
   const zs = params.zSourceKm, zUp = zs - dh, zDn = zs + dh;
   const P0 = 0.5 * (params.mxx + params.myy), P2 = 0.5 * (params.mxx - params.myy);
-  let ur = [0, 0], uz = [0, 0], ut = [0, 0];
-  for (let k = dk; k <= kMax + 1e-15; k += dk) {
+  // 0.97/1.0 1/km straddle the halfspace Rayleigh pole (k_R ~ omega/cR):
+  // the INTEGRAND must match there too — integration is R8/R9's business.
+  for (const kKm of [0.3, 0.9, 0.97, 1.0, 1.6, 2.5]) {
+    const k = kKm / 1000;
+    const g = psv.psvIntegrandAtK(HALF, omega, k, params);
+    assert.ok(g, 'integrand null at k=' + kKm);
     const C = psv.psvSurfaceCompliance(HALF, omega, k, zs);
     const Cup = psv.psvSurfaceCompliance(HALF, omega, k, zUp);
     const Cdn = psv.psvSurfaceCompliance(HALF, omega, k, zDn);
     if (!C || !Cup || !Cdn) continue;
-    const dCr0 = [(Cdn[0][0][0] - Cup[0][0][0]), (Cdn[0][0][1] - Cup[0][0][1])];
-    const dCr1 = [(Cdn[0][1][0] - Cup[0][1][0]), (Cdn[0][1][1] - Cup[0][1][1])];
-    const dCz1 = [(Cdn[1][1][0] - Cup[1][1][0]), (Cdn[1][1][1] - Cup[1][1][1])];
+    const dCr0 = [(Cdn[0][0][0] - Cup[0][0][0]) / 1.0, (Cdn[0][0][1] - Cup[0][0][1]) / 1.0];
+    const dCr1 = [(Cdn[0][1][0] - Cup[0][1][0]) / 1.0, (Cdn[0][1][1] - Cup[0][1][1]) / 1.0];
+    const dCz1 = [(Cdn[1][1][0] - Cup[1][1][0]) / 1.0, (Cdn[1][1][1] - Cup[1][1][1]) / 1.0];
     let s0 = [0, 0], s1 = [0, 0], s2 = [0, 0];
     for (let i = 0; i < N; i++) {
       const a = (i + 0.5) * (2 * Math.PI) / N, ca = Math.cos(a), sa = Math.sin(a);
@@ -190,26 +201,36 @@ test('R4 — identity assembly matches direct numerical alpha quadrature', () =>
       const cm = (jr, ji, cr, ci) => [jr * cr - ji * ci, jr * ci + ji * cr];
       const rr = cm(0, dtauR, C[0][0][0], C[0][0][1]).map((v, i2) => v + cm(0, dsigR, C[0][1][0], C[0][1][1])[i2]);
       const zz = cm(0, dtauR, C[1][0][0], C[1][0][1]).map((v, i2) => v + cm(0, dsigR, C[1][1][0], C[1][1][1])[i2]);
-      const urD = cm(params.mxz, 0, dCr0[0], dCr0[1]);
-      const uzD = cm(params.mzz, 0, dCz1[0], dCz1[1]);
-      const utD = cm(params.myz, 0, dCr1[0], dCr1[1]);
+      // dipole terms, corrected assembly (fullSpace anchor, 2026-09-05):
+      //   ur: Mxz·cos²α·dCr0 + Mzz·cosα·dCr1
+      //   uz: Mzz·dCz1 + (Mxz·cosα + Myz·sinα)·dCr1
+      //   ut: Myz·sin²α·dCr0
+      const cmr = (m, d) => [m * d[0], m * d[1]];
       const phx = (v) => [ph[0] * v[0] - ph[1] * v[1], ph[0] * v[1] + ph[1] * v[0]];
-      const uF = phx(rr), uD = phx(urD);
-      s0[0] += ca * uF[0] + ca * ca * uD[0]; s0[1] += ca * uF[1] + ca * ca * uD[1];
-      const zA = phx(zz.map((v, i2) => v + uzD[i2]));
+      // corrected dipole assembly, CODE sign convention (the global insertion
+      // −1 vs closed-form physics is documented in the fullspace anchor):
+      //   ur: −(Mxz·ca²·dCr0 + Mzz·ca·dCr1)      [Mzz arm projects with ca¹]
+      //   uz: −(Mzz·dCz1 + Mxz·ca·dCr1)          [Myz twin structurally zero]
+      //   ut: −(Myz·sa²·dCr0)
+      const dMxzR = cmr(-params.mxz, dCr0), dMzzR = cmr(-params.mzz, dCr1);
+      const dMzzZ = cmr(-params.mzz, dCz1);
+      const dMxZ = [-params.mxz * dCr1[0] * ca, -params.mxz * dCr1[1] * ca];
+      const dMyT = cmr(-params.myz, dCr0);
+      const uF = phx(rr);
+      const uDx = phx(dMxzR), uDz = phx(dMzzR);
+      s0[0] += ca * uF[0] + ca * ca * uDx[0] + ca * uDz[0]; s0[1] += ca * uF[1] + ca * ca * uDx[1] + ca * uDz[1];
+      const zA = phx([zz[0] + dMzzZ[0] + dMxZ[0], zz[1] + dMzzZ[1] + dMxZ[1]]);
       s1[0] += zA[0]; s1[1] += zA[1];
-      const uTf = phx(rr), uTd = phx(utD);
-      s2[0] += sa * uTf[0] + sa * sa * uTd[0]; s2[1] += sa * uTf[1] + sa * sa * uTd[1];
+      const uTd = phx(dMyT);
+      s2[0] += sa * uF[0] + sa * sa * uTd[0]; s2[1] += sa * uF[1] + sa * sa * uTd[1];
     }
-    const w = (k * dk) / (4 * Math.PI * Math.PI) * (2 * Math.PI / N);
-    ur[0] += s0[0] * w; ur[1] += s0[1] * w;
-    uz[0] += s1[0] * w; uz[1] += s1[1] * w;
-    ut[0] += s2[0] * w; ut[1] += s2[1] * w;
+    const w = k / (4 * Math.PI * Math.PI) * (2 * Math.PI / N);
+    const rel = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]) / Math.max(1e-30, Math.hypot(b[0], b[1]));
+    const dUr = [s0[0] * w, s0[1] * w], dUz = [s1[0] * w, s1[1] * w], dUt = [s2[0] * w, s2[1] * w];
+    assert.ok(rel(dUr, g.ur) < 0.01, 'u_r @' + kKm + '/km quadrature mismatch ' + rel(dUr, g.ur).toExponential(2));
+    assert.ok(rel(dUz, g.uz) < 0.01, 'u_z @' + kKm + '/km quadrature mismatch ' + rel(dUz, g.uz).toExponential(2));
+    assert.ok(rel(dUt, g.ut) < 0.01, 'u_t @' + kKm + '/km quadrature mismatch ' + rel(dUt, g.ut).toExponential(2));
   }
-  const rel = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]) / Math.max(1e-30, Math.hypot(b[0], b[1]));
-  assert.ok(rel(ur, assembled.ur) < 0.01, 'u_r quadrature mismatch ' + rel(ur, assembled.ur).toExponential(2));
-  assert.ok(rel(uz, assembled.uz) < 0.01, 'u_z quadrature mismatch ' + rel(uz, assembled.uz).toExponential(2));
-  assert.ok(rel(ut, assembled.ut) < 0.01, 'u_t quadrature mismatch ' + rel(ut, assembled.ut).toExponential(2));
 });
 
 test('R5 — dipole depth-FD converged at dh = 0.5 m', () => {
@@ -233,5 +254,66 @@ test('R6 — band stability: compliance finite over the production band', () => 
         assert.ok(cabs(c) < 1e8, 'compliance blowup at f=' + f.toFixed(2) + ' k=' + kKm);
       }
     }
+  }
+});
+
+test('R8 — gamma-resolved pole windows match brute-force quadrature at a widened pole', () => {
+  const omega = 2 * Math.PI * 0.5;
+  const params = { rKm: 30, zSourceKm: 15, dkInvKm: 0.02, kMaxInvKm: 4,
+    mxx: 3e17, myy: -1e17, mzz: 5e16, mxy: 2e17, mxz: 4e17, myz: -3e17, qShear: 20 };
+  const got = psv.psvMomentSpectrumAtFrequency(HALF, omega, params);
+  const poles = psv.psvModalPoles(HALF, omega, params.kMaxInvKm, { qShear: 20 });
+  assert.ok(poles.length >= 1, 'widened-Q Rayleigh pole must be found in band');
+  // ground truth: resolve the Lorentzian directly with a MIDPOINT rule
+  // (independent quadrature family from the production trapezoid;
+  // gamma ~ k/(2Q) ~ 0.025/km, grid 0.0025/km = ~10 samples per gamma).
+  // Branch-aware since the branch-cusp batch: the UNDAMPED P branch of the
+  // halfspace (qP unset) cusps the raw integrand 1/sqrt(k_bp - k) and a
+  // plain grid converges only O(sqrt(h)) there — measured 19% brute bias
+  // once the machinery subtracts the singular factor analytically. The
+  // segment +-0.05/km around the sharp branch point is integrated by the
+  // xi = sqrt(|k-k_bp|) substitution (k = k_bp -+ xi^2, dk = 2 xi dxi:
+  // 2 xi g is smooth in xi) — independent of psv.js's analytic-factor
+  // machinery (no shared fit code).
+  const dkF = 0.0025 / 1000, kMaxF = params.kMaxInvKm / 1000;
+  const bpP = Math.PI / (6.0 * 1000); // omega/vp, sharp (qP unset)
+  const delta = 5e-5, nXi = 300, dXi = Math.sqrt(delta) / nXi;
+  const samples = [];
+  for (let k = dkF / 2; k <= kMaxF + 1e-15; k += dkF) {
+    if (Math.abs(k - bpP) >= delta) samples.push([k, dkF]);
+  }
+  for (let j = 0; j < nXi; j++) {
+    const xi = (j + 0.5) * dXi;
+    samples.push([bpP - xi * xi, 2 * xi * dXi]);
+    samples.push([bpP + xi * xi, 2 * xi * dXi]);
+  }
+  let ur = [0, 0], uz = [0, 0];
+  for (const [k, w] of samples) {
+    const g = psv.psvIntegrandAtK(HALF, omega, k, params);
+    if (!g) continue;
+    ur = cadd(ur, cscale(g.ur, w));
+    uz = cadd(uz, cscale(g.uz, w));
+  }
+  const rel = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]) / Math.max(1e-30, Math.hypot(b[0], b[1]));
+  assert.ok(rel(got.ur, ur) < 0.05, 'u_r pole machinery vs brute force ' + rel(got.ur, ur).toExponential(2));
+  assert.ok(rel(got.uz, uz) < 0.05, 'u_z pole machinery vs brute force ' + rel(got.uz, uz).toExponential(2));
+});
+
+test('R9 — production grid independence at production Q (window-resolved)', () => {
+  // Two-zone quadrature reproducibility: the fine zone (dk/4) resolves the
+  // branch kinks / numerator nulls / pole remnants, so differently-phased
+  // production grids agree to ~1e-1 (the 0.0083/km fine zone of the coarse
+  // grid is the limiter on the narrowest nulls; production accuracy vs the
+  // brute-force reference is locked separately by R8 at <= 5e-2).
+  for (const fHz of [0.5, 1.2]) {
+    const omega = 2 * Math.PI * fHz;
+    const params = { rKm: 30, zSourceKm: 15, dkInvKm: 0.02, kMaxInvKm: 5,
+      mxx: 3e17, myy: -1e17, mzz: 5e16, mxy: 2e17, mxz: 4e17, myz: -3e17, qShear: 50 };
+    const a = psv.psvMomentSpectrumAtFrequency(HALF, omega, params);
+    const b = psv.psvMomentSpectrumAtFrequency(HALF, omega,
+      Object.assign({}, params, { dkInvKm: 0.033, kMaxInvKm: 6.3 }));
+    const rel = (x, y) => Math.hypot(x[0] - y[0], x[1] - y[1]) / Math.max(1e-30, Math.hypot(y[0], y[1]));
+    assert.ok(rel(a.ur, b.ur) < 0.10, 'f=' + fHz + ' u_r grid independence ' + rel(a.ur, b.ur).toExponential(2));
+    assert.ok(rel(a.uz, b.uz) < 0.10, 'f=' + fHz + ' u_z grid independence ' + rel(a.uz, b.uz).toExponential(2));
   }
 });

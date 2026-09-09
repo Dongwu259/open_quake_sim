@@ -1,0 +1,203 @@
+{
+ "schema": "quake-sim-sh-alias-exposure-v1",
+ "generatedAt": "2026-09-06T19:14:05.282Z",
+ "kernel": "tools/broadband/core.js shSpectrumAtFrequency (B1 SH discrete wavenumber, production dkInvKm=0.01/km, kMaxInvKm=5, qShear=50)",
+ "guard": {
+  "rule": "dk = min(dkInvKm, (2*pi/r)/10)",
+  "aliasSafeRangeKm": 62.8,
+  "note": "byte-identical output for r < 62.8 km; long-range LF grids refine by up to 4x at 250 km",
+  "date": "2026-09-06"
+ },
+ "distanceDistribution": {
+  "scoredPaths": 756,
+  "min": 6,
+  "p10": 34,
+  "p25": 56,
+  "median": 88,
+  "p75": 124,
+  "p90": 167,
+  "max": 249,
+  "beyondAliasSafe": 521,
+  "beyondFraction": 0.689,
+  "perEvent": [
+   {
+    "id": "20030926045007",
+    "stations": 60,
+    "medianKm": 167
+   },
+   {
+    "id": "20041023180730",
+    "stations": 60,
+    "medianKm": 61
+   },
+   {
+    "id": "20050320105319",
+    "stations": 60,
+    "medianKm": 75
+   },
+   {
+    "id": "20070325094145",
+    "stations": 60,
+    "medianKm": 96
+   },
+   {
+    "id": "20080614084331",
+    "stations": 59,
+    "medianKm": 58
+   },
+   {
+    "id": "20110311144626",
+    "stations": 39,
+    "medianKm": 178
+   },
+   {
+    "id": "20110411171556",
+    "stations": 60,
+    "medianKm": 62
+   },
+   {
+    "id": "20160416012405",
+    "stations": 59,
+    "medianKm": 61
+   },
+   {
+    "id": "20180906030750",
+    "stations": 60,
+    "medianKm": 66
+   },
+   {
+    "id": "20190618222207",
+    "stations": 60,
+    "medianKm": 92
+   },
+   {
+    "id": "20220316233630",
+    "stations": 60,
+    "medianKm": 107
+   },
+   {
+    "id": "20240101160813",
+    "stations": 59,
+    "medianKm": 107
+   },
+   {
+    "id": "20240808164247",
+    "stations": 60,
+    "medianKm": 100
+   }
+  ]
+ },
+ "perPointExposure": {
+  "sampledPoints": 48,
+  "fixedVsFine_all": {
+   "n": 48,
+   "median": 0.101,
+   "p90": 0.607,
+   "max": 2.083
+  },
+  "fixedVsFine_farOnly": {
+   "n": 40,
+   "median": 0.105,
+   "p90": 0.818,
+   "max": 2.083
+  },
+  "guardedVsFine_all": {
+   "n": 48,
+   "median": 0.017,
+   "p90": 0.353,
+   "max": 0.799
+  },
+  "worstFixedPoints": [
+   {
+    "ev": "20240101160813",
+    "distKm": 175,
+    "fHz": 2,
+    "fixedVsFine": 3.083,
+    "guardedVsFine": 1.707
+   },
+   {
+    "ev": "20240101160813",
+    "distKm": 175,
+    "fHz": 0.1,
+    "fixedVsFine": 2.423,
+    "guardedVsFine": 0.955
+   },
+   {
+    "ev": "20190618222207",
+    "distKm": 92,
+    "fHz": 0.1,
+    "fixedVsFine": 2.047,
+    "guardedVsFine": 0.668
+   },
+   {
+    "ev": "20080614084331",
+    "distKm": 117,
+    "fHz": 1.5,
+    "fixedVsFine": 1.818,
+    "guardedVsFine": 0.201
+   },
+   {
+    "ev": "20030926045007",
+    "distKm": 103,
+    "fHz": 0.1,
+    "fixedVsFine": 0.393,
+    "guardedVsFine": 1.119
+   },
+   {
+    "ev": "20240101160813",
+    "distKm": 175,
+    "fHz": 1,
+    "fixedVsFine": 0.464,
+    "guardedVsFine": 0.647
+   },
+   {
+    "ev": "20160416012405",
+    "distKm": 13,
+    "fHz": 0.1,
+    "fixedVsFine": 1.502,
+    "guardedVsFine": 1.502
+   },
+   {
+    "ev": "20240101160813",
+    "distKm": 175,
+    "fHz": 0.2,
+    "fixedVsFine": 0.598,
+    "guardedVsFine": 1.001
+   },
+   {
+    "ev": "20080614084331",
+    "distKm": 117,
+    "fHz": 1,
+    "fixedVsFine": 0.606,
+    "guardedVsFine": 0.885
+   },
+   {
+    "ev": "20240101160813",
+    "distKm": 175,
+    "fHz": 0.3,
+    "fixedVsFine": 1.328,
+    "guardedVsFine": 1
+   },
+   {
+    "ev": "20240101160813",
+    "distKm": 175,
+    "fHz": 1.5,
+    "fixedVsFine": 1.319,
+    "guardedVsFine": 0.914
+   },
+   {
+    "ev": "20050320105319",
+    "distKm": 75,
+    "fHz": 0.1,
+    "fixedVsFine": 0.708,
+    "guardedVsFine": 1.515
+   }
+  ]
+ },
+ "reading": "The pre-guard fixed grid mis-sampled the J2 oscillation on the majority of scored paths (the long-range LF numbers were grid-lucky): point-level ratios vs a 4x-refined grid swung up to ~3x at 90-180 km. The guard removes that component (worst points improve: 3.08->1.71, 2.42->0.96, 2.05->0.67) but the residual O(1) far-range swings (max |ratio-1| ~0.8 vs the refined grid) are the UNCOVERED Love-pole grid luck: the kernel has no modal pole windows, so the narrow resonant peaks are still sampled at whatever the grid catches — exactly the disease the P-SV layered-roots batch cured on its side (tools/broadband/psv.js v6). Registered as the follow-up, not closed by this batch.",
+ "verdict": "guard_landed_exposure_quantified",
+ "registeredFollowUp": "the re-frozen Kyoshin scorecard (tools/data/broadband-scorecard.json, same date) carries the guard; band-metric deltas vs the previous freeze are the recalibration record — the SH kernel still has NO Love-mode pole windows (the plain sum samples narrow modal peaks at grid luck); that exposure is inherited from the B1 design and is NOT covered by the alias guard",
+ "history": {
+  "preGuardScorecard": "the 2026-09-05 freeze of tools/data/broadband-scorecard.json was produced by the fixed-grid kernel; it remains in git history as the pre-guard measurement"
+ }
+}

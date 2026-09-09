@@ -1,6 +1,6 @@
 {
  "schema": "quake-sim-experiment-manifest-v1",
- "generated": "2026-09-05T01:42:02.270Z",
+ "generated": "2026-09-09T05:24:09.474Z",
  "identityRule": "qsx1-<sha256[:16] of file bytes>; manifest excluded from its own listing",
  "entries": [
   {
@@ -40,13 +40,13 @@
    "mtime": "2026-09-01T07:56:21.439Z"
   },
   {
-   "id": "qsx1-8c4b38e079b793c9",
+   "id": "qsx1-6801e623741a68ba",
    "name": "broadband-scorecard.json",
-   "bytes": 25289,
+   "bytes": 25286,
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-09-01T07:00:12.733Z"
+   "mtime": "2026-09-09T05:22:53.186Z"
   },
   {
    "id": "qsx1-cec2295e2a91444b",
@@ -247,6 +247,15 @@
    "mtime": "2026-09-03T17:24:51.938Z"
   },
   {
+   "id": "qsx1-022db587735ab823",
+   "name": "psv-scale-diagnosis.json",
+   "bytes": 16378,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-09T05:22:53.218Z"
+  },
+  {
    "id": "qsx1-56d691a8bfa0a3ea",
    "name": "sb-spectral-ratio-report.json",
    "bytes": 50385,
@@ -254,6 +263,15 @@
    "track": null,
    "gate": null,
    "mtime": "2026-08-26T12:09:53.533Z"
+  },
+  {
+   "id": "qsx1-e9e2445011e8ed52",
+   "name": "sh-alias-exposure.json",
+   "bytes": 4892,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-09T05:22:53.250Z"
   },
   {
    "id": "qsx1-b8438e14075fc9b9",

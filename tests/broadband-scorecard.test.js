@@ -95,14 +95,17 @@ describe('broadband scorecard frozen results (2026-09-01)', function () {
   });
 
   it('froze the exact band/scalar AbsMax numbers', function () {
-    assert.strictEqual(sc.bands['0.1-0.5s'].hybrid.absMax, 1.402);
-    assert.strictEqual(sc.bands['0.5-2s'].hybrid.absMax, 1.587);
+    // re-frozen 2026-09-06 with the SH-kernel Bessel-aliasing guard
+    // (dk floors at (2*pi/r)/10; band-level impact <= 0.05 log10, brune
+    // arm byte-identical). The pre-guard freeze lives in git history.
+    assert.strictEqual(sc.bands['0.1-0.5s'].hybrid.absMax, 1.404);
+    assert.strictEqual(sc.bands['0.5-2s'].hybrid.absMax, 1.585);
     assert.strictEqual(sc.bands['2-10s'].hybrid.absMax, 2.228);
     assert.strictEqual(sc.bands['2-10s'].brune.absMax, 2.371);
-    assert.strictEqual(sc.scalars.pga.hybrid.absMax, 1.344);
+    assert.strictEqual(sc.scalars.pga.hybrid.absMax, 1.342);
     assert.strictEqual(sc.scalars.pga.brune.absMax, 0.902);
     assert.strictEqual(sc.scalars.pga.gmpe.absMax, 0.538);
-    assert.strictEqual(sc.scalars.pgv.hybrid.absMax, 2.017);
+    assert.strictEqual(sc.scalars.pgv.hybrid.absMax, 2.065);
   });
 
   it('gate verdicts frozen: long-period improvement PASS, absolute gates FAIL, JMA N/A', function () {

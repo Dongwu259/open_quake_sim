@@ -274,6 +274,15 @@ function shSourceJump(mxx, myy, mxy, k, phi) {
 function shSpectrumAtFrequency(stack, omega, params) {
   var rM = params.rKm * 1000, phi = params.phiRad;
   var dk = params.dkInvKm / 1000, kMax = params.kMaxInvKm / 1000; // 1/m
+  // Bessel-aliasing guard (2026-09-06): the integrand oscillates at the
+  // J2 period 2*pi/r, so the sample step may never exceed ~1/10 of that
+  // period. The production dkInvKm=0.01/km is alias-safe only to ~63 km;
+  // the frozen Kyoshin scorecard samples 69% of its paths beyond that, and
+  // per-point LF spectral ratios at 90-180 km swung 0.5-3x between the
+  // production grid and a 4x-refined grid (tools/data/sh-alias-exposure.json)
+  // — the long-range numbers were grid-lucky. Range-adaptive floor wins.
+  var dkAlias = (2 * Math.PI / rM) / 10;
+  if (dk > dkAlias) dk = dkAlias;
   var sum = [0, 0];
   for (var k = dk; k <= kMax + 1e-15; k += dk) {
     var j2 = besselJ(2, k * rM);

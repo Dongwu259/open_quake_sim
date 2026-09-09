@@ -289,26 +289,43 @@ function hybridSynthesis(opts) {
   hfScale = Math.min(clamp[1], Math.max(clamp[0], hfScale));
   const hfF = buildHfSpectrum(NF, df, hfCtx, seed, hfScale);
 
-  // ---- v4 (2026-09-04): optional P-SV radial/vertical LF channels --------
+  // ---- v4 candidate (2026-09-04): optional P-SV radial/vertical LF -------
   // opts.psv adds the deterministic LF radial/vertical from
-  // tools/broadband/psv.js (R1-R6 anchored) on the FULL rotated double
-  // couple, plus an HF vertical carrier (independent seed, half amplitude —
-  // the registered V/H convention; the horizontal HF is untouched). Without
-  // opts.psv the output is byte-identical to the SH-only pipeline.
+  // tools/broadband/psv.js on the FULL rotated double couple, plus an HF
+  // vertical carrier (independent seed, half amplitude — the registered V/H
+  // convention; the horizontal HF is untouched). Without opts.psv the
+  // output is byte-identical to the SH-only pipeline.
+  // STATUS (2026-09-06, layered-roots batch): RESEARCH-ONLY. The absolute
+  // moment response is source-anchored (full-space closed form,
+  // tests/psv-fullspace.test.js A1-A3 <= 8%) and the layered root tracking
+  // is landed: branch-safe matrix-exponential propagator, joint-scalar-
+  // renormalised compliance chain, raw-chain dispersion with branch-point
+  // exclusion + depth gate + dual-chain confirmation, 2D complex Newton,
+  // tiered windows (tools/data/psv-scale-diagnosis.json v4). OPEN: the
+  // below-alias-floor production dk series does not converge yet — the
+  // integrable 1/sqrt branch-tail cusp at k = omega/vp_i, omega/vs_i makes
+  // the trapezoid converge O(sqrt(h)) (registered in the same report).
+  // Do NOT wire opts.psv into scoring before that lands.
   // opts.psvCache: Map shared across realizations of the same (site, source
   // depth) — the per-(k,omega) compliance solves are strike-independent.
+  // opts.psvMaxHz: the radial/vertical LF is low-pass filtered at fcHz, so
+  // kernel frequencies above fcHz*1.2 are discarded anyway and skipped
+  // (the dominant per-realization cost). opts.psvDkInvKm: the P-SV kernel
+  // grid (two-zone quadrature; 0.02 default — independent of the SH side).
   let psvRadialLf = null, psvVerticalLf = null, hfVertTime = null;
   if (opts.psv) {
     const cache = (opts.psvCache instanceof Map) ? opts.psvCache : new Map();
+    const psvMaxHz = opts.psvMaxHz || fcHz * 1.2;
     const Mr = psv.rotateFullTensor({ mxx: M.xx, myy: M.yy, mzz: M.zz, mxy: M.xy, mxz: M.xz, myz: M.yz }, az);
     const radialF = new Array(NF).fill(0).map(() => [0, 0]);
     const verticalF = new Array(NF).fill(0).map(() => [0, 0]);
     for (let i = 0; i < lfFreqs.length; i++) {
       const fHz = lfFreqs[i];
+      if (fHz > psvMaxHz) break; // lfFreqs ascending
       const spec = psv.psvMomentSpectrumAtFrequency(opts.stack, 2 * Math.PI * fHz, {
         rKm: distKm, zSourceKm: opts.sourceDepthKm,
         mxx: Mr.mxx, myy: Mr.myy, mzz: Mr.mzz, mxy: Mr.mxy, mxz: Mr.mxz, myz: Mr.myz,
-        dkInvKm: opts.dkInvKm || 0.01, kMaxInvKm: opts.kMaxInvKm || 5,
+        dkInvKm: opts.psvDkInvKm || 0.02, kMaxInvKm: opts.kMaxInvKm || 5,
         qShear: opts.qShear || 50, dhM: opts.psvDhM || 0.5, cache
       });
       const w = 2 * Math.PI * fHz;
@@ -398,7 +415,17 @@ function bruneBaselineSynthesis(opts) {
   const time = ifftReal(spec, NF);
   const out = [];
   for (let i = 0; i < NF; i++) out.push(time[i] * envelopeAt(i / sr, pT, sT, ramp));
-  return { transverse: out, sampleRateHz: sr, nSamples: NF, units: 'm/s^2', meta: { distKm, pTravelS: pT, sTravelS: sT } };
+  // v4 CS pipeline: second independent-seed horizontal so both arms are
+  // scored on the same geometric-mean-of-horizontals metric (identical
+  // physics, new noise draw — its only effect is the sqrt-2 metric change).
+  let radial2 = null;
+  if (opts.secondHorizontalSeed != null) {
+    const spec2 = buildHfSpectrum(NF, df, ctx, opts.secondHorizontalSeed, 1);
+    const time2 = ifftReal(spec2, NF);
+    radial2 = [];
+    for (let i = 0; i < NF; i++) radial2.push(time2[i] * envelopeAt(i / sr, pT, sT, ramp));
+  }
+  return { transverse: out, radial: radial2, sampleRateHz: sr, nSamples: NF, units: 'm/s^2', meta: { distKm, pTravelS: pT, sTravelS: sT, secondHorizontal: radial2 ? 'independent-seed gm pair' : null } };
 }
 
 function envelopeAt(t, pT, sT, rampDur) {

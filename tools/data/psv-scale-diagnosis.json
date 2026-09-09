@@ -1,0 +1,478 @@
+{
+ "schema": "quake-sim-psv-scale-diagnosis-v7",
+ "generatedAt": "2026-09-09T04:09:59.626Z",
+ "config": {
+  "stack": "tokyo JIVSM column + IASP91 continuation (buildJivsmIaspStack)",
+  "fHz": 0.5,
+  "mw": 7.7,
+  "sourceDepthKm": 73,
+  "rKm": 198.5,
+  "azimuthDeg": -19.5,
+  "psvParams": {
+   "dkInvKm": 0.02,
+   "kMaxInvKm": 5,
+   "qShear": 50,
+   "qP": "unset -> layered path defaults to qShear (50)",
+   "aliasFloorInvKm": 0.003165
+  },
+  "anchorParams": {
+   "halfspace": "vs 3.5 / vp 6.0 / rho 2.7",
+   "rKm": 30,
+   "zSourceKm": 15,
+   "fHz": 0.5,
+   "psv": {
+    "dkInvKm": 0.0025,
+    "kMaxInvKm": 6,
+    "qShear": 50,
+    "fullSpace": true
+   },
+   "reference": {
+    "dkInvKm": 0.001,
+    "kMaxInvKm": 6,
+    "alphaN": 2048
+   }
+  }
+ },
+ "fullSpaceAnchor": {
+  "metric": "complex residual |psv − (−reference)| / |reference| per (tensor, channel); reference = tools/broadband/psv-fullspace.js momentBlockReference (Kelvin-anchored closed form, branch-aware xi-substitution kappa scan since v5)",
+  "maxResidual": 0.06203,
+  "perCase": {
+   "Mzz": {
+    "ur": 0.02726,
+    "ut": "structurally-zero-ok",
+    "uz": 0.004614
+   },
+   "Mxz": {
+    "ur": 0.01193,
+    "ut": "structurally-zero-ok",
+    "uz": 0.00547
+   },
+   "Myz": {
+    "ur": "structurally-zero-ok",
+    "ut": 0.007337,
+    "uz": "structurally-zero-ok"
+   },
+   "deviatoric": {
+    "ur": 0.05688,
+    "ut": 0.06203,
+    "uz": 0.01582
+   },
+   "thrust-DC": {
+    "ur": 0.0103,
+    "ut": 0.01934,
+    "uz": 0.005062
+   }
+  },
+  "note": "v5: the psv side subtracts the analytic 1/sqrt(k* - k) factor per branch point (true Weyl 1/nu cusps on this path) and the reference integrates the sharp branch zones by xi-substitution — both quadratures changed, so the residual is re-based (v4 froze 3.4e-2 with matched biases on both sides); the 0.08 gate is the acceptance, and the per-wavenumber integrands still agree exactly"
+ },
+ "layeredContext": {
+  "machinerySeriesUrm": {
+   "deviatoric": {
+    "dk0.02": 0.014338,
+    "dk0.01": 0.014338,
+    "dk0.005": 0.014338,
+    "dk0.002": 0.014138,
+    "dk0.001": 0.014092,
+    "dk0.0005": 0.014274
+   },
+   "fullTensor": {
+    "dk0.02": 54.196,
+    "dk0.01": 54.196,
+    "dk0.005": 54.196,
+    "dk0.002": 58.918,
+    "dk0.001": 21.315,
+    "dk0.0005": 7.2916
+   }
+  },
+  "cap10SeriesUrm": {
+   "deviatoric": {
+    "dk0.02": 0.039085,
+    "dk0.001": 0.036576
+   },
+   "fullTensor": {
+    "dk0.02": 1787.7,
+    "dk0.001": 1641.2
+   }
+  },
+  "rootTables": {
+   "f0p5": [
+    {
+     "kInvKm": 0.1662,
+     "gammaKm": "4.015e-2",
+     "refined": true
+    },
+    {
+     "kInvKm": 0.5275,
+     "gammaKm": "5.000e-4",
+     "refined": true
+    },
+    {
+     "kInvKm": 0.5501,
+     "gammaKm": "1.201e-3",
+     "refined": true
+    },
+    {
+     "kInvKm": 0.5734,
+     "gammaKm": "2.640e-2",
+     "refined": true
+    },
+    {
+     "kInvKm": 0.5935,
+     "gammaKm": "5.000e-4",
+     "refined": true
+    },
+    {
+     "kInvKm": 0.6156,
+     "gammaKm": "1.147e-1",
+     "refined": true
+    },
+    {
+     "kInvKm": 0.7415,
+     "gammaKm": "1.955e-3",
+     "refined": true
+    },
+    {
+     "kInvKm": 0.7844,
+     "gammaKm": "1.714e-1",
+     "refined": true
+    },
+    {
+     "kInvKm": 0.8064,
+     "gammaKm": "1.319e-1",
+     "refined": true
+    },
+    {
+     "kInvKm": 0.8346,
+     "gammaKm": "5.707e-4",
+     "refined": true
+    },
+    {
+     "kInvKm": 0.855,
+     "gammaKm": "1.833e-1",
+     "refined": true
+    },
+    {
+     "kInvKm": 0.8759,
+     "gammaKm": "5.911e-4",
+     "refined": true
+    },
+    {
+     "kInvKm": 0.8988,
+     "gammaKm": "5.617e-4",
+     "refined": true
+    },
+    {
+     "kInvKm": 0.9192,
+     "gammaKm": "5.745e-4",
+     "refined": true
+    },
+    {
+     "kInvKm": 0.9396,
+     "gammaKm": "5.873e-4",
+     "refined": true
+    },
+    {
+     "kInvKm": 1.4972,
+     "gammaKm": "6.785e-2",
+     "refined": true
+    },
+    {
+     "kInvKm": 2.4302,
+     "gammaKm": "6.921e-2",
+     "refined": true
+    },
+    {
+     "kInvKm": 3.802,
+     "gammaKm": "1.147e-1",
+     "refined": true
+    }
+   ],
+   "f1p2": [
+    {
+     "kInvKm": 1.4258,
+     "gammaKm": "8.911e-4",
+     "refined": true
+    },
+    {
+     "kInvKm": 1.4465,
+     "gammaKm": "6.785e-2",
+     "refined": true
+    },
+    {
+     "kInvKm": 1.4675,
+     "gammaKm": "8.821e-2",
+     "refined": true
+    },
+    {
+     "kInvKm": 1.4879,
+     "gammaKm": "7.741e-2",
+     "refined": true
+    },
+    {
+     "kInvKm": 1.516,
+     "gammaKm": "9.475e-4",
+     "refined": true
+    },
+    {
+     "kInvKm": 1.5369,
+     "gammaKm": "9.605e-4",
+     "refined": true
+    },
+    {
+     "kInvKm": 1.56,
+     "gammaKm": "9.750e-4",
+     "refined": true
+    },
+    {
+     "kInvKm": 1.5824,
+     "gammaKm": "9.890e-4",
+     "refined": true
+    },
+    {
+     "kInvKm": 1.6966,
+     "gammaKm": "1.060e-3",
+     "refined": true
+    },
+    {
+     "kInvKm": 1.7182,
+     "gammaKm": "1.074e-3",
+     "refined": true
+    },
+    {
+     "kInvKm": 1.7445,
+     "gammaKm": "1.593e-3",
+     "refined": true
+    },
+    {
+     "kInvKm": 1.7744,
+     "gammaKm": "1.109e-3",
+     "refined": true
+    },
+    {
+     "kInvKm": 1.7964,
+     "gammaKm": "4.257e-1",
+     "refined": true
+    },
+    {
+     "kInvKm": 1.8246,
+     "gammaKm": "6.785e-2",
+     "refined": true
+    },
+    {
+     "kInvKm": 1.8574,
+     "gammaKm": "1.161e-3",
+     "refined": true
+    },
+    {
+     "kInvKm": 1.9277,
+     "gammaKm": "1.205e-3",
+     "refined": true
+    },
+    {
+     "kInvKm": 1.9488,
+     "gammaKm": "3.862e-3",
+     "refined": true
+    },
+    {
+     "kInvKm": 1.9974,
+     "gammaKm": "1.248e-3",
+     "refined": true
+    },
+    {
+     "kInvKm": 2.0249,
+     "gammaKm": "4.171e-1",
+     "refined": true
+    },
+    {
+     "kInvKm": 2.0504,
+     "gammaKm": "1.281e-3",
+     "refined": true
+    },
+    {
+     "kInvKm": 2.0706,
+     "gammaKm": "3.513e-1",
+     "refined": true
+    },
+    {
+     "kInvKm": 2.1012,
+     "gammaKm": "1.313e-3",
+     "refined": true
+    },
+    {
+     "kInvKm": 2.1214,
+     "gammaKm": "1.326e-3",
+     "refined": true
+    },
+    {
+     "kInvKm": 2.1441,
+     "gammaKm": "1.340e-3",
+     "refined": true
+    },
+    {
+     "kInvKm": 2.1688,
+     "gammaKm": "6.365e-1",
+     "refined": true
+    },
+    {
+     "kInvKm": 2.1904,
+     "gammaKm": "1.369e-3",
+     "refined": true
+    },
+    {
+     "kInvKm": 2.2109,
+     "gammaKm": "1.382e-3",
+     "refined": true
+    },
+    {
+     "kInvKm": 2.2317,
+     "gammaKm": "1.395e-3",
+     "refined": true
+    },
+    {
+     "kInvKm": 2.2531,
+     "gammaKm": "9.700e-2",
+     "refined": true
+    },
+    {
+     "kInvKm": 2.2763,
+     "gammaKm": "1.423e-3",
+     "refined": true
+    },
+    {
+     "kInvKm": 2.2969,
+     "gammaKm": "1.537e-3",
+     "refined": true
+    },
+    {
+     "kInvKm": 2.326,
+     "gammaKm": "3.432e-2",
+     "refined": true
+    },
+    {
+     "kInvKm": 2.3605,
+     "gammaKm": "5.726e-1",
+     "refined": true
+    },
+    {
+     "kInvKm": 2.3859,
+     "gammaKm": "1.491e-3",
+     "refined": true
+    },
+    {
+     "kInvKm": 2.406,
+     "gammaKm": "1.504e-3",
+     "refined": true
+    },
+    {
+     "kInvKm": 2.4272,
+     "gammaKm": "1.517e-3",
+     "refined": true
+    },
+    {
+     "kInvKm": 2.4489,
+     "gammaKm": "1.531e-3",
+     "refined": true
+    },
+    {
+     "kInvKm": 2.4701,
+     "gammaKm": "1.544e-3",
+     "refined": true
+    },
+    {
+     "kInvKm": 2.4942,
+     "gammaKm": "1.559e-3",
+     "refined": true
+    },
+    {
+     "kInvKm": 2.5146,
+     "gammaKm": "3.600e-1",
+     "refined": true
+    },
+    {
+     "kInvKm": 2.5392,
+     "gammaKm": "1.938e-1",
+     "refined": true
+    },
+    {
+     "kInvKm": 2.5629,
+     "gammaKm": "1.602e-3",
+     "refined": true
+    },
+    {
+     "kInvKm": 2.5889,
+     "gammaKm": "4.039e-1",
+     "refined": true
+    },
+    {
+     "kInvKm": 2.6095,
+     "gammaKm": "5.250e-1",
+     "refined": true
+    },
+    {
+     "kInvKm": 2.6342,
+     "gammaKm": "1.646e-3",
+     "refined": true
+    },
+    {
+     "kInvKm": 2.6569,
+     "gammaKm": "1.661e-3",
+     "refined": true
+    },
+    {
+     "kInvKm": 2.6833,
+     "gammaKm": "1.677e-3",
+     "refined": true
+    },
+    {
+     "kInvKm": 2.9599,
+     "gammaKm": "1.147e-1",
+     "refined": true
+    },
+    {
+     "kInvKm": 2.9869,
+     "gammaKm": "8.821e-2",
+     "refined": true
+    },
+    {
+     "kInvKm": 4.1841,
+     "gammaKm": "2.615e-3",
+     "refined": true
+    },
+    {
+     "kInvKm": 4.7427,
+     "gammaKm": "1.938e-1",
+     "refined": true
+    }
+   ]
+  },
+  "reading": "v7 layered state (delta-matrix batch): (1) the carried chain is now the MGS-orthonormalised delta-matrix factorisation S = Q*T (per-layer modified Gram-Schmidt with two reorthogonalisation passes, R bookkeeping, joint T rescaling; sigma = the above-source log exactly as the retired joint-scalar chain) - the raw chain's joint max-scaling preserved column RATIOS but not column INDEPENDENCE, and over the deep above-source leg the A pair collapsed float-parallel in the leaky-P crest band (the v6 det(Rc) = 0 nulls); (2) TWO propagator/chain bugs were fixed on the way, both caught by cross-checks: the first-cut triMul bounded the triangular product sum at l <= i (the DIAGONAL's index) dropping every j > i cross term - the R2 RK4 anchor failed 3.3e-2 and exposed it before any freeze; and the v6 propagator back-transform used the REAL mu* where the complex mu* is required (undamped paths bit-identical, damped paths mixed the state convention by |1 - i/q| per layer); (3) the DEVIATORIC series converges at the production cap (below-floor spread 1.3%) at the same absolute scale as the v6 raw chain (2.5%); (4) the FULL-TENSOR channel REMAINS OPEN for a sharpened reason: not the det-null collapse (the band's scattered exact zeros are gone; 3 isolated nulls remain at 0.555/0.585/0.620/km) but the subdivide-cap dependence - the per-sublayer exponent cap bounds the dynamic range the MGS inner products can separate, and at the production cap 30 the leaky-P crest structure the dipole channels ride is under-resolved (cap30 vs cap10 pointwise spread up to 10x on the crest band; fullTensor cap30/cap10 series differ ~30x). The interim 'fullTensor converges at 0.0077' measurement of this batch was the triMul bug suppressing the dipole channels and is retracted.",
+  "reading_v6": "v6 layered state: (1) the matrix-exponential propagator lost every layer Q (real-moduli A; measured: the deviatoric response 3x too large, interior leaky poles pinned ON the real axis at any q) - fixed by complex moduli with the exact nuOf convention c*^2 = c^2(1-i/q), after which the DEVIATORIC series converges at the correct physical scale; (2) the pole detector scans the source-independent surface-source det(Rc) dip landscape (the buried-source |C| ridge sank under e^{-kz} once attenuation returned); (3) branch-point resolution rings sample the halvespace-branch kinks the coarse lattice undersampled; (4) the remaining fullTensor blocker is the Rc basis-degeneracy band: det(Rc) = exact 0 across k ~ 0.53-0.56/km (the two residual basis columns become float-exactly parallel above vs_half), so the compliance is unrepresentable there and the grid-dependent bridging shows up as the below-floor series spread. The registered scale-invariant Rc inversion was measured to be the wrong cure (entries O(1); the det is small by physics, not scaling).",
+  "reading_v5": "v5 layered state: (1) the v4 \"branch-tail cusp\" attribution is RETIRED — the layered compliance is bounded at every branch point (Rc^-1 Rw cancels the 1/nu factors; interior branches are not singular under the expm propagator); (2) with qP defaulted to qShear the undamped-P leaky resonances leave the real axis and the DEVIATORIC series converges (below-floor spread ~1%); (3) the detector is the bounded compliance-ridge scan (the det-dip scanner sat on a e^-288 chain floor, stepped over the fundamental and refined nothing — its v4 table was noise); (4) the FULL-TENSOR channel remains open: its dipole (depth-FD) channels ride the leaky-P crest band 0.45-0.6/km, where 1e9 crests over ~1e-3/km are peppered with det(Rc) underflow nulls — the trapezoid bridges shift with the grid. qP100/qP200 series measured non-converged as well, so this is not damping tuning.",
+  "openItem": "fullTensor leaky-P crest band resolution (tokyo 0.5 Hz, k ~ 0.45-0.65/km): the delta-matrix chain removed the det-null collapse (isolated nulls: 3 at 0.555/0.585/0.620/km) but the series remains cap-dependent - the subdivide exponent cap (30) bounds the per-sublayer dynamic range the MGS inner products can separate, so the crest structure the dipole channels ride is under-resolved at the production cap (cap30 vs cap10 fullTensor series differ ~30x; pointwise cap10/cap4 agree to ~16% where cap30 is 10x off). Registered cures: tighten the production compliance-chain cap (cap 10 costs ~3x sublayers, series spread at cap10 still 2.5) or per-layer Schur-admittance stepping; until then the fullTensor series stays non-converged and production opts.psv stays BLOCKED"
+ },
+ "verdict": "fullspace_anchored_layered_mgs_chain_dev_converged_full_tensor_cap_open",
+ "registeredNextStep": "compliance-chain subdivide-cap study (cap 10/4 fullTensor series + runtime) or per-layer Schur-admittance stepping to resolve the leaky-P crest at production cost; the CS-pipeline v4 pre-registered gate run with opts.psv stays user-gated behind that",
+ "context": "v7 (delta-matrix batch) landed the MGS-orthonormalised chain and fixed two real bugs the batch cross-checks exposed: the first-cut triMul triangular product dropped the j > i cross terms (caught by the R2 RK4 anchor at 3.3e-2 BEFORE any freeze; the interim \"fullTensor converges at 0.0077\" measurement was this bug suppressing the dipole channels and is retracted), and the v6 propagator back-transform used the real muR where the complex mu* is required (undamped paths bit-identical); deviatoric series converge at the production cap at the v6 raw-chain scale; fullTensor stays OPEN on cap-dependent crest resolution; v6 (Rc-inversion batch) found the registered scale-invariant inversion inapplicable (det small by physics) and fixed the v4 expm layer-Q loss (complex moduli, nuOf-exact convention); detector on the surface-source det(Rc) dip scan; branch-point resolution rings; v5 froze qp-default + compliance-ridge detector + window-continuity fix; v1 froze blocked_pending_source_calibration (21.3x hot factor); v2 froze fullspace_anchored_layered_poles_open (source anchor fixed 3 missing/1 wrong-column dipole terms + traction/dipole -1 + razor band-nulling); v3 replaced residues with gamma-resolved windows and found the Bessel-aliasing root cause; v4 closed the root-tracking gap (expm propagator, joint-scalar chain, 2D Newton) but misattributed the remaining series drift to an integrable branch-tail cusp; v5 (branch-cusp batch) measured the actual mechanisms: bounded layered compliance (v4 cusp retired), true cusps only on the fullSpace path (analytic subtraction landed there, references moved to xi-substitution), undamped-P leaky poles on the real axis (qP <- qShear default), a dead det scanner replaced by the compliance-ridge detector, and a window-ring continuity bug fixed",
+ "history": {
+  "v1measured": {
+   "tractionRatio": 0.908,
+   "dipoleRatioHotFactor": 21.3,
+   "psvDeviatoricUrm": 0.7454,
+   "shDeviatoricUtm": 0.821,
+   "psvFullUrm": 2304,
+   "shFullUtm": 0.821
+  },
+  "v2verdict": "fullspace_anchored_layered_poles_open",
+  "v3verdict": "fullspace_anchored_layered_rootprecision_open",
+  "v4verdict": "fullspace_anchored_layered_roots_tracked_branch_cusp_open",
+  "v5verdict": "fullspace_anchored_layered_qp_defaulted_dev_converged_fullext_open",
+  "v5openItem": "leaky-P crest handling (superseded by the v6 attenuation-regression fix + degenerate-band diagnosis)",
+  "v6verdict": "fullspace_anchored_layered_attenuation_restored_dev_converged_degenerate_band_open",
+  "v6openItem": "Rc basis-degeneracy band (registered delta-matrix cure delivered by v7; the band nulls are gone, the blocker moved to cap-dependent crest resolution)",
+  "v4bruteExhibits": {
+   "bruteUzStep1p58e_6": 56.53,
+   "bruteUzStep0p79e_6": 62.54
+  },
+  "note": "v1/v2 layered numbers were produced by the global-median razor + an aliased grid + an unsound normalization heuristic; v3/v4 layered series ran with qP unset (undamped P -> principal-value leaky poles) and the v4 brute exhibits are plain sums that cannot converge on this config — kept for the record only"
+ }
+}
