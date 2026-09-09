@@ -28,11 +28,13 @@ jobs:
       - name: Report failing tests as annotations
         if: failure()
         run: |
-          grep "failing tests" test-output.log | head -3
+          wc -l test-output.log
+          grep -nE "=== .* ===" test-output.log | tail -5
+          grep -inE "error|ENOENT|EADDR|fatal|heap|killed" test-output.log | head -10
           grep "^✖" test-output.log | head -20
-          i=0; tail -50 test-output.log | while IFS= read -r line; do
-            i=$((i+1))
-            echo "::error title=test-log-tail-$i::$line"
+          i=0; tail -120 test-output.log | while IFS= read -r line; do
+            i=$((i+1)); [ $i -le 70 ] && continue
+            echo "::error title=log-$i::$line"
           done
       - name: Release validation (versioned assets, PWA markers, i18n, a11y, data catalogs)
         run: node tools/validate-release.js
