@@ -30,6 +30,8 @@ jobs:
         run: |
           free -m | head -2
           wc -l test-output.log
+          free -m | head -2 | while IFS= read -r line; do echo "::error title=mem::$line"; done
+          echo "::error title=loglines::$(wc -l < test-output.log)"
           grep -nE "=== .* ===" test-output.log | tail -5
           grep -inE "heap out of memory|FATAL|Segmentation|killed|ENOENT|EADDR" test-output.log | head -10
           grep "^✖" test-output.log | head -20
