@@ -27,7 +27,7 @@
 <link rel="stylesheet" href="leaflet/leaflet.css?v=f885c4">
 <link rel="stylesheet" href="style.css?v=702ef0">
 <link rel="preload" href="leaflet/leaflet.js?v=5a640f" as="script">
-<link rel="preload" href="app.js?v=5b1a9e" as="script">
+<link rel="preload" href="app.js?v=9ed0e4" as="script">
 <link rel="preload" href="style.css?v=702ef0" as="style">
 <link rel="preload" href="config.js?v=ba58e3" as="script">
 <link rel="preload" href="physics.js?v=17ff56" as="script">
@@ -744,7 +744,7 @@
 <script src="research.js?v=d9aad6"></script>
 <script src="data-catalog.js?v=bee20f"></script>
 <script src="grid-package.js?v=865d26"></script>
-<script src="i18n.js?v=ab6111"></script>
+<script src="i18n.js?v=43b2c4"></script>
 <script src="dc3d.js?v=2865dd"></script>
 <script src="physics.js?v=17ff56"></script>
 
@@ -845,7 +845,7 @@ window._loadThreeJS = function(cb) {
     </div>
   </div>
 </div>
-<script src="app.js?v=5b1a9e"></script>
+<script src="app.js?v=9ed0e4"></script>
 <script src="aftershock.js?v=e29837"></script>
 <script src="rt-data.js?v=6780e5"></script>
 <script src="rt-kmoni.js?v=b581c5"></script>
@@ -901,6 +901,18 @@ window._loadThreeJS = function(cb) {
       <p data-i18n="help.error_text">模拟过程中如发生JavaScript错误，浏览器窗口底部会出现红色错误面板，显示错误信息和发生位置（文件:行:列）。多个错误会堆叠显示。点击×按钮关闭，或20秒后自动隐藏。</p>
       <h3 data-i18n="help.share">📎 URL分享</h3>
       <p data-i18n="help.share_text">点击Start按钮旁的🔗按钮可复制当前模拟的完整URL链接。将链接分享给他人，对方打开后自动加载相同的震中、震级、深度等参数。支持参数：lat/lng（震中）、mag（震级）、depth（深度）、strike（走向）、dip（倾角）、preset（预设场景）、lang（语言）、detect（检测模式）、aftershock（余震）、tsunami（海啸）。</p>
+      <hr style="border-color:var(--border);margin:12px 0">
+      <h3 data-i18n="help.v63_release">━━ v6.3 更新 ━━</h3>
+      <h3 data-i18n="help.v63_bpt_t">时间依赖 PSHA</h3>
+      <p data-i18n="help.v63_bpt_d">南海 3 个情景源按 BPT 更新过程评估；PSHA 卡开关切换。ERC 平均 117 年。</p>
+      <h3 data-i18n="help.v63_deagg_t">危险分解</h3>
+      <p data-i18n="help.v63_deagg_d">按 0.5 级 × 距离档分解贡献；堆叠柱 + top-5 贡献表。</p>
+      <h3 data-i18n="help.v63_jshis_t">J-SHIS 对照·时间依赖臂</h3>
+      <p data-i18n="help.v63_jshis_d">BPT 下中段比率全场址翻正=诊断实证；尾部按非同口径如实记录。</p>
+      <h3 data-i18n="help.v63_psv_t">P-SV 阻尼修复</h3>
+      <p data-i18n="help.v63_psv_d">复模量牵引行修复（每层 Q 曾被静默丢光）；阻尼/分层双独立锚。</p>
+      <h3 data-i18n="help.v63_bounds_t">诚实边界</h3>
+      <p data-i18n="help.v63_bounds_d">P-SV 生产仍 BLOCKED（crest 带 OPEN）；守卫后残余照冻；绝对对照进行中。</p>
       <hr style="border-color:var(--border);margin:12px 0">
       <h3 data-i18n="help.v62_release">━━ v6.2 更新 ━━</h3>
       <h3 data-i18n="help.v62_report_t">体验报告页</h3>

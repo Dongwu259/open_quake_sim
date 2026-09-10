@@ -180,7 +180,7 @@
   </footer>
 </main>
 
-<script src="i18n.js?v=ab6111"></script>
+<script src="i18n.js?v=43b2c4"></script>
 <script>
 (function () {
   'use strict';
@@ -189,7 +189,7 @@
     '5-': '#f5a623', '4': '#f7d51d', '3': '#eae672', '2': '#a0d8f0', '1': '#5090d0', '0': '#7c7c7c' };
   var lang = localStorage.getItem('qs-lang') || 'zh';
   applyLanguage(lang);
-  document.getElementById('guide-byline').textContent = 'Earthquake Simulator Pro v6.2';
+  document.getElementById('guide-byline').textContent = 'Earthquake Simulator Pro v6.3';
   document.getElementById('btn-guide-print').addEventListener('click', function () { window.print(); });
 
   // shindo swatches (labels are universal; fills mirror the renderer palette)
@@ -208,7 +208,7 @@
     wrap.appendChild(card);
   });
   document.getElementById('guide-footer-meta').textContent =
-    (window.t ? t('report.footer_meta', { v: 'v6.2' }) : '') ;
+    (window.t ? t('report.footer_meta', { v: 'v6.3' }) : '') ;
 })();
 </script>
 </body>

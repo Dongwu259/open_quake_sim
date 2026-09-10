@@ -9643,7 +9643,7 @@ var ScenarioManager = (function(){
       if (isFinite(+a.lat) && isFinite(+a.lng)) { e.lat = +a.lat; e.lng = +a.lng; }
       return e;
     });
-    return { schema:Research.SCENARIO_SCHEMA,name:name || tr('scn.untitled'),version:2,appVersion:'v6.2',
+    return { schema:Research.SCENARIO_SCHEMA,name:name || tr('scn.untitled'),version:2,appVersion:'v6.3',
              seed:Research.normalizeSeed(cfgGet('randomSeed')),events:events,flags:flags,config:JSON.parse(JSON.stringify(CFG)),
              faultOpts:FiniteFaultEditor.getState(),manualAftershocks:manAs,display:_researchDisplayState(),dataVersions:versions.data,modelVersions:versions.model,
              experiment:_currentExperiment,created:(function(){try{return new Date().toISOString();}catch(e){return '';}})() };
