@@ -1559,6 +1559,8 @@ function refreshDynamicUI() {
   if (typeof advRefreshUI === 'function') advRefreshUI();
   refreshRakeStateLabel();
   refreshCanvasA11yDescriptions();
+  // PSHA deagg table rows carry t()-rendered class names — rebuild on language switch
+  if (typeof drawPshaDeagg === 'function') drawPshaDeagg();
 }
 
 var _canvasA11yState = null;
@@ -10254,7 +10256,22 @@ function _pshaCompute() {
     ? Physics.hazardCurveTimeDependent(_pshaSourceModel, site, 'pga', { horizonYears: 50 })
     : Physics.hazardCurve(_pshaSourceModel, site, 'pga', { years: 50 });
   var uhs = Physics.uhs(_pshaSourceModel, site, [rp], { periods: PSHA_UHS_PERIODS, timeDependent: td, years: 50 });
-  _pshaResultCache = { key: key, hazard: hazard, uhs: uhs, rp: rp, site: site, td: td };
+  // Deaggregation (v6.2 PSHA deagg UI): mean-curve bins at the selected RP.
+  // The Poisson path reuses the already-computed hazard curve for the IM
+  // target (identical engine defaults — years 50), saving a second full
+  // integration; the BPT path lets Physics.deaggregate derive its own
+  // stationary anchor (deagg is a Poisson-engine product by definition —
+  // the toggle does not change it, and the card note says so).
+  var deagg = null;
+  try {
+    deagg = td
+      ? Physics.deaggregate(_pshaSourceModel, site, 'pga', { returnPeriod: rp })
+      : Physics.deaggregate(_pshaSourceModel, site, 'pga', {
+          imTarget: Physics._pshaInvertCurve(hazard.imLevels, hazard.meanRate, 1 / rp),
+          returnPeriod: rp
+        });
+  } catch (e) { deagg = null; }
+  _pshaResultCache = { key: key, hazard: hazard, uhs: uhs, deagg: deagg, rp: rp, site: site, td: td };
   return _pshaResultCache;
 }
 
@@ -10401,6 +10418,84 @@ function drawPshaUhs() {
 window.drawPshaHazard = drawPshaHazard;
 window.drawPshaUhs = drawPshaUhs;
 
+/** Deaggregation chart (v6.2 PSHA deagg UI): stacked magnitude-bin bars
+ *  coloured by tectonic class + a top-5 magnitude × distance contribution
+ *  table. 320 px cannot carry the full class × Mw × Rrup matrix, so the
+ *  distance dimension folds into the caption and the table. */
+function drawPshaDeagg() {
+  _loadPshaSourceModel();
+  var canvas = document.getElementById('psha-deagg-canvas');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  var table = document.getElementById('psha-deagg-table');
+  var W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  var res = _pshaScheduleCompute();
+  if (!res) { _pshaWaiting(ctx, W, H); if (table) table.innerHTML = ''; return; }
+  var dg = res.deagg;
+  if (!dg || !dg.bins || !dg.bins.length) {
+    _pshaWaiting(ctx, W, H, 'Deagg — no contribution at RP' + res.rp);
+    if (table) table.innerHTML = '';
+    return;
+  }
+  // fold bins into a magnitude × class matrix (magBin = floor(Mw / 0.5))
+  var MW = 0.5;
+  var cols = {};
+  for (var i = 0; i < dg.bins.length; i++) {
+    var b = dg.bins[i];
+    var col = cols[b.magBin] || (cols[b.magBin] = { crustal: 0, interplate: 0, intraslab: 0 });
+    col[b.srcType] += b.rate;
+  }
+  var keys = Object.keys(cols).map(Number).sort(function(a, b2) { return a - b2; });
+  var maxShare = 0;
+  keys.forEach(function(k) { maxShare = Math.max(maxShare, cols[k].crustal + cols[k].interplate + cols[k].intraslab); });
+  if (!(maxShare > 0)) { _pshaWaiting(ctx, W, H); return; }
+  var ML = 24, MT = 14, MB = 14;
+  ctx.strokeStyle = '#333'; ctx.lineWidth = 0.5;
+  ctx.beginPath(); ctx.moveTo(ML, MT); ctx.lineTo(ML, H - MB); ctx.lineTo(W - 5, H - MB); ctx.stroke();
+  var clsOrder = ['crustal', 'interplate', 'intraslab'];
+  var clsColor = { crustal: '#e94560', interplate: '#ff9f43', intraslab: '#4ecdc4' };
+  var bw = (W - ML - 10) / keys.length;
+  for (var ki = 0; ki < keys.length; ki++) {
+    var c2 = cols[keys[ki]];
+    var y = H - MB;
+    for (var ci = 0; ci < clsOrder.length; ci++) {
+      var v = c2[clsOrder[ci]];
+      if (!(v > 0)) continue;
+      var hgt = v / maxShare * (H - MT - MB);
+      ctx.fillStyle = clsColor[clsOrder[ci]];
+      ctx.fillRect(ML + ki * bw + 1, y - hgt, Math.max(bw - 2, 2), hgt);
+      y -= hgt;
+    }
+    ctx.fillStyle = '#888'; ctx.font = '7px monospace'; ctx.textAlign = 'center';
+    ctx.fillText((keys[ki] * MW).toFixed(1), ML + ki * bw + bw / 2, H - 3);
+  }
+  // caption: modal bin + per-class shares
+  var top = dg.bins[0], cs = dg.classShares;
+  function pct(v) { return v != null ? Math.round(v * 100) + '%' : '—'; }
+  ctx.textAlign = 'left'; ctx.fillStyle = '#aaa'; ctx.font = '9px monospace';
+  ctx.fillText('M' + top.magLo.toFixed(1) + '-' + top.magHi.toFixed(1) + ' @' +
+    (top.rHi == null ? top.rLo + '+' : top.rLo + '-' + top.rHi) + 'km ' + Math.round(top.prob * 100) + '%' +
+    '  C/I/S ' + pct(cs.crustal) + '/' + pct(cs.interplate) + '/' + pct(cs.intraslab), ML + 4, 10);
+  // top-5 contribution table (class names via t() now + data-i18n for the
+  // next applyLanguage pass; rows rebuild through refreshDynamicUI)
+  if (table) {
+    var clsLabel = { crustal: t('report.class_crustal'), interplate: t('report.class_interplate'), intraslab: t('report.class_intraslab') };
+    var rows = '<tr><th data-i18n="info.psha_deagg_class">' + t('info.psha_deagg_class') + '</th><th>Mw</th>' +
+      '<th data-i18n="info.psha_deagg_dist">' + t('info.psha_deagg_dist') + '</th><th>ε</th>' +
+      '<th data-i18n="info.psha_deagg_share">' + t('info.psha_deagg_share') + '</th></tr>';
+    for (var ri = 0; ri < Math.min(5, dg.bins.length); ri++) {
+      var rb = dg.bins[ri];
+      rows += '<tr><td>' + clsLabel[rb.srcType] + '</td><td>' + rb.magLo.toFixed(1) + '-' + rb.magHi.toFixed(1) + '</td><td>' +
+        (rb.rHi == null ? '>' + rb.rLo : rb.rLo + '-' + rb.rHi) + ' km</td><td>' +
+        (rb.meanEps >= 0 ? '+' : '') + rb.meanEps.toFixed(2) + '</td><td>' + (rb.prob * 100).toFixed(1) + '%</td></tr>';
+    }
+    table.innerHTML = rows;
+  }
+}
+window.drawPshaDeagg = drawPshaDeagg;
+
 // --- Info-page charts: attenuation, source spectrum, travel-time, azimuth directivity ---
 
 // Redraw all info-page charts (used on slider input / epicenter set, when sim
@@ -10410,7 +10505,7 @@ function _redrawInfoCharts() {
   try {
     drawAttenuationCurve(); drawGMPECompare(); drawSourceSpectrum();
     drawTravelTimeCurve(); drawAzimuthDirectivity();
-    drawPshaHazard(); drawPshaUhs();
+    drawPshaHazard(); drawPshaUhs(); drawPshaDeagg();
   } catch(e) {}
 }
 

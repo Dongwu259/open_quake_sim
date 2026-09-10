@@ -21,14 +21,14 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="QuakeSim">
-<link rel="manifest" href="manifest.json?v=124517">
+<link rel="manifest" href="manifest.json?v=ef84c7">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <title>地震模拟器 v6.2 | Earthquake Simulator Pro</title>
 <link rel="stylesheet" href="leaflet/leaflet.css?v=f885c4">
-<link rel="stylesheet" href="style.css?v=fea5a9">
+<link rel="stylesheet" href="style.css?v=702ef0">
 <link rel="preload" href="leaflet/leaflet.js?v=5a640f" as="script">
-<link rel="preload" href="app.js?v=665bb8" as="script">
-<link rel="preload" href="style.css?v=fea5a9" as="style">
+<link rel="preload" href="app.js?v=5b1a9e" as="script">
+<link rel="preload" href="style.css?v=702ef0" as="style">
 <link rel="preload" href="config.js?v=ba58e3" as="script">
 <link rel="preload" href="physics.js?v=17ff56" as="script">
 </head>
@@ -463,6 +463,7 @@
               </div>
               <div class="chart-block"><div class="info-mini-hdr"><span data-i18n="info.psha_hazard">PGA 年超越率曲线</span><button class="chart-download" data-canvas="psha-hazard-canvas" data-i18n-aria="info.download_chart" aria-label="Download chart">&#11015;</button></div><canvas id="psha-hazard-canvas" width="320" height="90" class="info-plot" role="img" data-i18n-aria="a11y.canvas.psha_hazard" aria-label="PGA hazard curve" aria-describedby="psha-hazard-description"></canvas><p id="psha-hazard-description" class="visually-hidden" data-i18n="a11y.canvas.psha_hazard_desc">以对数坐标展示当前站点（震中或地图中心）PGA 的年超越率随加速度水平的下降曲线，含逻辑树分支集合带与所选重现期参考线；数值随站点与重现期选择变化。</p></div>
               <div class="chart-block"><div class="info-mini-hdr"><span data-i18n="info.psha_uhs">均匀危险谱 UHS</span><button class="chart-download" data-canvas="psha-uhs-canvas" data-i18n-aria="info.download_chart" aria-label="Download chart">&#11015;</button></div><canvas id="psha-uhs-canvas" width="320" height="90" class="info-plot" role="img" data-i18n-aria="a11y.canvas.psha_uhs" aria-label="Uniform hazard spectrum" aria-describedby="psha-uhs-description"></canvas><p id="psha-uhs-description" class="visually-hidden" data-i18n="a11y.canvas.psha_uhs_desc">以所选重现期均匀危险谱形式展示 0.1–5 秒各周期加速度响应谱值（含 PGA 锚点）；谱值随站点与重现期选择变化，可通过下载按钮导出 CSV。</p></div>
+              <div class="chart-block"><div class="info-mini-hdr"><span data-i18n="info.psha_deagg">危险分解</span><button class="chart-download" data-canvas="psha-deagg-canvas" data-i18n-aria="info.download_chart" aria-label="Download chart">&#11015;</button></div><canvas id="psha-deagg-canvas" width="320" height="90" class="info-plot" role="img" data-i18n-aria="a11y.canvas.psha_deagg" aria-label="Hazard deaggregation" aria-describedby="psha-deagg-description"></canvas><p id="psha-deagg-description" class="visually-hidden" data-i18n="a11y.canvas.psha_deagg_desc">以堆叠柱状图按 0.5 级震级档分解当前站点（震中或地图中心）所选重现期的危险贡献，柱内按构造类（板内/板块边界/板内深源）着色，并以表格列出贡献最大的震级×距离组合；数值随站点与重现期选择变化。</p><table id="psha-deagg-table" class="psha-deagg-table"></table><p class="wfa-note" data-i18n="info.psha_deagg_note">危险分解基于平均曲线（泊松语义），BPT 开关不改变分解结果；贡献按 0.5 级 × Rrup 距离档累积，ε 为相对 GMPE 中位数的标准差偏移。</p></div>
               <p class="info-note" data-i18n="info.psha_note">简化自算震源模型（USGS ComCat + 南海/首都直下情景源）；绝对水平与官方 J-SHIS 曲线的对照待完成。站点=当前震中或地图中心，Vs30=600。</p>
             </div>
           </details>
@@ -743,7 +744,7 @@
 <script src="research.js?v=d9aad6"></script>
 <script src="data-catalog.js?v=bee20f"></script>
 <script src="grid-package.js?v=865d26"></script>
-<script src="i18n.js?v=5702dc"></script>
+<script src="i18n.js?v=ab6111"></script>
 <script src="dc3d.js?v=2865dd"></script>
 <script src="physics.js?v=17ff56"></script>
 
@@ -844,7 +845,7 @@ window._loadThreeJS = function(cb) {
     </div>
   </div>
 </div>
-<script src="app.js?v=665bb8"></script>
+<script src="app.js?v=5b1a9e"></script>
 <script src="aftershock.js?v=e29837"></script>
 <script src="rt-data.js?v=6780e5"></script>
 <script src="rt-kmoni.js?v=b581c5"></script>
@@ -854,7 +855,7 @@ window._loadThreeJS = function(cb) {
 <script src="rt-tsunami.js?v=d59204"></script>
 
 <script src="rt-waveform.js?v=61c0cb"></script>
-<script src="info-panel.js?v=f09267"></script>
+<script src="info-panel.js?v=a39a13"></script>
 <script src="renderer.js?v=c4072c"></script>
 <div id="help-overlay" class="help-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="help-dialog-title">
   <div class="help-panel" tabindex="-1">
