@@ -1264,6 +1264,205 @@ function psvBranchPoints(stack, omega, kMax, opts) {
  *  defaulting to qShear matches the Q structure most layered codes use.
  *  Both entry points below clone params/opts when the default fires. */
 
+/** Principal-branch complex logarithm (analytic wherever the argument's
+ *  imaginary part is nonzero — the pole re-add path k - kp keeps a constant
+ *  nonzero Im, so the fundamental theorem applies along it). */
+function clog(z) { return [Math.log(cabs(z)), Math.atan2(z[1], z[0])]; }
+
+/** Complex 2-parameter linear LS: g = A*w + B over samples, w supplied.
+ *  Proper conjugated normal equations [[S11, S12c],[S21, N]] with
+ *  S11 = Σ|w|², S12c = Σ conj(w), S21 = Σ w. (The v1 det-subtract
+ *  prototype conjugate-free S11 = Σ w² was plain wrong — any phase in w
+ *  leaked into A.) Returns {A, B} or null when the system is degenerate. */
+function poleChannelLS(w, g) {
+  var S11 = 0, S12 = [0, 0], S21 = [0, 0], T1 = [0, 0], T2 = [0, 0];
+  for (var j = 0; j < w.length; j++) {
+    S11 += cabs(w[j]) * cabs(w[j]);
+    S12 = cadd(S12, cconj(w[j]));
+    S21 = cadd(S21, w[j]);
+    T1 = cadd(T1, cmul(g[j], cconj(w[j])));
+    T2 = cadd(T2, g[j]);
+  }
+  var n = w.length;
+  var detD = csub([S11 * n, 0], cmul(S12, S21));
+  if (!(cabs(detD) > 0) || !isFinite(detD[0] + detD[1])) return null;
+  var A = cdiv(csub(cmul(T1, [n, 0]), cmul(S12, T2)), detD);
+  var B = cdiv(csub(cmul([S11, 0], T2), cmul(S21, T1)), detD);
+  return { A: A, B: B };
+}
+
+/** 2D Nelder-Mead (reflection/expansion/contraction/shrink with a hard
+ *  iteration cap). opts.deltas = per-axis initial simplex offsets (the
+ *  default 0.05 absolute suits log-gamma axes only); returns the best
+ *  vertex. */
+function nmMin2(f, x0, opts, maxIter) {
+  var dl = (opts && opts.deltas) || [Math.max(Math.abs(x0[0]) * 0.1, 0.05), 0.05];
+  var simp = [x0.slice(), [x0[0] + dl[0], x0[1]], [x0[0], x0[1] + dl[1]]];
+  var fv = simp.map(function (x) { return f(x); });
+  for (var it = 0; it < (maxIter || 120); it++) {
+    var order = [0, 1, 2].sort(function (a, b) { return fv[a] - fv[b]; });
+    var b1 = simp[order[0]], bw = simp[order[1]], bwv = simp[order[2]];
+    var fB = fv[order[0]], fW1 = fv[order[1]], fW2 = fv[order[2]];
+    var spread = Math.abs(fW2 - fB);
+    var cen = [0.5 * (b1[0] + bw[0]), 0.5 * (b1[1] + bw[1])];
+    var xr = [cen[0] + (cen[0] - bwv[0]), cen[1] + (cen[1] - bwv[1])];
+    var fr = f(xr);
+    if (fr < fB) {
+      var xe = [cen[0] + 2 * (cen[0] - bwv[0]), cen[1] + 2 * (cen[1] - bwv[1])];
+      var fe = f(xe);
+      if (fe < fr) { bwv = xe; fW2 = fe; } else { bwv = xr; fW2 = fr; }
+    } else if (fr < fW1) {
+      bwv = xr; fW2 = fr;
+    } else {
+      var xc = [cen[0] + 0.5 * (bwv[0] - cen[0]), cen[1] + 0.5 * (bwv[1] - cen[1])];
+      var fc = f(xc);
+      if (fc < fW2) { bwv = xc; fW2 = fc; }
+      else {
+        for (var i4 = 0; i4 < 3; i4++) {
+          if (i4 === order[0]) continue;
+          simp[i4] = [b1[0] + 0.5 * (simp[i4][0] - b1[0]), b1[1] + 0.5 * (simp[i4][1] - b1[1])];
+          fv[i4] = f(simp[i4]);
+        }
+        continue;
+      }
+    }
+    simp[order[2]] = bwv; fv[order[2]] = fW2;
+    if (spread < 1e-12 * (1 + Math.abs(fB))) break;
+  }
+  var bestI = 0;
+  for (var i5 = 1; i5 < 3; i5++) if (fv[i5] < fv[bestI]) bestI = i5;
+  return simp[bestI];
+}
+
+/** Fit ONE modal-pole subtraction model A/(k - kp) + B per integrand
+ *  channel, ENTIRELY on real-axis samples (2026-09-11 det-subtract batch).
+ *
+ *  Why not complex-k Newton on a chain determinant: measured this batch,
+ *  the Schur chain's guards null at complex k around every candidate (the
+ *  up-leg admittance step det crosses zero AT the modal poles — the hunt
+ *  point is surrounded by undefined evaluations), and the raw cascade det
+ *  Newton was the registered v4 failure. The pole is instead a 2-parameter
+ *  fit (kr, gamma) to real-axis integrand samples — no complex-k chain
+ *  evaluation anywhere — with the per-channel residues (A) and offsets (B)
+ *  from closed-form conjugated LS at each trial kp.
+ *
+ *  Ladder: absolute offsets gamma0 * {1/4 .. 64} on BOTH sides (4 decades —
+ *  insensitive to the initial width guess); null samples (chain guards)
+ *  skipped; one robustification pass drops samples with residual > 4x the
+ *  median at the final kp and refits. BOTH Im-kp signs are fitted and the
+ *  better residual wins (the real axis constrains the sign through the
+ *  Lorentzian's phase structure, not by convention). The candidate
+ *  (poleList entry) rides along so the integrator can fall back to its
+ *  gamma-window for unfitted poles. */
+function psvPoleModelFit(stack, omega, cand, params, gOf) {
+  var k0 = cand.k / 1000; // 1/m
+  var qRef = (params && params.qShear) || 50;
+  var g0 = Math.max(cand.gammaKm / 1000, k0 / (2 * qRef), 1e-9);
+  // ladder extends to +-8 gamma0: the single-pole + constant-B model is
+  // only honest there (the v2 experiment measured fits sliding onto other
+  // poles once the ladder outran the model's validity)
+  var mults = [0.25, 0.5, 1, 2, 4, 8];
+  var smp = [];
+  for (var mi = 0; mi < mults.length; mi++) {
+    for (var si = 0; si < 2; si++) {
+      var kj = k0 + (si ? 1 : -1) * mults[mi] * g0;
+      if (!(kj > 0)) continue;
+      var gj = gOf(kj);
+      if (gj) smp.push({ k: kj, g: { ur: gj.ur, uz: gj.uz, ut: gj.ut } });
+    }
+  }
+  if (smp.length < 8) return null;
+  var chans = ['ur', 'uz', 'ut'];
+  function fitAt(kp, keep) {
+    // keep: optional subset of sample indices (robust pass)
+    var idx = keep || smp.map(function (_, i) { return i; });
+    if (idx.length < 6) return null;
+    var out = { kp: kp, A: {}, B: {}, res: 0, norm: 0, n: idx.length };
+    var wAll = smp.map(function (s) { return cdiv([1, 0], csub([s.k, 0], kp)); });
+    for (var ci = 0; ci < 3; ci++) {
+      var ch = chans[ci];
+      var w = idx.map(function (i) { return wAll[i]; });
+      var g = idx.map(function (i) { return smp[i].g[ch]; });
+      var ls = poleChannelLS(w, g);
+      if (!ls) return null;
+      out.A[ch] = ls.A; out.B[ch] = ls.B;
+    }
+    for (var j2 = 0; j2 < idx.length; j2++) {
+      var s2 = smp[idx[j2]];
+      for (var c2 = 0; c2 < 3; c2++) {
+        var model = cadd(cmul(out.A[chans[c2]], wAll[idx[j2]]), out.B[chans[c2]]);
+        out.res += Math.pow(cabs(csub(s2.g[chans[c2]], model)), 2);
+        out.norm += Math.pow(cabs(s2.g[chans[c2]]), 2);
+      }
+    }
+    out.rel = out.norm > 0 ? Math.sqrt(out.res / out.norm) : 10;
+    return out;
+  }
+  function objective(x, sgn) {
+    var gam = Math.exp(x[1]);
+    // keep the fit inside the sampled ladder range: a pole whose position
+    // or width falls outside +-64 gamma0 cannot be determined from these
+    // samples, and letting NM wander there only finds degenerate optima
+    if (!(gam > 1e-12 * Math.max(x[0], 1e-12))) return 10; // no axis-hugging poles
+    if (Math.abs(x[0] - k0) > 64 * g0 || gam > 64 * g0 || gam < g0 / 64) return 10;
+    var f = fitAt([x[0], sgn * gam]);
+    return f ? Math.min(f.rel, 10) : 10;
+  }
+  var xUp = nmMin2(function (x) { return objective(x, 1); }, [k0, Math.log(g0)], { deltas: [g0, 0.7] });
+  var xDn = nmMin2(function (x) { return objective(x, -1); }, [k0, Math.log(g0)], { deltas: [g0, 0.7] });
+  var best = fitAt([xUp[0], Math.exp(xUp[1])]);
+  var alt = fitAt([xDn[0], -Math.exp(xDn[1])]);
+  if (alt && (!best || alt.rel < best.rel)) best = alt;
+  if (!best) return null;
+  // robust pass: drop residual outliers > 4x median, refit at the same kp
+  var perSample = smp.map(function (s, i) {
+    var r = 0;
+    for (var c3 = 0; c3 < 3; c3++) {
+      var model = cadd(cmul(best.A[chans[c3]], cdiv([1, 0], csub([s.k, 0], best.kp))), best.B[chans[c3]]);
+      r += cabs(csub(s.g[chans[c3]], model));
+    }
+    return { i: i, r: r };
+  });
+  var sorted = perSample.map(function (p) { return p.r; }).sort(function (a, b) { return a - b; });
+  var med = sorted[Math.floor((sorted.length - 1) / 2)];
+  if (med > 0) {
+    var keep = perSample.filter(function (p) { return p.r <= 4 * med; }).map(function (p) { return p.i; });
+    if (keep.length < smp.length) {
+      var refit = fitAt(best.kp, keep);
+      if (refit && refit.rel < best.rel * 2) best = refit;
+    }
+  }
+  best.cand = cand;
+  return best;
+}
+
+/** Fit + dedupe the pole-model set for one spectrum call: every poleList
+ *  candidate is fitted on real-axis integrand samples, candidates with
+ *  rel >= 0.15 are dropped, then greedy dedupe keeps the best-residual
+ *  model per neighbourhood (several candidates' ladders can reach the SAME
+ *  strong narrow pole — measured: five candidates all slid to ~0.70/km).
+ *  Used by psvMomentSpectrumAtFrequency when params.detSubtract is set and
+ *  exported for the experiment drivers/tests. */
+function psvPoleModelSet(stack, omega, poleList, params, gOf) {
+  var detModels = [];
+  var allFits = [];
+  for (var pf = 0; pf < poleList.length; pf++) {
+    var fm = psvPoleModelFit(stack, omega, poleList[pf], params, gOf);
+    if (fm && fm.rel < 0.15 && isFinite(fm.rel)) allFits.push(fm);
+  }
+  allFits.sort(function (a, b) { return a.rel - b.rel; });
+  for (var da = 0; da < allFits.length; da++) {
+    var fa = allFits[da];
+    var dup = false;
+    for (var db = 0; db < detModels.length; db++) {
+      var fbm = detModels[db];
+      if (Math.abs(fa.kp[0] - fbm.kp[0]) < 2 * Math.max(Math.abs(fa.kp[1]), Math.abs(fbm.kp[1]), 1e-9)) { dup = true; break; }
+    }
+    if (!dup) detModels.push(fa);
+  }
+  return detModels;
+}
+
 function psvMomentSpectrumAtFrequency(stack, omega, params) {
   if (!params.fullSpace && !params.qP && params.qShear) {
     params = Object.assign({}, params, { qP: params.qShear });
@@ -1286,6 +1485,25 @@ function psvMomentSpectrumAtFrequency(stack, omega, params) {
   // ---- modal poles inside the band (location only) -----------------------
   // fullSpace mode has a pole-free analytic integrand (branch points only).
   var poleList = params.fullSpace ? [] : psvModalPoles(stack, omega, params.kMaxInvKm, params);
+  // ---- det-based pole subtraction (2026-09-11 det-subtract batch) --------
+  // params.detSubtract: replace each FITTED modal pole's gamma-resolved
+  // window with the analytic A/(k - kp) subtraction + exact complex-log
+  // re-add over the lattice's own [kFirst, kMax] interval. Poles whose
+  // real-axis fit fails (few samples, residual above the 0.15 gate) keep
+  // their production windows — subtraction only replaces machinery it
+  // measurably beats, pole by pole. Absent param = byte-compatible legacy
+  // path (windows for every pole, no subtraction anywhere).
+  var detModels = [];
+  var windowPoles = poleList;
+  if (params.detSubtract && !params.fullSpace && poleList.length) {
+    detModels = psvPoleModelSet(stack, omega, poleList, params, gOf);
+    if (detModels.length) {
+      windowPoles = poleList.filter(function (pp) {
+        for (var dz = 0; dz < detModels.length; dz++) if (detModels[dz].cand === pp) return false;
+        return true;
+      });
+    }
+  }
   // ---- branch-tail singular subtraction ----------------------------------
   // TWO DIFFERENT branch behaviours, measured 2026-09-06 (this matters):
   //  * FULL-SPACE path (params.fullSpace): the Weyl factors carry explicit
@@ -1396,17 +1614,17 @@ function psvMomentSpectrumAtFrequency(stack, omega, params) {
       for (var mB2 = 3; mB2 <= 24; mB2++) { addK((bpk - mB2 * bw) / 1000); addK((bpk + mB2 * bw) / 1000); }
     }
   }
-  for (var p3 = 0; p3 < poleList.length; p3++) {
+  for (var p3 = 0; p3 < windowPoles.length; p3++) {
     // Windows for refined AND raw candidates alike (see the block comment
     // above): refined poles carry the Newton/HWHM half-width, raw ones the
     // material width gammaMat = k/(2Q) — the resonance is damping-dominated
     // when the chain noise buries the Im-kappa info.
-    var kp3 = poleList[p3].k / 1000;
+    var kp3 = windowPoles[p3].k / 1000;
     // Window scale: the refined pole carries the TRUE modal half-width
     // (2D complex Newton |Im kappa*|, HWHM cross-check — see psvModalPoles):
     // the window resolves the actual resonance instead of the material
     // damping proxy the pre-2026-09-06 code clamped to (the v3 gamma_d gap).
-    var gm = Math.max(poleList[p3].gammaKm / 1000, 1e-12);
+    var gm = Math.max(windowPoles[p3].gammaKm / 1000, 1e-12);
     // TIERED window: the INTEGRAND peak can be much narrower than the det
     // dip width gamma (the compliance numerator channels carry cancelling
     // structure near the pole — measured on the R8 halfspace: integrand
@@ -1445,6 +1663,19 @@ function psvMomentSpectrumAtFrequency(stack, omega, params) {
   var pts = [];
   for (var i3 = 0; i3 < klist.length; i3++) {
     var g3 = gOf(klist[i3]);
+    if (g3 && detModels.length) {
+      // subtract the fitted pole models BEFORE the razor: the near-pole
+      // 1/(k-kp) spike is physics the analytic re-add carries exactly, and
+      // the razor should only ever gate the smooth remainder (a residual
+      // chain-noise needle rides ON TOP of the subtracted value and still
+      // trips the 50x neighbour gate).
+      for (var dz2 = 0; dz2 < detModels.length; dz2++) {
+        var wd2 = cdiv([1, 0], csub([klist[i3], 0], detModels[dz2].kp));
+        g3.ur = csub(g3.ur, cmul(detModels[dz2].A.ur, wd2));
+        g3.uz = csub(g3.uz, cmul(detModels[dz2].A.uz, wd2));
+        g3.ut = csub(g3.ut, cmul(detModels[dz2].A.ut, wd2));
+      }
+    }
     if (g3 && bpModels.length) {
       // branch-needle cells: a lattice sample can land ON (or within an
       // ulp of) a branch point — g blows up as 1/sqrt(dist) and the
@@ -1570,6 +1801,23 @@ function psvMomentSpectrumAtFrequency(stack, omega, params) {
     uz = cadd(uz, cscale(p.g.uz, w));
     ut = cadd(ut, cscale(p.g.ut, w));
   }
+  // analytic re-add of the subtracted pole models over [klist[0], kMax] —
+  // the interval the trapezoid actually covers (first/last sample weights
+  // are their adjacent cells). Integral of A/(k-kp): A*[Log(K-kp) -
+  // Log(k0-kp)] on the principal branch; the path k-kp keeps a constant
+  // nonzero imaginary part (Im kp != 0 — a fitted pole ON the axis is
+  // rejected below via rel, and a real-axis pole would be uncancellable
+  // physics), so the branch cut is never crossed.
+  if (detModels.length) {
+    var kPole0 = klist[0];
+    for (var dz5 = 0; dz5 < detModels.length; dz5++) {
+      var dm5 = detModels[dz5];
+      var IK5 = csub(clog(csub([kMax, 0], dm5.kp)), clog(csub([kPole0, 0], dm5.kp)));
+      ur = cadd(ur, cmul(dm5.A.ur, IK5));
+      uz = cadd(uz, cmul(dm5.A.uz, IK5));
+      ut = cadd(ut, cmul(dm5.A.ut, IK5));
+    }
+  }
   // analytic re-add of the subtracted branch models over [0, kMax]
   for (var b5 = 0; b5 < bpModels.length; b5++) {
     var bm5 = bpModels[b5];
@@ -1590,5 +1838,7 @@ module.exports = {
   rotateFullTensor: rotateFullTensor, psvMomentSpectrumAtFrequency: psvMomentSpectrumAtFrequency,
   psvIntegrandAtK: psvIntegrandAtK, psvModalPoles: psvModalPoles,
   psvBranchPoints: psvBranchPoints, psvBranchModelFit: psvBranchModelFit,
-  psvSchurCompliance: psvSchurCompliance, complianceAt: complianceAt
+  psvSchurCompliance: psvSchurCompliance, complianceAt: complianceAt,
+  clog: clog, poleChannelLS: poleChannelLS, nmMin2: nmMin2, psvPoleModelFit: psvPoleModelFit,
+  psvPoleModelSet: psvPoleModelSet
 };

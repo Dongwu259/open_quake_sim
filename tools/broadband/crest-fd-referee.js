@@ -20,7 +20,21 @@ const cadd = core.cadd, csub = core.csub, cmul = core.cmul, cscale = core.cscale
  *  M: n x n, B: n x R. Returns n x R. */
 function solveDense(M, B) {
   const n = M.length, R = B[0].length;
-  const A = M.map((r, i) => r.slice().concat(B[i].slice()));
+  // equilibration (2026-09-11): the raw system mixes u/tr scales
+  // (kappa ~ 1e15) and raw partial pivoting loses the small component —
+  // scale rows and columns to O(1), solve, unscale the solution
+  const rowS = M.map((r) => 1 / Math.max(...r.map(cabs)));
+  const colS = [];
+  for (let j = 0; j < n; j++) {
+    let m = 0;
+    for (let i = 0; i < n; i++) m = Math.max(m, cabs(M[i][j]) * rowS[i]);
+    colS.push(1 / (m || 1));
+  }
+  if (global.__dbg) console.log('rowS range', Math.min(...rowS).toExponential(2), Math.max(...rowS).toExponential(2),
+    '| colS range', Math.min(...colS).toExponential(2), Math.max(...colS).toExponential(2),
+    '| colS nonfinite:', colS.filter((v) => !isFinite(v)).length);
+  const A = M.map((r, i) => r.map((v, j) => cscale(cscale(v, rowS[i]), colS[j]))
+    .concat(B[i].map((v) => cscale(v, rowS[i]))));
   for (let col = 0; col < n; col++) {
     let piv = col;
     for (let r = col + 1; r < n; r++) if (cabs(A[r][col]) > cabs(A[piv][col])) piv = r;
@@ -28,6 +42,9 @@ function solveDense(M, B) {
     if (piv !== col) { const t = A[col]; A[col] = A[piv]; A[piv] = t; }
     const pv = A[col][col];
     for (let j = col; j < n + R; j++) A[col][j] = cdiv(A[col][j], pv);
+    let nb = 0;
+    for (const row of A) for (const v of row) if (!isFinite(v[0]+v[1])) nb++;
+    if (nb > 0) { console.log('first nonfinite after col', col, 'count', nb); throw new Error('trace-stop'); }
     for (let r = 0; r < n; r++) {
       if (r === col) continue;
       const f = A[r][col];
@@ -36,7 +53,8 @@ function solveDense(M, B) {
     }
   }
   const out = [];
-  for (let i = 0; i < n; i++) out.push(A[i].slice(n));
+  for (let i = 0; i < n; i++) out.push(A[i].slice(n).map((v) => cscale(v, colS[i])));
+  if (global.__dbg) { let nn = 0; for (const row of out) for (const v of row) if (!isFinite(v[0]+v[1])) nn++; console.log('out nonfinite:', nn, 'of', out.length*2); }
   return out;
 }
 

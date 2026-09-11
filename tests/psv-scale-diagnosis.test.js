@@ -65,8 +65,8 @@ const REPORT = path.join(__dirname, '..', 'tools', 'data', 'psv-scale-diagnosis.
 const r = JSON.parse(fs.readFileSync(REPORT, 'utf8'));
 
 test('psv-scale-diagnosis — schema, verdict, config frozen', () => {
-  assert.equal(r.schema, 'quake-sim-psv-scale-diagnosis-v11');
-  assert.equal(r.verdict, 'fullspace_anchored_layered_compliance_adjudicated_schur_validated_band_quadrature_full_tensor_open');
+  assert.equal(r.schema, 'quake-sim-psv-scale-diagnosis-v12');
+  assert.equal(r.verdict, 'fullspace_anchored_layered_schur_validated_pole_subtraction_shipped_but_series_open_candidates_mislocate');
   assert.ok(String(r.reMeasure).includes('adjudication'), 'the v11 compliance adjudication must be recorded');
   assert.ok(String(r.reMeasure).includes('pole-aware'), 'the registered pole-aware quadrature cure must be recorded');
   assert.equal(r.config.fHz, 0.5);
@@ -90,6 +90,13 @@ test('psv-scale-diagnosis — schema, verdict, config frozen', () => {
   assert.ok(r.history.v8caveat.includes('PRE-mu*-fix') || r.history.v8caveat.includes('real-mu'), 'the v8 pre-fix caveat must be preserved');
   assert.ok(r.history.v9verdict === 'fullspace_anchored_layered_mgs_chain_v9_rebased_full_tensor_monotone_open', 'the v9 verdict must be preserved');
   assert.ok(r.history.v10verdict === 'fullspace_anchored_layered_crest_noise_proven_fd_cures_retired_full_tensor_open', 'the v10 verdict must be preserved');
+  assert.ok(r.history.v11verdict === 'fullspace_anchored_layered_compliance_adjudicated_schur_validated_band_quadrature_full_tensor_open', 'the v11 verdict must be preserved');
+  assert.ok(r.history.v12verdict === 'fullspace_anchored_layered_schur_validated_pole_subtraction_shipped_but_series_open_candidates_mislocate', 'the v12 verdict must be preserved');
+  assert.ok(r.layeredContext.detSubtractSeriesUrm, 'the v12 det-subtract arm must be measured');
+  assert.ok(Array.isArray(r.layeredContext.poleModelSet) && r.layeredContext.poleModelSet.length >= 1,
+    'the production pole-model set (candidate-mislocation record) must be frozen');
+  assert.ok(String(r.layeredContext.tensorProtocolNote).includes('UNROTATED'),
+    'the tensor-protocol pitfall (rotated side-scripts vs unrotated frozen series) must stay on record');
   assert.ok(r.layeredContext.complianceAdjudication, 'the v11 adjudication block must be present');
   assert.ok(r.layeredContext.complianceAdjudication.deepRepro_halfspace_1p2Hz_zs73_q50.expmExoneration.includes('7e-13'),
     'the expm exoneration measurement must stay on record');
@@ -149,7 +156,10 @@ test('psv-scale-diagnosis — fullTensor series MONOTONE NON-CONVERGENT on the c
   const spread = c / a;
   assert.ok(spread > 1.15, 'fullTensor series unexpectedly converged (spread ' + spread.toFixed(3) + ') — re-examine the OPEN verdict if real');
   assert.ok(r.registeredNextStep.includes('Schur'), 'the Schur-admittance independent representation must stay registered');
-  assert.ok(r.registeredNextStep.includes('P-SV-side aliasing-guard'), 'the P-SV guard-divisor ladder must stay registered');
+  // the P-SV guard-divisor ladder was RESOLVED in its own freeze (div10
+  // passes, default kept byte-compatible — tools/data/psv-alias-ladder.json);
+  // the remaining user-gate clause that must stay registered is CS v4.
+  assert.ok(r.registeredNextStep.includes('opts.psv'), 'the CS-v4 user gate behind opts.psv must stay registered');
 });
 
 test('psv-scale-diagnosis — v10 crest-noise diagnosis frozen (discriminator + dh collapse + cure outcomes)', () => {
@@ -175,26 +185,42 @@ test('psv-scale-diagnosis — v10 crest-noise diagnosis frozen (discriminator + 
   assert.ok(dspread < 1.1, 'Richardson deviatoric control must stay converged (spread ' + dspread.toFixed(3) + ')');
 });
 
-test('psv-scale-diagnosis — v11 Schur arm: series must stay NON-converged (the band-quadrature OPEN)', () => {
+test('psv-scale-diagnosis — v12 Schur arm re-verified: series must stay NON-converged', () => {
   const s = r.layeredContext.schurSeriesUrm;
   assert.ok(s, 'schurSeriesUrm missing — the Schur arm must stay measured');
-  // fullTensor through the VALIDATED Schur compliance: non-monotone swings
-  // (measured 194.41/194.41/523.046/679.982/540.935) — the OPEN is the band
-  // quadrature, NOT the compliance representation.
+  // fullTensor through the VALIDATED Schur compliance: RE-MEASURED live by
+  // the v12 --write and equal to the v11 freeze (the interim "stale freeze"
+  // suspicion was a rotated-tensor artifact of the side scripts — see
+  // tensorProtocolNote). The OPEN is the band quadrature / pole locator,
+  // NOT the compliance representation.
   const f = s.fullTensor;
   const a = f['dk0.002'], b = f['dk0.001'], c = f['dk0.0005'];
   assert.ok(a > 0 && b > 0 && c > 0, 'Schur fullTensor below-floor values must be present');
   const spread = Math.max(a, b, c) / Math.min(a, b, c);
   assert.ok(spread > 1.15, 'Schur fullTensor series unexpectedly converged (spread ' + spread.toFixed(3) + ') — re-examine the OPEN verdict if real');
-  assert.ok(Math.abs(b / a - 679.982 / 523.046) < 0.01 || Math.abs(c / b - 540.935 / 679.982) < 0.01,
-    'Schur fullTensor below-floor ratios drifted from the freeze — re-freeze');
+  assert.ok(Math.abs(f['dk0.02'] - 194.41) < 0.01,
+    'Schur fullTensor dk0.02 must equal the committed-code reproduction 194.41 (got ' + f['dk0.02'] + ') — re-freeze');
   // deviatoric control: the representation-relative 2x shift must stay on
-  // record (0.0155 -> 0.0083): "convergence" readings are representation-
+  // record (0.0178 -> 0.0083): "convergence" readings are representation-
   // relative until the band quadrature lands.
   const d = s.deviatoric;
   const dshift = d['dk0.005'] / d['dk0.001'];
   assert.ok(dshift > 1.5, 'the deviatoric representation-relative shift must stay visible (got ' + dshift.toFixed(2) + ')');
-  assert.ok(r.registeredNextStep.includes('pole-aware'), 'the pole-aware quadrature cure must stay registered');
+});
+
+test('psv-scale-diagnosis — v12 det-subtract arm: machinery shipped, series still open', () => {
+  const s = r.layeredContext.detSubtractSeriesUrm;
+  assert.ok(s, 'detSubtractSeriesUrm missing — the shipped subtraction arm must stay measured');
+  // measured 231.77/231.77/231.77/532.96/770.39/803.88 — monotone RISING
+  // below the alias floor (same shape as the legacy monotone divergence),
+  // below-floor spread 1.51, NOT converged at dk 0.0005
+  const f = s.fullTensor;
+  const a = f['dk0.002'], b = f['dk0.001'], c = f['dk0.0005'];
+  const spread = Math.max(a, b, c) / Math.min(a, b, c);
+  assert.ok(spread > 1.15, 'det-subtract fullTensor unexpectedly converged (spread ' + spread.toFixed(3) + ') — re-examine the verdict if real');
+  assert.ok(Math.abs(f['dk0.02'] - 231.77) < 0.01 || Math.abs(f['dk0.02'] - 231.8) < 0.5,
+    'det-subtract fullTensor dk0.02 must equal the frozen 231.77 (got ' + f['dk0.02'] + ') — re-freeze');
+  assert.ok(r.registeredNextStep.includes('pole LOCATOR'), 'the registered cure must name the pole-locator blocker');
 });
 
 test('psv-scale-diagnosis — root tables recorded from the compliance-ridge detector', () => {
