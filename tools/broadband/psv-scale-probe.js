@@ -6,6 +6,20 @@
 //  batch -> branch-cusp batch, 2026-09-06). Deterministic; freezes to
 //  tools/data/psv-scale-diagnosis.json.
 //
+//  SCHEMA v11 (compliance-adjudication batch, 2026-09-10): the deep-config
+//  validation gap was CLOSED — three mutually-agreeing trusted references
+//  were built for the halfspace config (RK4-ODE referee with Richardson
+//  extrapolation, balanced-eigendecomposition transport, exact closed-form
+//  halfspace BVP; pairwise 4e-3), expm4 was exonerated (7e-13), and the
+//  LEGACY A/W chain was measured O(1) off (3.4-7.8x, cap-sensitive) while
+//  Schur matches to 1e-11. psvSchurCompliance is production-wired behind
+//  params.schurCompliance. The Schur dk series still does not converge
+//  (fullTensor 194/194/523/680/541 non-monotone; deviatoric moves 2x — the
+//  v10 "deviatoric converged" reading was representation-relative), so the
+//  registered cure moves to pole-aware quadrature of the band: the blocker
+//  is the unresolved near-pole structure of the k integral, not the
+//  compliance representation.
+//
 //  SCHEMA v6 (Rc-inversion batch, 2026-09-09): the registered scale-invariant
 //  Rc inversion turned out to be the wrong cure — measured, det(Rc) is small
 //  by PHYSICS (an on-axis leaky pole), not by scaling; entries are O(1).
@@ -100,11 +114,11 @@ function main() {
   const Mr = psv.rotateFullTensor({ mxx: M.xx, myy: M.yy, mzz: M.zz, mxy: M.xy, mxz: M.xz, myz: M.yz }, az);
   const mag = (c) => Math.hypot(c[0], c[1]);
 
-  function psvU(t, dkInvKm, cap) {
+  function psvU(t, dkInvKm, cap, dhAdaptive, schur) {
     const p = psv.psvMomentSpectrumAtFrequency(stack, omega, {
       rKm, zSourceKm: zs, mxx: t.mxx, myy: t.myy, mzz: t.mzz || 0, mxy: t.mxy || 0,
       mxz: t.mxz || 0, myz: t.myz || 0, dkInvKm: dkInvKm || 0.02, kMaxInvKm: 5, qShear: 50,
-      _subCap: cap
+      _subCap: cap, dhAdaptive: dhAdaptive ? 1 : undefined, schurCompliance: schur ? 1 : undefined
     });
     return mag(p.ur);
   }
@@ -125,6 +139,26 @@ function main() {
       series[label]['dk' + dk] = +psvU(t, dk).toExponential(4);
     }
   }
+  // v10 crest-cure arm: the Richardson-pair depth-FD (psv.js params.dhAdaptive,
+  // off by default) on the same series — the measured attempt to cure the
+  // leaky-P crest-band chain noise from inside the current chain.
+  const dhSeries = {};
+  for (const [label, t] of [['deviatoric', deviatoric], ['fullTensor', full]]) {
+    dhSeries[label] = {};
+    for (const dk of seriesDks) {
+      dhSeries[label]['dk' + dk] = +psvU(t, dk, undefined, true).toExponential(4);
+    }
+  }
+  // v11 arm: the SAME series through the Schur admittance compliance
+  // (params.schurCompliance, complianceAt dispatcher) — the representation
+  // the 2026-09-10 adjudication validated against three trusted references.
+  const schurSeries = {};
+  for (const [label, t] of [['deviatoric', deviatoric], ['fullTensor', full]]) {
+    schurSeries[label] = {};
+    for (const dk of seriesDks) {
+      schurSeries[label]['dk' + dk] = +psvU(t, dk, undefined, false, true).toExponential(4);
+    }
+  }
   // cap-dependence record (v7): the same series at subdivide cap 10 — the
   // subdominant-structure resolution probe (the subdivide cap bounds the
   // per-sublayer exponent the MGS inner products can separate; cap 30 loses
@@ -136,6 +170,57 @@ function main() {
   }
   const layered = {
     machinerySeriesUrm: { deviatoric: series.deviatoric, fullTensor: series.fullTensor },
+    dhRichardsonSeriesUrm: { deviatoric: dhSeries.deviatoric, fullTensor: dhSeries.fullTensor },
+    schurSeriesUrm: { deviatoric: schurSeries.deviatoric, fullTensor: schurSeries.fullTensor },
+    complianceAdjudication: {
+      // 2026-09-10 adjudication batch — all literals measured by the
+      // committed probe scripts on these exact configs (see the scripts'
+      // headers for the full tables)
+      measured: '2026-09-10, crest-referee-deep-probe.js / crest-eig-vs-expm.js / crest-halfspace-closed.js / crest-band-adjudicate.js / crest-fd-referee.js',
+      deepRepro_halfspace_1p2Hz_zs73_q50: {
+        prodVsRefAcrossK: '3.4 / 4.6 / 3.6 / 2.9 / 2.4 / 4.4 / 7.8 x at k = 0.2..1.2/km (legacy A/W chain O(1) off the trusted pair everywhere)',
+        prodCapSensitivity: '_subCap 15/45 move the legacy compliance 0.23-2.7 rel at the same ks',
+        trustedPair: 'schur-vs-eig-transport 1.1e-11; eig-vs-RK4-referee-Richardson-extrapolation 4.2e-3; closed-form-BVP == -Schur exactly (jump-orientation sign), RK4-referee extrapolated == Schur 4.2e-3',
+        expmExoneration: 'psvPropagator output == balanced-eigendecomposition exp(A_scaled h) to 7e-13 with clean semigroups — the matrix exponential is NOT the deep-config error source; the A/W + MGS residual bookkeeping is',
+        fdRefereeStatus: 'box-scheme BVP referee (crest-fd-referee.js): matches the closed form to ~2% at the 0.5 Hz anchors but is under-resolved at 1.2 Hz (1 km grid vs 5 km vertical wavelengths) — OPEN, not used for the verdict'
+      },
+      tokyoBand_0p5Hz_zs73: {
+        schurVsRk4Ref_smooth_k: '7.6e-3 at k = 0.30/km (2026-09-11 CORRECTION: the referee copy carried an UNSORTED stops regression — srcM pushed after halfTopM made the last segment integrate BACKWARD on every multi-layer config, invisible on single-layer HALF validations; fixed, the same point re-measures 5.79e-3 and the in-band referee blowups were its evanescent-leg underflow blindness, not a verdict either way',
+        transportCollapse: 'the eigendecomposition transport chain (v9-chain algebra, validated propagator) goes non-finite/garbage-scale inside the crest band (k = 0.5112/0.5295/km: non-finite Cc; elsewhere |C| 1e-2..1e2 vs the true ~1e-7) — INDEPENDENT confirmation that every four-column transport representation is ill-posed in the band (the below-source mantle legs are evanescent at k > omega/vp: e^+-95 dynamic range)',
+        schurStatus: 'the admittance up-leg recursion is the only representation that stays smooth and finite across the band; trusted by construction + smooth-k anchors + the halfspace adjudication, with no surviving independent ON-BAND referee'
+      }
+    },
+    crestDiagnostics: {
+      // all literals measured 2026-09-10 by tools/broadband/crest-*.js on
+      // this exact config (see those scripts for the provenance tables)
+      measured: '2026-09-10, crest-diagnose.js / crest-noise-probe.js / crest-dh-probe.js / crest-series-run.js',
+      bandScan: '0.40-0.70/km at 2.5e-4/km: spike forest 0.506-0.542/km, |uz| 1e3 -> 4.8e5 -> 1e2; 126 guard-null samples blanket 0.525-0.70; band trapezoid ur ~399 vs whole-integral legacy 28 (the legacy fine zone samples only a fraction of the spikes)',
+      continuityDiscriminator: {
+        method: 'physical resonances have width >= k/(2Q) = 0.005/km at qP=qS=50, so |g(k +/- 1e-5/km)| must match to ~0.2%; chain noise decorrelates instead',
+        control_0p44: 'ratios 1.000/1.000 at 1e-5 (physical, continuous)',
+        control_0p46: 'ratios 1.000/1.000 at 1e-5',
+        crest_0p5112: 'ratios 1.396/0.108 at 1e-5 — decorrelates 500x below the material width: CHAIN NOISE, not a resonance',
+        crest_0p5242: 'ratios 1.565/2.945 at 1e-5'
+      },
+      dhCollapse: {
+        method: 'depth-FD dC = (Cdn-Cup)/(2*dh): enlarge the stencil; noise amplified by 1/(2dh) collapses, true derivatives are dh-invariant',
+        control_0p44: '6.270e3 invariant across dh 0.5/2/5/20 m',
+        crest_0p5187: '1.84e6 -> 1.9e5 -> 6.7e4 -> 2.0e4 (dh 0.5/2/5/20 m)',
+        crest_0p5295: '4.26e6 -> 6.3e5 -> 1.9e5 -> 4.7e4'
+      },
+      cureOutcomes: {
+        gen1_agreementSearch: {
+          spot: 'spikes collapse 5-120x, controls byte-identical',
+          seriesFullTensorUrm: { dk0p02: 9.54486, dk0p002: 12.2814, dk0p001: 7.95338, dk0p0005: 2.6201 },
+          verdict: 'non-convergent (spread 3.7) — the two-consecutive-agreement exit can be fooled by CORRELATED chain noise (the residual direction rotates slowly with dh)'
+        },
+        gen2_richardson: {
+          construction: 'dC_R = D(2h) - D(h) through the (Cdn-Cup)/(2h) path; cancels an arm-independent rounding noise N exactly ((4hS + N) - (2hS + N) = 2hS)',
+          spot: 'controls byte-identical, spikes UNTOUCHED (0.5187: 1.854e6 vs legacy 1.835e6)',
+          verdict: 'the band noise is NOT an arm-independent additive term — the chain output in the degenerate band is a deterministic wild function of (k, z, dh) jointly; no stencil combination inside this chain representation can cure it'
+        }
+      }
+    },
     cap10SeriesUrm: capSeries,
     // frozen cap-study measurement (tools/broadband/psv-cap-study.js, one-time
     // run 2026-09-09 post-triMul-fix; series = |u_r| at dk 0.02/0.002/0.001/0.0005)
@@ -202,9 +287,9 @@ function main() {
   }
 
   const report = {
-    schema: 'quake-sim-psv-scale-diagnosis-v9',
+    schema: 'quake-sim-psv-scale-diagnosis-v11',
     generatedAt: new Date().toISOString(),
-    reMeasure: 'v9 (2026-09-09): full re-measure on the mu*-corrected halfspace admittance (psvEigenvectors traction rows carry complex mu* after the R10 damped cross-check measured the real-mu convention at 1.4% on the halfspace compliance) — every prior fullTensor series (v4-v8) rode the real-mu admittance, so the crest-band convergence verdict is re-based before any residue/Schur machinery is built',
+    reMeasure: 'v11 (2026-09-10): the compliance-representation adjudication. The deep-config validation gap (v10) was resolved by building THREE mutually-agreeing trusted references for the halfspace config (RK4-ODE referee with Richardson extrapolation, a balanced-eigendecomposition transport chain, and an exact closed-form halfspace BVP): they agree pairwise to 4e-3, expm4 was exonerated (7e-13), and the LEGACY A/W chain was measured O(1) off (3.4-7.8x across k, cap-sensitive) — Schur matched to 1e-11. psvSchurCompliance is now production-wired behind params.schurCompliance (complianceAt dispatcher). The Schur dk series was then measured: the fullTensor channel STILL does not converge (194/194/523/680/541) and the deviatoric control moves too (0.0178 -> 0.0083, 2x) — the v10 "deviatoric converged" reading was representation-relative, not physical. The blocker moves from compliance representation to the UNRESOLVED BAND STRUCTURE itself: pole-aware quadrature (modal subtraction / complex contour) is the registered cure',
     config: {
       stack: 'tokyo JIVSM column + IASP91 continuation (buildJivsmIaspStack)',
       fHz, mw: mW, sourceDepthKm: zs, rKm: +rKm.toFixed(1), azimuthDeg: +az.toFixed(1),
@@ -222,15 +307,16 @@ function main() {
     },
     layeredContext: Object.assign({}, layered, {
       rootTables,
+      reading_v11: "v11 layered state (compliance-adjudication batch): (1) the deep-config validation gap was closed by building three mutually-agreeing trusted references on HALF@1.2Hz-zs73-q50 — an RK4-ODE referee (Richardson-extrapolated), a balanced-eigendecomposition transport chain, and an EXACT closed-form halfspace BVP (free surface + radiation + source jump, no chain at all); they agree pairwise to 4e-3 and the closed form equals -Schur EXACTLY; (2) expm4 was exonerated: psvPropagator's output matches the balanced eigendecomposition to 7e-13 with machine-clean semigroups — the O(1) legacy deviation lives in the A/W + MGS residual bookkeeping, and is cap-sensitive; (3) psvSchurCompliance is production-wired behind params.schurCompliance (complianceAt dispatcher; legacy default unchanged, R1-R11 anchors untouched); (4) on the tokyo band the eigendecomposition transport chain ITSELF collapses (non-finite Cc / garbage |C| inside 0.50-0.53/km) — independent confirmation that all four-column transport representations are ill-posed there (evanescent mantle legs, e^+-95) while the Schur up-leg recursion stays smooth; (5) the Schur dk series: fullTensor 194/194/523/680/541 NON-monotone, deviatoric 0.0178->0.0083 (2x) — the compliance representation is adjudicated but the series still does not converge, so the v10 'deviatoric converged' reading was representation-relative; the blocker moves to pole-aware quadrature of the band. Production opts.psv stays BLOCKED.",
       reading: "v8 layered state (cap-closure batch): the registered subdivide-cap study is EXECUTED and NEGATIVE. Every tightened cap produces an internally dk-converged series (below-floor spreads: cap30 dev 1.3%, cap4 dev 2.0%, cap4 fullTensor 0.45%, cap2 fullTensor 1.7%) while the CROSS-CAP values disagree without monotone convergence: deviatoric 0.0083 (cap6) / 0.0096 (cap4) / 0.0141 (cap30) / 0.027 (cap2); fullTensor 0.79 (cap6) / 1.23 (cap4) / 0.92 (cap2) / 2245 (cap10) / 7-59 (cap30). Conclusion: the subdivide exponent cap does NOT close the leaky-P crest-band representation problem - each cap pattern resolves a different fraction of the crest, and the dipole (depth-FD) channels inherit that pattern sensitivity directly. The v7 interim framing (fullTensor open on cap dependence) is confirmed and sharpened: no tested cap is the answer. Registered cure unchanged in kind but now evidence-backed: per-pole-physical crest representation (residue-based or per-layer Schur-admittance stepping) instead of discretization tightening. The deviatoric channel's per-cap convergence (1.3% at the production cap 30) stands as self-consistency only - its absolute value carries the same crest uncertainty. Production opts.psv stays BLOCKED.",
       reading_v7: "v7 layered state (delta-matrix batch): (1) the carried chain is now the MGS-orthonormalised delta-matrix factorisation S = Q*T (per-layer modified Gram-Schmidt with two reorthogonalisation passes, R bookkeeping, joint T rescaling; sigma = the above-source log exactly as the retired joint-scalar chain) - the raw chain's joint max-scaling preserved column RATIOS but not column INDEPENDENCE, and over the deep above-source leg the A pair collapsed float-parallel in the leaky-P crest band (the v6 det(Rc) = 0 nulls); (2) TWO propagator/chain bugs were fixed on the way, both caught by cross-checks: the first-cut triMul bounded the triangular product sum at l <= i (the DIAGONAL's index) dropping every j > i cross term - the R2 RK4 anchor failed 3.3e-2 and exposed it before any freeze; and the v6 propagator back-transform used the REAL mu* where the complex mu* is required (undamped paths bit-identical, damped paths mixed the state convention by |1 - i/q| per layer); (3) the DEVIATORIC series converges at the production cap (below-floor spread 1.3%) at the same absolute scale as the v6 raw chain (2.5%); (4) the FULL-TENSOR channel REMAINS OPEN: not the det-null collapse but the subdivide-cap dependence of the crest resolution.",
       reading_v6: "v6 layered state: (1) the matrix-exponential propagator lost every layer Q (real-moduli A; measured: the deviatoric response 3x too large, interior leaky poles pinned ON the real axis at any q) - fixed by complex moduli with the exact nuOf convention c*^2 = c^2(1-i/q), after which the DEVIATORIC series converges at the correct physical scale; (2) the pole detector scans the source-independent surface-source det(Rc) dip landscape (the buried-source |C| ridge sank under e^{-kz} once attenuation returned); (3) branch-point resolution rings sample the halvespace-branch kinks the coarse lattice undersampled; (4) the remaining fullTensor blocker is the Rc basis-degeneracy band: det(Rc) = exact 0 across k ~ 0.53-0.56/km (the two residual basis columns become float-exactly parallel above vs_half), so the compliance is unrepresentable there and the grid-dependent bridging shows up as the below-floor series spread. The registered scale-invariant Rc inversion was measured to be the wrong cure (entries O(1); the det is small by physics, not scaling).",
       reading_v5: 'v5 layered state: (1) the v4 "branch-tail cusp" attribution is RETIRED — the layered compliance is bounded at every branch point (Rc^-1 Rw cancels the 1/nu factors; interior branches are not singular under the expm propagator); (2) with qP defaulted to qShear the undamped-P leaky resonances leave the real axis and the DEVIATORIC series converges (below-floor spread ~1%); (3) the detector is the bounded compliance-ridge scan (the det-dip scanner sat on a e^-288 chain floor, stepped over the fundamental and refined nothing — its v4 table was noise); (4) the FULL-TENSOR channel remains open: its dipole (depth-FD) channels ride the leaky-P crest band 0.45-0.6/km, where 1e9 crests over ~1e-3/km are peppered with det(Rc) underflow nulls — the trapezoid bridges shift with the grid. qP100/qP200 series measured non-converged as well, so this is not damping tuning.',
-      openItem: "fullTensor leaky-P crest band representation (tokyo 0.5 Hz, k ~ 0.45-0.65/km): the subdivide-cap study is complete and NEGATIVE - every tightened cap (2/4/6/10) yields an internally dk-converged series while cross-cap values disagree without monotone convergence (fullTensor 0.79/1.23/0.92 at caps 6/4/2; 2245/7-59 at caps 10/30), so discretization tightening cannot close the crest representation problem. The 3 isolated band nulls (0.555/0.585/0.620/km) remain. Registered cure: per-pole-physical crest representation (residue-based modal synthesis or per-layer Schur-admittance stepping); until then the fullTensor series stays non-converged and production opts.psv stays BLOCKED",
+      openItem: "fullTensor leaky-P band k-integration (tokyo 0.5 Hz, k ~ 0.50-0.55/km): v11 adjudicated the COMPLIANCE REPRESENTATION — the legacy chain is O(1) off trusted references at deep configs while Schur matches to 1e-11..4e-3 (production-wired as params.schurCompliance) — yet the fullTensor dk series through the VALIDATED Schur compliance still does not converge (194/194/523/680/541, non-monotone) and the deviatoric control now moves 2x as well: the residual blocker is the band's unresolved near-pole structure in the K INTEGRATION of the dipole (depth-FD) channels, not the compliance. Registered cure: pole-aware quadrature (modal-pole subtraction or complex-contour evaluation of the crest band). The 3 isolated band nulls (0.555/0.585/0.620/km) remain. Production opts.psv stays BLOCKED",
     }),
-    verdict: 'fullspace_anchored_layered_mgs_chain_v9_rebased_full_tensor_monotone_open',
-    registeredNextStep: 'per-pole-physical crest representation for the leaky-P band (residue-based modal synthesis or per-layer Schur-admittance stepping) - RE-CONFIRMED on the v9 corrected-kernel baseline (the series is now monotone but still non-convergent); additionally registered: a P-SV-side aliasing-guard divisor ladder (psvIntegrandAtK still clamps at (2*pi/r)/10 — the SH v3 ladder moved the SH kernel to 80); the CS-pipeline v4 pre-registered gate run with opts.psv stays user-gated behind that',
-    context: 'v9 (2026-09-09, R3 opening batch) re-measured the full series on the mu*-corrected halfspace admittance (R10 damped cross-check fixed psvEigenvectors traction rows at a measured 1.4% halfspace-convention error): the fullTensor below-floor series changed character from erratic non-monotone collapse (54.2/58.9/21.3/7.3 on the defective admittance) to a CLEAN MONOTONE DIVERGENCE (28.1 -> 44.4 -> 50.2 -> 54.6 at dk 0.002 -> 0.0005) while deviatoric stays converged (spread 1.055 < 1.1) — the crest-band OPEN is re-confirmed on a trustworthy baseline and the full-space anchor still passes (maxResidual 0.062 <= 0.08), so the residue/Schur-admittance cure remains the registered blocker for production opts.psv; v8 (cap-closure batch) executed the registered subdivide-cap study and measured it NEGATIVE (cross-cap fullTensor values disagree without monotone convergence at caps 2/4/6/10/30) - the blocker is the leaky-P crest representation itself, not discretization; v7 (delta-matrix batch) landed the MGS-orthonormalised chain and fixed two real bugs the batch cross-checks exposed: the first-cut triMul triangular product dropped the j > i cross terms (caught by the R2 RK4 anchor at 3.3e-2 BEFORE any freeze; the interim "fullTensor converges at 0.0077" measurement was this bug suppressing the dipole channels and is retracted), and the v6 propagator back-transform used the real muR where the complex mu* is required (undamped paths bit-identical); deviatoric series converge at the production cap at the v6 raw-chain scale; fullTensor stays OPEN on cap-dependent crest resolution; v6 (Rc-inversion batch) found the registered scale-invariant inversion inapplicable (det small by physics) and fixed the v4 expm layer-Q loss (complex moduli, nuOf-exact convention); detector on the surface-source det(Rc) dip scan; branch-point resolution rings; v5 froze qp-default + compliance-ridge detector + window-continuity fix; v1 froze blocked_pending_source_calibration (21.3x hot factor); v2 froze fullspace_anchored_layered_poles_open (source anchor fixed 3 missing/1 wrong-column dipole terms + traction/dipole -1 + razor band-nulling); v3 replaced residues with gamma-resolved windows and found the Bessel-aliasing root cause; v4 closed the root-tracking gap (expm propagator, joint-scalar chain, 2D Newton) but misattributed the remaining series drift to an integrable branch-tail cusp; v5 (branch-cusp batch) measured the actual mechanisms: bounded layered compliance (v4 cusp retired), true cusps only on the fullSpace path (analytic subtraction landed there, references moved to xi-substitution), undamped-P leaky poles on the real axis (qP <- qShear default), a dead det scanner replaced by the compliance-ridge detector, and a window-ring continuity bug fixed',
+    verdict: 'fullspace_anchored_layered_compliance_adjudicated_schur_validated_band_quadrature_full_tensor_open',
+    registeredNextStep: 'pole-aware quadrature of the leaky-P band for the dipole (depth-FD) channels — modal-pole subtraction or complex-contour evaluation — because the compliance representation is adjudicated (Schur validated 1e-11..4e-3 against three trusted references, legacy chain measured O(1) off and retired from deep-config use) while the dk series through the VALIDATED compliance still does not converge: the blocker is the unresolved near-pole structure of the k integral itself; P-SV-side aliasing-guard divisor ladder also still pending; CS-pipeline v4 stays user-gated behind opts.psv',
+    context: 'v10 (2026-09-10, crest-noise batch) diagnosed the leaky-P crest band at SAMPLE level on the frozen v9 config and retired the whole in-chain FD cure family: (1) the legacy series reproduced the v9 freeze bit-exactly (28.092/28.092/44.3618) — the baseline is stable; (2) a continuity discriminator proved the band spikes are CHAIN NOISE, not physical resonances: controls at 0.44/0.46/km are continuous to 0.1% at k-offsets of 1e-5/km while crest samples swing 1.4-15x at the same offset — 500x NARROWER than the physical resonance-width floor k/(2Q) = 0.005/km at qP = 50; (3) the mechanism is the depth finite-difference: dC = (Cdn - Cup)/(2*dh) amplifies the near-degenerate band residual-direction noise by 1/(2*dh) — enlarging the stencil collapses the spikes monotonically (0.5295/km: 4.26e6 -> 4.7e-1 of itself across dh 0.5 -> 20 m) while controls are dh-invariant, and the compliance magnitude |C| stays smooth (4.7e-8) while the integrand spikes — the wild factor lives only in the depth-gradient channels; (4) cure gen-1 (adaptive-stencil agreement search, dhAdaptive) collapsed the spikes 5-120x and dropped the series from 28-55 to 2.6-12.3 but stayed non-convergent (spread 3.7; the two-consecutive-agreement exit is fooled by correlated noise); cure gen-2 (Richardson pair D(2h) - D(h), exact cancellation for arm-independent rounding) left the spikes untouched — proving the noise is a DETERMINISTIC (k, z, dh)-joint wild function of the chain, not additive rounding; (5) verdict: the in-chain FD cure family is retired; the degenerate band needs an independent representation (per-layer Schur admittance; the v6 prototype up-leg was stable, down-leg NaN is the named blocker). Production opts.psv stays BLOCKED. v9 (2026-09-09, R3 opening batch) re-measured the full series on the mu*-corrected halfspace admittance (R10 damped cross-check fixed psvEigenvectors traction rows at a measured 1.4% halfspace-convention error): the fullTensor below-floor series changed character from erratic non-monotone collapse (54.2/58.9/21.3/7.3 on the defective admittance) to a CLEAN MONOTONE DIVERGENCE (28.1 -> 44.4 -> 50.2 -> 54.6 at dk 0.002 -> 0.0005) while deviatoric stays converged (spread 1.055 < 1.1) — the crest-band OPEN is re-confirmed on a trustworthy baseline and the full-space anchor still passes (maxResidual 0.062 <= 0.08), so the residue/Schur-admittance cure remains the registered blocker for production opts.psv; v8 (cap-closure batch) executed the registered subdivide-cap study and measured it NEGATIVE (cross-cap fullTensor values disagree without monotone convergence at caps 2/4/6/10/30) - the blocker is the leaky-P crest representation itself, not discretization; v7 (delta-matrix batch) landed the MGS-orthonormalised chain and fixed two real bugs the batch cross-checks exposed: the first-cut triMul triangular product dropped the j > i cross terms (caught by the R2 RK4 anchor at 3.3e-2 BEFORE any freeze; the interim "fullTensor converges at 0.0077" measurement was this bug suppressing the dipole channels and is retracted), and the v6 propagator back-transform used the real muR where the complex mu* is required (undamped paths bit-identical); deviatoric series converge at the production cap at the v6 raw-chain scale; fullTensor stays OPEN on cap-dependent crest resolution; v6 (Rc-inversion batch) found the registered scale-invariant inversion inapplicable (det small by physics) and fixed the v4 expm layer-Q loss (complex moduli, nuOf-exact convention); detector on the surface-source det(Rc) dip scan; branch-point resolution rings; v5 froze qp-default + compliance-ridge detector + window-continuity fix; v1 froze blocked_pending_source_calibration (21.3x hot factor); v2 froze fullspace_anchored_layered_poles_open (source anchor fixed 3 missing/1 wrong-column dipole terms + traction/dipole -1 + razor band-nulling); v3 replaced residues with gamma-resolved windows and found the Bessel-aliasing root cause; v4 closed the root-tracking gap (expm propagator, joint-scalar chain, 2D Newton) but misattributed the remaining series drift to an integrable branch-tail cusp; v5 (branch-cusp batch) measured the actual mechanisms: bounded layered compliance (v4 cusp retired), true cusps only on the fullSpace path (analytic subtraction landed there, references moved to xi-substitution), undamped-P leaky poles on the real axis (qP <- qShear default), a dead det scanner replaced by the compliance-ridge detector, and a window-ring continuity bug fixed',
     history: {
       v1measured: {
         tractionRatio: 0.908, dipoleRatioHotFactor: 21.3,
@@ -247,6 +333,11 @@ function main() {
       v7openItem: 'subdivide-cap dependence of the crest resolution (closed NEGATIVE by the v8 cap study: the cap knob cannot converge the crest band)',
       v8verdict: 'fullspace_anchored_layered_mgs_chain_cap_study_negative_full_tensor_open',
       v8caveat: 'the v8 series and cap-study literals were measured on the real-mu halfspace admittance (pre-R10 fix) — kept as the pre-fix record; the v9 series above is the corrected-kernel baseline',
+      v9verdict: 'fullspace_anchored_layered_mgs_chain_v9_rebased_full_tensor_monotone_open',
+      v9note: 'the v10 batch reproduced the v9 legacy series bit-exactly (28.092/28.092/44.3618 at the clamped/below-floor dks) before measuring any cure — the corrected-kernel baseline is stable across days',
+      v10verdict: 'fullspace_anchored_layered_crest_noise_proven_fd_cures_retired_full_tensor_open',
+      v11adaptiveNote: 'adaptive midpoint refinement (params.adaptiveK tol 0.05 maxLevel 6, landed 2026-09-11) MEASURED on the Schur arm: fullTensor 1434.2/1434.2/794.9 at dk 0.02/0.005/0.002 — still non-converged; brute k-refinement reaches only gamma-scale resolution at prohibitive cost, so the registered cure sharpens to ANALYTIC det-based principal-value subtraction (fit D(k) linear across each compliance null, integrate P/D in closed form)',
+      v10note: 'crest band diagnosed at sample level (continuity discriminator + dh collapse); the in-chain FD cure family (agreement search, Richardson pair) measured and retired; the series numbers 28.092/28.092/44.3618 were re-verified this batch before the Schur arm was measured',
       v4bruteExhibits: { bruteUzStep1p58e_6: 56.53, bruteUzStep0p79e_6: 62.54 },
       note: 'v1/v2 layered numbers were produced by the global-median razor + an aliased grid + an unsound normalization heuristic; v3/v4 layered series ran with qP unset (undamped P -> principal-value leaky poles) and the v4 brute exhibits are plain sums that cannot converge on this config — kept for the record only'
     }

@@ -367,6 +367,93 @@ function psvHalfspaceAdmittance(layer, omega, k, opts) {
   return m2mul(M2, m2inv(M1));
 }
 
+/** Schur-admittance compliance (v10 registered cure, 2026-09-10): the same
+ *  2x2 surface compliance as psvSurfaceCompliance through a completely
+ *  different representation — per-layer admittance stepping instead of the
+ *  long A/W transport to the halfspace.
+ *
+ *  Why: the v10 crest-noise diagnosis proved the leaky-P band spikes are a
+ *  deterministic (k,z,dh)-joint wild function of the A/W chain (sub-material
+ *  width decorrelation; depth-FD 1/(2dh) amplification; both in-chain FD
+ *  cures measured insufficient), so the band needs an independent
+ *  representation. Here the below-source side carries a 2x2 ADMITTANCE
+ *  Y (tau = Y*u) stepped UP from the halfspace (the v6 prototype's stable
+ *  leg; each step is one 2x2 Schur solve — no transport of growing
+ *  exponentials), the above-source side is a jointly-rescaled propagator
+ *  product Q (scale sigma tracked, exactly the A/W chain bookkeeping), and
+ *  the two meet AT the source:
+ *    C = -exp(-sigma) * (Y*Q11 - Q21)^-1
+ *  (derivation: tau(0)=0 => u_s = e^s Q11 u0, tau_s = e^s Q21 u0, Y+ = Q21
+ *  Q11^-1; jump (Y- - Y+)u_s = J; C = u0 per unit J; the Q11^-1 and Y+
+ *  cancel identically — see tests/psv-schur.test.js R1 for the legacy
+ *  cross-check and sign pin). Numerically distinct from the A/W chain:
+ *  the ill-conditioned near-pole combination enters as a SUM (Y*Q11 - Q21)
+ *  inverted ONCE at the source depth, not as residuals transported across
+ *  the whole stack. Wired into production 2026-09-10 behind
+ *  params.schurCompliance (complianceAt dispatcher) after the
+ *  trusted-reference sweep measured the legacy chain O(1) off at deep
+ *  configs; the dk-series verdict lives in
+ *  tools/data/psv-scale-diagnosis.json. */
+function psvSchurCompliance(stack, omega, kInvM, zKm, opts) {
+  var st = prepare(stack, zKm);
+  // ---- up-leg: admittance from the halfspace top to the source depth ----
+  var Y = psvHalfspaceAdmittance(st.layers[st.halfIndex], omega, kInvM, opts);
+  if (!Y) return null;
+  for (var i = st.halfIndex - 1; i >= st.iS; i--) {
+    var Pd = psvPropagator(st.layers[i], omega, kInvM, opts);
+    var P22 = [[Pd[2][2], Pd[2][3]], [Pd[3][2], Pd[3][3]]];
+    var P12 = [[Pd[0][2], Pd[0][3]], [Pd[1][2], Pd[1][3]]];
+    var P11 = [[Pd[0][0], Pd[0][1]], [Pd[1][0], Pd[1][1]]];
+    var P21 = [[Pd[2][0], Pd[2][1]], [Pd[3][0], Pd[3][1]]];
+    var YP12 = m2mul(Y, P12), YP11 = m2mul(Y, P11);
+    var S;
+    try {
+      S = m2inv([[csub(P22[0][0], YP12[0][0]), csub(P22[0][1], YP12[0][1])],
+                 [csub(P22[1][0], YP12[1][0]), csub(P22[1][1], YP12[1][1])]]);
+    } catch (e) { return null; }
+    var rhs = [[csub(YP11[0][0], P21[0][0]), csub(YP11[0][1], P21[0][1])],
+               [csub(YP11[1][0], P21[1][0]), csub(YP11[1][1], P21[1][1])]];
+    Y = m2mul(S, rhs);
+    if (!Y || !isFinite(Y[0][0][0] + Y[0][0][1] + Y[1][1][0] + Y[1][1][1])) return null;
+  }
+  // ---- above-source propagator product with joint scalar scaling --------
+  var Q = [[[1, 0], [0, 0], [0, 0], [0, 0]],
+           [[0, 0], [1, 0], [0, 0], [0, 0]],
+           [[0, 0], [0, 0], [1, 0], [0, 0]],
+           [[0, 0], [0, 0], [0, 0], [1, 0]]];
+  var sigma = 0;
+  for (var i2 = 0; i2 < st.iS; i2++) {
+    Q = m4mul(psvPropagator(st.layers[i2], omega, kInvM, opts), Q);
+    var s = 0;
+    for (var r2 = 0; r2 < 4; r2++) for (var c2 = 0; c2 < 4; c2++) {
+      var v2 = cabs(Q[r2][c2]);
+      if (v2 > s) s = v2;
+    }
+    if (!(s > 0) || !isFinite(s)) return null;
+    for (var r3 = 0; r3 < 4; r3++) for (var c3 = 0; c3 < 4; c3++) Q[r3][c3] = cscale(Q[r3][c3], 1 / s);
+    sigma += Math.log(s);
+  }
+  if (!(sigma > -650) || !(sigma < 650)) return null;
+  var Q11 = [[Q[0][0], Q[0][1]], [Q[1][0], Q[1][1]]];
+  var Q21 = [[Q[2][0], Q[2][1]], [Q[3][0], Q[3][1]]];
+  // M = Y*Q11 - Q21 (the product terms ADD — the v11-draft bug the
+  // in-function recomputation cross-check caught: the hand-rolled product
+  // had written csub for every term)
+  var M = m2mul(Y, Q11);
+  M = [[csub(M[0][0], Q21[0][0]), csub(M[0][1], Q21[0][1])],
+       [csub(M[1][0], Q21[1][0]), csub(M[1][1], Q21[1][1])]];
+  var detM = csub(cmul(M[0][0], M[1][1]), cmul(M[0][1], M[1][0]));
+  var C;
+  try { C = m2inv(M); } catch (e) { return opts && opts._wantDet ? { C: null, detM: detM } : null; }
+  var fac = Math.exp(-sigma);
+  var out = [[cscale(C[0][0], fac), cscale(C[0][1], fac)], [cscale(C[1][0], fac), cscale(C[1][1], fac)]];
+  for (var i3 = 0; i3 < 2; i3++) for (var j3 = 0; j3 < 2; j3++) {
+    if (!isFinite(out[i3][j3][0]) || !isFinite(out[i3][j3][1])) return opts && opts._wantDet ? { C: out, detM: detM } : null;
+  }
+  if (opts && opts._wantDet) return { C: out, detM: detM };
+  return out;
+}
+
 /** Stack defaulting vp (soft-sediment ramp below 1 km/s, Poisson solid
  *  above; overridable per layer). */
 function withVp(stack) {
@@ -913,6 +1000,21 @@ function tensorTerms(params) {
   };
 }
 
+/** Compliance evaluator dispatch (2026-09-10 adjudication batch): the
+ *  representation is a per-run choice via params.schurCompliance. Measured
+ *  (crest-referee-deep-probe / crest-halfspace-closed, frozen 2026-09-10):
+ *  at HALF@1.2Hz-zs73-q50 the legacy A/W chain is O(1) off the trusted
+ *  references {RK4-referee extrapolation, eigendecomposition transport,
+ *  closed-form halfspace BVP, Schur} — which agree pairwise to 4e-3 — and
+ *  cap-sensitive (_subCap 15/45 moves it 0.4-1.0). The legacy path stays
+ *  the default: every frozen anchor (R1-R11, scorecards) was measured
+ *  through it, and at shallow/smooth configs it agrees with the references
+ *  to 1.5e-4. */
+function complianceAt(stack, omega, kInvM, zKm, params) {
+  if (params.schurCompliance) return psvSchurCompliance(stack, omega, kInvM, zKm, params);
+  return psvSurfaceCompliance(stack, omega, kInvM, zKm, params);
+}
+
 /** Compliance triple (C at zs, Cup/Cdn at zs -/+ dhM) with the per-call
  *  cache contract of the original inline loop (key omega|zs|dhM|k).
  *  fullSpace mode: params.fullSpace swaps the layered free-surface solve
@@ -934,14 +1036,81 @@ function complianceTriple(stack, omega, kInvM, params) {
     };
     return { C: Cof(h0), Cup: Cof(h0 + dhM), Cdn: Cof(h0 - dhM) };
   }
+  // ---- adaptive depth stencil (v10 crest cure, opt-in params.dhAdaptive) ----
+  // The dipole channels consume dC = (Cdn - Cup)/(2*dh). On the tokyo leaky-P
+  // band (~0.50-0.55/km at 0.5 Hz, above-vs_half near-degenerate residuals)
+  // the dh = 0.5 m FD amplifies the chain's residual-direction rounding noise
+  // by 1/(2 dh): measured (tools/broadband/crest-dh-probe.js, 2026-09-10) the
+  // integrand decorrelates at 1e-5/km — 500x NARROWER than the physical
+  // resonance-width floor k/(2Q) = 0.005/km at qP = 50 — and the spikes
+  // collapse MONOTONICALLY under dh 0.5 -> 20 m (0.5295/km: 4.3e6 -> 4.7e4)
+  // while smooth-band controls are dh-invariant to 1e-3. FD truncation for
+  // km-scale depth fields at dh <= 32 m is ~(dh/km)^2-relative, negligible
+  // against the 0.25 noise tolerance. So: double the stencil until the FD
+  // columns agree (or the solve keeps failing — a small-stencil failure
+  // moves up, a large-stencil failure keeps the last good ent).
+  if (params.dhAdaptive) {
+    // Richardson-pair depth derivative (v10 crest cure, second generation).
+    // The first-generation agreement-search cure collapsed the spikes 5-120x
+    // but its two-consecutive-agreement exit could be fooled by CORRELATED
+    // chain noise (the residual direction rotates slowly with dh, so the
+    // dh and 2dh estimates share noise) and the dk series stayed
+    // non-convergent (measured 9.5/12.3/8.0/2.6, tools/data/crest-series-run.json).
+    // This version stops searching: dC_R = 2*dC(2h) - dC(h). Chain rounding
+    // noise enters the derivative estimate as a/h; the combination cancels
+    // that term EXACTLY (2*(S + a/2h) - (S + a/h) = S), leaving truncation
+    // 3*c*h^2 (negligible for km-scale depth fields). Escalate the base
+    // stencil only when a solve outright fails. The synthetic Cup/Cdn pair
+    // reproduces dC_R through the standard (Cdn - Cup)/(2*dhUsed) path.
+    var NULL_ENT = { C: null, Cup: null, Cdn: null };
+    var fdOk = function (e) {
+      return !!(e && e.C && e.Cup && e.Cdn);
+    };
+    var solveAtR = function (dh) {
+      return {
+        C: complianceAt(stack, omega, kInvM, zs, params),
+        Cup: complianceAt(stack, omega, kInvM, zs - dh / 1000, params),
+        Cdn: complianceAt(stack, omega, kInvM, zs + dh / 1000, params)
+      };
+    };
+    var h = dhM, e1 = solveAtR(h), e2 = solveAtR(2 * h);
+    var capM = params.dhAdaptiveCapM || 16;
+    for (var it = 0; it < 5; it++) {
+      var ok1 = fdOk(e1), ok2 = fdOk(e2);
+      if (ok1 && ok2) break;
+      if (!ok1 && !ok2) return NULL_ENT;
+      // one arm failed: shift the pair up (the surviving stencil becomes the
+      // new fine arm) and solve one new coarse arm
+      if (!ok1) e1 = e2;
+      h *= 2;
+      if (h > capM) return NULL_ENT;
+      e2 = solveAtR(2 * h);
+    }
+    if (!(h <= capM)) return NULL_ENT;
+    if (!fdOk(e1) || !fdOk(e2)) return NULL_ENT; // loop-exhaustion arms may be unchecked
+    // dC_R = 2*dC(2h) - dC(h); through the (Cdn - Cup)/(2*dhUsed) path with
+    // dhUsed = h this needs CdnS - CupS = 2h*(2*dC(2h) - dC(h))
+    //            = D(2h) - D(h)   [D = the raw Cdn - Cup difference:
+    //   signal grows with the arm, the rounding noise N is arm-independent,
+    //   so D(2h) - D(h) = 2h*S exactly — N cancels]
+    var syn = function (cn1, cp1, cn2, cp2) {
+      return csub(csub(cn2, cp2), csub(cn1, cp1));
+    };
+    var CupS = [[0, 0], [0, 0]], CdnS = [[0, 0], [0, 0]];
+    for (var ia = 0; ia < 2; ia++) for (var ja = 0; ja < 2; ja++) {
+      CdnS[ia][ja] = syn(e1.Cdn[ia][ja], e1.Cup[ia][ja], e2.Cdn[ia][ja], e2.Cup[ia][ja]);
+      CupS[ia][ja] = [0, 0]; // symmetric stencil: only the difference matters
+    }
+    return { C: e1.C, Cup: CupS, Cdn: CdnS, dhUsed: h };
+  }
   var zUp = zs - dhM / 1000, zDn = zs + dhM / 1000;
   var zsKey = omega.toFixed(10) + '|' + zs + '|' + dhM + '|';
   var cache = params.cache;
   var solve = function () {
     return {
-      C: psvSurfaceCompliance(stack, omega, kInvM, zs, params),
-      Cup: psvSurfaceCompliance(stack, omega, kInvM, zUp, params),
-      Cdn: psvSurfaceCompliance(stack, omega, kInvM, zDn, params)
+      C: complianceAt(stack, omega, kInvM, zs, params),
+      Cup: complianceAt(stack, omega, kInvM, zUp, params),
+      Cdn: complianceAt(stack, omega, kInvM, zDn, params)
     };
   };
   if (!cache) return solve();
@@ -1021,7 +1190,11 @@ function psvIntegrandAtK(stack, omega, kInvM, params) {
   }
   var ent = complianceTriple(stack, omega, kInvM, params);
   if (!ent.C || !ent.Cup || !ent.Cdn) return null;
-  var t = integrandTerms(ent, kInvM, params.rKm * 1000, tensorTerms(params));
+  var T = tensorTerms(params);
+  // adaptive depth stencil (v10): the FD divisor must match the stencil the
+  // compliance triple was actually evaluated with
+  if (ent.dhUsed) T.dhM = ent.dhUsed;
+  var t = integrandTerms(ent, kInvM, params.rKm * 1000, T);
   var kw = kInvM / (4 * Math.PI * Math.PI);
   return { ur: cscale(t.ur, kw), uz: cscale(t.uz, kw), ut: cscale(t.ut, kw) };
 }
@@ -1102,7 +1275,12 @@ function psvMomentSpectrumAtFrequency(stack, omega, params) {
   // it samples the J oscillation 1.6 times per period and ALIASES it (the
   // 2026-09-05 tokyo grid-series instability root cause — the SH kernel
   // carries the same exposure at long range). Range-adaptive floor wins.
-  var dkAlias = (2 * Math.PI / (params.rKm * 1000)) / 10;
+  // psvGuardDiv (2026-09-11, psv-alias ladder): the divisor is a knob like
+  // core's SH_GUARD_DIV — the div-10 default is byte-compatible; the
+  // ladder measurement (tools/broadband/psv-alias-ladder.js) decides the
+  // shipped value.
+  var guardDiv = (params && params.psvGuardDiv) || 10;
+  var dkAlias = (2 * Math.PI / (params.rKm * 1000)) / guardDiv;
   dk = Math.min(dk, dkAlias);
   function gOf(k) { return psvIntegrandAtK(stack, omega, k, params); }
   // ---- modal poles inside the band (location only) -----------------------
@@ -1332,6 +1510,56 @@ function psvMomentSpectrumAtFrequency(stack, omega, params) {
     }
   }
   var ur = [0, 0], uz = [0, 0], ut = [0, 0];
+  // ---- adaptive midpoint refinement (params.adaptiveK, 2026-09-11) --------
+  // The leaky-P band carries interface-mode resonances far narrower than
+  // the pole detector's floor (measured: |C11| swings 8-200% at 1e-5/km
+  // offsets inside 0.50-0.53/km while staying smooth at 5e-3/km sampling),
+  // so a fixed lattice bridges them with grid-dependent weight — the
+  // measured Schur-arm dk-series non-convergence. Passes: insert the
+  // midpoint of any interval whose midpoint value disagrees with the
+  // trapezoid interpolant by more than tol x local scale; recurse. Opt-in;
+  // undefined = byte-compatible legacy lattice.
+  if (params.adaptiveK) {
+    var akTol = params.adaptiveK.tol || 0.05;
+    var akMax = params.adaptiveK.maxLevel || 6;
+    var akSeen = {};
+    for (var ia = 0; ia < pts.length; ia++) akSeen[pts[ia].k.toPrecision(14)] = true;
+    for (var lvl = 0; lvl < akMax; lvl++) {
+      var out2 = [pts[0]];
+      var inserted = 0;
+      for (var ib2 = 0; ib2 < pts.length - 1; ib2++) {
+        var pL = pts[ib2], pR = pts[ib2 + 1];
+        var km = 0.5 * (pL.k + pR.k);
+        var doRef = false, gm = null;
+        if (pL.g && pR.g && !akSeen[km.toPrecision(14)]) {
+          gm = gOf(km);
+          if (gm) {
+            var gL = [pL.g.ur, pL.g.uz, pL.g.ut];
+            var gR = [pR.g.ur, pR.g.uz, pR.g.ut];
+            var gM = [gm.ur, gm.uz, gm.ut];
+            var scale = 0;
+            for (var ic = 0; ic < 3; ic++) {
+              scale = Math.max(scale, cabs(gL[ic]), cabs(gR[ic]), cabs(gM[ic]));
+            }
+            // relative curvature: |gm - (gL+gR)/2| / (|gL|+|gR|+|gm|)
+            var num = 0;
+            for (var ie = 0; ie < 3; ie++) {
+              num = Math.max(num, cabs(csub(gM[ie], cscale(cadd(gL[ie], gR[ie]), 0.5))));
+            }
+            doRef = scale > 0 && num > akTol * scale;
+          }
+        }
+        if (doRef) {
+          out2.push({ k: km, g: gm });
+          akSeen[km.toPrecision(14)] = true;
+          inserted++;
+        }
+        out2.push(pR);
+      }
+      pts = out2;
+      if (!inserted) break;
+    }
+  }
   for (var i5 = 0; i5 < pts.length; i5++) {
     var p = pts[i5];
     if (!p.g) continue;
@@ -1361,5 +1589,6 @@ module.exports = {
   prepare: prepare, withVp: withVp,
   rotateFullTensor: rotateFullTensor, psvMomentSpectrumAtFrequency: psvMomentSpectrumAtFrequency,
   psvIntegrandAtK: psvIntegrandAtK, psvModalPoles: psvModalPoles,
-  psvBranchPoints: psvBranchPoints, psvBranchModelFit: psvBranchModelFit
+  psvBranchPoints: psvBranchPoints, psvBranchModelFit: psvBranchModelFit,
+  psvSchurCompliance: psvSchurCompliance, complianceAt: complianceAt
 };

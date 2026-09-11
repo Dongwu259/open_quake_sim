@@ -1,0 +1,98 @@
+{
+ "dhAdaptive": {
+  "dk0.02": {
+   "deviatoricUr": 0.0137572,
+   "fullTensorUr": 9.54486,
+   "fullTensorUz": 0.444598,
+   "minutes": 2.5
+  },
+  "dk0.005": {
+   "deviatoricUr": 0.0137572,
+   "fullTensorUr": 9.54486,
+   "fullTensorUz": 0.444598,
+   "minutes": 1.7
+  },
+  "dk0.002": {
+   "deviatoricUr": 0.0134693,
+   "fullTensorUr": 12.2814,
+   "fullTensorUz": 1.38668,
+   "minutes": 2.1
+  },
+  "dk0.001": {
+   "deviatoricUr": 0.0139232,
+   "fullTensorUr": 7.95338,
+   "fullTensorUz": 1.47775,
+   "minutes": 3.2
+  },
+  "dk0.0005": {
+   "deviatoricUr": 0.0142253,
+   "fullTensorUr": 2.6201,
+   "fullTensorUz": 1.14837,
+   "minutes": 5.2
+  }
+ },
+ "legacy": {
+  "dk0.02": {
+   "deviatoricUr": 0.013794,
+   "fullTensorUr": 28.092,
+   "fullTensorUz": 11.8671,
+   "minutes": 0.5
+  },
+  "dk0.005": {
+   "deviatoricUr": 0.013794,
+   "fullTensorUr": 28.092,
+   "fullTensorUz": 11.8671,
+   "minutes": 0.5
+  },
+  "dk0.002": {
+   "deviatoricUr": 0.0135503,
+   "fullTensorUr": 44.3618,
+   "fullTensorUz": 7.16896,
+   "minutes": 0.6
+  },
+  "dk0.001": {
+   "deviatoricUr": 0.014,
+   "fullTensorUr": 50.1518,
+   "fullTensorUz": 5.01687,
+   "minutes": 0.9
+  },
+  "dk0.0005": {
+   "deviatoricUr": 0.0142952,
+   "fullTensorUr": 54.6374,
+   "fullTensorUz": 6.09141,
+   "minutes": 1.6
+  }
+ },
+ "schur": {
+  "dk0.02": {
+   "deviatoricUr": 0.0177536,
+   "fullTensorUr": 194.41,
+   "fullTensorUz": 205.102,
+   "minutes": 1.1
+  },
+  "dk0.005": {
+   "deviatoricUr": 0.0177536,
+   "fullTensorUr": 194.41,
+   "fullTensorUz": 205.102,
+   "minutes": 0.3
+  },
+  "dk0.002": {
+   "deviatoricUr": 0.0155335,
+   "fullTensorUr": 523.046,
+   "fullTensorUz": 238.771,
+   "minutes": 0.4
+  },
+  "dk0.001": {
+   "deviatoricUr": 0.00826833,
+   "fullTensorUr": 679.982,
+   "fullTensorUz": 138.702,
+   "minutes": 0.6
+  },
+  "dk0.0005": {
+   "deviatoricUr": 0.00891648,
+   "fullTensorUr": 540.935,
+   "fullTensorUz": 58.6276,
+   "minutes": 1
+  }
+ }
+}

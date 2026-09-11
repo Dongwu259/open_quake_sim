@@ -86,6 +86,26 @@ const PRE_REG_V3 = {
   }
 };
 
+// ---- v4 P-SV activation pre-registration (written 2026-09-11; the RUN
+//      stays withdrawn until its named preconditions land — same discipline
+//      as the 2026-09-05 withdrawal, now with the conditions explicit) ----
+const PRE_REG_V4 = {
+  batch: 'CS pipeline v4: P-SV horizontal-block activation (pre-registered 2026-09-11, BEFORE any v4 run; run WITHDRAWN pending preconditions)',
+  priorHistory: 'the first v4 draft (2026-09-05) was withdrawn before its run because the T5-T7 dipole channels had no absolute calibration (the v1 21.3x reading was later retired as a number on unstable quantities, but the calibration GAP is real); since then the compliance representation was adjudicated (2026-09-10: Schur validated 1e-11..4e-3 vs three trusted references, legacy chain O(1) off) and production-wired, but the tokyo deep-source dk series still does not converge (band quadrature OPEN, psv-scale-diagnosis v11)',
+  arms: {
+    a_shOnly: 'the shipped v3 pipeline, unchanged (SH-only LF; the baseline every gate reads today)',
+    b_psvHorizontal: 'opts.psv on with the P-SV block restricted to the HORIZONTAL traction channels (T1/T2 blocks: C00/C11/C01 compliance entries); the depth-FD dipole channels (Mzz/Mxz/Myz: T5-T7) are EXCLUDED — they carry both the uncalibrated absolute scale and the crest-band quadrature OPEN',
+    scoring: 'dual-arm gm horizontal scoring per realization; gate thresholds UNCHANGED from v3 (anchorAbsLog10 0.01, bandAbsMax 0.30/0.25/0.25, containment 0.8, lpImprovement 0.05, pgaNonRegression 0.05)'
+  },
+  preconditionsToRun: [
+    'P1 (horizontal absolute anchor): the layered P-SV horizontal block absolute scale anchored against an independent reference the way B1 anchored SH (shake91); the measured 0.908 T1/T2-vs-SH-convention ratio is a CONVENTION check, not an absolute anchor',
+    'P2 (band quadrature at the scored sites): the leaky-P crest-band k-integration must be pole-resolved for any case whose deaggregation bins put the source below ~40 km on a column with an evanescent mantle leg (tokyo-class); measured state: Schur-arm dk series non-convergent (psv-scale-diagnosis v11) — shallow-crustal-only bins are unaffected and may run, but the v4 gate set includes Nankai/intraslab bins that are NOT shallow-only',
+    'P3 (divisor decision): the P-SV alias-guard divisor lands from the measured ladder (tools/broadband/psv-alias-ladder.js) instead of the hardcoded 10',
+  ],
+  whyNotRunNow: 'P2 is open (v11 series non-convergent) and P1 has never been measured; running now would repeat the 2026-09-05 error class — gate numbers on channels whose scale is not anchored',
+  whatWouldChangeThis: 'P1: one absolute-anchor batch; P2: the registered pole-aware quadrature landing with a CONVERGED series (psv-scale-diagnosis verdict upgrade); P3: the ladder freeze. The moment all three hold, this gate runs with NO further decisions'
+};
+
 const ZHAO_KEY = {
   0.1: '0.10', 0.15: '0.15', 0.2: '0.20', 0.3: '0.30', 0.4: '0.40', 0.5: '0.50',
   0.7: '0.70', 1.0: '1.00', 1.5: '1.50', 2.0: '2.00', 3.0: '3.00', 4.0: '4.00', 5.0: '5.00'

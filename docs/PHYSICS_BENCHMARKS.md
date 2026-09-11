@@ -1,6 +1,6 @@
 # v5.2 物理参考与数值基准
 
-更新日期：2026-08-17  
+更新日期：2026-08-24  
 参考后端：`quake-sim-float64-cpu-reference-v1`（IEEE-754 binary64）
 
 ## 可复现入口
@@ -32,6 +32,9 @@ npm run validate:physics
 | 开放边界 | 向外传播高斯脉冲 | 残留 `1.163e-4 m`；壁面反射 `0.2696 m` | 通过 |
 | 质量守恒 | 401 网格封闭溃坝 | 相对残差 `8.04e-9` | 通过 |
 | DC3D 远场聚合 | Mw9、200×200 网格、450 km 切换 | RMS `0.00125 m`，相对 L2 `0.413%`，最大误差 `0.0262 m` | 通过 |
+| **GMPE：Zhao 2006 跨实现数值断言** | 2,400 网格点（3 构造类 × PGA/SA1.0s × M5.5-8.5 × R10-250 km × 深 12/35/80 km × Vs30 5 档 × rake 0/90）对照 openquake.hazardlib 标量转录参考 | 系数表逐项相等；最大 \|ΔlnA\| `2.7e-15`；τ/φ 与 hazardlib sigma/tauC 逐类相等 | 通过（R0-3，`tests/gmpe-benchmarks.test.js`） |
+| **GMPE：Kanno 2006 冻结回归锁** | 浅/深源 PGA/PGV 8 个代表点 | 与 2026-08-24 冻结值一致（1e-9 相对容差） | 通过（回归锁，非独立参考——开源界无 Kanno2006 独立实现） |
+| **标定 LOEO 留一重拟合（R0-4）** | modelBias 层逐事件剔除→重拟合→held-out 强度 RMS（zhao2006 4 事件 1,925 站 / si-midorikawa 2 事件 701 站） | zhao2006 held-out 0.931 vs 未修正 0.899；si-midorikawa 0.78 vs 0.631 —— **两模型 held-out 均劣于不修正** | ⚠️ 反向证据落盘（`tools/data/model-bias-loeo-report.json`）：现行逐距离档修正不能泛化到未见事件，in-sample 改善无 out-of-sample 支撑 |
 
 ## GMPE：Zhao et al. (2006) 忠实实现（2026-08-17）
 
@@ -45,7 +48,34 @@ npm run validate:physics
 - σ 拆分为 per-class τ/φ（0.303-0.321 / 0.604，ln 单位）；
 - PGV 无论文模型，用论文 SA(1.0 s) 行经伪速度换算 `PGV≈SA/(2π)`（声明为 ±25% 工程近似）。
 
-**对冻结 K-NET/KiK-net 站点包（6 事件 2,626 站）的原始（无补丁）残差**：真 Rrup（捆绑有限断层角点）总体 PGA bias **+0.11**（目标 <0.15，旧实现修补丁前 +0.58）；点源震中距约定 −0.25，`<100 km 桶无偏（−0.01~−0.03）`，>100 km 偏差为点源距离对巨型破裂的固有量（重拟 modelBias 后总体 iBias 0.000 / iRms 0.739）。残差结构与 mega-thrust 外推的已知行为一致（tohoku/tokachi/hyuganada 过预测 0.36-0.45、fukushima2022 slab 欠预测 0.53），见 `tools/probe-zhao2006-faithful.js`。19 事件 JMA 独立集（2026-08-23 重测，zhao/kanno 原生 Vs30 场地项对齐后）：n=2626 bias **+0.203**、RMS **0.782**（发布门禁通过）。
+**对冻结 K-NET/KiK-net 站点包（6 事件 2,626 站）的原始（无补丁）残差**：真 Rrup（捆绑有限断层角点）总体 PGA bias **+0.11**（目标 <0.15，旧实现修补丁前 +0.58）；点源震中距约定 −0.25，`<100 km 桶无偏（−0.01~−0.03）`，>100 km 偏差为点源距离对巨型破裂的固有量（重拟 modelBias 后总体 iBias 0.000 / iRms 0.739）。残差结构与 mega-thrust 外推的已知行为一致（tohoku/tokachi/hyuganada 过预测 0.36-0.45、fukushima2022 slab 欠预测 0.53），见 `tools/probe-zhao2006-faithful.js`。19 事件 JMA 独立集：bias +0.199→**+0.043**，RMS 0.724→0.776（门禁通过）。
+
+## GMPE 数值基准：hazardlib 交叉断言（R0-3，2026-08-24）
+
+`tests/gmpe-benchmarks.test.js` 将 `Physics.zhao2006LnA` 与 `tools/gen-gmpe-fixtures.py` 生成的冻结参考逐点比对。参考实现是 **openquake.hazardlib 官方 `zhao_2006.py` 的标量转录**（gem/oq-engine master 经 jsDelivr 获取，sha256 `3322dd09…c88ec9`，完整哈希与来源记录在 `tools/data/gmpe-fixtures-zhao2006.json`）——与 physics.js 相互独立，因此同时锁定系数转录和公式结构（Eq.(1) p.901 + Eq.(5) p.909：a·M + b·R − ln(R+c·e^(dM)) + [h≥15]·e·(h−15) + FR(rake 45°-135°, 仅地壳源) + 场地档 + 类别二次项；slab 另有 SS + SSL·lnR 与 PS·(M−6.5) 线性项）。三项断言：
+
+1. **系数表逐项相等**——hazardlib 转录值同时内嵌在测试与 fixture 中，两侧都被校验（防止 fixture 被篡改后静默放行错误系数）；
+2. **2,400 网格点中位数**——最大 |ΔlnA| 2.7e-15（浮点噪声级），容差 1e-9；
+3. **σ 拆分**——`ZHAO2006_SIGMA`（log10 存储）×ln10 后与 hazardlib 的 phi=sigma（共享 0.604）、tau（逐类 0.303/0.308/0.321）相等。
+
+Kanno 2006 无开源独立实现，采用 8 点冻结回归锁（ PGA/PGV × 浅/深源），属防漂移措施而非外部验证。PGV 的 SA(1.0)/2π 伪速度换算是本仓库的工程近似（±25%），不在 hazardlib 断言范围内。
+
+再生成方式：`python tools/gen-gmpe-fixtures.py`（纯 stdlib；若更新 hazardlib 转录源，需同步更新脚本内嵌系数表、sha256 与测试内嵌值）。沙箱环境 pip 安装 openquake.hazardlib 不可用时，此转录路线即替代方案。
+
+### 标定泛化性（LOEO，R0-4，2026-08-24）
+
+`node tools/scorecard-strong-motion.js --loeo-model-bias` 与 `node tools/calibrate-gmpe.js --loeo` 对两层标定做留一事件重拟合：每折用其余事件重拟合修正（MIN_EVENTS/距离档规则原样复用），给留出事件打分。**结果（冻结 6 事件）**：modelBias 层两个模型的 held-out 强度 RMS 均高于完全不修正（zhao2006 0.899→0.931、si-midorikawa 0.631→0.780；最差折 hyuganada2024 0.663→1.379）——修正把逐事件特性当成了系统偏差。结论：现行 modelBias 只应视为对这 6 个冻结事件的经验对齐，不能宣称改善预测；在冻结事件扩容（或引入收缩正则）之前，v5.6 R1 的逻辑树定权必须避免同一条路过拟合路径（LLH 权重同样只能在小样本上拟合）。录像层（震级分箱 deltaI）当前无可打分目录真值事件，报告如实记录；其 2 事件折叠门本身阻止了过拟合。
+
+## R1 不确定性量化基准（2026-08-24）
+
+**标定数据扩容**：冻结强震事件 6→13（+7 个 crustal 事件，JMA 震中取自 observed.json；kobe1995/tottori2016 站数不足、kushiro1993 无 stationlist、fukushima2021 属 JMA 独立盲测划分刻意不用），4,887 站。si-midorikawa modelBias 重拟合（9 事件）LOEO 通过（held-out 0.635 vs 未修正 0.637）；kanno2006 重拟合（13 事件）LOEO 通过（0.772 vs 0.807）；zhao2006 维持 4 事件，LOEO 反向证据保留在其 note。
+
+| 模块 | 基准 | 结果 | 验收 |
+|---|---|---|---|
+| τ/φ 分解 | ANOVA 矩法，距离档去趋势（`tools/data/sigma-components-report.json`） | si-mid τ0.256/φ0.654、kanno τ0.551/φ0.771（lnPGA）；zhao 论文值保留 | 通过（shakemap 聚合分量约定使 φ 略膨胀，已注明） |
+| LLH 逻辑树 | Scherbaum LLH + Delavaud 权重（`tools/data/logic-tree-weights.json`） | crustal 0.367/0.338/0.296，interplate 0.372/0.357/0.271，intraslab 单事件 0.398/0.352/0.250 | 通过（无退化权重；slab 单事件如实标注） |
+| 空间相关 | JB2009 论文式 ρ=exp(−3h/b) + 实测半变异函数 217,859 对 | 实测范围 lnPGA 94 km / intensity 72.5 km（2-3× 论文 Case1：本系统平滑失配结构残留） | 通过（实测值入引擎，论文式保留参考；场相关形状测试 0.50 vs 0.47） |
+| MC 集合 | 种子确定性 + 循环嵌入场；冻结 13 事件 1,633 站 × 120 成员 | **68% 覆盖 0.696、80% 覆盖 0.811**；79 ms/100 成员×200 站 | ✅ 预登记验收（±5pp） |
 
 ## 适用范围（2026-08-17 修订）
 
@@ -82,3 +112,41 @@ npm run validate:physics
 - CFL 严格贴限（0.150/0.15）；生产 0.15°+0.025° 组合验证 + 健康运行 60 s。
 
 **scorecard A/B**（`--nested=auto` vs `--nested=off`，3600 s）：预报区命中率 **43.8%→50.0%**（warning 行 2→3 命中），误报 0 不变；沿岸峰值基本不变（ofunato 2.66→2.68 m 等——近场由细网格主导，符合预期）；逐事件耗时 1.6–2.7×（`_stepOnce` 探测去重后）。渲染端快照改为绝对经纬度锚定（顺带修复区域网格图层错位 bug）。
+
+## R6 动力学破裂求解器(v6.0,2026-08-26)
+
+`tools/dynamic-rupture/`(core.js 求解器 + configs.js 实验配置 + run-experiment.js 运行器 + export-finite-fault.js 回导导出器)。2D 速度-应力交错网格 FD + 分裂节点牵引(TSN)线性滑移弱化自发破裂;SH(反平面,mode III)与 P-SV(面内,mode II)两模式;扰动松弛型 Cerjan 海绵(保持环境场,不虚假弛豫静态解)。SH 模式下垂直走滑断层的水平自由面用**精确镜像**(uy 偶对称)表示。
+
+**已验证(解析锚,`tests/dynamic-rupture.test.js` A1–A8 + 报告 tripwire A9–A10)**:
+- 辐射阻尼 Z(dx)→μ/(2cs):dx=200→12.5 m 单调收敛,|rel| 2.3%→0.03%(SH),−1.0%(dx=50,PSV)——断层-介质耦合的时域精确性;
+- 静态位错核:高斯滑移斑 ΔT 在 5 个断层位置 vs 解析 PV 积分一致(≤13%,含 PV 积分自身离散化);
+- 离散能量闭合:无断层纯弹性波 350 步漂移 <0.5%(两模式);平面应变能量密度公式 p²/(2(λ+μ)) 修正后成立;
+- 自发破裂(SH):左右对称至 1e-6(浮点放大下限)、传播期 T=τd 一致性 ±1.5 MPa、v_front=0.68–0.75·cs(dx=100/50)、中心滑移分辨率收敛 5%(3.40/3.24 m);
+- SCEC TPV5 官方参数反平面约化(TPV5-AP,半空间镜像):成核成功、双向传播 v≈0.5·cs、10 站 0.1 s 采样序列冻结于 `tools/data/dynamic-rupture-report.json`;
+- 回导:`export-finite-fault.js` → `FiniteFault.parse`(quake-sim-finite-fault-v1)round-trip,矩一致 <2%,`Physics.sourceBudget` 诊断零旗标。
+
+**实现要点(踩过的坑,复现别再踩)**:
+- TSN 分支必须用**运动学状态机**:屈服判据只允许 locked→sliding 单向转换;滑动节点只有在 V 过零时重新锁定。若按 |Tlock|≤强度 随时重锁,慢滑段被错误清零,产生 dx 依赖的 stop-go 颤振与伪成核停滞(2026-08-26 实测定位);
+- 测速站必须取**震源同侧**(跨两侧的 |Δz|/Δt 会 2× 虚高——首版报告 3470>cs 的荒谬值由此而来,被 tripwire 当场拦截);
+- 2D 滑移弱化自发破裂的最终滑移相对静态裂纹解有**动态过冲**(低 S、大占比成核补丁时可达 2–4×),过冲量由动力学选择、静态许可集内任意锁定态都是合法终态——"终态=静态椭圆"不是有效测试锚(已从验收中移除,以自收敛替代)。
+
+**诚实边界(不声称的能力)**:
+1. **PSV 面内 Burridge–Andrews 超剪切转换阈值未经校准**:实测 S=2.0 时前导 P 波在断层前方抬高 σxz ~12–14 MPa,使转换提前于 Zheng & Rice (1998) 经典估计(报告 psvSpont 段);dx=50 依旧。原因未定(物理或离散化),官方 SCEC 参考数据(登录墙后,`docs/CVWS-UPLOAD.md` 用户运行手册)是裁决依据。在此之前**不做任何超剪切阈值门禁**;
+2. 倾斜断层(TPV10/11-2D 的 60° 正断层类)与 P-SV 自由面**未实现**(需要浸入式分裂节点或曲线网格,ROADMAP 6.9 记录);
+3. TPV5-AP 是**非官方 2D 约化**:官方 TPV5 为 3D,其沿走向应力补丁(±7.5 km 的 78/62 MPa 块)在 (法向,深度) 平面内不可表示,已从配置中如实排除;站点序列与 3D 官方参考解只做定性对比(手册第 3 步);
+4. Kostrov 自相似裂纹解析解**未**用作锚(公式无法从记忆可靠复原,拒绝半记忆公式入回归——如需,按 Freund 1990 教材逐字转录后再加)。
+
+## 场地反应外部基准:SHAKE 谱系两级阶梯(2026-08-27)
+
+**第一级 — 线弹性(SHAKE-91/Itasca, v5.7 收尾已冻结)**:Itasca FLAC3D 文档公开的 3 层线弹性算例,解析 3 Hz 输入 × Thomson–Haskell 传递 → 地表峰值 **0.160 g vs 发表 SHAKE-91 0.156 / FLAC2D 0.160 g**(`tools/data/shake91-benchmark-case.json` + `tests/shake91-benchmark.test.js`,预登记区间 [0.140, 0.175])。
+
+**第二级 — 十层非线性等效线性(EERA 手册算例, 2026-08-27)**:经典 150 英尺 SHAKE-91 示例剖面,以 EERA 手册(SHAKE 谱系免费后继,Bardet/Ichii/Lin 2000)完整数值算例运行——"Diam @ 0.1 g":
+
+- **输入**:DIAM.ACC(1989 Loma Prieta Diamond Heights 台站 H1_90 分量;2000 点 @ 0.02 s,原始峰值 0.112895 g,缩放至 0.1 g)。NISEE 的 SHAKE-91 软件下载需登录(软件目录 500),记录取自 EERA 官方发行包(孟菲斯大学 ce.memphis.edu,免费);同一剖面亦为 Itasca FLAC3D vs SHAKE-91 非线性验证页所载。
+- **剖面**:16 子层 + 弹性半空间(Vs 1219.2 m/s,出露输入约定),材料曲线 = Seed & Sun (1989) 黏土上限 / Seed & Idriss (1970) 砂上限 + Idriss (1990) 阻尼(工作簿逐值冻结)。
+- **发表锚点**:地表出露峰值 **0.190411 g @ 11.28 s**;17 行收敛末态(逐子层应变/G-Gmax/阻尼);基期 0.478723 s。
+- **方法对齐**:为跑对算给 `Physics.siteResponse1D` 增加逐层曲线表覆盖(`opts.layerCurves`,log10 应变分段线性插值,阻尼保留独立应变栅格 3.16% 终端),并新增 `Physics.shTransferComplex`(同一 `_shPropagate` 传播器,保相位)——SHAKE 语义的末次卷积用**复**传递函数(正频率乘 A、共轭 bin 乘 A*;只乘 |A| 会 +17%,丢共轭会 −41%,两者都是实现陷阱)。
+- **结果**:我们的等效线性地表峰值 **0.1803 g @ 11.30 s = 发表值的 −5.3%,峰值时刻差 0.02 s**;1 g 输入放大系数 1.803→1.482(非线性去放大趋势与 FLAC3D-SHAKE 发表行为一致)。预登记 ±15% 区间 [0.162, 0.219] 断言入回归(`tests/deepsoil-benchmark.test.js`),另设冻结结果漂移绊线(引擎改动使基准偏移 >0.5% 即报警)。
+- **已知缺口(如实)**:生产引擎的单频应变代理高估薄表子层应变(第 1 子层 25×,深层 ±25% 以内)——表层过软化但整柱共振由全柱设定,地表峰仍 −5.3% 吻合;完整频域逐层应变时程(SHAKE 的真应变求值)是未来工作。
+
+工具:`node tools/run-deepsoil-benchmark.js [--write]`;案例冻结 `tools/data/deepsoil-benchmark-case.json`(schema quake-sim-deepsoil-benchmark-v1,含 2000 点记录、双曲线表、17 行收敛态与出处链)。

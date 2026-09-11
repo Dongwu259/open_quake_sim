@@ -40,6 +40,22 @@
 // baseline; residue/Schur-admittance remains the registered cure, and a
 // P-SV-side guard-divisor ladder is newly registered (the P-SV kernel
 // still clamps at (2*pi/r)/10 — the SH v3 ladder moved SH to 80).
+// v10 (2026-09-10, crest-noise batch) diagnosed the band at SAMPLE level:
+// the legacy series reproduced the v9 freeze bit-exactly; a continuity
+// discriminator proved the band spikes are CHAIN CONDITIONING NOISE
+// (controls continuous to 0.1% at 1e-5/km k-offsets, crest samples swing
+// 1.4-15x — 500x below the k/(2Q) resonance-width floor); the mechanism is
+// the depth-FD 1/(2*dh) amplification (spikes collapse monotonically under
+// dh 0.5 -> 20 m while controls are dh-invariant; |C| stays smooth while
+// the integrand spikes). Two in-chain FD cures were built and RETIRED with
+// measurements: gen-1 agreement search (spikes -5..120x, series
+// 9.5/12.3/8.0/2.6, spread 3.7, correlated-noise fooling) and gen-2
+// Richardson pair (algebraically exact cancellation of arm-independent
+// rounding — spikes untouched, series 28.7/44.0/66.7): the band noise is a
+// deterministic (k,z,dh)-joint wild function of the chain, not additive
+// rounding. Registered cure: an INDEPENDENT representation (per-layer
+// Schur-admittance stepping; the v6 prototype down-leg NaN is the named
+// blocker). Production opts.psv stays BLOCKED.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('fs');
@@ -49,9 +65,10 @@ const REPORT = path.join(__dirname, '..', 'tools', 'data', 'psv-scale-diagnosis.
 const r = JSON.parse(fs.readFileSync(REPORT, 'utf8'));
 
 test('psv-scale-diagnosis — schema, verdict, config frozen', () => {
-  assert.equal(r.schema, 'quake-sim-psv-scale-diagnosis-v9');
-  assert.equal(r.verdict, 'fullspace_anchored_layered_mgs_chain_v9_rebased_full_tensor_monotone_open');
-  assert.ok(String(r.reMeasure).includes('psvEigenvectors'), 'the v9 re-measure provenance must be recorded');
+  assert.equal(r.schema, 'quake-sim-psv-scale-diagnosis-v11');
+  assert.equal(r.verdict, 'fullspace_anchored_layered_compliance_adjudicated_schur_validated_band_quadrature_full_tensor_open');
+  assert.ok(String(r.reMeasure).includes('adjudication'), 'the v11 compliance adjudication must be recorded');
+  assert.ok(String(r.reMeasure).includes('pole-aware'), 'the registered pole-aware quadrature cure must be recorded');
   assert.equal(r.config.fHz, 0.5);
   assert.equal(r.config.mw, 7.7);
   assert.equal(r.config.sourceDepthKm, 73);
@@ -71,6 +88,13 @@ test('psv-scale-diagnosis — schema, verdict, config frozen', () => {
   assert.ok(r.history.v7verdict === 'fullspace_anchored_layered_mgs_chain_dev_converged_full_tensor_cap_open', 'v7 verdict must be preserved');
   assert.ok(r.history.v8verdict === 'fullspace_anchored_layered_mgs_chain_cap_study_negative_full_tensor_open', 'v8 verdict must be preserved');
   assert.ok(r.history.v8caveat.includes('PRE-mu*-fix') || r.history.v8caveat.includes('real-mu'), 'the v8 pre-fix caveat must be preserved');
+  assert.ok(r.history.v9verdict === 'fullspace_anchored_layered_mgs_chain_v9_rebased_full_tensor_monotone_open', 'the v9 verdict must be preserved');
+  assert.ok(r.history.v10verdict === 'fullspace_anchored_layered_crest_noise_proven_fd_cures_retired_full_tensor_open', 'the v10 verdict must be preserved');
+  assert.ok(r.layeredContext.complianceAdjudication, 'the v11 adjudication block must be present');
+  assert.ok(r.layeredContext.complianceAdjudication.deepRepro_halfspace_1p2Hz_zs73_q50.expmExoneration.includes('7e-13'),
+    'the expm exoneration measurement must stay on record');
+  assert.ok(r.layeredContext.complianceAdjudication.tokyoBand_0p5Hz_zs73.transportCollapse.includes('ill-posed'),
+    'the transport-collapse confirmation must stay on record');
   assert.ok(r.layeredContext.capStudy.caveat.includes('PRE-mu*-fix'), 'the cap-study literal must carry the pre-fix caveat');
   assert.ok(r.context.includes('NEGATIVE') || r.context.includes('negative'), 'the cap-study negative outcome must be recorded');
   // the cap-study freeze: every tightened cap is internally dk-converged ...
@@ -115,17 +139,62 @@ test('psv-scale-diagnosis — deviatoric series CONVERGED below the alias floor'
   assert.ok(spread < 1.1, 'deviatoric below-floor series regressed (spread ' + spread.toFixed(3) + ') — re-freeze');
 });
 
-test('psv-scale-diagnosis — fullTensor series MONOTONE NON-CONVERGENT on the corrected kernel (v9)', () => {
-  // the v9 re-baseline: the erratic pre-fix collapse became a clean
-  // monotone divergence — the crest-band OPEN is real, not an admittance
-  // artifact. This lock pins the measured monotone divergence.
+test('psv-scale-diagnosis — fullTensor series MONOTONE NON-CONVERGENT on the corrected kernel (v9 legacy arm)', () => {
+  // the v9 re-baseline, bit-exactly reproduced by the v10 run: the erratic
+  // pre-fix collapse became a clean monotone divergence — the crest-band
+  // OPEN is real, not an admittance artifact.
   const s = r.layeredContext.machinerySeriesUrm.fullTensor;
   const a = s['dk0.002'], b = s['dk0.001'], c = s['dk0.0005'];
   assert.ok(a > 0 && b > a && c > b, 'fullTensor below-floor series must stay monotone increasing (' + a + ' -> ' + b + ' -> ' + c + ')');
   const spread = c / a;
   assert.ok(spread > 1.15, 'fullTensor series unexpectedly converged (spread ' + spread.toFixed(3) + ') — re-examine the OPEN verdict if real');
-  assert.ok(r.registeredNextStep.includes('RE-CONFIRMED'), 'the re-confirmed residue cure must stay registered');
+  assert.ok(r.registeredNextStep.includes('Schur'), 'the Schur-admittance independent representation must stay registered');
   assert.ok(r.registeredNextStep.includes('P-SV-side aliasing-guard'), 'the P-SV guard-divisor ladder must stay registered');
+});
+
+test('psv-scale-diagnosis — v10 crest-noise diagnosis frozen (discriminator + dh collapse + cure outcomes)', () => {
+  const cd = r.layeredContext.crestDiagnostics;
+  assert.ok(cd, 'crestDiagnostics block missing');
+  assert.ok(cd.continuityDiscriminator.crest_0p5112.includes('CHAIN NOISE'), 'the discriminator verdict must be on record');
+  assert.ok(cd.dhCollapse.crest_0p5187.includes('2.0e4'), 'the dh-collapse ladder must stay frozen');
+  // gen-1 (agreement search): spikes collapsed, series non-convergent
+  const g1 = cd.cureOutcomes.gen1_agreementSearch.seriesFullTensorUrm;
+  assert.equal(g1.dk0p02, 9.54486, 'gen-1 clamped-grid value must stay frozen');
+  assert.equal(g1.dk0p0005, 2.6201, 'gen-1 fine-grid value must stay frozen');
+  assert.ok(g1.dk0p0005 / g1.dk0p001 < 1 && g1.dk0p001 / g1.dk0p02 < 2,
+    'gen-1 series must stay in its measured non-monotone band');
+  // gen-2 (Richardson): cancellation exact for arm-independent noise, spikes untouched
+  assert.ok(cd.cureOutcomes.gen2_richardson.verdict.includes('deterministic'), 'the non-additive noise conclusion must be on record');
+  // the Richardson arm series: non-convergent, and WORSE at the finest grid
+  const s = r.layeredContext.dhRichardsonSeriesUrm.fullTensor;
+  const a = s['dk0.002'], c = s['dk0.0005'];
+  assert.ok(a > 0 && c > a, 'Richardson fullTensor series must stay non-convergent on record');
+  assert.ok(c / a > 1.5, 'Richardson spread must stay locked (re-freeze if the kernel changes)');
+  const sd = r.layeredContext.dhRichardsonSeriesUrm.deviatoric;
+  const dspread = Math.max(sd['dk0.002'], sd['dk0.001'], sd['dk0.0005']) / Math.min(sd['dk0.002'], sd['dk0.001'], sd['dk0.0005']);
+  assert.ok(dspread < 1.1, 'Richardson deviatoric control must stay converged (spread ' + dspread.toFixed(3) + ')');
+});
+
+test('psv-scale-diagnosis — v11 Schur arm: series must stay NON-converged (the band-quadrature OPEN)', () => {
+  const s = r.layeredContext.schurSeriesUrm;
+  assert.ok(s, 'schurSeriesUrm missing — the Schur arm must stay measured');
+  // fullTensor through the VALIDATED Schur compliance: non-monotone swings
+  // (measured 194.41/194.41/523.046/679.982/540.935) — the OPEN is the band
+  // quadrature, NOT the compliance representation.
+  const f = s.fullTensor;
+  const a = f['dk0.002'], b = f['dk0.001'], c = f['dk0.0005'];
+  assert.ok(a > 0 && b > 0 && c > 0, 'Schur fullTensor below-floor values must be present');
+  const spread = Math.max(a, b, c) / Math.min(a, b, c);
+  assert.ok(spread > 1.15, 'Schur fullTensor series unexpectedly converged (spread ' + spread.toFixed(3) + ') — re-examine the OPEN verdict if real');
+  assert.ok(Math.abs(b / a - 679.982 / 523.046) < 0.01 || Math.abs(c / b - 540.935 / 679.982) < 0.01,
+    'Schur fullTensor below-floor ratios drifted from the freeze — re-freeze');
+  // deviatoric control: the representation-relative 2x shift must stay on
+  // record (0.0155 -> 0.0083): "convergence" readings are representation-
+  // relative until the band quadrature lands.
+  const d = s.deviatoric;
+  const dshift = d['dk0.005'] / d['dk0.001'];
+  assert.ok(dshift > 1.5, 'the deviatoric representation-relative shift must stay visible (got ' + dshift.toFixed(2) + ')');
+  assert.ok(r.registeredNextStep.includes('pole-aware'), 'the pole-aware quadrature cure must stay registered');
 });
 
 test('psv-scale-diagnosis — root tables recorded from the compliance-ridge detector', () => {
@@ -145,25 +214,22 @@ test('psv-scale-diagnosis — root tables recorded from the compliance-ridge det
   }
 });
 
-test('psv-scale-diagnosis — fullTensor open item locked (crest cap-resolution recorded)', () => {
+test('psv-scale-diagnosis — fullTensor open item locked (crest noise proven, FD cures retired)', () => {
   // the honest record of the remaining open item: the dipole channels ride
-  // the leaky-P crest band and the subdivide exponent cap bounds the
-  // dynamic range the MGS inner products can separate — the series is
-  // cap-dependent (cap30 vs cap10 ~30x) and non-converged at the production
-  // cap. The v6 "degenerate band" framing is retired (the det-null collapse
-  // is gone; 3 isolated nulls remain); when a cap study or Schur-admittance
-  // stepping resolves the crest and the series converges, this fails
-  // CONSCIOUSLY and the verdict upgrades.
+  // the leaky-P crest band, the band spikes are proven chain noise (v10),
+  // and both in-chain FD cures are measured non-convergent. When a Schur
+  // (independent-representation) cure resolves the crest and the series
+  // converges, this fails CONSCIOUSLY and the verdict upgrades.
   const s = r.layeredContext.machinerySeriesUrm.fullTensor;
   const a = s['dk0.002'], b = s['dk0.0005'];
   assert.ok(a > 0 && b > 0, 'below-floor series values must be present and positive');
   const spread = Math.max(a, b) / Math.min(a, b);
-  // 8.1 at the v7 freeze (the corrected chain exposes the true crest
-  // sensitivity the corrupted-triMul interim run suppressed): still fully
-  // non-converged — the lock holds at 1.03 until the crest resolution lands.
   assert.ok(spread > 1.03, 'fullTensor below-floor series unexpectedly converged (spread ' + spread.toFixed(3) + ') — upgrade the verdict and re-freeze');
-  assert.ok(r.layeredContext.openItem.includes('NEGATIVE'), 'openItem must record the cap-study negative');
-  assert.ok(r.layeredContext.openItem.includes('Schur') || r.layeredContext.openItem.includes('residue'), 'openItem must name a registered cure');
+  assert.ok(r.layeredContext.reading.includes('NEGATIVE'), 'the cap-study negative must stay on record (reading block)');
+  assert.ok(r.layeredContext.openItem.includes('Schur'), 'openItem must name the adjudicated representation');
+  assert.ok(r.layeredContext.reading.includes('CHAIN CONDITIONING NOISE') ||
+    r.layeredContext.crestDiagnostics.continuityDiscriminator.crest_0p5112.includes('CHAIN NOISE'),
+    'openItem/record must carry the v10 noise verdict');
   // the cap-dependence measurement itself is part of the freeze
   const c10 = r.layeredContext.cap10SeriesUrm.fullTensor;
   assert.ok(c10['dk0.02'] > 0 && c10['dk0.001'] > 0, 'cap10 series record missing');
