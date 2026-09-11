@@ -65,8 +65,8 @@ const REPORT = path.join(__dirname, '..', 'tools', 'data', 'psv-scale-diagnosis.
 const r = JSON.parse(fs.readFileSync(REPORT, 'utf8'));
 
 test('psv-scale-diagnosis — schema, verdict, config frozen', () => {
-  assert.equal(r.schema, 'quake-sim-psv-scale-diagnosis-v12');
-  assert.equal(r.verdict, 'fullspace_anchored_layered_schur_validated_pole_subtraction_shipped_but_series_open_candidates_mislocate');
+  assert.equal(r.schema, 'quake-sim-psv-scale-diagnosis-v13');
+  assert.equal(r.verdict, 'fullspace_anchored_layered_schur_validated_locator_infeasible_zero_stable_digits_series_noise_dominated');
   assert.ok(String(r.reMeasure).includes('adjudication'), 'the v11 compliance adjudication must be recorded');
   assert.ok(String(r.reMeasure).includes('pole-aware'), 'the registered pole-aware quadrature cure must be recorded');
   assert.equal(r.config.fHz, 0.5);
@@ -92,6 +92,8 @@ test('psv-scale-diagnosis — schema, verdict, config frozen', () => {
   assert.ok(r.history.v10verdict === 'fullspace_anchored_layered_crest_noise_proven_fd_cures_retired_full_tensor_open', 'the v10 verdict must be preserved');
   assert.ok(r.history.v11verdict === 'fullspace_anchored_layered_compliance_adjudicated_schur_validated_band_quadrature_full_tensor_open', 'the v11 verdict must be preserved');
   assert.ok(r.history.v12verdict === 'fullspace_anchored_layered_schur_validated_pole_subtraction_shipped_but_series_open_candidates_mislocate', 'the v12 verdict must be preserved');
+  assert.ok(r.history.v13verdict === 'fullspace_anchored_layered_schur_validated_locator_infeasible_zero_stable_digits_series_noise_dominated', 'the v13 verdict must be preserved');
+  assert.ok(r.history.v13note.includes('CLOSED-NEGATIVE'), 'the v13 locator closure must stay on record');
   assert.ok(r.layeredContext.detSubtractSeriesUrm, 'the v12 det-subtract arm must be measured');
   assert.ok(Array.isArray(r.layeredContext.poleModelSet) && r.layeredContext.poleModelSet.length >= 1,
     'the production pole-model set (candidate-mislocation record) must be frozen');
@@ -113,6 +115,68 @@ test('psv-scale-diagnosis — schema, verdict, config frozen', () => {
     'cap6/cap4 disagreement is the measured negative — it must stay on record');
   assert.ok(cs.belowFloorSpreads.cap30.fullTensor > 3, 'production-cap fullTensor must stay non-converged on record');
   assert.ok(r.history.v4bruteExhibits && r.history.note.includes('cannot converge'), 'the retired v4 brute exhibits must stay on record with the correction note');
+});
+
+test('psv-scale-diagnosis — v13 chaos diagnosis frozen (1-ulp discriminator + series dh sensitivity)', () => {
+  // the v13 decisive measurements: the chain has ZERO stable digits in the
+  // crest band (locator infeasible) and the series values are
+  // noise-integral dominated (dh realization moves them ~30x, no pinning).
+  const cd = r.layeredContext.chaosDiagnosis;
+  assert.ok(cd, 'chaosDiagnosis block missing');
+  assert.ok(String(cd.method).includes('ulp'), 'the discriminator method must be recorded');
+  // control: bit-stable through the ladder (a '-0.000%' signed-zero format
+  // is the same measurement — compare numerically)
+  assert.ok(cd.ulpLadderIntegrandDh0p5.k0p40.split('/').every((s) => Math.abs(parseFloat(s)) < 0.001),
+    'the control band must be bit-stable through the ulp ladder (got ' + cd.ulpLadderIntegrandDh0p5.k0p40 + ')');
+  // crest: O(1) swings at 1 ulp — the zero-stable-digits verdict
+  for (const k of ['k0p70', 'k0p73', 'k0p76', 'k0p80']) {
+    const first = parseFloat(cd.ulpLadderIntegrandDh0p5[k].split('/')[0]);
+    assert.ok(Math.abs(first) > 5, 'crest ' + k + ' must stay chaotic at 1 ulp (got ' + first + '%)');
+  }
+  // the compliance itself is chaotic (not just the depth-FD channels)
+  const cFirst = parseFloat(cd.ulpLadderComplianceZs73.k0p73.split('/')[0]);
+  assert.ok(Math.abs(cFirst) > 5, 'C(zs) must stay chaotic at 1 ulp (got ' + cFirst + '%)');
+  // large dh does NOT clean the field (v10 conclusion extended to fixed stencils)
+  const first32 = parseFloat(cd.ulpLadderIntegrandDh32.k0p73.split('/')[0]);
+  assert.ok(Math.abs(first32) > 5, 'the dh=32 field must stay chaotic at 1 ulp (got ' + first32 + '%)');
+  // dh sensitivity: no pinning across realizations at dk0.02 (spread > 20x)
+  const sd = r.layeredContext.seriesDhSensitivity;
+  assert.ok(sd, 'seriesDhSensitivity block missing');
+  const dh02 = ['dh0p5', 'dh2', 'dh16', 'dh32', 'dh64'].map((k) => sd.fullTensorUrm[k]['dk0.02']);
+  const spread02 = Math.max(...dh02) / Math.min(...dh02);
+  assert.ok(spread02 > 20, 'the dh realization must keep moving the series >20x (got ' + spread02.toFixed(1) + ')');
+  // no dh converges across the below-floor dks (every dh spread > 1.25;
+  // the frozen protocol arm sits at 1.30)
+  for (const dh of ['dh0p5', 'dh2', 'dh16', 'dh32', 'dh64']) {
+    const arm = sd.fullTensorUrm[dh];
+    const vals = ['dk0.002', 'dk0.001', 'dk0.0005'].map((k) => arm[k]);
+    const sp = Math.max(...vals) / Math.min(...vals);
+    assert.ok(sp > 1.25, dh + ' series must stay non-convergent on record (spread ' + sp.toFixed(2) + ')');
+  }
+  // the dh32 fine extension keeps falling (16.61 -> 8.65) — the monotone
+  // decline is a noise-realization coincidence, not convergence
+  assert.ok(sd.dh32Dk0p00025Extension < sd.fullTensorUrm.dh32['dk0.0005'] * 0.75,
+    'the dk0.00025 extension must stay on the falling side (got ' + sd.dh32Dk0p00025Extension + ')');
+  // the deviatoric control also wanders at dh32 (representation-relative
+  // reading extends to the dh axis)
+  const dv = sd.deviatoricUrmDh32;
+  const dspread = Math.max(dv['dk0.02'], dv['dk0.002'], dv['dk0.001'], dv['dk0.0005']) /
+                  Math.min(dv['dk0.02'], dv['dk0.002'], dv['dk0.001'], dv['dk0.0005']);
+  assert.ok(dspread > 1.3, 'deviatoric at dh32 must stay wandering (spread ' + dspread.toFixed(2) + ')');
+  // detM floor: the locator scan object sinks into the subtraction-noise floor
+  const dm = cd.detMFloorBucketMinima;
+  assert.ok(dm.b0p47 > -10 && dm.b0p82 < -35,
+    'the detM bucket minima must descend into the noise floor (got ' + dm.b0p47 + ' -> ' + dm.b0p82 + ')');
+  // the weight profile: crest cluster [0.70,0.82] >= 100x the generic band,
+  // and the hypothesised 1.005/km trapped mode carries nothing here
+  const wp = cd.weightProfileBucketMaxima;
+  assert.ok(wp.b0p7 > 100 * wp.b0p4, 'the crest cluster must stay >=100x the generic band');
+  assert.ok(wp.b1p0 < wp.b0p7 * 1e-4, 'the 1.005/km mode must stay weightless on this config');
+  // the frozen top fit is single-sample anchored (the demotion must stay on record)
+  const fs2 = cd.fitLadderSamplesCand0p6173;
+  assert.ok(fs2.length >= 10, 'the fit ladder sample dump must be present');
+  assert.ok(/single-sample/i.test(String(r.layeredContext.chaosDiagnosis.reading)),
+    'the single-sample-anchored fit demotion must be recorded');
 });
 
 test('psv-scale-diagnosis — full-space anchor residuals locked (<= 0.08)', () => {
@@ -220,7 +284,12 @@ test('psv-scale-diagnosis — v12 det-subtract arm: machinery shipped, series st
   assert.ok(spread > 1.15, 'det-subtract fullTensor unexpectedly converged (spread ' + spread.toFixed(3) + ') — re-examine the verdict if real');
   assert.ok(Math.abs(f['dk0.02'] - 231.77) < 0.01 || Math.abs(f['dk0.02'] - 231.8) < 0.5,
     'det-subtract fullTensor dk0.02 must equal the frozen 231.77 (got ' + f['dk0.02'] + ') — re-freeze');
-  assert.ok(r.registeredNextStep.includes('pole LOCATOR'), 'the registered cure must name the pole-locator blocker');
+  // v13 consciously updated: the v12 registered cure ("pole LOCATOR") was
+  // measured INFEASIBLE by the 1-ulp discriminator — the registered cure is
+  // now the compensated-arithmetic chain, and the locator closure must stay
+  // on record in the context.
+  assert.ok(r.registeredNextStep.includes('double-double'), 'the registered cure must name the compensated-arithmetic chain');
+  assert.ok(r.context.includes('1-ULP ladder') || r.context.includes('1-ulp ladder'), 'the locator infeasibility measurement must be recorded in the context');
 });
 
 test('psv-scale-diagnosis — root tables recorded from the compliance-ridge detector', () => {
