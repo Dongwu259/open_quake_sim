@@ -486,3 +486,30 @@ test('R11 — layered compliance: propagator chain vs independent RK4 (undamped 
     assert.ok(rel < 0.01, 'entry[' + i + '][' + j + '] rel err ' + rel.toExponential(2));
   }
 });
+
+test('P1 hooks — closedFormHalfspace compliance injection + poleWindows bypass (CS v4 batch)', () => {
+  const HALF = [{ topKm: 0, bottomKm: Infinity, vsKmS: 3.5, vpKmS: 6.0, rhoGcm3: 2.7 }];
+  const omega = 2 * Math.PI * 0.5, k = 2 * Math.PI / 30000;
+  const o = { qShear: 50, qP: 50 };
+  // (1) the hook reproduces the adjudicated Schur==BVP exactness per entry
+  const Cs = psv.complianceAt(HALF, omega, k, 15, Object.assign({}, o, { schurCompliance: 1 }));
+  const Cb = psv.complianceAt(HALF, omega, k, 15, Object.assign({}, o, { closedFormHalfspace: 1 }));
+  for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) {
+    const n = Math.hypot(Cs[i][j][0], Cs[i][j][1]);
+    const rel = Math.hypot(Cs[i][j][0] - Cb[i][j][0], Cs[i][j][1] - Cb[i][j][1]) / n;
+    assert.ok(rel < 1e-9, 'closedFormHalfspace hook must reproduce Schur per entry (got ' + rel.toExponential(2) + ')');
+  }
+  // (2) the hook rejects multi-layer stacks (the BVP is single-layer)
+  assert.throws(() => psv.complianceAt(
+    [{ topKm: 0, bottomKm: 5, vsKmS: 2, vpKmS: 4, rhoGcm3: 2.4 }, HALF[0]], omega, k, 8,
+    Object.assign({}, o, { closedFormHalfspace: 1 })), /single-layer/);
+  // (3) poleWindows:false at HALF — point integrands identical, spectrum
+  // within 1e-5 relative of the windowed default (the skipped noise windows)
+  const base = { rKm: 30, zSourceKm: 15, dkInvKm: 0.0025, kMaxInvKm: 6, qShear: 50,
+    mxx: 1e17, myy: -1e17, mzz: 0, mxy: 0, mxz: 0, myz: 0, schurCompliance: 1 };
+  const a = psv.psvMomentSpectrumAtFrequency(HALF, omega, base);
+  const b = psv.psvMomentSpectrumAtFrequency(HALF, omega, Object.assign({}, base, { poleWindows: false }));
+  const mag = (c) => Math.hypot(c[0], c[1]);
+  const rel = Math.abs(mag(a.ur) - mag(b.ur)) / mag(a.ur);
+  assert.ok(rel < 1e-4, 'poleWindows:false must be near-neutral at HALF (measured ~1.5e-5: the skipped legacy noise windows; got ' + rel.toExponential(2) + ')');
+});

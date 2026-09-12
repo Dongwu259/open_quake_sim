@@ -834,11 +834,27 @@ function psvModalPoles(stack, omega, kMaxInvKm, opts) {
   if (opts && !opts.qP && opts.qShear) {
     opts = Object.assign({}, opts, { qP: opts.qShear });
   }
-  var key = stackSig(stack, opts) + '|' + omega.toFixed(10) + '|' + kMaxInvKm;
+  // v16 locator rebuild: params.qdCompliance switches the scan OBJECT to the
+  // Schur determinant detM = det(Y*Q11 - Q21) at a surface source, evaluated
+  // by the bigfloat chain (psv-qd.js) — same dip protocol otherwise (surface
+  // source, 2.5e-4/km lattice, prominence 0.5, golden refine, HWHM gamma,
+  // halfspace branch exclusion). WHY: on the double chain detM sits on a
+  // ~1e-16 subtraction floor (cond(M) ~ 1e16 — the v13 chaos mechanism) and
+  // the dip landscape below k ~ 0.65 was pure noise (v13: bucket minima to
+  // -39.5 log units, decorrelating at 0.002/km) — the pole LOCATOR was
+  // arithmetic-blind, which is what mislocated every v12 candidate. The
+  // bigfloat detM resolves ~40 log units deeper; at a surface source the
+  // Schur product collapses (Q = I, sigma = 0) so detM = det(Y) — the
+  // surface-admittance pole condition, identical physics to det(Rc).
+  var qd = !!(opts && opts.qdCompliance);
+  var key = stackSig(stack, opts) + '|' + omega.toFixed(10) + '|' + kMaxInvKm + (qd ? '|qd' : '');
   var hit = poleCache.get(key);
   if (hit) return hit;
   var lo = 0.02, hi = Math.max(kMaxInvKm, 0.1);
-  var N = Math.min(24000, Math.ceil((hi - lo) / 2.5e-4));
+  // _qdScanStep coarsens the QD lattice (test/small-scan knob; absent =
+  // the frozen 2.5e-4/km protocol — the double path is byte-identical)
+  var stepKm = (qd && opts._qdScanStep) || 2.5e-4;
+  var N = Math.min(24000, Math.ceil((hi - lo) / stepKm));
   var step = (hi - lo) / N;
   // Scan object (v6): log|det(Rc)| at a SURFACE source (zs = 1e-4). The
   // pole condition is source-independent, and a buried-source scan loses
@@ -851,6 +867,12 @@ function psvModalPoles(stack, omega, kMaxInvKm, opts) {
   // chain floor anymore). Poles are DIPS of this landscape.
   var zs = 1e-4;
   function logC(kk) {
+    if (qd) {
+      var rr = require('./psv-qd.js').schurComplianceQD(stack, omega, kk / 1000, zs,
+        Object.assign({}, opts, { _wantDet: 1 }));
+      if (!rr) return null;
+      return Math.log(Math.hypot(rr.detM[0], rr.detM[1]) + 1e-300);
+    }
     var pr = surfacePropagation(stack, omega, kk / 1000, zs, opts);
     if (!pr) return null;
     return Math.log(cabs(csub(cmul(pr.Rc[0][0], pr.Rc[1][1]), cmul(pr.Rc[1][0], pr.Rc[0][1]))) + 1e-300);
@@ -1011,6 +1033,23 @@ function tensorTerms(params) {
  *  through it, and at shallow/smooth configs it agrees with the references
  *  to 1.5e-4. */
 function complianceAt(stack, omega, kInvM, zKm, params) {
+  // params.closedFormHalfspace (2026-09-13 CS-v4 P1 anchor batch): the
+  // compliance from the EXACT closed-form halfspace BVP
+  // (crest-halfspace-closed.js — free surface + radiation + source jump,
+  // direct 6x6 boundary solve, no chain transport) at the same
+  // (omega, k, z). HALF-like single-layer stacks only (the BVP has one
+  // layer); sign = -1 per the adjudication's jump orientation
+  // ("closed-form == -Schur exactly"). The P1 reference injection: the
+  // independent compliance flows through the SAME production integrator
+  // and horizontal-block algebra, so an end-to-end |u| comparison against
+  // the Schur path closes the composition (units/conventions) at the
+  // observable level. Opt-in, absent = byte-compatible paths.
+  if (params.closedFormHalfspace) {
+    if (stack.length !== 1) throw new Error('closedFormHalfspace: single-layer (HALF) stacks only');
+    var cB = require('./crest-halfspace-closed.js').halfspaceClosedCompliance(
+      stack[0], omega, kInvM, zKm * 1000, params);
+    return [[cscale(cB[0][0], -1), cscale(cB[0][1], -1)], [cscale(cB[1][0], -1), cscale(cB[1][1], -1)]];
+  }
   // params.qdCompliance (2026-09-12 v15 batch): the Schur chain evaluated in
   // BigInt bigfloat arithmetic (psv-qd.js, default 256-bit mantissa, eps
   // ~1.7e-77 — the v14 registered quad-double cure; 13+ orders beyond the
@@ -1499,7 +1538,15 @@ function psvMomentSpectrumAtFrequency(stack, omega, params) {
   function gOf(k) { return psvIntegrandAtK(stack, omega, k, params); }
   // ---- modal poles inside the band (location only) -----------------------
   // fullSpace mode has a pole-free analytic integrand (branch points only).
-  var poleList = params.fullSpace ? [] : psvModalPoles(stack, omega, params.kMaxInvKm, params);
+  // params.poleWindows === false (2026-09-13 CS-v4 batch): skip the locator
+  // entirely — the v16 locator rebuild MEASURED the production band
+  // pole-free (psv-scale-diagnosis v16: the detM dips are far-off-axis
+  // modes, the buried-source integrand carries no pole signatures, and
+  // detSubtract is a +-0.50% no-op), so the per-omega locator scan (the
+  // dominant per-frequency cost: ~60 s/omega on the double chain) is dead
+  // weight for production arms on this field. Absent = the default window
+  // path (byte-compatible; the frozen series all ride it).
+  var poleList = (params.fullSpace || params.poleWindows === false) ? [] : psvModalPoles(stack, omega, params.kMaxInvKm, params);
   // ---- det-based pole subtraction (2026-09-11 det-subtract batch) --------
   // params.detSubtract: replace each FITTED modal pole's gamma-resolved
   // window with the analytic A/(k - kp) subtraction + exact complex-log

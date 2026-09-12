@@ -102,6 +102,18 @@ const PRE_REG_V4 = {
     'P2 (band quadrature at the scored sites): the leaky-P crest-band k-integration must be pole-resolved for any case whose deaggregation bins put the source below ~40 km on a column with an evanescent mantle leg (tokyo-class); measured state: Schur-arm dk series non-convergent (psv-scale-diagnosis v11) — shallow-crustal-only bins are unaffected and may run, but the v4 gate set includes Nankai/intraslab bins that are NOT shallow-only',
     'P3 (divisor decision): the P-SV alias-guard divisor lands from the measured ladder (tools/broadband/psv-alias-ladder.js) instead of the hardcoded 10',
   ],
+  // ---- 2026-09-13 precondition resolutions (psv-horizontal-anchor.js + ----
+  // ---- psv-scale-diagnosis v15/v16; the run verdict follows them) --------
+  p1Anchor: {
+    measured: '2026-09-13, tools/broadband/psv-horizontal-anchor.js (gate pre-registered in its header BEFORE the run)',
+    design: 'the production pipeline vs the EXACT closed-form halfspace BVP (crest-halfspace-closed.js, per unit true traction) through params.closedFormHalfspace — both paths share the integrator and horizontal-block algebra, so the comparison is end-to-end at the |u| level; HALF config, {strike-slip, thrust-DC} x {0.5, 1.2 Hz} x zs=33 km, r=30 km',
+    gate: 'QD arm (params.qdCompliance) vs BVP <= 1e-2 — MEASURED PASS at worstRel 6.03e-13 (11 orders of margin); the composition (units, conventions, integrator, block algebra, layered compliance) is exact end-to-end',
+    doubleArm: 'the production double-Schur chain FAILS config-dependently: 3.8e-6 at f0.5 (passes) but 8.34 at f1.2zs33 thrust — the ~1e-16 detM subtraction floor at the Rayleigh-resonance detM dips (measured: the bigfloat chain and the BVP agree to ALL PRINTED DIGITS at the disputed k=1.9/2.1/2.3/km samples while the double chain sits 6000x off its floor; RK4-ODE referee 4e-3 third opinion). The pure-Mxy ur rows are structurally zero (correct symmetry)',
+    significance: 'the v13-v15 arithmetic story extends to EVERY column: the detM dips of the halfspace Rayleigh family sit inside the weighted band at f >= ~1 Hz, so the double chain\'s P-SV spectra are floor-contaminated there — NOT a tokyo-crest-only phenomenon'
+  },
+  p2Status: 'RESOLVED NEGATIVELY (psv-scale-diagnosis v16): the production band is POLE-FREE — the detM dips are far-off-axis modes, the integrand carries no pole signatures, detSubtract is a measured +-0.50% no-op, and the QD-field dk series CONVERGED (v15, below-floor spread 1.0012)',
+  p3Status: 'DONE (psv-alias-ladder.json: div10 passes, default byte-compatible)',
+  runVerdict: 'NOT EXECUTABLE AS PRE-REGISTERED (2026-09-13): P1 shows the honest gate arm must run on the bigfloat chain (the double chain is floor-contaminated at the Rayleigh neighborhoods of every scored column at f >= ~1 Hz), and the QD chain costs ~0.21 s/compliance-triple -> ~24 h per (case, bin) at production k-lattices (~200 frequencies x ~2500 k-samples x 3 chains) — the pre-registered dual-arm run (~50 case-bin pairs) is a multi-month compute job as wired. Registered cure (next batch): the two-tier wiring — double chain everywhere plus bigfloat substitution inside the detM-dip neighborhoods (mapped per (stack, omega) by the v16 QD locator, or cheaper: a fixed Rayleigh-window ladder around the analytic halfspace-dip k), which cuts the QD cost by ~10x; OR a scope-reduced v4 on configs certified off-floor by the 1-ulp discriminator. The pre-registered gate thresholds remain unchanged and the arms stay as specified — only the run block waits',
   whyNotRunNow: 'P2 is open (v11 series non-convergent) and P1 has never been measured; running now would repeat the 2026-09-05 error class — gate numbers on channels whose scale is not anchored',
   whatWouldChangeThis: 'P1: one absolute-anchor batch; P2: the registered pole-aware quadrature landing with a CONVERGED series (psv-scale-diagnosis verdict upgrade); P3: the ladder freeze. The moment all three hold, this gate runs with NO further decisions'
 };
@@ -653,4 +665,7 @@ function main() {
   console.log(write ? 'wrote ' + OUT : '(dry run — pass --write to freeze)');
 }
 
-try { main(); } catch (e) { console.error(e); process.exit(1); }
+if (require.main === module) {
+  try { main(); } catch (e) { console.error(e); process.exit(1); }
+}
+module.exports = { PRE_REG_V4: PRE_REG_V4 };

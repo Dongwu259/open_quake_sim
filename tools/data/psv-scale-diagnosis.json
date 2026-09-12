@@ -1,7 +1,7 @@
 {
- "schema": "quake-sim-psv-scale-diagnosis-v15",
- "generatedAt": "2026-09-12T13:48:07.604Z",
- "reMeasure": "v15 (2026-09-12): the v14 registered quad-double cure SHIPPED (psv-qd.js — the whole Schur chain in BigInt bigfloat arithmetic, 256-bit mantissa, eps ~1.7e-77, every primitive correctly rounded; params.qdCompliance opt-in) and BOTH v13 blockers DIED on the resolvable field: (1) the 1-ulp gate PASSES AT ALL FIVE discriminator points (integrand 1e-14..1e-11%, the v14 partial gate resolved) with the compliance itself stable to ~1e-14%/ulp, and (2) the dk series is dh-INVARIANT to 2e-5 (v13 measured 7-30x noise-realization movement) and near-flat on the dk axis (clamped floor -> dk0.002 moves 0.502%, dk0.002 -> dk0.001 0.030%, dk0.001 -> dk0.0005 0.086% — the below-floor spread 1.0012 closes UNDER the frozen 1.03 convergence gate: the v12 unlock condition FIRES, 15 versions of non-convergence end); the absolute values are a new generational baseline (~1.236-1.244 full / ~0.02214 dev — the double-chain-era 194.41/28.09/44.36 were noise integrals, confirming the v13 verdict from the other side). The step-det cancellation budget was CORRECTED: the v14 DD table (5e30-8e31) was saturated by DD's own eps — the true cancellation at 0.70/km is 6.3e42 (11 orders deeper). The pole-locator agenda RE-OPENS on the clean field (the v13 INFEASIBLE verdict was arithmetic blindness, not structure); the production opts.psv decision (QD ~0.07 s/chain vs 1.5 ms double) is registered. v14 (2026-09-12): the v13 registered double-double cure SHIPPED (psv-dd.js — the whole Schur chain in DD, params.ddCompliance opt-in) and the acceptance gate is PARTIAL: k = 0.80/km passes (1-ulp chaos -76% -> 3e-5%) with the control band at DD-noise level, but k = 0.70/0.73/0.76 stay chaotic — the NEW named blocker is the up-leg admittance STEP det cancellation ~5e30-8e31 (the recursion crosses the below-source near-resonance through the P-evanescent 190-km mantle layer), which consumes DD exactly; quad-double (eps 1e-64) is the registered cure with the amplification budget measured. v13 (2026-09-12): the v12 registered pole-locator question was answered NEGATIVELY and decisively — a locator cannot exist on the chain-evaluated field (1-ulp chaos, zero stable digits, chaosDiagnosis block). The dk series values were additionally shown to be NOISE-INTEGRAL dominated (the dh realization moves them 30x with no pinning — seriesDhSensitivity block), so no series number on this config is currently interpretable as signal. The registered cure moves to compensated (double-double) arithmetic across the Schur compliance path. v11 (2026-09-10): the compliance-representation adjudication. The deep-config validation gap (v10) was resolved by building THREE mutually-agreeing trusted references for the halfspace config (RK4-ODE referee with Richardson extrapolation, a balanced-eigendecomposition transport chain, and an exact closed-form halfspace BVP): they agree pairwise to 4e-3, expm4 was exonerated (7e-13), and the LEGACY A/W chain was measured O(1) off (3.4-7.8x across k, cap-sensitive) — Schur matched to 1e-11. psvSchurCompliance is now production-wired behind params.schurCompliance (complianceAt dispatcher). The Schur dk series was then measured: the fullTensor channel STILL does not converge (194/194/523/680/541) and the deviatoric control moves too (0.0178 -> 0.0083, 2x) — the v10 \"deviatoric converged\" reading was representation-relative, not physical. The blocker moves from compliance representation to the UNRESOLVED BAND STRUCTURE itself: pole-aware quadrature (modal subtraction / complex contour) is the registered cure",
+ "schema": "quake-sim-psv-scale-diagnosis-v16",
+ "generatedAt": "2026-09-12T19:15:40.485Z",
+ "reMeasure": "v16 (2026-09-12): the locator rebuild MEASURED and the pole agenda CLOSED-NEGATIVE with a clean mechanism: the QD detM locator (psvModalPoles params.qdCompliance branch — the Schur detM = det(Y*Q11-Q21) surface-admittance landscape through the bigfloat chain, same dip protocol as the legacy det(Rc) scan) is ulp-exact (0 at 1-16 ulps) and resolves the noise forest away (f0p5: 17 double-era candidates -> 7 real-width dips; f1p2: 45 -> 9; far-band positions match 2.43/3.80 exact), BUT the dips are far-off-axis modes (0.5-1.9 log units deep vs a 15.7 background), the buried-source QD integrand is pole-free (smooth Bessel-modulated 1e4-9e4 over 0.3-0.8/km, collapsing exponentially above omega/vs_half ~ 0.70/km at f0p5: 1e-33 by 1.54, 1e-110 by 3.8), and every supported-band single-pole fit fails the 0.15 gate HONESTLY (rel 0.17-0.76 — the model class cannot fit a Bessel-oscillatory integrand). The v12 \"candidates mislocate\" record resolves to: nothing was there — the double-era fits locked onto chain-noise spikes sitting where the true signal collapses. detSubtract on the QD field is a MEASURED NO-OP (six runs, every point within +-0.50% of the plain series, below-floor spread 1.0054 still converged). The only genuine near-axis structure is the f1p2 1.70-1.80/km trapped-mode cluster (detM bottoming below the 1e-300 double-return floor; the integrand is exponentially blind to it). The locator/fit/subtract agenda closes; the plain QD series is the final representation; remaining registered items: the opts.psv production decision and the CS v4 P1 horizontal absolute anchor (P2 resolves NEGATIVELY — no in-band poles). v15 (2026-09-12): the v14 registered quad-double cure SHIPPED (psv-qd.js — the whole Schur chain in BigInt bigfloat arithmetic, 256-bit mantissa, eps ~1.7e-77, every primitive correctly rounded; params.qdCompliance opt-in) and BOTH v13 blockers DIED on the resolvable field: (1) the 1-ulp gate PASSES AT ALL FIVE discriminator points (integrand 1e-14..1e-11%, the v14 partial gate resolved) with the compliance itself stable to ~1e-14%/ulp, and (2) the dk series is dh-INVARIANT to 2e-5 (v13 measured 7-30x noise-realization movement) and near-flat on the dk axis (clamped floor -> dk0.002 moves 0.502%, dk0.002 -> dk0.001 0.030%, dk0.001 -> dk0.0005 0.086% — the below-floor spread 1.0012 closes UNDER the frozen 1.03 convergence gate: the v12 unlock condition FIRES, 15 versions of non-convergence end); the absolute values are a new generational baseline (~1.236-1.244 full / ~0.02214 dev — the double-chain-era 194.41/28.09/44.36 were noise integrals, confirming the v13 verdict from the other side). The step-det cancellation budget was CORRECTED: the v14 DD table (5e30-8e31) was saturated by DD's own eps — the true cancellation at 0.70/km is 6.3e42 (11 orders deeper). v14 (2026-09-12): the v13 registered double-double cure SHIPPED (psv-dd.js — the whole Schur chain in DD, params.ddCompliance opt-in) and the acceptance gate is PARTIAL: k = 0.80/km passes (1-ulp chaos -76% -> 3e-5%) with the control band at DD-noise level, but k = 0.70/0.73/0.76 stay chaotic — the NEW named blocker is the up-leg admittance STEP det cancellation ~5e30-8e31 (the recursion crosses the below-source near-resonance through the P-evanescent 190-km mantle layer), which consumes DD exactly; quad-double (eps 1e-64) is the registered cure with the amplification budget measured. v13 (2026-09-12): the v12 registered pole-locator question was answered NEGATIVELY and decisively — a locator cannot exist on the chain-evaluated field (1-ulp chaos, zero stable digits, chaosDiagnosis block). The dk series values were additionally shown to be NOISE-INTEGRAL dominated (the dh realization moves them 30x with no pinning — seriesDhSensitivity block), so no series number on this config is currently interpretable as signal. The registered cure moves to compensated (double-double) arithmetic across the Schur compliance path. v11 (2026-09-10): the compliance-representation adjudication. The deep-config validation gap (v10) was resolved by building THREE mutually-agreeing trusted references for the halfspace config (RK4-ODE referee with Richardson extrapolation, a balanced-eigendecomposition transport chain, and an exact closed-form halfspace BVP): they agree pairwise to 4e-3, expm4 was exonerated (7e-13), and the LEGACY A/W chain was measured O(1) off (3.4-7.8x across k, cap-sensitive) — Schur matched to 1e-11. psvSchurCompliance is now production-wired behind params.schurCompliance (complianceAt dispatcher). The Schur dk series was then measured: the fullTensor channel STILL does not converge (194/194/523/680/541) and the deviatoric control moves too (0.0178 -> 0.0083, 2x) — the v10 \"deviatoric converged\" reading was representation-relative, not physical. The blocker moves from compliance representation to the UNRESOLVED BAND STRUCTURE itself: pole-aware quadrature (modal subtraction / complex contour) is the registered cure",
  "config": {
   "stack": "tokyo JIVSM column + IASP91 continuation (buildJivsmIaspStack)",
   "fHz": 0.5,
@@ -467,6 +467,284 @@
    },
    "verdict": "THE v13 NOISE DIAGNOSIS DIES ON THE QD FIELD AND THE SERIES CONVERGES. (1) dh-invariance: the dh realization moves the fullTensor series 2.1e-5 relative at the clamped floor (dh 0.5 vs 32 m: 1.243517 vs 1.243491) and 2.2e-5 at dk0.002 — v13 measured 7-30x with no pinning; the depth-FD noise-amplification channel is inert on a resolvable field, exactly as the arithmetic story predicted. (2) the dk axis: clamped floor (0.00316/km) -> dk0.002 moves -0.502% (1.243517 -> 1.237305), -> dk0.001 -0.030% (1.236935), -> dk0.0005 -0.086% (1.235870) — small, non-monotone in decay rate, and the BELOW-FLOOR SPREAD (dk0.002/0.001/0.0005) IS 1.0012 << THE FROZEN 1.03 CONVERGENCE GATE: the v12 unlock condition (fullTensor spread > 1.05, consciously unfreeze on convergence) FIRES — 15 versions of non-convergence end here. The deviatoric control: 0.02216335 -> 0.02214554 -> 0.02214221 (0.08% then 0.0015%). (3) the absolute values are a NEW generational baseline: the double-chain series values (194.41/28.09/44.36-era, frozen through v9-v13) were noise integrals (the v13 verdict confirmed from the dk axis); the QD series ~1.236-1.244 (full) / ~0.02214 (dev) is the first signal-level measurement on this config"
   },
+  "qdLocatorArm": {
+   "method": "psvModalPoles params.qdCompliance branch (Schur detM landscape, bigfloat chain, opts._qdScanStep coarsens for tests; cache key carries the qd flag)",
+   "scanTables": {
+    "f0p5": {
+     "scanSecs": 3399,
+     "n": 7,
+     "candidates": [
+      {
+       "kInvKm": 0.6003,
+       "gammaKm": 0.04154
+      },
+      {
+       "kInvKm": 0.8562,
+       "gammaKm": 0.2211
+      },
+      {
+       "kInvKm": 0.8797,
+       "gammaKm": 0.06785
+      },
+      {
+       "kInvKm": 0.9029,
+       "gammaKm": 0.05954
+      },
+      {
+       "kInvKm": 1.5414,
+       "gammaKm": 0.05219
+      },
+      {
+       "kInvKm": 2.43,
+       "gammaKm": 0.08343
+      },
+      {
+       "kInvKm": 3.8014,
+       "gammaKm": 0.1147
+      }
+     ]
+    },
+    "f1p2": {
+     "scanSecs": 3469,
+     "n": 9,
+     "candidates": [
+      {
+       "kInvKm": 1.6979,
+       "gammaKm": 0.08821
+      },
+      {
+       "kInvKm": 1.722,
+       "gammaKm": 0.08821
+      },
+      {
+       "kInvKm": 1.742,
+       "gammaKm": 0.2079
+      },
+      {
+       "kInvKm": 1.7626,
+       "gammaKm": 0.1833
+      },
+      {
+       "kInvKm": 1.783,
+       "gammaKm": 0.2005
+      },
+      {
+       "kInvKm": 1.8032,
+       "gammaKm": 0.2229
+      },
+      {
+       "kInvKm": 2.2612,
+       "gammaKm": 0.3937
+      },
+      {
+       "kInvKm": 2.9931,
+       "gammaKm": 0.1542
+      },
+      {
+       "kInvKm": 4.7651,
+       "gammaKm": 0.2383
+      }
+     ]
+    }
+   },
+   "ulpLadderLogdetM": {
+    "k0p6003": {
+     "v0": 13.83,
+     "ladder": "0.00e+0 / 0.00e+0 / 1.37e-13"
+    },
+    "k0p8562": {
+     "v0": 14.8,
+     "ladder": "0.00e+0 / 0.00e+0 / 1.10e-13"
+    },
+    "k0p8797": {
+     "v0": 14.68,
+     "ladder": "0.00e+0 / 0.00e+0 / -1.26e-12"
+    },
+    "k0p9029": {
+     "v0": 14.35,
+     "ladder": "0.00e+0 / 0.00e+0 / -5.08e-13"
+    },
+    "k1p5414": {
+     "v0": 15.2,
+     "ladder": "0.00e+0 / 0.00e+0 / 1.37e-13"
+    },
+    "control0p40": {
+     "v0": 15.72,
+     "ladder": "0.00e+0 / 5.33e-15 / 2.58e-11"
+    }
+   },
+   "fitTablePerCandidateF0p5": [
+    {
+     "cand": 0.6003,
+     "g0": 0.0415,
+     "kp": 0.5801,
+     "gamma": 0.00244,
+     "rel": 0.7412,
+     "absA": 0.2465,
+     "gCand": 52690
+    },
+    {
+     "cand": 0.8562,
+     "g0": 0.221,
+     "kp": 0.6814,
+     "gamma": 0.0497,
+     "rel": 0.3548,
+     "absA": 1.23,
+     "gCand": 20.1
+    },
+    {
+     "cand": 0.8797,
+     "g0": 0.0678,
+     "kp": 0.5963,
+     "gamma": 0.0558,
+     "rel": 0.2668,
+     "absA": 1.619,
+     "gCand": 3.354
+    },
+    {
+     "cand": 0.9029,
+     "g0": 0.0595,
+     "kp": 0.5734,
+     "gamma": 0.0659,
+     "rel": 0.249,
+     "absA": 5.199,
+     "gCand": 0.02823
+    },
+    {
+     "cand": 1.5414,
+     "g0": 0.0522,
+     "kp": 1.1239,
+     "gamma": 0.000815,
+     "rel": 0.001073,
+     "absA": 6.592e-23,
+     "gCand": 5.087e-33
+    },
+    {
+     "cand": 2.43,
+     "g0": 0.0834,
+     "kp": 1.7626,
+     "gamma": 0.0013,
+     "rel": 0.001073,
+     "absA": 1.301e-47,
+     "gCand": 1.091e-63
+    },
+    {
+     "cand": 3.8014,
+     "g0": 0.115,
+     "kp": 2.8838,
+     "gamma": 0.00179,
+     "rel": 0.001073,
+     "absA": 2.291e-85,
+     "gCand": 2.952e-110
+    }
+   ],
+   "fitTablePerCandidateF1p2": [
+    {
+     "cand": 1.6979,
+     "g0": 0.0882,
+     "kp": 1.1954,
+     "gamma": 0.159,
+     "rel": 0.753,
+     "absA": 3.782,
+     "gCand": 836
+    },
+    {
+     "cand": 1.722,
+     "g0": 0.0882,
+     "kp": 1.4673,
+     "gamma": 0.00138,
+     "rel": 0.7604,
+     "absA": 1.235,
+     "gCand": 12930
+    },
+    {
+     "cand": 1.742,
+     "g0": 0.208,
+     "kp": 1.4398,
+     "gamma": 0.0977,
+     "rel": 0.6718,
+     "absA": 2.216,
+     "gCand": 5694
+    },
+    {
+     "cand": 1.7626,
+     "g0": 0.183,
+     "kp": 1.602,
+     "gamma": 0.0266,
+     "rel": 0.7363,
+     "absA": 0.4479,
+     "gCand": 4567
+    },
+    {
+     "cand": 1.783,
+     "g0": 0.201,
+     "kp": 0.3466,
+     "gamma": 0.452,
+     "rel": 0.7353,
+     "absA": 9.133,
+     "gCand": "null (the eps-narrow true-pole null — the QD solve fails AT the candidate)"
+    },
+    {
+     "cand": 1.8032,
+     "g0": 0.223,
+     "kp": 1.7258,
+     "gamma": 0.015,
+     "rel": 0.7141,
+     "absA": 0.2195,
+     "gCand": 10610
+    },
+    {
+     "cand": 2.2612,
+     "g0": 0.394,
+     "kp": 0.7428,
+     "gamma": 0.141,
+     "rel": 0.1709,
+     "absA": 3.505,
+     "gCand": 4.185e-21
+    },
+    {
+     "cand": 2.9931,
+     "g0": 0.154,
+     "kp": 1.7595,
+     "gamma": 0.00241,
+     "rel": 0.001073,
+     "absA": 0.01156,
+     "gCand": 2.213e-60
+    },
+    {
+     "cand": 4.7651,
+     "g0": 0.238,
+     "kp": 2.8587,
+     "gamma": 0.00372,
+     "rel": 0.001073,
+     "absA": 1.186e-59,
+     "gCand": 3.098e-126
+    }
+   ],
+   "integrandProfileF0p5": {
+    "coarse": "0.30:3.96e4 / 0.40:7.44e3 / 0.50:5.32e4 / 0.60:5.56e4 / 0.70:1.48e4 / 0.80:1.37e4 / 0.85:1.25e2 / 0.90:1.06e-1 / 0.95:7.09e-7 / 1.00:6.79e-11",
+    "fine": "0.550:8.21e4 / 0.575:2.88e4 / 0.600:5.56e4 / 0.625:2.53e4 / 0.650:2.63e4 / 0.675:5.50e4 / 0.700:1.48e4 / 0.725:5.28e4 / 0.750:2.65e4 / 0.775:4.75e4 / 0.800:1.37e4 / 0.825:8.68e2 / 0.850:1.25e2 / 0.875:1.52e0 / 0.900:1.06e-1 / 0.925:1.26e-4 / 0.950:7.09e-7"
+   },
+   "reading": "THE LOCATOR REBUILD CLOSES THE POLE AGENDA WITH A MEASUREMENT. (1) The QD detM locator WORKS: the 1-ulp discriminator is exactly 0 at 1-16 ulp and ~1e-13 at 65536 ulps at every probe point (v13 measured the double landscape decorrelating at 0.002/km with bucket minima to -39.5); the noise forest is GONE — f0p5 resolves 17 double-era candidates (8 of them at the 5e-4 gamma floor = noise dips) to 7 real-width dips, f1p2 resolves 45 to 9; the far-band positions MATCH the double detector (2.43/3.80 exact). (2) But the detM dips are NOT integrand poles: dip depths are only 0.5-1.9 log units against a 15.7 background (far-off-axis modes), the buried-source QD integrand is a smooth Bessel-modulated 1e4-9e4 across 0.3-0.8/km with NO pole signatures at any dip, and it collapses exponentially above the halfspace shear branch point omega/vs_half (f0p5: ~0.70/km — 1.4e4 at 0.80 -> 1e2 at 0.85 -> 7e-7 at 0.95; by 1.54/km |g| ~ 1e-33, by 3.8 ~ 1e-110). (3) The single-pole fit class is INAPPLICABLE to this integrand: every supported-band candidate fails the 0.15 gate HONESTLY (rel 0.17-0.76 at f1p2, 0.25-0.74 at f0p5 — the model has no Bessel oscillation to fit), while the dead-band \"keeps\" (rel identically 1.073e-3, |A| 1e-23..1e-88) are fits to numerical dust. The v12-era \"candidates mislocate / fits slide into the 0.70-0.88 thicket\" record is thereby RESOLVED: there was nothing to find — the double-era fits were locked onto chain-noise spikes (v13) sitting exactly where the true signal collapses. (4) The only genuine near-axis structure is the f1p2 cluster 1.70-1.80/km (detM bottoming BELOW the 1e-300 double-return floor — essentially exact real-axis zeros, a trapped-mode family just above the f1p2 shear branch point 1.676/km; candidate 1.783 nulls the QD solve at the dip = the eps-narrow true null), but the buried-source integrand is exponentially blind to it (source and receiver couple through evanescent halfspace legs). CS v4 preconditions: P2 (in-band pole resolution) resolves NEGATIVELY — there are no in-band poles to resolve; P3 done (div10); P1 (horizontal absolute anchor) remains the only open gate"
+  },
+  "qdDetSubSeriesUrm": {
+   "measured": "2026-09-12, psv-qd-detsub-series.js single-run invocations in parallel (v16 locator rebuild batch)",
+   "fullTensorUrm": {
+    "dk0p02": 1.242353,
+    "dk0p002": 1.242268,
+    "dk0p001": 1.236453,
+    "dk0p0005": 1.235651
+   },
+   "deviatoricUrm": {
+    "dk0p02": 0.02227357,
+    "dk0p001": 0.0221692
+   },
+   "vsPlainQd": {
+    "full": "-0.094% / +0.401% / -0.039% / -0.018% at dk 0.02/0.002/0.001/0.0005",
+    "dev": "+0.497% / +0.122% at dk 0.02/0.001"
+   },
+   "verdict": "detSubtract ON THE QD FIELD IS A MEASURED NO-OP AND THE SERIES STAYS CONVERGED THROUGH IT: every point sits within +-0.50% of the plain QD series (qdSeriesUrm) — subtract+re-add is neutral exactly as the qdLocatorArm reading predicted (no strong poles to subtract; failed fits fall back to the candidate windows). The below-floor spread through the subtraction path is 1.0054 << the 1.03 gate. The detSubtract machinery keeps its double-field role (historical) and its opt-in contract; on the resolved field the plain QD series is the representation"
+  },
   "cap10SeriesUrm": {
    "deviatoric": {
     "dk0.02": 0.040156,
@@ -901,11 +1179,11 @@
   "reading_v7": "v7 layered state (delta-matrix batch): (1) the carried chain is now the MGS-orthonormalised delta-matrix factorisation S = Q*T (per-layer modified Gram-Schmidt with two reorthogonalisation passes, R bookkeeping, joint T rescaling; sigma = the above-source log exactly as the retired joint-scalar chain) - the raw chain's joint max-scaling preserved column RATIOS but not column INDEPENDENCE, and over the deep above-source leg the A pair collapsed float-parallel in the leaky-P crest band (the v6 det(Rc) = 0 nulls); (2) TWO propagator/chain bugs were fixed on the way, both caught by cross-checks: the first-cut triMul bounded the triangular product sum at l <= i (the DIAGONAL's index) dropping every j > i cross term - the R2 RK4 anchor failed 3.3e-2 and exposed it before any freeze; and the v6 propagator back-transform used the REAL mu* where the complex mu* is required (undamped paths bit-identical, damped paths mixed the state convention by |1 - i/q| per layer); (3) the DEVIATORIC series converges at the production cap (below-floor spread 1.3%) at the same absolute scale as the v6 raw chain (2.5%); (4) the FULL-TENSOR channel REMAINS OPEN: not the det-null collapse but the subdivide-cap dependence of the crest resolution.",
   "reading_v6": "v6 layered state: (1) the matrix-exponential propagator lost every layer Q (real-moduli A; measured: the deviatoric response 3x too large, interior leaky poles pinned ON the real axis at any q) - fixed by complex moduli with the exact nuOf convention c*^2 = c^2(1-i/q), after which the DEVIATORIC series converges at the correct physical scale; (2) the pole detector scans the source-independent surface-source det(Rc) dip landscape (the buried-source |C| ridge sank under e^{-kz} once attenuation returned); (3) branch-point resolution rings sample the halvespace-branch kinks the coarse lattice undersampled; (4) the remaining fullTensor blocker is the Rc basis-degeneracy band: det(Rc) = exact 0 across k ~ 0.53-0.56/km (the two residual basis columns become float-exactly parallel above vs_half), so the compliance is unrepresentable there and the grid-dependent bridging shows up as the below-floor series spread. The registered scale-invariant Rc inversion was measured to be the wrong cure (entries O(1); the det is small by physics, not scaling).",
   "reading_v5": "v5 layered state: (1) the v4 \"branch-tail cusp\" attribution is RETIRED — the layered compliance is bounded at every branch point (Rc^-1 Rw cancels the 1/nu factors; interior branches are not singular under the expm propagator); (2) with qP defaulted to qShear the undamped-P leaky resonances leave the real axis and the DEVIATORIC series converges (below-floor spread ~1%); (3) the detector is the bounded compliance-ridge scan (the det-dip scanner sat on a e^-288 chain floor, stepped over the fundamental and refined nothing — its v4 table was noise); (4) the FULL-TENSOR channel remains open: its dipole (depth-FD) channels ride the leaky-P crest band 0.45-0.6/km, where 1e9 crests over ~1e-3/km are peppered with det(Rc) underflow nulls — the trapezoid bridges shift with the grid. qP100/qP200 series measured non-converged as well, so this is not damping tuning.",
-  "openItem": "fullTensor leaky-P band k-integration (tokyo 0.5 Hz): the v13 arithmetic blockers are BOTH CURED by the v15 QD chain (measured, qdArithmeticArm + qdSeriesUrm): the 1-ulp gate passes at all five discriminator points and the series is dh-invariant to 2e-5 with the dk axis decaying 0.502% -> 0.030% per halving — the below-floor convergence criterion (spread < 1.03) closes at the dk0.0005 extension. What REMAINS: (1) the pole-locator rebuild on the resolvable Schur-QD field — the v13 INFEASIBLE verdict and the v12 candidate mislocations were ARITHMETIC blindness (detM noise floor), so the ridge detector + pole-model fit re-run with params.qdCompliance is the registered agenda; (2) the production decision for opts.psv: the QD chain costs ~0.07 s/chain vs 1.5 ms double (~47x) — the wiring needs the production call-count case or a double-chain-with-QD-anchors hybrid; (3) the 3 isolated band nulls (0.555/0.585/0.620/km, the det(Rc)-degenerate band) and the guard-nulls wherever the 2x2 solve is structurally singular — honest gaps in the quadrature, unchanged by arithmetic"
+  "openItem": "fullTensor leaky-P band k-integration (tokyo 0.5 Hz): RESOLVED — the v15 QD chain cured both arithmetic blockers (1-ulp gate full; series dh-invariant and below-floor converged, spread 1.0012) and the v16 locator rebuild closed the pole agenda NEGATIVELY: the QD detM dips are far-off-axis modes, the integrand is pole-free (smooth Bessel x evanescent collapse above omega/vs_half), the single-pole fit class fails honestly (rel 0.17-0.76), detSubtract is a measured no-op (+-0.50%), and the plain QD Schur series IS the representation (fullTensor ~1.236-1.244, dev ~0.02214). REMAINING: (1) the opts.psv production decision (QD ~0.07 s/chain vs 1.5 ms double — production call-count case or a hybrid double-chain-with-QD-anchors wiring); (2) CS v4 P1 (horizontal absolute anchor) — the only pre-registered gate left open (P2 resolved NEGATIVELY: no in-band poles; P3 done); (3) research-only: the f1p2 1.70-1.80/km trapped-mode cluster (detM below the 1e-300 double-return floor) would need a complex-k contour agenda IF ever physically needed — the buried-source integrand is exponentially blind to it"
  },
- "verdict": "fullspace_anchored_layered_schur_validated_qd_landed_gate_full_series_dh_noise_dead_below_floor_converged_locator_reopens",
- "registeredNextStep": "the pole-locator REBUILD on the resolvable Schur-QD field (the v13 INFEASIBLE verdict was arithmetic blindness — the ridge detector, the pole-model fit (psvPoleModelFit/psvPoleModelSet with params.qdCompliance) and the detSubtract cure re-run on the now-clean integrand; the v12-era candidate mislocations and the single-sample-anchored fit table are due for re-measurement), plus the opts.psv production decision (the QD chain at ~0.07 s/chain vs 1.5 ms double — production call-count case or a hybrid double-chain-with-QD-anchors wiring). The frozen double-chain series arms (194.41/28.09/44.36-era) stay on record as the historical noise-integral measurements; the QD series (~1.237/0.02214) is the signal-level baseline. Production opts.psv stays BLOCKED pending the production decision",
- "context": "v15 (2026-09-12, QD arithmetic batch): the v14 registered cure SHIPPED — tools/broadband/psv-qd.js re-evaluates the whole Schur chain in extended-precision BigInt bigfloat arithmetic (value = m*2^e with the mantissa normalized to 256 bits by default, eps ~1.7e-77 — 13+ orders beyond the measured 1e-64 requirement; every primitive correctly rounded: mul/div/sqrt via exact integer products plus exact-remainder rounding, exp/log via adaptive series; expm4 runs an ADAPTIVE Taylor term count — the DD-era constant 24 was only enough for eps 1e-32; opts.pbits re-targets the mantissa per call — a failed gate at 256 whose error shrinks at 384/512 would mean precision-bound, a flat error structural; the chain ports psv-dd.js 1:1 including the per-layer up-leg normalization). params.qdCompliance is opt-in; absent = byte-compatible double paths. Gate verdict (qdArithmeticArm, live): PASS AT ALL FIVE discriminator points — integrand 1-ulp swings 1e-14..1e-11% (double: O(10-1200%), DD at 0.70-0.76: O(10-600%)), still <= 1e-5% at 65536 ulps; C(zs) stable to ~1e-14%/ulp at 0.73; the crest guard-nulls are gone. Cross-path: QD == DD to the last rounded double at the 0.40 control; QD vs double 1.2e-11 (the double noise level). The step-det budget CORRECTION: the v14 DD-measured cancellations (5e30-8e31 at 0.70-0.76) were SATURATED by DD eps — QD resolves the true values 8.6e30 (0.76) / 3.4e35 (0.73) / 6.3e42 (0.70), while at 0.40 (1.727) and 0.80 (2.783e26) QD reproduces the DD numbers exactly (cross-precision invariance wherever DD was not saturated). Series payoff (qdSeriesUrm, frozen literals): dh-invariance 2.1e-5/2.2e-5 (v13: 7-30x noise-realization movement — the depth-FD noise channel is inert on a resolvable field); dk axis 1.243517 (clamped floor 0.00316/km) -> 1.237305 (0.002) -> 1.236935 (0.001) -> 1.235870 (0.0005): -0.502% / -0.030% / -0.086% — the BELOW-FLOOR SPREAD 1.0012 << the frozen 1.03 gate, the v12 unlock condition (fullTensor spread > 1.05, consciously unfreeze on convergence) FIRED, 15 versions of non-convergence end; deviatoric 0.02216335 -> 0.02214554 -> 0.02214221 (0.08% then 0.0015%); the absolute values are a new generational baseline: the double-chain-era series (194.41/28.09/44.36) were noise integrals, as v13 concluded from the dh axis — the QD field confirms it from the dk axis. Engineering record: THREE real bugs caught on the way — (1) the port dropped the density factor rho in the propagator A-matrix (c1s/w2vs2 subtracted bare omega^2 where the DD source subtracts rho*omega^2 — a 2650x error in two entries that moved the expm output by e^66; caught by the component-level DD cross-check after TWO scratch-level comparisons had passed NaN-swallowed (the v14 NaN lesson repeated on my own scratch scripts — the bisect \"agreement\" was two identically-wrong functions)); (2) the 4x4 identity matrices initialized as 1x4 vectors (term[i][l] indexing into complexes); (3) an in-design shared-propagator complianceTripleQD retired before shipping: prepare() splits the source layer at a different depth per target, so index-shared propagators would silently evaluate different physical layers — three independent chains are the honest mirror. Timing: ~0.07 s/chain at 256 bits (DD ~5 ms, double ~1.5 ms); the series driver runs single evaluations in parallel processes (tools/broadband/psv-qd-series.js). v14 (2026-09-12, DD arithmetic batch): the v13 registered cure SHIPPED — tools/broadband/psv-dd.js re-evaluates the whole Schur chain in double-double arithmetic (Dekker/Knuth primitives without FMA; nuOf, the eigenvector halfspace admittance, the expm propagator with the mu* back-transform, the above-source jointly-scaled product, and C = -e^-sigma (Y*Q11 - Q21)^-1; material products are exact two-products; the up-leg adds a per-layer propagator normalization that is algebraically free — the admittance recursion is invariant under P -> alpha*P — and removes the e^{+-114} evanescent SCALE of the raw propagators). params.ddCompliance is opt-in; absent = byte-compatible double paths (the frozen series all reproduce). Gate verdict (ddArithmeticArm, live): PASS at k = 0.80/km (1-ulp chaos -76% -> 2.9e-5% on the integrand) and the control band at DD-noise level (1e-13%, cross-path agreement 1.2e-11 relative); FAIL at k = 0.70/0.73/0.76 (O(10-600%) at 1 ulp). The new named blocker is measured by the upLegStepCancellation diagnostic: the first up-leg step dets det(P22 - Y*P12) carry cancellation ~5e30-8e31 at 0.70-0.76/km (vs 1.7 at 0.40 and 2.8e26 at 0.80) — the admittance recursion crosses the below-source subsystem near-resonance while the P wave traverses the 190-km mantle layer EVANESCENTLY (k > omega/vp there: nu_A ~ i*6e-4/m over 190 km = e^{+-114} of dynamic range that the raw propagator carried and the per-layer normalization removed as SCALE but the structural near-singularity remains). The output chaos scales as eps x stepCancel x O(1-40): DD (1e-32) is consumed exactly; the registered cure is quad-double arithmetic (eps ~ 1e-64 -> step error ~8e-33, output noise far below the 1e-12 gate, margin orders). Batch engineering record: two real bugs caught by the cross-checks on the way — a cdd/dd primitive mix-up in the lamC imaginary part (nested-array NaN) and m4maxabsDD initialized at the COMPLEX zero (poisoning every ddToNumber comparison; the manual-loop cross-check that \"validated\" it was itself swallowing NaN — NaN comparisons are always false, the widest lesson of the batch). v13 (2026-09-12, pole-locator feasibility batch): the v12 registered \"Schur-chain-native pole LOCATOR\" was tested and measured INFEASIBLE, with the decisive discriminator upgraded from the v10 1e-5/km-offset continuity check (7 orders too coarse) to a 1-ULP ladder: a real resonance of any width moves by ~(ulp/gamma)^2 ~ 0 at ulp-scale k offsets, so O(1) swings are roundoff chaos. Measured (chaosDiagnosis, live): control k=0.40/km — integrand and compliance bit-stable through 1e7 ulp (full stable digits); crest k=0.70/0.73/0.76/0.80/km — integrand swings -89%..+1203% at ONE ulp, compliance C 15-567%, at dh 0.5 AND 32 m and every source depth (73/30/surface). Mechanism: detM sits at ~1e-16 of |M|^2 in the crest band (cond(M) ~ 1e16) — the 2x2 determinant cancellation noise IS the output scale; the Schur up-leg recursion stays smooth (v11) but its output inherits the floor, which also sinks the detM dip landscape below k~0.65 (bucket minima -6.1 -> -39.5 log units, decorrelating at 0.002/km, a -690 cancellation needle at 0.900) — the structural root cause of the v12 \"candidates mislocate\". The frozen fit table was further demoted: the top fit (cand 0.6173) is SINGLE-SAMPLE ANCHORED (gamma0 = 0.11/km garbage width spreads its 12 ladder samples over 0.18-1.50/km; one lands on the crest at 3.67e7 amid a 1e4-1e5 background — rel 0.02 reflects that sample, not local cleanliness), and the weight profile shows the band weight 1e4-1e5 generic [0.3,0.65], 1e7-1e8 crest [0.70,0.82], dead beyond 0.95 (the v4-era 1.005/km \"basin-trapped fundamental\" carries ~1e-8 here — nothing). Series consequence (seriesDhSensitivity, live): with dh (the FD stencil) as a pure noise-realization knob (truncation ~4e-3 relative at 64 m), the fullTensor series moves 194/266/44.9/28.4/6.6 across dh 0.5/2/16/32/64 at dk0.02 — 30x with NO pinning; no truncation-safe dh converges (dh0.5 non-monotone 3.5, dh2 9.1, dh16 1.4 non-monotone, dh32 monotone-declining broken by dh64 and by the dk0.00025 extension 16.61 -> 8.65) — every frozen series value on this config is noise-integral dominated and none is interpretable as signal. The registered cure moves to compensated (double-double) arithmetic across the Schur compliance path, acceptance-gated on the 1-ulp discriminator flipping to bit-invariance. v12 (2026-09-11, det-subtract batch): the v11 registered cure SHIPPED — psvPoleModelFit fits each modal pole as A/(k-kp)+B per channel on real-axis samples (2-param Nelder-Mead x both Im-kp signs over a +-8*gamma0 ladder, conjugated complex LS with one 4x-median outlier pass; complex-k Newton on either chain determinant measured infeasible: the Schur up-leg admittance step det crosses zero AT the modal poles so complex evaluations null around every hunt point, the raw cascade det Newton was the registered v4 failure), params.detSubtract drops the fitted poles windows, subtracts at sample time and re-adds the exact principal-branch complex-log integrals over the lattice interval; failed fits keep their windows; absent param byte-compatible (tripwired). Self-test: closed-form A/(k-kp)+B+C e^{-lam k} recovered to 1.7e-9 position, subtract-and-re-add integrates a deliberately under-resolved pole (0.77 samples per gamma width) to 2.6e-5 where the plain trapezoid fails 12-14%. Production verdict: NOT curative yet — fullTensor-subtracted 231.77/231.77/231.77/532.96/770.39/803.88 at dk 0.02->0.0005 (monotone RISING below the alias floor, below-floor spread 1.51, unconverged), deviatoric 1.65/2.29/1.29/1.20e-2 unmoved. (An interim \"decelerating then crashed\" reading and an interim \"v11 freeze stale\" claim both came from side scripts of this batch, which passed the AZIMUTH-ROTATED full tensor while the frozen protocol is UNROTATED — both retracted; the frozen schur series 194.41/523/680/541 reproduces at committed code through this probe.) The fit table is the batch real finding: the MGS ridge-detector candidates mislocate the resonances (0.1662 rel 0.61 fail; 0.5264/0.5474 rel 0.74-0.76 fail; 0.5943->0.701, 0.6173->0.732, 0.8025->0.755, 0.8286->0.770, 0.8720->0.804, 0.9139->0.876, 0.9363->0.865 — every successful fit slid into the 0.70-0.88 narrow thicket, |A| up to 1e2, gamma 8e-4..4.5e-3/km, 7 models kept after gate+dedupe). The per-candidate rel table came from the crest-det-subtract.js driver (rotated-tensor protocol); pole POSITIONS are tensor-robust - the probe frozen unrotated poleModelSet kept the same 0.70-0.88 thicket (7 models, frozen below). The frozen schur and legacy series were re-verified live at committed code this batch. v10 (2026-09-10, crest-noise batch) diagnosed the leaky-P crest band at SAMPLE level on the frozen v9 config and retired the whole in-chain FD cure family: (1) the legacy series reproduced the v9 freeze bit-exactly (28.092/28.092/44.3618) — the baseline is stable; (2) a continuity discriminator proved the band spikes are CHAIN NOISE, not physical resonances: controls at 0.44/0.46/km are continuous to 0.1% at k-offsets of 1e-5/km while crest samples swing 1.4-15x at the same offset — 500x NARROWER than the physical resonance-width floor k/(2Q) = 0.005/km at qP = 50; (3) the mechanism is the depth finite-difference: dC = (Cdn - Cup)/(2*dh) amplifies the near-degenerate band residual-direction noise by 1/(2*dh) — enlarging the stencil collapses the spikes monotonically (0.5295/km: 4.26e6 -> 4.7e-1 of itself across dh 0.5 -> 20 m) while controls are dh-invariant, and the compliance magnitude |C| stays smooth (4.7e-8) while the integrand spikes — the wild factor lives only in the depth-gradient channels; (4) cure gen-1 (adaptive-stencil agreement search, dhAdaptive) collapsed the spikes 5-120x and dropped the series from 28-55 to 2.6-12.3 but stayed non-convergent (spread 3.7; the two-consecutive-agreement exit is fooled by correlated noise); cure gen-2 (Richardson pair D(2h) - D(h), exact cancellation for arm-independent rounding) left the spikes untouched — proving the noise is a DETERMINISTIC (k, z, dh)-joint wild function of the chain, not additive rounding; (5) verdict: the in-chain FD cure family is retired; the degenerate band needs an independent representation (per-layer Schur admittance; the v6 prototype up-leg was stable, down-leg NaN is the named blocker). Production opts.psv stays BLOCKED. v9 (2026-09-09, R3 opening batch) re-measured the full series on the mu*-corrected halfspace admittance (R10 damped cross-check fixed psvEigenvectors traction rows at a measured 1.4% halfspace-convention error): the fullTensor below-floor series changed character from erratic non-monotone collapse (54.2/58.9/21.3/7.3 on the defective admittance) to a CLEAN MONOTONE DIVERGENCE (28.1 -> 44.4 -> 50.2 -> 54.6 at dk 0.002 -> 0.0005) while deviatoric stays converged (spread 1.055 < 1.1) — the crest-band OPEN is re-confirmed on a trustworthy baseline and the full-space anchor still passes (maxResidual 0.062 <= 0.08), so the residue/Schur-admittance cure remains the registered blocker for production opts.psv; v8 (cap-closure batch) executed the registered subdivide-cap study and measured it NEGATIVE (cross-cap fullTensor values disagree without monotone convergence at caps 2/4/6/10/30) - the blocker is the leaky-P crest representation itself, not discretization; v7 (delta-matrix batch) landed the MGS-orthonormalised chain and fixed two real bugs the batch cross-checks exposed: the first-cut triMul triangular product dropped the j > i cross terms (caught by the R2 RK4 anchor at 3.3e-2 BEFORE any freeze; the interim \"fullTensor converges at 0.0077\" measurement was this bug suppressing the dipole channels and is retracted), and the v6 propagator back-transform used the real muR where the complex mu* is required (undamped paths bit-identical); deviatoric series converge at the production cap at the v6 raw-chain scale; fullTensor stays OPEN on cap-dependent crest resolution; v6 (Rc-inversion batch) found the registered scale-invariant inversion inapplicable (det small by physics) and fixed the v4 expm layer-Q loss (complex moduli, nuOf-exact convention); detector on the surface-source det(Rc) dip scan; branch-point resolution rings; v5 froze qp-default + compliance-ridge detector + window-continuity fix; v1 froze blocked_pending_source_calibration (21.3x hot factor); v2 froze fullspace_anchored_layered_poles_open (source anchor fixed 3 missing/1 wrong-column dipole terms + traction/dipole -1 + razor band-nulling); v3 replaced residues with gamma-resolved windows and found the Bessel-aliasing root cause; v4 closed the root-tracking gap (expm propagator, joint-scalar chain, 2D Newton) but misattributed the remaining series drift to an integrable branch-tail cusp; v5 (branch-cusp batch) measured the actual mechanisms: bounded layered compliance (v4 cusp retired), true cusps only on the fullSpace path (analytic subtraction landed there, references moved to xi-substitution), undamped-P leaky poles on the real axis (qP <- qShear default), a dead det scanner replaced by the compliance-ridge detector, and a window-ring continuity bug fixed",
+ "verdict": "fullspace_anchored_layered_qd_locator_built_band_pole_free_subtract_measured_noop_series_converged",
+ "registeredNextStep": "the pole locator / fit / detSubtract agenda is CLOSED on this field by measurement (v16): no strong in-band poles exist (the QD detM dips are far-off-axis; the integrand is Bessel-modulated smooth with an evanescent collapse above omega/vs_half; the subtraction machinery is a measured no-op at +-0.50%), so opts.psv's quadrature needs no pole treatment — the remaining registered items are the opts.psv PRODUCTION DECISION (QD ~0.07 s/chain vs 1.5 ms double: production call-count case, or a hybrid double-chain-with-QD-anchors wiring where the double chain carries the production lattice and QD anchors calibrate/verify it) and the CS v4 P1 horizontal absolute anchor (P2 resolves NEGATIVELY — no in-band poles to resolve; P3 done div10). The frozen double-chain series arms stay as the historical noise-integral record; the QD series (~1.237/0.02214) is the signal-level baseline",
+ "context": "v16 (2026-09-12, locator rebuild batch): the registered locator re-run MEASURED and the pole agenda CLOSED. Machinery: psvModalPoles gained the params.qdCompliance branch — the SAME dip protocol as the legacy det(Rc) scan (surface source zs=1e-4, 2.5e-4/km lattice, prominence 0.5 vs a +-0.25/km linear background, golden-section refine, HWHM gamma with the gMat/16 floor, halfspace branch exclusion) but the scan object is the Schur detM = det(Y*Q11 - Q21) evaluated by the bigfloat chain (at zs~0 the above-source product collapses: detM = det(Y), the surface-admittance pole condition — identical physics to det(Rc)); the pole-cache key carries the qd flag and opts._qdScanStep coarsens the lattice for tests (the double path is byte-identical). Measurements (frozen literals, psv-qd-locator.js + per-candidate fit driver; the scans cost ~57 min each): f0p5 resolves 17 double-era candidates (8 at the 5e-4 gamma floor = noise dips) to 7 real-width dips (0.6003/0.8562/0.8797/0.9029/1.5414/2.43/3.8014), f1p2 resolves 45 to 9 (the 1.70-1.80 cluster + 2.26/2.99/4.77); the far-band positions MATCH the double detector (2.43/2.4302 and 3.8014/3.802); the 1-ulp ladder of log|detM| is exactly 0 at 1-16 ulps and ~1e-13 at 65536 ulps (v13 measured the double landscape decorrelating at 0.002/km). THE TURNS: (a) dip depths are only 0.5-1.9 log units against a 15.7 background — far-off-axis modes, not strong resonances; (b) the buried-source QD integrand is POLE-FREE: a smooth Bessel-modulated 1e4-9e4 across 0.3-0.8/km with no signatures at any dip, collapsing exponentially above the halfspace shear branch point omega/vs_half ~ 0.70/km at f0p5 (1.4e4 at 0.80 -> 1e2 at 0.85 -> 7e-7 at 0.95 -> 1e-33 by 1.54 -> 1e-110 by 3.8); (c) every supported-band single-pole fit fails the 0.15 gate HONESTLY (rel 0.25-0.74 f0p5, 0.17-0.76 f1p2 — the A/(k-kp)+B model class cannot represent a Bessel-oscillatory integrand), and the dead-band \"keeps\" (rel identically 1.073e-3, |A| 1e-23..1e-88) fit numerical dust; (d) the ONLY genuine near-axis structure is the f1p2 cluster 1.70-1.80/km just above its shear branch point 1.676/km — detM bottoms BELOW the 1e-300 double-return floor (essentially exact real-axis zeros; candidate 1.783 nulls the QD solve at the dip = the eps-narrow true null) but the buried-source integrand is exponentially blind to it (evanescent halfspace legs). The v12 \"candidates mislocate\" record RESOLVES to: there was nothing to find — the double-era fits locked onto chain-noise spikes (v13) sitting exactly where the true signal collapses; the v13 \"locator INFEASIBLE\" verdict was arithmetic blindness of the FIELD, not a defect of the dip protocol. Payoff: detSubtract re-run on the resolved field (six psv-qd-detsub-series.js runs, 82-128 min each) is a MEASURED NO-OP — every point within +-0.50% of the plain QD series, below-floor spread 1.0054 still converged (qdDetSubSeriesUrm). Batch engineering note: the locator driver grew a candidates-file bypass after the first scan round (the 57-min scan is not re-paid for fit/ulp re-runs), and TWO driver bugs were caught by their own output — a 1/km-vs-1/m unit mixup in the file round-trip (candidates silently at k~1e-3/m) and an undeclared t0 — while the f1p2 ulp ladders first looked \"noisy\" until the v0 printout showed those dips bottom out below the double-return floor (the ladder was measuring the log() guard jitter, not the chain: |v0| ~ 690 flags saturation). CS v4 preconditions after this batch: P2 resolves NEGATIVELY (no in-band poles), P3 done (div10), P1 (horizontal absolute anchor) remains the only open gate. v15 (2026-09-12, QD arithmetic batch): the v14 registered cure SHIPPED — tools/broadband/psv-qd.js re-evaluates the whole Schur chain in extended-precision BigInt bigfloat arithmetic (value = m*2^e with the mantissa normalized to 256 bits by default, eps ~1.7e-77 — 13+ orders beyond the measured 1e-64 requirement; every primitive correctly rounded: mul/div/sqrt via exact integer products plus exact-remainder rounding, exp/log via adaptive series; expm4 runs an ADAPTIVE Taylor term count — the DD-era constant 24 was only enough for eps 1e-32; opts.pbits re-targets the mantissa per call — a failed gate at 256 whose error shrinks at 384/512 would mean precision-bound, a flat error structural; the chain ports psv-dd.js 1:1 including the per-layer up-leg normalization). params.qdCompliance is opt-in; absent = byte-compatible double paths. Gate verdict (qdArithmeticArm, live): PASS AT ALL FIVE discriminator points — integrand 1-ulp swings 1e-14..1e-11% (double: O(10-1200%), DD at 0.70-0.76: O(10-600%)), still <= 1e-5% at 65536 ulps; C(zs) stable to ~1e-14%/ulp at 0.73; the crest guard-nulls are gone. Cross-path: QD == DD to the last rounded double at the 0.40 control; QD vs double 1.2e-11 (the double noise level). The step-det budget CORRECTION: the v14 DD-measured cancellations (5e30-8e31 at 0.70-0.76) were SATURATED by DD eps — QD resolves the true values 8.6e30 (0.76) / 3.4e35 (0.73) / 6.3e42 (0.70), while at 0.40 (1.727) and 0.80 (2.783e26) QD reproduces the DD numbers exactly (cross-precision invariance wherever DD was not saturated). Series payoff (qdSeriesUrm, frozen literals): dh-invariance 2.1e-5/2.2e-5 (v13: 7-30x noise-realization movement — the depth-FD noise channel is inert on a resolvable field); dk axis 1.243517 (clamped floor 0.00316/km) -> 1.237305 (0.002) -> 1.236935 (0.001) -> 1.235870 (0.0005): -0.502% / -0.030% / -0.086% — the BELOW-FLOOR SPREAD 1.0012 << the frozen 1.03 gate, the v12 unlock condition (fullTensor spread > 1.05, consciously unfreeze on convergence) FIRED, 15 versions of non-convergence end; deviatoric 0.02216335 -> 0.02214554 -> 0.02214221 (0.08% then 0.0015%); the absolute values are a new generational baseline: the double-chain-era series (194.41/28.09/44.36) were noise integrals, as v13 concluded from the dh axis — the QD field confirms it from the dk axis. Engineering record: THREE real bugs caught on the way — (1) the port dropped the density factor rho in the propagator A-matrix (c1s/w2vs2 subtracted bare omega^2 where the DD source subtracts rho*omega^2 — a 2650x error in two entries that moved the expm output by e^66; caught by the component-level DD cross-check after TWO scratch-level comparisons had passed NaN-swallowed (the v14 NaN lesson repeated on my own scratch scripts — the bisect \"agreement\" was two identically-wrong functions)); (2) the 4x4 identity matrices initialized as 1x4 vectors (term[i][l] indexing into complexes); (3) an in-design shared-propagator complianceTripleQD retired before shipping: prepare() splits the source layer at a different depth per target, so index-shared propagators would silently evaluate different physical layers — three independent chains are the honest mirror. Timing: ~0.07 s/chain at 256 bits (DD ~5 ms, double ~1.5 ms); the series driver runs single evaluations in parallel processes (tools/broadband/psv-qd-series.js). v14 (2026-09-12, DD arithmetic batch): the v13 registered cure SHIPPED — tools/broadband/psv-dd.js re-evaluates the whole Schur chain in double-double arithmetic (Dekker/Knuth primitives without FMA; nuOf, the eigenvector halfspace admittance, the expm propagator with the mu* back-transform, the above-source jointly-scaled product, and C = -e^-sigma (Y*Q11 - Q21)^-1; material products are exact two-products; the up-leg adds a per-layer propagator normalization that is algebraically free — the admittance recursion is invariant under P -> alpha*P — and removes the e^{+-114} evanescent SCALE of the raw propagators). params.ddCompliance is opt-in; absent = byte-compatible double paths (the frozen series all reproduce). Gate verdict (ddArithmeticArm, live): PASS at k = 0.80/km (1-ulp chaos -76% -> 2.9e-5% on the integrand) and the control band at DD-noise level (1e-13%, cross-path agreement 1.2e-11 relative); FAIL at k = 0.70/0.73/0.76 (O(10-600%) at 1 ulp). The new named blocker is measured by the upLegStepCancellation diagnostic: the first up-leg step dets det(P22 - Y*P12) carry cancellation ~5e30-8e31 at 0.70-0.76/km (vs 1.7 at 0.40 and 2.8e26 at 0.80) — the admittance recursion crosses the below-source subsystem near-resonance while the P wave traverses the 190-km mantle layer EVANESCENTLY (k > omega/vp there: nu_A ~ i*6e-4/m over 190 km = e^{+-114} of dynamic range that the raw propagator carried and the per-layer normalization removed as SCALE but the structural near-singularity remains). The output chaos scales as eps x stepCancel x O(1-40): DD (1e-32) is consumed exactly; the registered cure is quad-double arithmetic (eps ~ 1e-64 -> step error ~8e-33, output noise far below the 1e-12 gate, margin orders). Batch engineering record: two real bugs caught by the cross-checks on the way — a cdd/dd primitive mix-up in the lamC imaginary part (nested-array NaN) and m4maxabsDD initialized at the COMPLEX zero (poisoning every ddToNumber comparison; the manual-loop cross-check that \"validated\" it was itself swallowing NaN — NaN comparisons are always false, the widest lesson of the batch). v13 (2026-09-12, pole-locator feasibility batch): the v12 registered \"Schur-chain-native pole LOCATOR\" was tested and measured INFEASIBLE, with the decisive discriminator upgraded from the v10 1e-5/km-offset continuity check (7 orders too coarse) to a 1-ULP ladder: a real resonance of any width moves by ~(ulp/gamma)^2 ~ 0 at ulp-scale k offsets, so O(1) swings are roundoff chaos. Measured (chaosDiagnosis, live): control k=0.40/km — integrand and compliance bit-stable through 1e7 ulp (full stable digits); crest k=0.70/0.73/0.76/0.80/km — integrand swings -89%..+1203% at ONE ulp, compliance C 15-567%, at dh 0.5 AND 32 m and every source depth (73/30/surface). Mechanism: detM sits at ~1e-16 of |M|^2 in the crest band (cond(M) ~ 1e16) — the 2x2 determinant cancellation noise IS the output scale; the Schur up-leg recursion stays smooth (v11) but its output inherits the floor, which also sinks the detM dip landscape below k~0.65 (bucket minima -6.1 -> -39.5 log units, decorrelating at 0.002/km, a -690 cancellation needle at 0.900) — the structural root cause of the v12 \"candidates mislocate\". The frozen fit table was further demoted: the top fit (cand 0.6173) is SINGLE-SAMPLE ANCHORED (gamma0 = 0.11/km garbage width spreads its 12 ladder samples over 0.18-1.50/km; one lands on the crest at 3.67e7 amid a 1e4-1e5 background — rel 0.02 reflects that sample, not local cleanliness), and the weight profile shows the band weight 1e4-1e5 generic [0.3,0.65], 1e7-1e8 crest [0.70,0.82], dead beyond 0.95 (the v4-era 1.005/km \"basin-trapped fundamental\" carries ~1e-8 here — nothing). Series consequence (seriesDhSensitivity, live): with dh (the FD stencil) as a pure noise-realization knob (truncation ~4e-3 relative at 64 m), the fullTensor series moves 194/266/44.9/28.4/6.6 across dh 0.5/2/16/32/64 at dk0.02 — 30x with NO pinning; no truncation-safe dh converges (dh0.5 non-monotone 3.5, dh2 9.1, dh16 1.4 non-monotone, dh32 monotone-declining broken by dh64 and by the dk0.00025 extension 16.61 -> 8.65) — every frozen series value on this config is noise-integral dominated and none is interpretable as signal. The registered cure moves to compensated (double-double) arithmetic across the Schur compliance path, acceptance-gated on the 1-ulp discriminator flipping to bit-invariance. v12 (2026-09-11, det-subtract batch): the v11 registered cure SHIPPED — psvPoleModelFit fits each modal pole as A/(k-kp)+B per channel on real-axis samples (2-param Nelder-Mead x both Im-kp signs over a +-8*gamma0 ladder, conjugated complex LS with one 4x-median outlier pass; complex-k Newton on either chain determinant measured infeasible: the Schur up-leg admittance step det crosses zero AT the modal poles so complex evaluations null around every hunt point, the raw cascade det Newton was the registered v4 failure), params.detSubtract drops the fitted poles windows, subtracts at sample time and re-adds the exact principal-branch complex-log integrals over the lattice interval; failed fits keep their windows; absent param byte-compatible (tripwired). Self-test: closed-form A/(k-kp)+B+C e^{-lam k} recovered to 1.7e-9 position, subtract-and-re-add integrates a deliberately under-resolved pole (0.77 samples per gamma width) to 2.6e-5 where the plain trapezoid fails 12-14%. Production verdict: NOT curative yet — fullTensor-subtracted 231.77/231.77/231.77/532.96/770.39/803.88 at dk 0.02->0.0005 (monotone RISING below the alias floor, below-floor spread 1.51, unconverged), deviatoric 1.65/2.29/1.29/1.20e-2 unmoved. (An interim \"decelerating then crashed\" reading and an interim \"v11 freeze stale\" claim both came from side scripts of this batch, which passed the AZIMUTH-ROTATED full tensor while the frozen protocol is UNROTATED — both retracted; the frozen schur series 194.41/523/680/541 reproduces at committed code through this probe.) The fit table is the batch real finding: the MGS ridge-detector candidates mislocate the resonances (0.1662 rel 0.61 fail; 0.5264/0.5474 rel 0.74-0.76 fail; 0.5943->0.701, 0.6173->0.732, 0.8025->0.755, 0.8286->0.770, 0.8720->0.804, 0.9139->0.876, 0.9363->0.865 — every successful fit slid into the 0.70-0.88 narrow thicket, |A| up to 1e2, gamma 8e-4..4.5e-3/km, 7 models kept after gate+dedupe). The per-candidate rel table came from the crest-det-subtract.js driver (rotated-tensor protocol); pole POSITIONS are tensor-robust - the probe frozen unrotated poleModelSet kept the same 0.70-0.88 thicket (7 models, frozen below). The frozen schur and legacy series were re-verified live at committed code this batch. v10 (2026-09-10, crest-noise batch) diagnosed the leaky-P crest band at SAMPLE level on the frozen v9 config and retired the whole in-chain FD cure family: (1) the legacy series reproduced the v9 freeze bit-exactly (28.092/28.092/44.3618) — the baseline is stable; (2) a continuity discriminator proved the band spikes are CHAIN NOISE, not physical resonances: controls at 0.44/0.46/km are continuous to 0.1% at k-offsets of 1e-5/km while crest samples swing 1.4-15x at the same offset — 500x NARROWER than the physical resonance-width floor k/(2Q) = 0.005/km at qP = 50; (3) the mechanism is the depth finite-difference: dC = (Cdn - Cup)/(2*dh) amplifies the near-degenerate band residual-direction noise by 1/(2*dh) — enlarging the stencil collapses the spikes monotonically (0.5295/km: 4.26e6 -> 4.7e-1 of itself across dh 0.5 -> 20 m) while controls are dh-invariant, and the compliance magnitude |C| stays smooth (4.7e-8) while the integrand spikes — the wild factor lives only in the depth-gradient channels; (4) cure gen-1 (adaptive-stencil agreement search, dhAdaptive) collapsed the spikes 5-120x and dropped the series from 28-55 to 2.6-12.3 but stayed non-convergent (spread 3.7; the two-consecutive-agreement exit is fooled by correlated noise); cure gen-2 (Richardson pair D(2h) - D(h), exact cancellation for arm-independent rounding) left the spikes untouched — proving the noise is a DETERMINISTIC (k, z, dh)-joint wild function of the chain, not additive rounding; (5) verdict: the in-chain FD cure family is retired; the degenerate band needs an independent representation (per-layer Schur admittance; the v6 prototype up-leg was stable, down-leg NaN is the named blocker). Production opts.psv stays BLOCKED. v9 (2026-09-09, R3 opening batch) re-measured the full series on the mu*-corrected halfspace admittance (R10 damped cross-check fixed psvEigenvectors traction rows at a measured 1.4% halfspace-convention error): the fullTensor below-floor series changed character from erratic non-monotone collapse (54.2/58.9/21.3/7.3 on the defective admittance) to a CLEAN MONOTONE DIVERGENCE (28.1 -> 44.4 -> 50.2 -> 54.6 at dk 0.002 -> 0.0005) while deviatoric stays converged (spread 1.055 < 1.1) — the crest-band OPEN is re-confirmed on a trustworthy baseline and the full-space anchor still passes (maxResidual 0.062 <= 0.08), so the residue/Schur-admittance cure remains the registered blocker for production opts.psv; v8 (cap-closure batch) executed the registered subdivide-cap study and measured it NEGATIVE (cross-cap fullTensor values disagree without monotone convergence at caps 2/4/6/10/30) - the blocker is the leaky-P crest representation itself, not discretization; v7 (delta-matrix batch) landed the MGS-orthonormalised chain and fixed two real bugs the batch cross-checks exposed: the first-cut triMul triangular product dropped the j > i cross terms (caught by the R2 RK4 anchor at 3.3e-2 BEFORE any freeze; the interim \"fullTensor converges at 0.0077\" measurement was this bug suppressing the dipole channels and is retracted), and the v6 propagator back-transform used the real muR where the complex mu* is required (undamped paths bit-identical); deviatoric series converge at the production cap at the v6 raw-chain scale; fullTensor stays OPEN on cap-dependent crest resolution; v6 (Rc-inversion batch) found the registered scale-invariant inversion inapplicable (det small by physics) and fixed the v4 expm layer-Q loss (complex moduli, nuOf-exact convention); detector on the surface-source det(Rc) dip scan; branch-point resolution rings; v5 froze qp-default + compliance-ridge detector + window-continuity fix; v1 froze blocked_pending_source_calibration (21.3x hot factor); v2 froze fullspace_anchored_layered_poles_open (source anchor fixed 3 missing/1 wrong-column dipole terms + traction/dipole -1 + razor band-nulling); v3 replaced residues with gamma-resolved windows and found the Bessel-aliasing root cause; v4 closed the root-tracking gap (expm propagator, joint-scalar chain, 2D Newton) but misattributed the remaining series drift to an integrable branch-tail cusp; v5 (branch-cusp batch) measured the actual mechanisms: bounded layered compliance (v4 cusp retired), true cusps only on the fullSpace path (analytic subtraction landed there, references moved to xi-substitution), undamped-P leaky poles on the real axis (qP <- qShear default), a dead det scanner replaced by the compliance-ridge detector, and a window-ring continuity bug fixed",
  "history": {
   "v1measured": {
    "tractionRatio": 0.908,
@@ -934,6 +1212,8 @@
   "v13verdict": "fullspace_anchored_layered_schur_validated_locator_infeasible_zero_stable_digits_series_noise_dominated",
   "v14verdict": "fullspace_anchored_layered_schur_validated_dd_landed_gate_partial_step_cancel_5e31_quad_double_registered",
   "v15verdict": "fullspace_anchored_layered_schur_validated_qd_landed_gate_full_series_dh_noise_dead_below_floor_converged_locator_reopens",
+  "v16verdict": "fullspace_anchored_layered_qd_locator_built_band_pole_free_subtract_measured_noop_series_converged",
+  "v16note": "the locator rebuild CLOSED the pole agenda by measurement: the QD detM locator (psvModalPoles params.qdCompliance branch) is ulp-exact and resolves the double-era noise forest away (17->7 at f0p5, 45->9 at f1p2, far-band 2.43/3.80 matching), but the dips are far-off-axis (0.5-1.9 log units deep), the buried-source integrand is POLE-FREE (Bessel-modulated smooth 1e4-9e4 over 0.3-0.8/km; exponential collapse above omega/vs_half: 1e-33 by 1.54/km, 1e-110 by 3.8), every supported-band fit fails the 0.15 gate honestly (rel 0.17-0.76), and detSubtract is a measured no-op (+-0.50% of plain, spread 1.0054). The only near-axis structure: the f1p2 1.70-1.80/km trapped-mode cluster with detM below the 1e-300 double-return floor (the integrand exponentially blind to it). CS v4: P2 resolves NEGATIVELY, P3 done, P1 remains. PITFALL RECORDED: the f1p2 ulp ladders first read as noise until the v0 printout showed those dips bottom out below the double-return floor — the ladder was measuring the log() +1e-300 guard jitter, not the chain (|v0| ~ 690 flags saturation); ALSO a 1/km-vs-1/m unit mixup in the driver candidates-file round-trip (silent DC-scale candidates) — units cross the file boundary need an assert",
   "v15note": "QD machinery shipped opt-in (params.qdCompliance, 256-bit BigInt bigfloat, correctly-rounded primitives, adaptive expm terms) and the 1-ulp gate passed at ALL FIVE discriminator points (the v14 partial gate resolved; C itself ~1e-14%/ulp); the v14 step-det table was corrected (DD-eps-saturated: the true crest cancellations are 8.6e30/3.4e35/6.3e42 at 0.76/0.73/0.70 vs DD 5e30-8e31; 0.40=1.727 and 0.80=2.783e26 reproduce cross-precision); the series became dh-invariant to 2e-5 (the v13 noise-knob verdict died) and the dk axis decays 0.502% -> 0.030% per halving — the below-floor convergence criterion closed (the v12 >1.05 unlock condition FIRED); absolute values are a new generational baseline (~1.237 full / ~0.02214 dev — the double-era series were noise integrals). PITFALL RECORDED (twice over): the rho-factor drop in the ported propagator A-matrix (bare omega^2 vs rho*omega^2, a 2650x entry error moving expm by e^66) survived TWO scratch-level cross-checks because both scratches had copied the port bug and the comparisons NaN-swallowed — when copies of your own code agree with your own code, you have checked nothing; cross-check against the VALIDATED module outputs",
   "v14note": "DD machinery shipped opt-in (params.ddCompliance) and validated (control-band cross-path agreement 1.2e-11; timing ~5 ms/eval vs 1.5 ms double); the 1-ulp gate passes at 0.80/km and fails at 0.70/0.73/0.76 — the NEW named blocker is the up-leg step-det cancellation ~5e30-8e31 (P-evanescent mantle traversal + below-source near-resonance), registered cure = quad-double (eps 1e-64, step error ~8e-33). PITFALL RECORDED: a NaN-swallowing cross-check (NaN comparisons always false) briefly \"validated\" a broken m4maxabsDD — when a comparison-based check passes suspiciously easily, test it against a known-bad input first",
   "v13note": "the pole-locator agenda is CLOSED-NEGATIVE with a decisive discriminator (1-ulp chaos, zero stable digits at the crest band, all depths, all truncation-safe dh); the series values are noise-integral dominated (dh realization moves them 30x, no pinning) — no signal-level series reading exists on this config. Registered cure: double-double arithmetic across the Schur compliance path, gated on the 1-ulp discriminator flipping to bit-invariance; the v10 \"in-chain FD cure family retired\" conclusion extends to FIXED large-dh stencils (never series-tested before this batch)",

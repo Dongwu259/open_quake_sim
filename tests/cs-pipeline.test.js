@@ -113,3 +113,18 @@ test('cs-pipeline — scale-factor transparency block frozen', () => {
   assert.equal(r.scaleFactors.brune.median, 0.97);
   assert.ok(r.findings.summary.join(' ').includes('circularity') || r.findings.summary.join(' ').includes('diagnostic'));
 });
+
+test('CS v4 pre-registration status — P1 measured PASS on the QD arm, run verdict NOT EXECUTABLE (2026-09-13)', () => {
+  const v4 = require('../tools/broadband/cs-pipeline.js').PRE_REG_V4;
+  assert.ok(v4.p1Anchor, 'the P1 anchor block must be present');
+  assert.equal(v4.p1Anchor.gate, 'QD arm (params.qdCompliance) vs BVP <= 1e-2 — MEASURED PASS at worstRel 6.03e-13 (11 orders of margin); the composition (units, conventions, integrator, block algebra, layered compliance) is exact end-to-end');
+  // the double-arm mechanism: the detM floor at the Rayleigh neighborhoods
+  assert.ok(v4.p1Anchor.doubleArm.includes('8.34'), 'the double-arm f1.2 failure magnitude must stay on record');
+  assert.ok(v4.p1Anchor.doubleArm.includes('6000x'), 'the QD-vs-BVP exactness at the disputed k must stay on record');
+  assert.ok(v4.p1Anchor.significance.includes('EVERY column'), 'the every-column extension of the floor mechanism must be recorded');
+  assert.ok(v4.p2Status.includes('RESOLVED NEGATIVELY'), 'the P2 negative resolution must be on record');
+  assert.ok(v4.p3Status.includes('DONE'), 'the P3 completion must be on record');
+  assert.ok(v4.runVerdict.includes('NOT EXECUTABLE'), 'the honest run verdict must be on record');
+  assert.ok(v4.runVerdict.includes('24 h'), 'the QD runtime cost that blocks the run must be on record');
+  assert.ok(v4.runVerdict.includes('two-tier'), 'the registered two-tier cure must be named');
+});

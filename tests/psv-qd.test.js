@@ -122,3 +122,31 @@ test('psv-qd — dispatcher contract: qdCompliance opt-in, absent = double path'
   const C3 = psv.complianceAt(stack, omega, 0.40 / 1000, zs, { qShear: Q, qP: Q, schurCompliance: 1, ddCompliance: 1 });
   assert.ok(Array.isArray(C3) && Number.isFinite(C3[0][0][0]), 'the DD branch must still route');
 });
+
+test('psv-qd — locator: the QD detM branch finds the frozen dip and the legacy branch still runs', () => {
+  // v16 locator rebuild: psvModalPoles with qdCompliance scans the Schur
+  // detM landscape through the bigfloat chain (_qdScanStep coarsens the
+  // lattice for this small-scan contract test; the frozen 2.5e-4/km
+  // protocol cost ~57 min and is NOT re-paid here). The frozen full scan
+  // found the 0.6003/km dip — this small scan must re-find it.
+  const om = 2 * Math.PI * 0.5;
+  const qdPoles = psv.psvModalPoles(stack, om, 0.65, { qShear: Q, qdCompliance: 1, _qdScanStep: 2e-3 });
+  assert.ok(Array.isArray(qdPoles), 'the QD branch must return a candidate array');
+  assert.ok(qdPoles.length >= 1, 'the small QD scan must find at least one dip in [0.02, 0.65]');
+  const near = qdPoles.find((p) => Math.abs(p.k - 0.6003) < 0.02);
+  assert.ok(near, 'the frozen 0.6003/km detM dip must re-appear in the small scan (got ' +
+    qdPoles.map((p) => p.k.toFixed(4)).join(', ') + ')');
+  // the dip bottom must be ulp-exact (the v16 gate on the locator field)
+  const psvqd2 = require(ROOT + '/tools/broadband/psv-qd.js');
+  const k0m = near.k / 1000, u = 2 ** (Math.floor(Math.log2(k0m)) - 52);
+  const ld = (k) => {
+    const r = psvqd2.schurComplianceQD(stack, om, k, 1e-4, { qShear: Q, qP: Q, _wantDet: 1 });
+    return Math.log(Math.hypot(r.detM[0], r.detM[1]) + 1e-300);
+  };
+  const v0 = ld(k0m);
+  assert.ok(Math.abs(ld(k0m + u) - v0) < 1e-9, 'log|detM| must be 1-ulp exact at the dip (got ' +
+    (ld(k0m + u) - v0).toExponential(2) + ')');
+  // the legacy double branch still runs on the same signature (no qd flag)
+  const dblPoles = psv.psvModalPoles(stack, om, 0.65, { qShear: Q });
+  assert.ok(Array.isArray(dblPoles), 'the legacy branch must keep its contract');
+});

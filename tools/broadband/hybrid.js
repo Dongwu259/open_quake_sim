@@ -316,7 +316,14 @@ function hybridSynthesis(opts) {
   if (opts.psv) {
     const cache = (opts.psvCache instanceof Map) ? opts.psvCache : new Map();
     const psvMaxHz = opts.psvMaxHz || fcHz * 1.2;
-    const Mr = psv.rotateFullTensor({ mxx: M.xx, myy: M.yy, mzz: M.zz, mxy: M.xy, mxz: M.xz, myz: M.yz }, az);
+    const Mr0 = psv.rotateFullTensor({ mxx: M.xx, myy: M.yy, mzz: M.zz, mxy: M.xy, mxz: M.xz, myz: M.yz }, az);
+    // CS v4 arm (pre-registered 2026-09-11): opts.psvHorizontalOnly restricts
+    // the P-SV block to the HORIZONTAL traction channels — the depth-FD
+    // dipole entries (Mzz/Mxz/Myz: T5-T7) are zeroed AFTER the azimuth
+    // rotation, leaving the T1/T2 horizontal block (C00/C11/C01 consumers).
+    const Mr = opts.psvHorizontalOnly
+      ? { mxx: Mr0.mxx, myy: Mr0.myy, mzz: 0, mxy: Mr0.mxy, mxz: 0, myz: 0 }
+      : Mr0;
     const radialF = new Array(NF).fill(0).map(() => [0, 0]);
     const verticalF = new Array(NF).fill(0).map(() => [0, 0]);
     for (let i = 0; i < lfFreqs.length; i++) {
@@ -326,7 +333,15 @@ function hybridSynthesis(opts) {
         rKm: distKm, zSourceKm: opts.sourceDepthKm,
         mxx: Mr.mxx, myy: Mr.myy, mzz: Mr.mzz, mxy: Mr.mxy, mxz: Mr.mxz, myz: Mr.myz,
         dkInvKm: opts.psvDkInvKm || 0.02, kMaxInvKm: opts.kMaxInvKm || 5,
-        qShear: opts.qShear || 50, dhM: opts.psvDhM || 0.5, cache
+        qShear: opts.qShear || 50, dhM: opts.psvDhM || 0.5, cache,
+        // 2026-09-13 CS v4 batch: the compliance representation follows the
+        // 2026-09-10 adjudication (Schur is the validated representation;
+        // the legacy A/W chain is O(1) off at deep configs), and the pole
+        // windows are skipped per the v16 locator rebuild (the production
+        // band is pole-free; the per-omega legacy locator scan is dead
+        // weight). Both opt-in here; absent = the frozen research defaults.
+        schurCompliance: opts.psvSchur ? 1 : undefined,
+        poleWindows: opts.psvNoPoleWindows ? false : undefined
       });
       const w = 2 * Math.PI * fHz;
       const den = [1, w / fcSrc];

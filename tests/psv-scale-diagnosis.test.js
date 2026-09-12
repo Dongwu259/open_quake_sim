@@ -65,8 +65,8 @@ const REPORT = path.join(__dirname, '..', 'tools', 'data', 'psv-scale-diagnosis.
 const r = JSON.parse(fs.readFileSync(REPORT, 'utf8'));
 
 test('psv-scale-diagnosis — schema, verdict, config frozen', () => {
-  assert.equal(r.schema, 'quake-sim-psv-scale-diagnosis-v15');
-  assert.equal(r.verdict, 'fullspace_anchored_layered_schur_validated_qd_landed_gate_full_series_dh_noise_dead_below_floor_converged_locator_reopens');
+  assert.equal(r.schema, 'quake-sim-psv-scale-diagnosis-v16');
+  assert.equal(r.verdict, 'fullspace_anchored_layered_qd_locator_built_band_pole_free_subtract_measured_noop_series_converged');
   assert.ok(String(r.reMeasure).includes('adjudication'), 'the v11 compliance adjudication must be recorded');
   assert.ok(String(r.reMeasure).includes('pole-aware'), 'the registered pole-aware quadrature cure must be recorded');
   assert.equal(r.config.fHz, 0.5);
@@ -99,6 +99,9 @@ test('psv-scale-diagnosis — schema, verdict, config frozen', () => {
   assert.ok(r.history.v15verdict === 'fullspace_anchored_layered_schur_validated_qd_landed_gate_full_series_dh_noise_dead_below_floor_converged_locator_reopens', 'the v15 verdict must be preserved');
   assert.ok(r.history.v15note.includes('rho-factor'), 'the rho-factor port bug (bare omega^2 vs rho*omega^2) must stay on record');
   assert.ok(r.history.v15note.includes('copies of your own code'), 'the copied-scratch cross-check pitfall must stay on record');
+  assert.ok(r.history.v16verdict === 'fullspace_anchored_layered_qd_locator_built_band_pole_free_subtract_measured_noop_series_converged', 'the v16 verdict must be preserved');
+  assert.ok(r.history.v16note.includes('double-return floor'), 'the f1p2 floor-saturation ulp pitfall must stay on record');
+  assert.ok(r.history.v16note.includes('1/km-vs-1/m'), 'the driver unit round-trip pitfall must stay on record');
   assert.ok(r.layeredContext.detSubtractSeriesUrm, 'the v12 det-subtract arm must be measured');
   assert.ok(Array.isArray(r.layeredContext.poleModelSet) && r.layeredContext.poleModelSet.length >= 1,
     'the production pole-model set (candidate-mislocation record) must be frozen');
@@ -210,6 +213,50 @@ test('psv-scale-diagnosis — v14 DD arm: gate partial (0.80 pass, 0.70-0.76 blo
   assert.ok(r.context.includes('quad-double'), 'the v14 quad-double registration must stay recorded in the context');
 });
 
+test('psv-scale-diagnosis — v16 locator rebuild: QD detM locator + band-pole-free verdict + subtract no-op', () => {
+  const la = r.layeredContext.qdLocatorArm;
+  assert.ok(la, 'qdLocatorArm block missing (the v16 locator rebuild must be frozen)');
+  // the scan tables: the double-era noise forest resolved away
+  assert.equal(la.scanTables.f0p5.n, 7, 'f0p5 must resolve 7 real-width candidates');
+  assert.equal(la.scanTables.f1p2.n, 9, 'f1p2 must resolve 9 real-width candidates');
+  // far-band positions match the double detector exactly
+  const f0 = la.scanTables.f0p5.candidates.map((c) => c.kInvKm);
+  assert.ok(f0.includes(2.43) && f0.includes(3.8014), 'the far-band candidates must match the double-era table');
+  // the ulp ladders: exactly 0 at 1-16 ulps (the locator field is resolvable)
+  for (const key of ['k0p6003', 'k0p8562', 'k0p8797', 'k0p9029', 'k1p5414', 'control0p40']) {
+    const first = parseFloat(la.ulpLadderLogdetM[key].ladder.split(' / ')[0]);
+    assert.ok(first === 0, 'log|detM| must be ulp-exact at ' + key + ' (got ' + first + ')');
+  }
+  // the fits fail HONESTLY at the supported candidates (rel > 0.15)
+  for (const c of la.fitTablePerCandidateF0p5.slice(0, 4)) {
+    assert.ok(c.rel > 0.15, 'the supported-band fit at ' + c.cand + ' must stay honestly failed (got ' + c.rel + ')');
+  }
+  // the dead-band "keeps" fit dust (identical rel, |A| -> 0)
+  const dust = la.fitTablePerCandidateF0p5.slice(4);
+  assert.ok(dust.every((c) => Math.abs(c.rel - 1.073e-3) < 1e-6), 'the dead-band fits must stay the degenerate dust attractor');
+  // the integrand collapses above the shear branch point
+  assert.ok(/7\.09e-7/.test(la.integrandProfileF0p5.fine), 'the evanescent collapse at 0.95/km must be on record');
+  assert.ok(/1e-110/.test(la.reading), 'the dead-band depth (1e-110 by 3.8/km) must be on record');
+  // the reading carries the closure verdict
+  assert.ok(la.reading.includes('NOT integrand poles') && la.reading.includes('INAPPLICABLE'),
+    'the band-pole-free + model-class verdicts must be on record');
+  // CS v4 precondition bookkeeping
+  assert.ok(la.reading.includes('P2') && la.reading.includes('NEGATIVELY'), 'the P2 negative resolution must be recorded');
+
+  const ds = r.layeredContext.qdDetSubSeriesUrm;
+  assert.ok(ds, 'qdDetSubSeriesUrm block missing (the subtract no-op must be frozen)');
+  // near-neutrality vs the plain QD series: every frozen point within 0.6%
+  const plain = r.layeredContext.qdSeriesUrm.fullTensorUrm.dh0p5;
+  for (const dk of ['dk0p02', 'dk0p002', 'dk0p001', 'dk0p0005']) {
+    const d = Math.abs(ds.fullTensorUrm[dk] - plain[dk]) / plain[dk];
+    assert.ok(d < 0.006, 'detSubtract must stay a no-op at ' + dk + ' (got ' + (100 * d).toFixed(3) + '%)');
+  }
+  // and the below-floor spread through the subtraction path stays converged
+  const b = [ds.fullTensorUrm.dk0p002, ds.fullTensorUrm.dk0p001, ds.fullTensorUrm.dk0p0005];
+  assert.ok(Math.max(...b) / Math.min(...b) < 1.03, 'the detSub below-floor series must stay converged');
+  assert.ok(ds.verdict.includes('NO-OP'), 'the measured no-op verdict must be on record');
+});
+
 test('psv-scale-diagnosis — full-space anchor residuals locked (<= 0.08)', () => {
   assert.ok(r.fullSpaceAnchor.maxResidual <= 0.08,
     'full-space anchor residual drifted: ' + r.fullSpaceAnchor.maxResidual);
@@ -250,7 +297,10 @@ test('psv-scale-diagnosis — fullTensor series MONOTONE NON-CONVERGENT on the c
   assert.ok(a > 0 && b > a && c > b, 'fullTensor below-floor series must stay monotone increasing (' + a + ' -> ' + b + ' -> ' + c + ')');
   const spread = c / a;
   assert.ok(spread > 1.15, 'fullTensor series unexpectedly converged (spread ' + spread.toFixed(3) + ') — re-examine the OPEN verdict if real');
-  assert.ok(r.registeredNextStep.includes('Schur'), 'the Schur-admittance independent representation must stay registered');
+  // consciously updated in v16: the Schur-admittance representation agenda
+  // is DONE (the QD field resolved it); what stays registered is the closure
+  // and the opts.psv production decision.
+  assert.ok(/CLOSED/.test(r.registeredNextStep), 'the pole-agenda closure must stay registered');
   // the P-SV guard-divisor ladder was RESOLVED in its own freeze (div10
   // passes, default kept byte-compatible — tools/data/psv-alias-ladder.json);
   // the remaining user-gate clause that must stay registered is CS v4.
