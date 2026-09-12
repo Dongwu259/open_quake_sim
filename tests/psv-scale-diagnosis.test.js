@@ -65,8 +65,8 @@ const REPORT = path.join(__dirname, '..', 'tools', 'data', 'psv-scale-diagnosis.
 const r = JSON.parse(fs.readFileSync(REPORT, 'utf8'));
 
 test('psv-scale-diagnosis — schema, verdict, config frozen', () => {
-  assert.equal(r.schema, 'quake-sim-psv-scale-diagnosis-v13');
-  assert.equal(r.verdict, 'fullspace_anchored_layered_schur_validated_locator_infeasible_zero_stable_digits_series_noise_dominated');
+  assert.equal(r.schema, 'quake-sim-psv-scale-diagnosis-v14');
+  assert.equal(r.verdict, 'fullspace_anchored_layered_schur_validated_dd_landed_gate_partial_step_cancel_5e31_quad_double_registered');
   assert.ok(String(r.reMeasure).includes('adjudication'), 'the v11 compliance adjudication must be recorded');
   assert.ok(String(r.reMeasure).includes('pole-aware'), 'the registered pole-aware quadrature cure must be recorded');
   assert.equal(r.config.fHz, 0.5);
@@ -94,6 +94,8 @@ test('psv-scale-diagnosis — schema, verdict, config frozen', () => {
   assert.ok(r.history.v12verdict === 'fullspace_anchored_layered_schur_validated_pole_subtraction_shipped_but_series_open_candidates_mislocate', 'the v12 verdict must be preserved');
   assert.ok(r.history.v13verdict === 'fullspace_anchored_layered_schur_validated_locator_infeasible_zero_stable_digits_series_noise_dominated', 'the v13 verdict must be preserved');
   assert.ok(r.history.v13note.includes('CLOSED-NEGATIVE'), 'the v13 locator closure must stay on record');
+  assert.ok(r.history.v14verdict === 'fullspace_anchored_layered_schur_validated_dd_landed_gate_partial_step_cancel_5e31_quad_double_registered', 'the v14 verdict must be preserved');
+  assert.ok(r.history.v14note.includes('NaN-swallowing'), 'the NaN-swallowing cross-check pitfall must stay on record');
   assert.ok(r.layeredContext.detSubtractSeriesUrm, 'the v12 det-subtract arm must be measured');
   assert.ok(Array.isArray(r.layeredContext.poleModelSet) && r.layeredContext.poleModelSet.length >= 1,
     'the production pole-model set (candidate-mislocation record) must be frozen');
@@ -177,6 +179,29 @@ test('psv-scale-diagnosis — v13 chaos diagnosis frozen (1-ulp discriminator + 
   assert.ok(fs2.length >= 10, 'the fit ladder sample dump must be present');
   assert.ok(/single-sample/i.test(String(r.layeredContext.chaosDiagnosis.reading)),
     'the single-sample-anchored fit demotion must be recorded');
+});
+
+test('psv-scale-diagnosis — v14 DD arm: gate partial (0.80 pass, 0.70-0.76 blocked by step cancellation)', () => {
+  const da = r.layeredContext.ddArithmeticArm;
+  assert.ok(da, 'ddArithmeticArm block missing');
+  // the gate PASS at 0.80: DD 1-ulp swings < 1e-3 % on the integrand
+  const f80 = parseFloat(da.ulpLadderIntegrandDd.k0p80.split('/')[0]);
+  assert.ok(Math.abs(f80) < 1e-3, 'the DD gate must stay passed at 0.80/km (got ' + f80 + '%)');
+  // the control band at DD-noise level
+  const f40 = parseFloat(da.ulpLadderIntegrandDd.k0p40.split('/')[0]);
+  assert.ok(Math.abs(f40) < 1e-9, 'the DD control band must stay at noise level (got ' + f40 + '%)');
+  // cross-path agreement at the control
+  assert.ok(da.controlAgreementRel > 0 && da.controlAgreementRel < 1e-9,
+    'DD-vs-double control agreement must stay ~1e-11 (got ' + da.controlAgreementRel + ')');
+  // the honest FAIL at 0.70/0.73/0.76: chaos must stay visible until QD lands
+  for (const k of ['k0p70', 'k0p73', 'k0p76']) {
+    const f = parseFloat(da.ulpLadderIntegrandDd[k].split('/')[0]);
+    assert.ok(Math.abs(f) > 1, 'the DD crest chaos must stay visible at ' + k + ' until quad-double lands (got ' + f + '%)');
+  }
+  // the step-det cancellation budget: healthy at 0.40, huge at the crest
+  assert.ok(da.upLegStepCancellation.k0p40 < 1e3, 'the smooth-k step cancellation must stay small (got ' + da.upLegStepCancellation.k0p40 + ')');
+  assert.ok(da.upLegStepCancellation.k0p73 > 1e29, 'the crest step-det cancellation must stay on record (got ' + da.upLegStepCancellation.k0p73 + ')');
+  assert.ok(r.registeredNextStep.includes('quad-double'), 'the registered cure must name quad-double');
 });
 
 test('psv-scale-diagnosis — full-space anchor residuals locked (<= 0.08)', () => {
@@ -284,11 +309,10 @@ test('psv-scale-diagnosis — v12 det-subtract arm: machinery shipped, series st
   assert.ok(spread > 1.15, 'det-subtract fullTensor unexpectedly converged (spread ' + spread.toFixed(3) + ') — re-examine the verdict if real');
   assert.ok(Math.abs(f['dk0.02'] - 231.77) < 0.01 || Math.abs(f['dk0.02'] - 231.8) < 0.5,
     'det-subtract fullTensor dk0.02 must equal the frozen 231.77 (got ' + f['dk0.02'] + ') — re-freeze');
-  // v13 consciously updated: the v12 registered cure ("pole LOCATOR") was
-  // measured INFEASIBLE by the 1-ulp discriminator — the registered cure is
-  // now the compensated-arithmetic chain, and the locator closure must stay
-  // on record in the context.
-  assert.ok(r.registeredNextStep.includes('double-double'), 'the registered cure must name the compensated-arithmetic chain');
+  // consciously updated twice: v13 named the DD chain (measured INFEASIBLE
+  // locator), v14 landed DD and re-registered quad-double — the locator
+  // closure must stay on record in the context either way.
+  assert.ok(r.registeredNextStep.includes('quad-double'), 'the registered cure must name quad-double (the v14 re-registration)');
   assert.ok(r.context.includes('1-ULP ladder') || r.context.includes('1-ulp ladder'), 'the locator infeasibility measurement must be recorded in the context');
 });
 
