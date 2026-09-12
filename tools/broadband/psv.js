@@ -1011,6 +1011,14 @@ function tensorTerms(params) {
  *  through it, and at shallow/smooth configs it agrees with the references
  *  to 1.5e-4. */
 function complianceAt(stack, omega, kInvM, zKm, params) {
+  // params.qdCompliance (2026-09-12 v15 batch): the Schur chain evaluated in
+  // BigInt bigfloat arithmetic (psv-qd.js, default 256-bit mantissa, eps
+  // ~1.7e-77 — the v14 registered quad-double cure; 13+ orders beyond the
+  // measured 1e-64 requirement; opts.pbits re-targets per call). Implies
+  // the Schur formulation; opt-in, absent = byte-compatible paths.
+  if (params.qdCompliance) {
+    return require('./psv-qd.js').schurComplianceQD(stack, omega, kInvM, zKm, params);
+  }
   // params.ddCompliance (2026-09-12 DD batch): the Schur chain evaluated in
   // double-double arithmetic (psv-dd.js) — the v13 registered cure for the
   // crest-band rounding chaos (1-ulp discriminator, zero stable digits).

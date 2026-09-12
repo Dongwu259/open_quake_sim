@@ -1,6 +1,6 @@
 {
  "schema": "quake-sim-experiment-manifest-v1",
- "generated": "2026-09-12T09:04:16.788Z",
+ "generated": "2026-09-12T14:14:01.370Z",
  "identityRule": "qsx1-<sha256[:16] of file bytes>; manifest excluded from its own listing",
  "entries": [
   {
@@ -265,13 +265,13 @@
    "mtime": "2026-09-11T03:15:39.229Z"
   },
   {
-   "id": "qsx1-d59902da317a6128",
+   "id": "qsx1-e596080841620d1d",
    "name": "psv-scale-diagnosis.json",
-   "bytes": 50818,
+   "bytes": 61964,
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-09-12T09:04:16.348Z"
+   "mtime": "2026-09-12T14:13:19.290Z"
   },
   {
    "id": "qsx1-56d691a8bfa0a3ea",
