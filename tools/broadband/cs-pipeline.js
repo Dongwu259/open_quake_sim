@@ -113,8 +113,8 @@ const PRE_REG_V4 = {
   },
   p2Status: 'RESOLVED NEGATIVELY (psv-scale-diagnosis v16): the production band is POLE-FREE — the detM dips are far-off-axis modes, the integrand carries no pole signatures, detSubtract is a measured +-0.50% no-op, and the QD-field dk series CONVERGED (v15, below-floor spread 1.0012)',
   p3Status: 'DONE (psv-alias-ladder.json: div10 passes, default byte-compatible)',
-  runVerdict: 'NOT EXECUTABLE AS PRE-REGISTERED (2026-09-13): P1 shows the honest gate arm must run on the bigfloat chain (the double chain is floor-contaminated at the Rayleigh neighborhoods of every scored column at f >= ~1 Hz), and the QD chain costs ~0.21 s/compliance-triple -> ~24 h per (case, bin) at production k-lattices (~200 frequencies x ~2500 k-samples x 3 chains) — the pre-registered dual-arm run (~50 case-bin pairs) is a multi-month compute job as wired. Registered cure (next batch): the two-tier wiring — double chain everywhere plus bigfloat substitution inside the detM-dip neighborhoods (mapped per (stack, omega) by the v16 QD locator, or cheaper: a fixed Rayleigh-window ladder around the analytic halfspace-dip k), which cuts the QD cost by ~10x; OR a scope-reduced v4 on configs certified off-floor by the 1-ulp discriminator. The pre-registered gate thresholds remain unchanged and the arms stay as specified — only the run block waits',
-  whyNotRunNow: 'P2 is open (v11 series non-convergent) and P1 has never been measured; running now would repeat the 2026-09-05 error class — gate numbers on channels whose scale is not anchored',
+  runVerdict: 'EXECUTED 2026-09-12..15 (30-shard array, ~2.2 days wall; the v18 cure — fdChannels 3x cut + 30-way sharding — brought the multi-month job into budget; 900 rows merged to 6 cases x 25 unique realizations x 2 arms after merge dedup, the array re-ran the full hybrid set on every shard = 4x redundant compute, disclosed in the merge header; 0 invalid). ALL THREE BAND GATES FAIL, thresholds unchanged from v3, scored arm = hybridPsv: 0.1-0.5s psv 0.794 (kochi RP2500 @0.15s) vs shOnly 0.776 (limit 0.30); 0.5-2s psv 0.398 (kochi RP475 @2s) vs shOnly 0.432 (limit 0.25); 2-5s psv 0.727 (osaka RP2500 @5s) vs shOnly 0.574 (limit 0.25). The pre-registered hypothesis is REFUTED: the deterministic P-SV horizontal-block LF is NOT a cure for the v3 shape-gate failure — mid-band improves marginally (0.432->0.398) while the short band worsens slightly (+0.018) and the long band materially (+0.153). Containment psv 0.334 vs shOnly 0.385 (both far under the 0.8 gate); pgaRatioDelta +0.03 inside the +-0.05 non-regression margin. Per-case mixed: tokyo RP2500 improves (bias 0.533->0.434, containment 0.462->0.615) while tokyo RP475 degrades (containment 0.923->0.462) and osaka/kochi are ~unchanged. Registered disposition: the P-SV horizontal-block arm is retired as MEASURED-NO-CURE — production keeps the v3 SH-only arm; the QD/fdChannels/poleWindows/horizontalOnly wiring stays opt-in research state; the band-shape discrepancy must be hunted OUTSIDE the missing-P-SV hypothesis (the v3 cs-diagnosis kappa and LF-gain exclusions stand)',
+  whyNotRunNow: 'SUPERSEDED 2026-09-15 (kept for the decision trail): at the time P2 was open and P1 unmeasured; both resolved (p1Anchor PASS above, p2Status negative) and the run then executed on the full-QD path within wall budget',
   whatWouldChangeThis: 'P1: one absolute-anchor batch; P2: the registered pole-aware quadrature landing with a CONVERGED series (psv-scale-diagnosis verdict upgrade); P3: the ladder freeze. The moment all three hold, this gate runs with NO further decisions'
 };
 
@@ -239,7 +239,13 @@ function synthesize(caseRow, bin, arm, opts) {
     siteCurve: opts.siteCurve, sampleRateHz: 50, seed: opts.seed
   };
   if (arm === 'hybrid') {
-    return hybrid.hybridSynthesis(Object.assign(common, { stack: caseRow.stack, lfGainFn: opts.lfGainFn || undefined }));
+    return hybrid.hybridSynthesis(Object.assign(common, {
+      stack: caseRow.stack, lfGainFn: opts.lfGainFn || undefined,
+      // CS v4 arm: the P-SV horizontal-block options pass through (absent on
+      // the v3 path — undefined = the byte-compatible defaults there)
+      psv: opts.psv, psvHorizontalOnly: opts.psvHorizontalOnly, psvQd: opts.psvQd,
+      psvNoPoleWindows: opts.psvNoPoleWindows, psvCache: opts.psvCache
+    }));
   }
   return hybrid.bruneBaselineSynthesis(common);
 }
@@ -665,7 +671,266 @@ function main() {
   console.log(write ? 'wrote ' + OUT : '(dry run — pass --write to freeze)');
 }
 
-if (require.main === module) {
-  try { main(); } catch (e) { console.error(e); process.exit(1); }
+// ===========================================================================
+// --v4 : the CS v4 gate execution (pre-registered in PRE_REG_V4; the
+// 2026-09-13 precondition verdict named the QD chain as the honest gate arm
+// and measured its cost). Dual arm: 'hybrid' (the shipped v3 a_shOnly
+// baseline, unchanged) vs 'hybridPsv' (opts.psv + psvHorizontalOnly + psvQd
+// + psvNoPoleWindows — the T1/T2 horizontal block on the bigfloat chain).
+// The LF gain applies to BOTH arms (it isolates the P-SV block's marginal
+// effect against the same fitted baseline; disclosed). Gate thresholds
+// UNCHANGED from v3. Writes a SEPARATE report (cs-pipeline-v4-report.json);
+// the v3 report and main() are untouched.
+// Sharding: the QD arm costs ~2-9 h/realization (197 LF frequencies x the
+// k-lattice x ~62 ms/chain), so the run shards per (case, realization):
+//   node cs-pipeline.js --v4 --shardIdx i --shardN N
+// takes realization i::N of every case (deterministic seeds — the shard
+// layout never changes the sampled bins) and writes
+// cs-pipeline-v4-shard-<i>-of-<N>.json; then
+//   node cs-pipeline.js --v4-merge --shardN N
+// merges all shards into cs-pipeline-v4-report.json with the gates.
+// ===========================================================================
+const V4_OUT = path.join(ROOT, 'tools', 'data', 'cs-pipeline-v4-report.json');
+function runV4(cases, cal) {
+  const shardIdx = process.argv.includes('--shardIdx') ? +process.argv[process.argv.indexOf('--shardIdx') + 1] : null;
+  const shardN = process.argv.includes('--shardN') ? +process.argv[process.argv.indexOf('--shardN') + 1] : 1;
+  const kappa = cal.kappaSec;
+  const periods = PRE_REG.periodsSec;
+  const anchorIdx = periods.indexOf(PRE_REG.anchorPeriodSec);
+
+  if (process.argv.includes('--v4-merge')) {
+    const realizations = [];
+    let nShards = 0;
+    for (let i = 0; i < shardN; i++) {
+      const f = path.join(ROOT, 'tools', 'data', 'cs-pipeline-v4-shard-' + i + '-of-' + shardN + '.json');
+      if (!fs.existsSync(f)) { console.log('missing shard', f); continue; }
+      realizations.push(...JSON.parse(fs.readFileSync(f, 'utf8')).realizations);
+      nShards++;
+    }
+    if (nShards < shardN) throw new Error('missing ' + (shardN - nShards) + ' shards');
+    // Dedup by (site,rp,arm,i): the shard array ran the full 25-realization
+    // hybrid set on EVERY shard (5 identical copies per case — only the
+    // synthSecs timing field differs), while psv correctly ran one group per
+    // shard. Without this the report's n=125 for hybrid is copy-inflated
+    // bookkeeping; the gate numbers were never affected (identical rows).
+    {
+      const seen = new Set();
+      for (let i = realizations.length - 1; i >= 0; i--) {
+        const r = realizations[i];
+        const key = r.site + '|' + r.rp + '|' + r.arm + '|' + r.i;
+        if (seen.has(key)) realizations.splice(i, 1); else seen.add(key);
+      }
+    }
+    const validCases = cases.filter((c) => c.mscs);
+    function caseEnsemble(siteId, rp, arm) {
+      const rows = realizations.filter((r) => r.site === siteId && r.rp === rp && r.arm === arm && r.psaGal && r.condMuLn);
+      if (!rows.length) return null;
+      const biasLn = periods.map((_, pi) => {
+        let s = 0;
+        for (const r of rows) s += Math.log(r.psaGal[pi]) - r.condMuLn[pi];
+        return s / rows.length;
+      });
+      return { n: rows.length, biasLn };
+    }
+    function bandPeriods(name) {
+      const map = { '0.1-0.5s': [0.1, 0.15, 0.2, 0.3, 0.4, 0.5], '0.5-2s': [0.7, 1.0, 1.5, 2.0], '2-5s': [3.0, 4.0, 5.0] };
+      return map[name];
+    }
+    const arms = ['hybrid', 'hybridPsv'];
+    const biasLog10 = {}, perCase = [];
+    for (const arm of arms) biasLog10[arm] = {};
+    for (const c of validCases) {
+      for (const arm of arms) {
+        const ens = caseEnsemble(c.site.id, c.rp, arm);
+        if (!ens) continue;
+        const bias = ens.biasLn.map((v) => +(v / LN10).toFixed(3));
+        if (!biasLog10[arm][c.site.id]) biasLog10[arm][c.site.id] = {};
+        biasLog10[arm][c.site.id][c.rp] = bias;
+        const containment = c.mscs.periods.filter((sg, pi) => Math.abs(ens.biasLn[pi]) <= sg.sigmaLn).length / periods.length;
+        perCase.push({ site: c.site.id, rp: c.rp, arm, n: ens.n, biasLog10: bias, containmentFrac: +containment.toFixed(3) });
+      }
+    }
+    const bands = {};
+    for (const band of Object.keys(PRE_REG.gates.bandAbsMax)) {
+      const idx = bandPeriods(band).map((T) => periods.indexOf(T));
+      bands[band] = {};
+      for (const arm of arms) {
+        let worst = 0, worstAt = null;
+        for (const c of validCases) {
+          const bb = biasLog10[arm][c.site.id] && biasLog10[arm][c.site.id][c.rp];
+          if (!bb) continue;
+          for (const pi of idx) {
+            if (Math.abs(bb[pi]) > worst) { worst = Math.abs(bb[pi]); worstAt = c.site.id + ' RP' + c.rp + ' @' + periods[pi] + 's'; }
+          }
+        }
+        bands[band][arm] = { absMax: +worst.toFixed(3), worstAt };
+      }
+      bands[band].gate = { limit: PRE_REG.gates.bandAbsMax[band], pass: bands[band].hybridPsv.absMax <= PRE_REG.gates.bandAbsMax[band] };
+    }
+    const pgaRatio = {};
+    for (const arm of arms) {
+      const logs = realizations.filter((r) => r.arm === arm && r.pga != null && r.psaGal).map((r) => Math.log(r.pga) - Math.log(r.psaGal[anchorIdx]));
+      pgaRatio[arm] = logs.length ? logs.reduce((a, b) => a + b, 0) / logs.length : null;
+    }
+    const pgaDelta = (pgaRatio.hybridPsv != null && pgaRatio.hybrid != null) ? +(pgaRatio.hybridPsv - pgaRatio.hybrid).toFixed(3) : null;
+    const containObs = {};
+    for (const arm of arms) {
+      const fr = perCase.filter((p) => p.arm === arm).map((p) => p.containmentFrac);
+      containObs[arm] = fr.length ? +(fr.reduce((a, b) => a + b, 0) / fr.length).toFixed(3) : null;
+    }
+    const invalidCount = realizations.filter((r) => r.invalid).length;
+    const report = {
+      schema: 'quake-sim-cs-pipeline-v4',
+      pipelineVersion: 4,
+      generatedAt: new Date().toISOString(),
+      preRegistered: PRE_REG_V4,
+      shardLayout: { shardN, nShards },
+      calibration: { file: 'tools/data/cs-repair-calibration.json', kappaSec: kappa, stressByClass: cal.stressByClass, lfGain: cal.lfGain, lfGainOnPsvArm: true, disclosure: 'the SH-fitted LF gain applies to BOTH arms so the comparison isolates the P-SV block marginal effect' },
+      chain: 'v3 sampling + synthesis unchanged on the a_shOnly arm; the b_psvHorizontal arm adds the deterministic P-SV horizontal-block LF (T1/T2 only) on the bigfloat chain (params.qdCompliance + poleWindows:false + fdChannels:false), LF gain applied, single amplitude scale to Sa(T*=1s)',
+      arms: {
+        hybrid: 'the shipped v3 a_shOnly baseline, unchanged (SH DW LF + empirical gain + Boore HF)',
+        hybridPsv: 'the same synthesis with the P-SV horizontal-block LF added (opts.psv + psvHorizontalOnly + psvQd + psvNoPoleWindows; the depth-FD dipole channels excluded per the pre-registration)'
+      },
+      cases: validCases.map((c) => ({ site: c.site.id, rp: c.rp, imTarget: +c.imTarget.toFixed(1) })),
+      bands, perCase,
+      containment: containObs,
+      pgaRatioDelta: pgaDelta,
+      invalidRealizations: invalidCount,
+      realizations
+    };
+    fs.writeFileSync(V4_OUT, JSON.stringify(report, null, 1));
+    console.log('\n=== CS v4 GATES (thresholds unchanged from v3; scored arm = hybridPsv) ===');
+    for (const b of Object.keys(bands)) {
+      console.log('band', b, bands[b].gate.pass ? 'PASS' : 'FAIL', 'psv', bands[b].hybridPsv.absMax, 'shOnly', bands[b].hybrid.absMax, 'limit', bands[b].gate.limit);
+    }
+    console.log('containment psv/shOnly:', containObs.hybridPsv, containObs.hybrid, '(v3 limit ' + PRE_REG.gates.containmentInSigmaFrac + ')');
+    console.log('pgaRatioDelta psv-shOnly:', report.pgaRatioDelta, '(v3 margin ' + PRE_REG.gates.pgaNonRegressionVsBruneMargin + ')');
+    console.log('invalid:', invalidCount);
+    console.log('wrote ' + V4_OUT);
+    return;
+  }
+
+  // ---- shard synthesis ---------------------------------------------------
+  // Shard layout: shard s (0..shardN-1) handles case s % nCases with the
+  // realization group floor(s / nCases) (realizations i % nGroups == group).
+  // shardN must be a multiple of nCases (the runner names the required N).
+  // Deterministic: the per-realization seeds never see the layout.
+  const realizations = [];
+  const t0 = Date.now();
+  const valid = cases.filter((c) => c.mscs);
+  const nCases = valid.length;
+  if (shardIdx != null && shardN % nCases !== 0) {
+    throw new Error('shardN must be a multiple of the ' + nCases + ' valid cases (e.g. ' + (nCases * 5) + ')');
+  }
+  const nGroups = shardIdx != null ? shardN / nCases : 1;
+  const myCase = shardIdx != null ? shardIdx % nCases : -1;
+  const myGroup = shardIdx != null ? Math.floor(shardIdx / nCases) : -1;
+  for (let ci = 0; ci < valid.length; ci++) {
+    if (shardIdx != null && ci !== myCase) continue;
+    const c = valid[ci];
+    const bedrockGrid = loadJson(path.join(ROOT, 'public', 'geojson', 'jivsm-bedrock.json'));
+    const bedrockM = Physics.lookupResearchGrid(bedrockGrid, c.site.lat, c.site.lng);
+    const profile = Physics.synthSiteProfile(c.vs30, bedrockM);
+    const pool = c.deagg.bins.filter((b) => b.meanRrupKm >= PRE_REG.minRrupKmForSampling);
+    const poolMass = pool.reduce((a, b) => a + b.prob, 0);
+    const cum = [];
+    let acc = 0;
+    for (const b of pool) { acc += b.prob / poolMass; cum.push(acc); }
+    const condOf = new Map();
+    c.mscs.binCond.forEach((bc) => condOf.set(bc.srcType + '|' + (+bc.repr.mw.toFixed(3)) + '|' + (+bc.repr.rRupKm.toFixed(2)), bc));
+    const siteCurveFor = (mw, srcType, rRupKm, depthKm) => {
+      if (!profile || profile.length < 2) return null;
+      const g = Physics._pshaBranchMotion('zhao2006', 'pga', srcType, mw, rRupKm, depthKm, c.vs30, Physics.PSHA_CLASS_RAKE[srcType] || 0);
+      if (!g || !(g.median > 0)) return null;
+      const freqs = [];
+      for (let i = 0; i < 120; i++) freqs.push(0.3 * Math.pow(20 / 0.3, i / 119));
+      const res = Physics.siteResponse1D(profile, freqs, { rockPgaG: g.median / 980.665 });
+      if (!res || !res.amp) return null;
+      return { freqs, amps: res.amp.map((a2) => Math.max(0.2, Math.min(8, a2))) };
+    };
+    const psvCache = new Map(); // shared across the case's realizations
+    const armsHere = shardIdx == null ? ['hybrid', 'hybridPsv'] : ['hybrid', 'hybridPsv'];
+    for (const arm of armsHere) {
+      for (let i = 0; i < PRE_REG.realizationsPerCase; i++) {
+        if (shardIdx != null && i % nGroups !== myGroup && arm === 'hybridPsv') {
+          // the QD arm splits by realization group; the cheap shOnly arm
+          // runs the same group on every shard so every shard self-contains
+          // its baseline rows for the merge
+          continue;
+        }
+        const rng = Physics.seededRng(hashSeed(c.site.id + ':' + c.rp + ':' + arm + ':' + i));
+        const u = rng();
+        let bi = 0;
+        while (bi < cum.length - 1 && u > cum[bi]) bi++;
+        const bin = pool[bi] || pool[pool.length - 1];
+        const strike = +(rng() * 360).toFixed(2);
+        const siteCurve = siteCurveFor(bin.repr.mw, bin.srcType, bin.meanRrupKm, bin.repr.depthKm);
+        const lfGainFn = (cal.lfGainApplied !== false) ? lfGainFnFor(cal, bin.repr.mw, bin.meanRrupKm) : null;
+        let out;
+        const tR = Date.now();
+        try {
+          if (arm === 'hybrid') {
+            out = synthesize(c, bin, 'hybrid', {
+              strike, stressMPa: cal.stressByClass[bin.srcType] || 50, kappaSec: kappa,
+              siteCurve, seed: hashSeed(c.site.id + ':' + c.rp + ':' + arm + ':' + i + ':synth'), lfGainFn
+            });
+          } else {
+            out = synthesize(c, bin, 'hybrid', {
+              strike, stressMPa: cal.stressByClass[bin.srcType] || 50, kappaSec: kappa,
+              siteCurve, seed: hashSeed(c.site.id + ':' + c.rp + ':' + arm + ':' + i + ':synth'), lfGainFn,
+              psv: 1, psvHorizontalOnly: 1, psvQd: 1, psvNoPoleWindows: 1, psvCache
+            });
+          }
+        } catch (e) {
+          realizations.push({ arm, site: c.site.id, rp: c.rp, i, invalid: String(e.message || e).slice(0, 120) });
+          continue;
+        }
+        const psa = psaOf(out, periods);
+        const anchorPsa = psa[anchorIdx];
+        if (!(anchorPsa > 0) || !isFinite(anchorPsa)) {
+          realizations.push({ arm, site: c.site.id, rp: c.rp, i, invalid: 'non-positive anchor PSA' });
+          continue;
+        }
+        const scale = c.imTarget / anchorPsa;
+        const scaled = psa.map((v) => v * scale);
+        const pk = peaksOf(out.transverse.map((v) => v * scale), out.sampleRateHz);
+        const bc = condOf.get(bin.srcType + '|' + (+bin.repr.mw.toFixed(3)) + '|' + (+bin.meanRrupKm.toFixed(2)));
+        realizations.push({
+          arm, site: c.site.id, rp: c.rp, i, srcType: bin.srcType, mw: +bin.repr.mw.toFixed(2),
+          rRupKm: +bin.meanRrupKm.toFixed(1), depthKm: +bin.repr.depthKm.toFixed(1), strike,
+          log10Scale: +Math.log10(scale).toFixed(3),
+          psaGal: scaled.map((v) => +v.toFixed(1)), pga: +pk.pga.toFixed(1), pgv: +pk.pgv.toFixed(1),
+          condMuLn: bc ? bc.muLn.map((v) => +v.toFixed(4)) : null,
+          synthSecs: +((Date.now() - tR) / 1000).toFixed(1)
+        });
+        console.log('[' + c.site.id + ' RP' + c.rp + ' ' + arm + ' #' + i + '] ' + ((Date.now() - tR) / 1000 / 60).toFixed(1) + ' min');
+      }
+    }
+    console.log('case ' + c.site.id + ' RP' + c.rp + ' done; shard elapsed ' + ((Date.now() - t0) / 1000 / 60).toFixed(1) + ' min');
+  }
+  const shardFile = path.join(ROOT, 'tools', 'data', 'cs-pipeline-v4-shard-' + (shardIdx == null ? 'all' : shardIdx) + '-of-' + shardN + '.json');
+  fs.writeFileSync(shardFile, JSON.stringify({ shardIdx, shardN, realizations }, null, 1));
+  console.log('wrote ' + shardFile + ' (' + realizations.length + ' realizations, ' + ((Date.now() - t0) / 1000 / 60).toFixed(1) + ' min)');
 }
-module.exports = { PRE_REG_V4: PRE_REG_V4 };
+
+if (require.main === module) {
+  try {
+    if (process.argv.includes('--v4') || process.argv.includes('--v4-merge')) {
+      const model = loadJson(path.join(ROOT, 'public', 'geojson', 'psha-source-model.json'));
+      const jivsmCols = loadJson(path.join(ROOT, 'public', 'geojson', 'jivsm-columns.json'));
+      const vs30Grid = loadJson(path.join(ROOT, 'public', 'geojson', 'vs30.json'));
+      Physics.setJivsmColumns(jivsmCols);
+      Physics.setJayaram2011Rho(loadJson(path.join(ROOT, 'public', 'geojson', 'jayaram2011-rho.json')));
+      const wideLevels = [];
+      for (let i = 0; i < PRE_REG.imLevels.n; i++) {
+        wideLevels.push(+(PRE_REG.imLevels.lo * Math.pow(PRE_REG.imLevels.hi / PRE_REG.imLevels.lo, i / (PRE_REG.imLevels.n - 1))).toPrecision(4));
+      }
+      const cal = loadJson(CAL_OUT);
+      if (cal.schema !== 'quake-sim-cs-repair-calibration-v1') throw new Error('stale calibration file: ' + CAL_OUT);
+      runV4(buildCases(model, jivsmCols, vs30Grid, wideLevels), cal);
+    } else {
+      main();
+    }
+  } catch (e) { console.error(e); process.exit(1); }
+}
+module.exports = { PRE_REG_V4: PRE_REG_V4, PRE_REG: PRE_REG };

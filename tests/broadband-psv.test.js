@@ -513,3 +513,26 @@ test('P1 hooks — closedFormHalfspace compliance injection + poleWindows bypass
   const rel = Math.abs(mag(a.ur) - mag(b.ur)) / mag(a.ur);
   assert.ok(rel < 1e-4, 'poleWindows:false must be near-neutral at HALF (measured ~1.5e-5: the skipped legacy noise windows; got ' + rel.toExponential(2) + ')');
 });
+
+test('fdChannels:false — the CS v4 horizontal-block cut is exact for dipole-free tensors', () => {
+  // the depth-FD triple arms multiply zero tensor components when
+  // mzz = mxz = myz = 0, so the single-chain cut must be bit-identical.
+  // PITFALL (caught by the v18 pilot): the cut initially returned
+  // [[0,0],[0,0]] for the 2x2 zero — a VECTOR of two complex pairs, not the
+  // 2x2 matrix; Cdn[0][0] was then the scalar 0 and csub(0,0) = [NaN,NaN].
+  const Physics2 = require('../public/physics.js');
+  const fs2 = require('fs');
+  const hybrid2 = require('../tools/broadband/hybrid.js');
+  Physics2.setJivsmColumns(JSON.parse(fs2.readFileSync(path.join(__dirname, '..', 'public', 'geojson', 'jivsm-columns.json'), 'utf8')));
+  const tok = hybrid2.buildJivsmIaspStack(Physics2.jivsmColumnAt(35.6812, 139.7671));
+  const M2 = hybrid2.dcMomentTensor(185, 55, 90, Physics2.seismicMoment(7.3));
+  const om = 2 * Math.PI * 0.8;
+  const base = { rKm: 150, zSourceKm: 33, kMaxInvKm: 5, qShear: 50,
+    mxx: M2.xx, myy: M2.yy, mzz: 0, mxy: M2.xy, mxz: 0, myz: 0, qdCompliance: 1 };
+  const a = psv.psvIntegrandAtK(tok, om, 0.0012, base);
+  const b = psv.psvIntegrandAtK(tok, om, 0.0012, Object.assign({}, base, { fdChannels: false }));
+  assert.ok(a && b, 'both paths must evaluate');
+  const m = (c) => Math.hypot(c[0], c[1]);
+  assert.equal(m(a.ur), m(b.ur), 'fdChannels:false must be bit-identical for a dipole-free tensor');
+  assert.equal(m(a.uz), m(b.uz), 'uz must also be identical');
+});

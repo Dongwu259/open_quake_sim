@@ -1,6 +1,6 @@
 {
  "schema": "quake-sim-experiment-manifest-v1",
- "generated": "2026-09-13T04:39:33.517Z",
+ "generated": "2026-09-15T04:20:15.416Z",
  "identityRule": "qsx1-<sha256[:16] of file bytes>; manifest excluded from its own listing",
  "entries": [
   {
@@ -83,6 +83,285 @@
    "track": "v6.2 CS pipeline",
    "gate": "tests/cs-pipeline.test.js",
    "mtime": "2026-09-05T01:32:02.397Z"
+  },
+  {
+   "id": "qsx1-01d6b410150c8d58",
+   "name": "cs-pipeline-v4-report.json",
+   "bytes": 191257,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-15T04:14:28.840Z"
+  },
+  {
+   "id": "qsx1-6445b97e38deedf4",
+   "name": "cs-pipeline-v4-shard-0-of-30.json",
+   "bytes": 17921,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-15T04:14:28.917Z"
+  },
+  {
+   "id": "qsx1-6a70fe91ecb32304",
+   "name": "cs-pipeline-v4-shard-1-of-30.json",
+   "bytes": 18041,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-15T04:14:28.959Z"
+  },
+  {
+   "id": "qsx1-9bcc34ee5ea5a772",
+   "name": "cs-pipeline-v4-shard-10-of-30.json",
+   "bytes": 17806,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-15T04:14:28.998Z"
+  },
+  {
+   "id": "qsx1-8be3238b113ff0e7",
+   "name": "cs-pipeline-v4-shard-11-of-30.json",
+   "bytes": 17949,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-15T04:14:29.034Z"
+  },
+  {
+   "id": "qsx1-65b70849d2e6026c",
+   "name": "cs-pipeline-v4-shard-12-of-30.json",
+   "bytes": 17928,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-15T04:14:29.072Z"
+  },
+  {
+   "id": "qsx1-88ad60e643c647b2",
+   "name": "cs-pipeline-v4-shard-13-of-30.json",
+   "bytes": 18052,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-15T04:14:29.113Z"
+  },
+  {
+   "id": "qsx1-1b269a29be291af2",
+   "name": "cs-pipeline-v4-shard-14-of-30.json",
+   "bytes": 17875,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-15T04:14:29.154Z"
+  },
+  {
+   "id": "qsx1-ba9df45a26488678",
+   "name": "cs-pipeline-v4-shard-15-of-30.json",
+   "bytes": 17993,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-15T04:14:29.210Z"
+  },
+  {
+   "id": "qsx1-e72d1ef5c711b6fc",
+   "name": "cs-pipeline-v4-shard-16-of-30.json",
+   "bytes": 17814,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-15T04:14:29.247Z"
+  },
+  {
+   "id": "qsx1-90aad7ae121775ff",
+   "name": "cs-pipeline-v4-shard-17-of-30.json",
+   "bytes": 17953,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-15T04:14:29.292Z"
+  },
+  {
+   "id": "qsx1-2081356ffe503cf7",
+   "name": "cs-pipeline-v4-shard-18-of-30.json",
+   "bytes": 17922,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-15T04:14:29.330Z"
+  },
+  {
+   "id": "qsx1-b841148b0bc5c02c",
+   "name": "cs-pipeline-v4-shard-19-of-30.json",
+   "bytes": 18041,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-15T04:14:29.367Z"
+  },
+  {
+   "id": "qsx1-d5eb6cba1a1e78de",
+   "name": "cs-pipeline-v4-shard-2-of-30.json",
+   "bytes": 17888,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-15T04:14:29.409Z"
+  },
+  {
+   "id": "qsx1-63e7384ad4dbbf30",
+   "name": "cs-pipeline-v4-shard-20-of-30.json",
+   "bytes": 17886,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-15T04:14:29.455Z"
+  },
+  {
+   "id": "qsx1-6e7d8b293a95c2ba",
+   "name": "cs-pipeline-v4-shard-21-of-30.json",
+   "bytes": 18013,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-15T04:14:29.492Z"
+  },
+  {
+   "id": "qsx1-db64d6f7ed26754f",
+   "name": "cs-pipeline-v4-shard-22-of-30.json",
+   "bytes": 17820,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-15T04:14:29.534Z"
+  },
+  {
+   "id": "qsx1-aef2c335975732a6",
+   "name": "cs-pipeline-v4-shard-23-of-30.json",
+   "bytes": 17953,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-15T04:14:29.571Z"
+  },
+  {
+   "id": "qsx1-9db393bb4dc7ff1a",
+   "name": "cs-pipeline-v4-shard-24-of-30.json",
+   "bytes": 17942,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-15T04:14:29.608Z"
+  },
+  {
+   "id": "qsx1-b8812b1b0670b780",
+   "name": "cs-pipeline-v4-shard-25-of-30.json",
+   "bytes": 18046,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-15T04:14:29.646Z"
+  },
+  {
+   "id": "qsx1-cc0dfa961955adca",
+   "name": "cs-pipeline-v4-shard-26-of-30.json",
+   "bytes": 17885,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-15T04:14:29.681Z"
+  },
+  {
+   "id": "qsx1-87053cbff6788b9f",
+   "name": "cs-pipeline-v4-shard-27-of-30.json",
+   "bytes": 18012,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-15T04:14:29.717Z"
+  },
+  {
+   "id": "qsx1-9823ae4e515a8d14",
+   "name": "cs-pipeline-v4-shard-28-of-30.json",
+   "bytes": 17819,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-15T04:14:29.750Z"
+  },
+  {
+   "id": "qsx1-fba48c3913765cb6",
+   "name": "cs-pipeline-v4-shard-29-of-30.json",
+   "bytes": 17950,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-15T04:14:29.792Z"
+  },
+  {
+   "id": "qsx1-e7269836b3a2e374",
+   "name": "cs-pipeline-v4-shard-3-of-30.json",
+   "bytes": 17995,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-15T04:14:29.826Z"
+  },
+  {
+   "id": "qsx1-d28ad35f863c3813",
+   "name": "cs-pipeline-v4-shard-4-of-30.json",
+   "bytes": 17814,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-15T04:14:29.866Z"
+  },
+  {
+   "id": "qsx1-6cb9837893ea04de",
+   "name": "cs-pipeline-v4-shard-5-of-30.json",
+   "bytes": 17946,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-15T04:14:29.904Z"
+  },
+  {
+   "id": "qsx1-6c2d58d8c48f8ea7",
+   "name": "cs-pipeline-v4-shard-6-of-30.json",
+   "bytes": 17908,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-15T04:14:29.942Z"
+  },
+  {
+   "id": "qsx1-db06675aebfed747",
+   "name": "cs-pipeline-v4-shard-7-of-30.json",
+   "bytes": 18036,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-15T04:14:29.980Z"
+  },
+  {
+   "id": "qsx1-5e23b2f46ccd9a0d",
+   "name": "cs-pipeline-v4-shard-8-of-30.json",
+   "bytes": 17883,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-15T04:14:30.018Z"
+  },
+  {
+   "id": "qsx1-ba68b38132095ade",
+   "name": "cs-pipeline-v4-shard-9-of-30.json",
+   "bytes": 18001,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-15T04:14:30.055Z"
   },
   {
    "id": "qsx1-bcd5dfa5b00a8e57",

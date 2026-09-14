@@ -114,7 +114,7 @@ test('cs-pipeline — scale-factor transparency block frozen', () => {
   assert.ok(r.findings.summary.join(' ').includes('circularity') || r.findings.summary.join(' ').includes('diagnostic'));
 });
 
-test('CS v4 pre-registration status — P1 measured PASS on the QD arm, run verdict NOT EXECUTABLE (2026-09-13)', () => {
+test('CS v4 pre-registration status — P1 measured PASS on the QD arm, run EXECUTED and hypothesis REFUTED (2026-09-15)', () => {
   const v4 = require('../tools/broadband/cs-pipeline.js').PRE_REG_V4;
   assert.ok(v4.p1Anchor, 'the P1 anchor block must be present');
   assert.equal(v4.p1Anchor.gate, 'QD arm (params.qdCompliance) vs BVP <= 1e-2 — MEASURED PASS at worstRel 6.03e-13 (11 orders of margin); the composition (units, conventions, integrator, block algebra, layered compliance) is exact end-to-end');
@@ -124,7 +124,35 @@ test('CS v4 pre-registration status — P1 measured PASS on the QD arm, run verd
   assert.ok(v4.p1Anchor.significance.includes('EVERY column'), 'the every-column extension of the floor mechanism must be recorded');
   assert.ok(v4.p2Status.includes('RESOLVED NEGATIVELY'), 'the P2 negative resolution must be on record');
   assert.ok(v4.p3Status.includes('DONE'), 'the P3 completion must be on record');
-  assert.ok(v4.runVerdict.includes('NOT EXECUTABLE'), 'the honest run verdict must be on record');
-  assert.ok(v4.runVerdict.includes('24 h'), 'the QD runtime cost that blocks the run must be on record');
-  assert.ok(v4.runVerdict.includes('two-tier'), 'the registered two-tier cure must be named');
+  assert.ok(v4.runVerdict.includes('EXECUTED 2026-09-12..15'), 'the honest run verdict must stay on record');
+  assert.ok(v4.runVerdict.includes('REFUTED'), 'the refutation must be on record');
+  assert.ok(v4.runVerdict.includes('MEASURED-NO-CURE'), 'the retirement disposition must be on record');
+  assert.ok(v4.runVerdict.includes('fdChannels 3x cut + 30-way sharding'), 'the runability cure that made the run affordable must be on record');
+  assert.ok(v4.whyNotRunNow.includes('SUPERSEDED'), 'the superseded why-not-run note must stay, not vanish');
+});
+
+test('CS v4 gate report frozen — all three band gates FAIL, the P-SV horizontal block is not a cure (2026-09-15)', () => {
+  const rep = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'tools', 'data', 'cs-pipeline-v4-report.json'), 'utf8'));
+  assert.equal(rep.schema, 'quake-sim-cs-pipeline-v4');
+  assert.equal(rep.pipelineVersion, 4);
+  // deduped bookkeeping: 6 cases x (25 hybrid unique + 25 psv) unique rows
+  assert.equal(rep.realizations.length, 300);
+  assert.equal(rep.invalidRealizations, 0);
+  assert.equal(rep.perCase.filter((p) => p.n === 25).length, 12, 'every (case, arm) ensemble must be 25 unique realizations after dedup');
+  // thresholds unchanged from v3 — the merge reads them from the live PRE_REG
+  const PRE_REG = require('../tools/broadband/cs-pipeline.js').PRE_REG;
+  for (const b of Object.keys(PRE_REG.gates.bandAbsMax)) {
+    assert.equal(rep.bands[b].gate.limit, PRE_REG.gates.bandAbsMax[b], b + ' limit must come from the unchanged v3 gate');
+  }
+  // the measured FAILs, number-locked
+  assert.deepEqual([rep.bands['0.1-0.5s'].hybridPsv.absMax, rep.bands['0.1-0.5s'].hybrid.absMax], [0.794, 0.776]);
+  assert.deepEqual([rep.bands['0.5-2s'].hybridPsv.absMax, rep.bands['0.5-2s'].hybrid.absMax], [0.398, 0.432]);
+  assert.deepEqual([rep.bands['2-5s'].hybridPsv.absMax, rep.bands['2-5s'].hybrid.absMax], [0.727, 0.574]);
+  for (const b of Object.keys(rep.bands)) assert.equal(rep.bands[b].gate.pass, false, b + ' must stay FAIL');
+  assert.deepEqual(rep.containment, { hybrid: 0.385, hybridPsv: 0.334 });
+  assert.equal(rep.pgaRatioDelta, 0.03);
+  // the frozen file and the live code must tell the same story
+  const v4 = require('../tools/broadband/cs-pipeline.js').PRE_REG_V4;
+  assert.equal(rep.preRegistered.runVerdict, v4.runVerdict);
+  assert.ok(v4.runVerdict.includes('0.727'), 'the frozen long-band number must appear in the verdict');
 });

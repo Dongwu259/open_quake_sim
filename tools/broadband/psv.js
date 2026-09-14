@@ -1157,6 +1157,18 @@ function complianceTriple(stack, omega, kInvM, params) {
     }
     return { C: e1.C, Cup: CupS, Cdn: CdnS, dhUsed: h };
   }
+  // params.fdChannels === false (2026-09-13 CS v4 batch): the caller's
+  // tensor carries NO dipole components (mzz = mxz = myz = 0 — the CS v4
+  // horizontal-block arm zeroes them after rotation), so the depth-FD
+  // channels multiply exact zeros and Cup/Cdn are dead weight. One chain
+  // evaluation instead of three (the 3x cut that makes the bigfloat v4 arm
+  // affordable); integrandTerms still sees well-defined zeros. CALLER
+  // CONTRACT: zero mzz/mxz/myz or the dipole channels silently vanish.
+  // Absent = the default three-depth triple (byte-compatible).
+  if (params.fdChannels === false) {
+    var Z2 = [[[0, 0], [0, 0]], [[0, 0], [0, 0]]]; // the 2x2 COMPLEX zero (entry [i][j] = [re,im])
+    return { C: complianceAt(stack, omega, kInvM, zs, params), Cup: Z2, Cdn: Z2 };
+  }
   var zUp = zs - dhM / 1000, zDn = zs + dhM / 1000;
   var zsKey = omega.toFixed(10) + '|' + zs + '|' + dhM + '|';
   var cache = params.cache;

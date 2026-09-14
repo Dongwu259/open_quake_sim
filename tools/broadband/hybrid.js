@@ -339,8 +339,16 @@ function hybridSynthesis(opts) {
         // the legacy A/W chain is O(1) off at deep configs), and the pole
         // windows are skipped per the v16 locator rebuild (the production
         // band is pole-free; the per-omega legacy locator scan is dead
-        // weight). Both opt-in here; absent = the frozen research defaults.
-        schurCompliance: opts.psvSchur ? 1 : undefined,
+        // weight). opts.psvQd switches the chain to the bigfloat evaluator
+        // (the P1-measured floor-free path — the double chain is
+        // detM-floor-contaminated at the Rayleigh neighborhoods of every
+        // column at f >= ~1 Hz). fdChannels follows psvHorizontalOnly (the
+        // dipole tensor entries are exact zeros there, so the depth-FD
+        // triple arms are dead weight — the 3x cut that makes the QD arm
+        // affordable). All opt-in; absent = the frozen research defaults.
+        schurCompliance: opts.psvQd ? undefined : (opts.psvSchur ? 1 : undefined),
+        qdCompliance: opts.psvQd ? 1 : undefined,
+        fdChannels: (opts.psvHorizontalOnly && !opts.psvFdChannels) ? false : undefined,
         poleWindows: opts.psvNoPoleWindows ? false : undefined
       });
       const w = 2 * Math.PI * fHz;
