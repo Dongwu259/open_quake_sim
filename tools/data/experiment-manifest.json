@@ -1,6 +1,6 @@
 {
  "schema": "quake-sim-experiment-manifest-v1",
- "generated": "2026-09-15T17:26:06.821Z",
+ "generated": "2026-09-15T23:29:41.109Z",
  "identityRule": "qsx1-<sha256[:16] of file bytes>; manifest excluded from its own listing",
  "entries": [
   {
@@ -56,6 +56,15 @@
    "track": null,
    "gate": null,
    "mtime": "2026-09-11T03:15:39.229Z"
+  },
+  {
+   "id": "qsx1-6e691ff596510745",
+   "name": "cs-align-retest-report.json",
+   "bytes": 6603,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-15T23:29:30.069Z"
   },
   {
    "id": "qsx1-cec2295e2a91444b",

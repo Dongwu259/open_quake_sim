@@ -174,3 +174,42 @@ test('cs-diagnosis-v3 — arbiter reference carried for the population contrast'
   assert.equal(d3.arbiterReference.DSYN['0.2'], -0.238);
   assert.ok(d3.arbiterReference.disclosure.includes('NOT identical'), 'the configuration confound must stay disclosed');
 });
+
+// ===========================================================================
+//  cs-align-retest v1 (2026-09-15..16, PRE_REG_V7) + CS_GATE_ROLE: the
+//  research-line closure. The shipped configuration on REAL events lands
+//  on the observed shapes; the class split and the scenario-population
+//  marginal are the frozen structure of the short-band FAIL.
+// ===========================================================================
+const ar = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'tools', 'data', 'cs-align-retest-report.json'), 'utf8'));
+
+test('cs-align-retest — pre-registered verdict frozen (CONFIG-OWNED at the letter)', () => {
+  assert.equal(ar.schema, 'quake-sim-cs-align-retest-v1');
+  assert.equal(ar.aggregate.alignedDs02, 0.02);
+  assert.ok(ar.aggregate.verdict.startsWith('CONFIG-OWNED'), 'the R1 verdict must stay on record');
+  assert.equal(ar.aggregate.alignedDs['0.1'], -0.147);
+  assert.equal(ar.preRegistered.references.legacyArbiterBruneArmDs['0.2'], -0.238, 'the legacy cold anchor rides along');
+  assert.equal(ar.events.length, 13);
+  for (const e of ar.events) assert.equal(e.nTimeout, 0, 'no station hit the 90 s wall budget');
+});
+
+test('cs-align-retest — class split frozen (crustal warm, interplate/intraslab cold)', () => {
+  const by = (cls) => ar.events.filter((e) => e.srcType === cls).map((e) => e.alignedDs['0.2']);
+  const med = (a) => {
+    const s2 = a.slice().sort((x, y) => x - y);
+    const m = s2.length >> 1;
+    return s2.length % 2 ? s2[m] : (s2[m - 1] + s2[m]) / 2;
+  };
+  assert.ok(Math.abs(med(by('crustal')) - 0.071) < 0.001);
+  assert.ok(Math.abs(med(by('interplate')) - (-0.265)) < 0.001);
+  assert.ok(Math.abs(med(by('intraslab')) - (-0.1425)) < 0.001);
+});
+
+test('CS_GATE_ROLE — the closure statement frozen', () => {
+  const role = require('../tools/broadband/cs-pipeline.js').CS_GATE_ROLE;
+  assert.equal(role.revised, '2026-09-16 (CS research line closure)');
+  assert.ok(role.shortBand.disposition.includes('NOT scheduled'), 'no recalibration may be implied as scheduled');
+  assert.ok(role.shortBand.finding.includes('alignedDs(0.2s) = +0.02'), 'the v7 measured anchor must appear');
+  assert.ok(role.longBand.disposition.includes('no global LF cure exists'));
+  assert.ok(role.production.includes('MEASURED-NO-CURE'), 'the P-SV retirement must stay linked');
+});

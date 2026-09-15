@@ -180,6 +180,27 @@ const PRE_REG_V6 = {
   nRealizations: 25
 };
 
+// ===========================================================================
+//  CS_GATE_ROLE (2026-09-16, the CS research-line closure): what the shape
+//  gate means after the v4 execution (900 QD realizations) and the v5/v6
+//  diagnosis batches + the v7 aligned-config retest. This replaces the
+//  open-ended "hunt the cure" posture with a measured role statement.
+// ===========================================================================
+const CS_GATE_ROLE = {
+  revised: '2026-09-16 (CS research line closure)',
+  semantics: 'the shape gate measures SHIPPED-SYNTH vs CONDITIONAL-SPECTRUM(zhao) consistency on the scenario deagg population — it is a model-form comparison, not a correctness claim about either side',
+  shortBand: {
+    finding: 'v4 FAIL (psv 0.794 / shOnly 0.776 vs 0.30); v5: HF-owned (share 1.000 — the fcHz=1 Hz hard partition), stress lever DEAD (S*=0, postHoc 0.53 > 0.15), kappa excluded (v3), P-SV excluded (v4, MEASURED-NO-CURE), target construction consistent (maxMuDelta 0.00466); v7 aligned retest: the shipped configuration on REAL events lands ON the observed shapes (alignedDs(0.2s) = +0.02 vs the legacy brune arm -0.238) — the configuration chain carries ~+0.26 dex of shape and the scenario population adds ~+0.3 more, with a CLASS SPLIT (0.2 s medians: crustal +0.071, interplate -0.265, intraslab -0.142)',
+    disposition: 'the FAIL stands as a scenario-population and class-structured configuration property. Registered cure candidate (NOT scheduled): an observation-anchored, per-class recalibration of the configuration chain. Global single-parameter cures are all measured-dead (kappa, stress, P-SV, LF gain)'
+  },
+  longBand: {
+    finding: 'v4 FAIL (psv 0.727 / shOnly 0.574 vs 0.25) with a SIGN SPLIT (kochi deficit -0.51..-0.33 vs osaka excess +0.50..+0.49 at 3-5 s); v6 column swap: SOURCE-OWNED by the pre-registered reversal rule (0.198; linear column share ~40%); the v3 LF-gain exclusion and the v1 halfspace/Q exclusions stand; the band scores a fitted calibration (fit-circular, disclosed)',
+    disposition: 'the FAIL stands; no global LF cure exists — a cure would have to be site/source-population specific, which the shipped product does not pretend to be'
+  },
+  midBand: 'straddles the fcHz=1 Hz seam; mild (v3 medians 0.398/0.432); no seam artifact flagged (v5 seamFlagged=false)',
+  production: 'the shipped arm stays the v3 SH-only hybrid; opts.psv stays research (MEASURED-NO-CURE); no recalibration is scheduled from this closure — the gate keeps its role as the documented synth-vs-GMPE consistency monitor'
+};
+
 const ZHAO_KEY = {
   0.1: '0.10', 0.15: '0.15', 0.2: '0.20', 0.3: '0.30', 0.4: '0.40', 0.5: '0.50',
   0.7: '0.70', 1.0: '1.00', 1.5: '1.50', 2.0: '2.00', 3.0: '3.00', 4.0: '4.00', 5.0: '5.00'
@@ -1406,4 +1427,4 @@ if (require.main === module) {
     }
   } catch (e) { console.error(e); process.exit(1); }
 }
-module.exports = { PRE_REG_V4: PRE_REG_V4, PRE_REG_V5: PRE_REG_V5, PRE_REG_V6: PRE_REG_V6, PRE_REG: PRE_REG };
+module.exports = { PRE_REG_V4: PRE_REG_V4, PRE_REG_V5: PRE_REG_V5, PRE_REG_V6: PRE_REG_V6, PRE_REG: PRE_REG, CS_GATE_ROLE, lfGainFnFor, DIP_PRIOR };
