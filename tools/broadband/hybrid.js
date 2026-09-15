@@ -138,7 +138,9 @@ function buildHfSpectrum(NF, df, ctx, seed, fillScale) {
   for (let i = 1; i < NF / 2; i++) {
     const f = i * df;
     if (f > fMax) break;
-    const amp = hfAccelFAS(f, ctx) * (fillScale || 1) * sr;
+    // fillScale 0 must be honored (cs-diagnose-v2 lfOnly arm zeroes the HF
+    // fill this way); only null/undefined means the unit fill
+    const amp = hfAccelFAS(f, ctx) * (fillScale == null ? 1 : fillScale) * sr;
     const ph = 2 * Math.PI * rng();
     out[i] = [amp * Math.cos(ph), amp * Math.sin(ph)];
     out[NF - i] = [amp * Math.cos(ph), -amp * Math.sin(ph)];

@@ -1,6 +1,6 @@
 {
  "schema": "quake-sim-experiment-manifest-v1",
- "generated": "2026-09-15T04:20:15.416Z",
+ "generated": "2026-09-15T17:26:06.821Z",
  "identityRule": "qsx1-<sha256[:16] of file bytes>; manifest excluded from its own listing",
  "entries": [
   {
@@ -74,6 +74,24 @@
    "track": null,
    "gate": null,
    "mtime": "2026-09-03T17:24:52.079Z"
+  },
+  {
+   "id": "qsx1-04f78d01c97dac02",
+   "name": "cs-diagnosis-v2-report.json",
+   "bytes": 27188,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-15T17:25:52.157Z"
+  },
+  {
+   "id": "qsx1-9135f488b8fea3be",
+   "name": "cs-diagnosis-v3-report.json",
+   "bytes": 8999,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-15T17:25:52.290Z"
   },
   {
    "id": "qsx1-e1810e09a68efc3f",

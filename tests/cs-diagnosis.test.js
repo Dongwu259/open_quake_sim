@@ -86,3 +86,91 @@ test('cs-diagnosis — tokyo hfOnly bias recomputable (drift guard)', () => {
   assert.ok(Math.abs(ratio - kochi.shortBand.hfOnlyBias[0]) < 0.35,
     'kochi hfOnly@0.1s drift: single-bin ' + ratio.toFixed(3) + ' vs frozen median ' + kochi.shortBand.hfOnlyBias[0]);
 });
+
+// ===========================================================================
+//  cs-diagnosis v2 (2026-09-15, PRE_REG_V5): band-shape ownership on the
+//  SHIPPED SH-only v3/v4 baseline, after the CS v4 execution refuted the
+//  missing-P-SV hypothesis. Frozen by `node tools/broadband/cs-pipeline.js
+//  --v5-diag`. The amendment field is part of the record: the pre-registered
+//  eps clause turned out inapplicable on the frozen v4 rows.
+// ===========================================================================
+const d2 = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'tools', 'data', 'cs-diagnosis-v2-report.json'), 'utf8'));
+const v4 = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'tools', 'data', 'cs-pipeline-v4-report.json'), 'utf8'));
+
+test('cs-diagnosis-v2 — pre-registration and audit verdict frozen', () => {
+  assert.equal(d2.schema, 'quake-sim-cs-diagnosis-v2');
+  assert.ok(d2.preRegistered.batch.includes('cs-diagnose-v2'));
+  assert.deepEqual(d2.preRegistered.thresholds, { ownership: 0.8, targetAuditMaxDelta: 0.02, seamDeviation: 0.1, stressSpreadMax: 2, stressResidualMax: 0.15 });
+  const a = d2.targetAudit;
+  assert.equal(a.nRows, 150);
+  assert.equal(a.verdict, 'PASS: no construction bug');
+  assert.ok(a.maxMuDelta <= 0.02 && a.maxMuDelta > 0.004, 'maxMuDelta ' + a.maxMuDelta + ' must sit in its measured band');
+  // the amendment IS the record: epsBin does not exist on the v4 rows
+  assert.equal(a.epsClauseApplicable, false);
+  assert.equal(a.nEpsChecked, 0);
+  assert.ok(a.amendment.includes('INAPPLICABLE') && a.amendment.includes('subsumes eps'));
+});
+
+test('cs-diagnosis-v2 — partition ownership, dead stress lever, seam', () => {
+  assert.equal(d2.attribution.short.owner, 'HF');
+  assert.equal(d2.attribution.short.hfShare, 1); // the fcHz=1 Hz hard partition, in numbers
+  assert.ok(d2.stressFeasibility.verdict.startsWith('DEAD'), 'the Brune-corner stress lever must stay registered DEAD');
+  assert.equal(d2.stressFeasibility.postHocMax, 0.53);
+  assert.equal(d2.attribution.seamFlagged, false);
+  const sStar = d2.stressFeasibility.perCaseSstar.map((x) => x.Sstar);
+  assert.deepEqual(sStar, [0, 0, 0, null, null, null]); // the lever cannot even reach the band in half the cases
+});
+
+test('cs-diagnosis-v2 — full-arm consistency with the frozen v4 report + long-band sign split', () => {
+  for (const c of d2.cases) {
+    const p = v4.perCase.find((x) => x.arm === 'hybrid' && x.site === c.site && x.rp === c.rp);
+    assert.ok(p, 'v4 perCase row missing for ' + c.site);
+    assert.deepEqual(c.biasLog10.full, p.biasLog10, c.site + ' full-arm bias must equal the frozen v4 numbers');
+  }
+  const g = (site) => d2.cases.filter((c) => c.site === site).map((c) => c.biasLog10.full[12]);
+  for (const v of g('kochi')) assert.ok(v < -0.3, 'kochi long band must stay a deficit, got ' + v);
+  for (const v of g('osaka')) assert.ok(v > 0.45, 'osaka long band must stay an excess, got ' + v);
+  // D4: the v3-fitted LF gain tilt owns only a minor share of the LF shape excess
+  for (const c of d2.cases) {
+    const tilt = c.biasLog10.D2_lfOnly[12] - c.biasLog10.D4_lfNoGain[12];
+    assert.ok(tilt >= 0.09 && tilt <= 0.31, 'gain tilt at 5s out of measured band: ' + tilt);
+  }
+});
+
+// ===========================================================================
+//  cs-diagnosis v3 (2026-09-15, PRE_REG_V6): column-swap causality + tilt
+//  decomposition. Frozen by `node tools/broadband/cs-pipeline.js --v6-diag`.
+//  Amendment of record: the first v6 run's U was anchor-level contaminated
+//  (untilted@1s = eps*sigma(1s) != 0); the frozen run scores SHAPE
+//  (untilted minus the anchor offset), which the untiltedShape[7]==0 lock
+//  pins forever.
+// ===========================================================================
+const d3 = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'tools', 'data', 'cs-diagnosis-v3-report.json'), 'utf8'));
+
+test('cs-diagnosis-v3 — tilt decomposition frozen (shape-only, synthesis-side)', () => {
+  assert.equal(d3.schema, 'quake-sim-cs-diagnosis-v3');
+  assert.deepEqual(d3.preRegistered.thresholds, { columnOwnsMin: 0.6, sourceOwnsMax: 0.4, untiltedMax: 0.15 });
+  assert.ok(d3.tiltDecomposition.U > 0.3 && d3.tiltDecomposition.U < 0.33, 'U ' + d3.tiltDecomposition.U + ' must sit in its measured band');
+  assert.ok(d3.tiltDecomposition.verdict.startsWith('SYNTHESIS-SIDE'), 'the shape-only verdict must stay SYNTHESIS-SIDE');
+  for (const c of d3.tiltDecomposition.cases) {
+    // the shape correction is exact: at the anchor the shape bias is zero
+    assert.equal(c.biasLog10.untiltedShape[7], 0, c.site + ' untiltedShape@1s must be exactly 0');
+    assert.ok(c.biasLog10.untilted[7] > 0.17 && c.biasLog10.untilted[7] < 0.54, 'anchor offset in measured band');
+    assert.ok(c.anchorOffsetLog10 > 0.17 && c.anchorOffsetLog10 < 0.54);
+  }
+});
+
+test('cs-diagnosis-v3 — column swap: the frozen reversal rule says SOURCE-OWNED', () => {
+  const cs = d3.columnSwap;
+  assert.deepEqual([cs.Dorig, cs.Dswap, cs.columnOwns], [0.914, 0.552, 0.198]);
+  assert.ok(cs.verdict.startsWith('SOURCE-OWNED'), 'the pre-registered reversal rule verdict must stay on record');
+  // descriptive (not the rule): the linear column share is ~40%
+  const lin = +((cs.Dorig - cs.Dswap) / cs.Dorig).toFixed(2);
+  assert.ok(lin >= 0.35 && lin <= 0.45, 'linear column share ' + lin + ' out of measured band');
+});
+
+test('cs-diagnosis-v3 — arbiter reference carried for the population contrast', () => {
+  assert.ok(d3.arbiterReference, 'the frozen arbiter numbers must ride along');
+  assert.equal(d3.arbiterReference.DSYN['0.2'], -0.238);
+  assert.ok(d3.arbiterReference.disclosure.includes('NOT identical'), 'the configuration confound must stay disclosed');
+});

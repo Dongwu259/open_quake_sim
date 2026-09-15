@@ -1,0 +1,534 @@
+{
+ "schema": "quake-sim-cs-diagnosis-v3",
+ "generatedAt": "2026-09-15T17:19:39.492Z",
+ "preRegistered": {
+  "batch": "cs-diagnose-v3: column-swap causality (long band) + tilt decomposition (short band)",
+  "families": {
+   "A_columnSwap": "kochi cases re-synthesized on the osaka JIVSM column and vice versa (shipped blend, paired seeds, targets unchanged — only the propagation column moves). Answers whether the site COLUMN owns the long-band sign split",
+   "B_tiltDecomposition": "the shipped scenario rows re-scored against UNTILTED zhao medians (no CS tilt). gate bias = untilted bias + tilt, tilt(T) = rho(T,1s)*sigma(T)*eps per realization. Answers whether the short-band FAIL is the high-eps tilt regime (target-side) or a synthesis-vs-zhao divergence at the scenario population"
+  },
+  "decisionRules": {
+   "columnOwns": "D = mean(osaka full @5s biasLog10) − mean(kochi full @5s biasLog10) on the frozen v4 rows; D_swap = the same under the swap arms. columnOwned if (D − D_swap)/(2D) >= 0.6; sourceOwned if <= 0.4; else mixed",
+   "tiltVerdict": "let U = median over cases of the mean |untilted bias| over 0.1-0.5s. If U <= 0.15 the short-band FAIL is attributed to the high-eps CS tilt regime (target-side; the synthesis matches zhao untilted and the real-event population per cs-arbiter); else the synthesis-vs-zhao divergence is real at the scenario population and the untilted magnitudes are the cure target"
+  },
+  "thresholds": {
+   "columnOwnsMin": 0.6,
+   "sourceOwnsMax": 0.4,
+   "untiltedMax": 0.15
+  },
+  "nRealizations": 25
+ },
+ "basis": {
+  "fullArm": "tools/data/cs-pipeline-v4-report.json shOnly rows",
+  "note": "DIAGNOSIS ONLY — no parameter was changed from this report"
+ },
+ "tiltDecomposition": {
+  "U": 0.318,
+  "verdict": "SYNTHESIS-SIDE: the scenario-population synthesis diverges from zhao SHAPE too (U=0.318 > 0.15) — the untiltedShape magnitudes are the cure target",
+  "cases": [
+   {
+    "site": "tokyo",
+    "rp": 475,
+    "epsProbMean": 0.797,
+    "anchorOffsetLog10": 0.2453,
+    "biasLog10": {
+     "tilted": [
+      0.34,
+      0.327,
+      0.296,
+      0.236,
+      0.203,
+      0.179,
+      0.096,
+      0,
+      0.085,
+      0.174,
+      0.252,
+      0.233,
+      0.293
+     ],
+     "untilted": [
+      0.432,
+      0.428,
+      0.408,
+      0.372,
+      0.366,
+      0.365,
+      0.315,
+      0.245,
+      0.307,
+      0.375,
+      0.415,
+      0.367,
+      0.418
+     ],
+     "untiltedShape": [
+      0.187,
+      0.182,
+      0.162,
+      0.127,
+      0.121,
+      0.12,
+      0.07,
+      0,
+      0.061,
+      0.13,
+      0.17,
+      0.122,
+      0.173
+     ],
+     "tilt": [
+      -0.091,
+      -0.101,
+      -0.112,
+      -0.136,
+      -0.163,
+      -0.187,
+      -0.219,
+      -0.245,
+      -0.222,
+      -0.201,
+      -0.163,
+      -0.134,
+      -0.125
+     ]
+    }
+   },
+   {
+    "site": "tokyo",
+    "rp": 2500,
+    "epsProbMean": 1.212,
+    "anchorOffsetLog10": 0.4952,
+    "biasLog10": {
+     "tilted": [
+      0.533,
+      0.472,
+      0.432,
+      0.355,
+      0.302,
+      0.203,
+      0.108,
+      0,
+      0.082,
+      0.145,
+      0.211,
+      0.242,
+      0.282
+     ],
+     "untilted": [
+      0.717,
+      0.675,
+      0.656,
+      0.627,
+      0.631,
+      0.58,
+      0.55,
+      0.495,
+      0.53,
+      0.55,
+      0.539,
+      0.51,
+      0.534
+     ],
+     "untiltedShape": [
+      0.222,
+      0.18,
+      0.161,
+      0.132,
+      0.135,
+      0.085,
+      0.055,
+      0,
+      0.034,
+      0.055,
+      0.044,
+      0.015,
+      0.038
+     ],
+     "tilt": [
+      -0.184,
+      -0.203,
+      -0.224,
+      -0.272,
+      -0.328,
+      -0.377,
+      -0.441,
+      -0.495,
+      -0.447,
+      -0.405,
+      -0.328,
+      -0.269,
+      -0.251
+     ]
+    }
+   },
+   {
+    "site": "osaka",
+    "rp": 475,
+    "epsProbMean": 0.662,
+    "anchorOffsetLog10": 0.2396,
+    "biasLog10": {
+     "tilted": [
+      0.528,
+      0.456,
+      0.427,
+      0.345,
+      0.279,
+      0.204,
+      0.083,
+      0,
+      -0.002,
+      0.102,
+      0.277,
+      0.554,
+      0.807
+     ],
+     "untilted": [
+      0.614,
+      0.55,
+      0.528,
+      0.465,
+      0.432,
+      0.386,
+      0.295,
+      0.24,
+      0.214,
+      0.297,
+      0.432,
+      0.678,
+      0.923
+     ],
+     "untiltedShape": [
+      0.375,
+      0.31,
+      0.288,
+      0.226,
+      0.192,
+      0.147,
+      0.055,
+      0,
+      -0.026,
+      0.057,
+      0.193,
+      0.438,
+      0.683
+     ],
+     "tilt": [
+      -0.087,
+      -0.094,
+      -0.101,
+      -0.12,
+      -0.153,
+      -0.182,
+      -0.212,
+      -0.24,
+      -0.215,
+      -0.195,
+      -0.155,
+      -0.123,
+      -0.115
+     ]
+    }
+   },
+   {
+    "site": "osaka",
+    "rp": 2500,
+    "epsProbMean": 1.617,
+    "anchorOffsetLog10": 0.5354,
+    "biasLog10": {
+     "tilted": [
+      0.775,
+      0.712,
+      0.648,
+      0.551,
+      0.421,
+      0.31,
+      0.192,
+      0,
+      0.038,
+      0.111,
+      0.25,
+      0.509,
+      0.741
+     ],
+     "untilted": [
+      0.964,
+      0.919,
+      0.872,
+      0.819,
+      0.762,
+      0.716,
+      0.666,
+      0.535,
+      0.519,
+      0.546,
+      0.596,
+      0.784,
+      0.997
+     ],
+     "untiltedShape": [
+      0.429,
+      0.383,
+      0.336,
+      0.283,
+      0.227,
+      0.181,
+      0.13,
+      0,
+      -0.017,
+      0.011,
+      0.06,
+      0.249,
+      0.462
+     ],
+     "tilt": [
+      -0.189,
+      -0.206,
+      -0.223,
+      -0.267,
+      -0.341,
+      -0.407,
+      -0.473,
+      -0.535,
+      -0.48,
+      -0.435,
+      -0.346,
+      -0.275,
+      -0.256
+     ]
+    }
+   },
+   {
+    "site": "kochi",
+    "rp": 475,
+    "epsProbMean": 0.594,
+    "anchorOffsetLog10": 0.1767,
+    "biasLog10": {
+     "tilted": [
+      0.5,
+      0.532,
+      0.419,
+      0.261,
+      0.188,
+      0.148,
+      0.086,
+      0,
+      -0.214,
+      -0.432,
+      -0.555,
+      -0.568,
+      -0.502
+     ],
+     "untilted": [
+      0.566,
+      0.603,
+      0.494,
+      0.35,
+      0.301,
+      0.283,
+      0.242,
+      0.177,
+      -0.055,
+      -0.288,
+      -0.439,
+      -0.477,
+      -0.416
+     ],
+     "untiltedShape": [
+      0.389,
+      0.426,
+      0.318,
+      0.173,
+      0.125,
+      0.107,
+      0.066,
+      0,
+      -0.232,
+      -0.465,
+      -0.616,
+      -0.654,
+      -0.593
+     ],
+     "tilt": [
+      -0.066,
+      -0.071,
+      -0.076,
+      -0.089,
+      -0.113,
+      -0.135,
+      -0.156,
+      -0.177,
+      -0.159,
+      -0.144,
+      -0.115,
+      -0.091,
+      -0.086
+     ]
+    }
+   },
+   {
+    "site": "kochi",
+    "rp": 2500,
+    "epsProbMean": 1.593,
+    "anchorOffsetLog10": 0.5101,
+    "biasLog10": {
+     "tilted": [
+      0.698,
+      0.769,
+      0.633,
+      0.399,
+      0.319,
+      0.251,
+      0.159,
+      0,
+      -0.229,
+      -0.338,
+      -0.421,
+      -0.4,
+      -0.328
+     ],
+     "untilted": [
+      0.887,
+      0.972,
+      0.851,
+      0.656,
+      0.645,
+      0.64,
+      0.61,
+      0.51,
+      0.231,
+      0.079,
+      -0.089,
+      -0.136,
+      -0.081
+     ],
+     "untiltedShape": [
+      0.377,
+      0.462,
+      0.341,
+      0.146,
+      0.135,
+      0.13,
+      0.1,
+      0,
+      -0.28,
+      -0.431,
+      -0.599,
+      -0.646,
+      -0.591
+     ],
+     "tilt": [
+      -0.19,
+      -0.204,
+      -0.218,
+      -0.257,
+      -0.327,
+      -0.389,
+      -0.451,
+      -0.51,
+      -0.459,
+      -0.417,
+      -0.332,
+      -0.264,
+      -0.247
+     ]
+    }
+   }
+  ]
+ },
+ "arbiterReference": {
+  "file": "tools/data/cs-arbiter-report.json",
+  "DSYN": {
+   "2": 0.09,
+   "3": 0.069,
+   "4": 0.005,
+   "5": -0.068,
+   "0.1": -0.275,
+   "0.2": -0.238,
+   "0.3": -0.216,
+   "0.5": -0.123,
+   "1.5": 0.047
+  },
+  "DBAR": {
+   "0.2": -0.038,
+   "0.3": -0.023
+  },
+  "disclosure": "real-event population (eps~0), synth setup NOT identical to the pipeline (vs30 600 fixed vs grid, site-curve/mechanism differences not isolated in this batch) — the scenario-vs-real contrast is a measured population/configuration gap, not a pure population effect"
+ },
+ "columnSwap": {
+  "Dorig": 0.914,
+  "Dswap": 0.552,
+  "columnOwns": 0.198,
+  "verdict": "SOURCE-OWNED: the divergence follows the scenario sources, not the column (0.198)",
+  "swaps": {
+   "kochi:475": {
+    "biasLog10": [
+     0.5,
+     0.532,
+     0.419,
+     0.261,
+     0.188,
+     0.148,
+     0.086,
+     0,
+     -0.214,
+     -0.432,
+     -0.542,
+     -0.505,
+     -0.307
+    ]
+   },
+   "kochi:2500": {
+    "biasLog10": [
+     0.698,
+     0.769,
+     0.633,
+     0.399,
+     0.319,
+     0.251,
+     0.159,
+     0,
+     -0.229,
+     -0.337,
+     -0.413,
+     -0.339,
+     -0.103
+    ]
+   },
+   "osaka:475": {
+    "biasLog10": [
+     0.528,
+     0.456,
+     0.427,
+     0.345,
+     0.279,
+     0.204,
+     0.083,
+     0,
+     -0.116,
+     -0.183,
+     -0.008,
+     0.137,
+     0.322
+    ]
+   },
+   "osaka:2500": {
+    "biasLog10": [
+     0.783,
+     0.72,
+     0.656,
+     0.559,
+     0.428,
+     0.317,
+     0.2,
+     0,
+     -0.048,
+     -0.084,
+     0.06,
+     0.213,
+     0.372
+    ]
+   }
+  }
+ }
+}
