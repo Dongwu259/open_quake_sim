@@ -85,6 +85,12 @@ function hashSeed(str) { let h = 2166136261; for (let i = 0; i < str.length; i++
 
 function main() {
   const t0 = Date.now();
+  // G2 plumbing (PRE_REG_V8): --kappa-by-class <file> overrides the HF
+  // kappa per class; --out <file> redirects the report. Defaults keep the
+  // standard invocation byte-identical.
+  const argOf = (name) => process.argv.includes(name) ? process.argv[process.argv.indexOf(name) + 1] : null;
+  const kappaByClass = argOf('--kappa-by-class') ? JSON.parse(fs.readFileSync(path.join(ROOT, argOf('--kappa-by-class')), 'utf8')).classes : null;
+  const outPath = argOf('--out') ? path.join(ROOT, argOf('--out')) : OUT;
   const cal = JSON.parse(fs.readFileSync(path.join(ROOT, 'tools', 'data', 'cs-repair-calibration.json'), 'utf8'));
   const vs30Grid = JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'vs30.json'), 'utf8'));
   const bedrockGrid = JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'jivsm-bedrock.json'), 'utf8'));
@@ -139,7 +145,8 @@ function main() {
           mw: meta.mj, strike, dip: DIP_PRIOR[meta.srcType] || 45, rake,
           receiverLat: st.station.lat, receiverLng: st.station.lng,
           vs30, stack, siteCurve, stressMPa: cal.stressByClass[meta.srcType] || 50,
-          kappaSec: cal.kappaSec, lfGainFn: lfGainFnFor(cal, meta.mj, repi),
+          kappaSec: kappaByClass ? (kappaByClass[meta.srcType] ? kappaByClass[meta.srcType].kappa : cal.kappaSec) : cal.kappaSec,
+          lfGainFn: lfGainFnFor(cal, meta.mj, repi),
           sampleRateHz: 50, durationS: 300, seed
         });
         r = Physics.sdofResponseSpectrum(out.transverse, out.sampleRateHz, PERIODS, 0.05).map((row) => row.psaGal);
@@ -183,11 +190,11 @@ function main() {
     aggregate: { alignedDs: agg, alignedDs02: d02, verdict },
     events
   };
-  fs.writeFileSync(OUT, JSON.stringify(report, null, 1));
+  fs.writeFileSync(outPath, JSON.stringify(report, null, 1));
   console.log('\n=== CS ALIGNED-CONFIG RETEST (PRE_REG_V7) ===');
   console.log('alignedDs:', JSON.stringify(agg));
   console.log('verdict:', verdict);
-  console.log('wrote ' + OUT);
+  console.log('wrote ' + outPath);
   console.log('elapsed ' + ((Date.now() - t0) / 1000 / 60).toFixed(1) + ' min');
 }
 

@@ -1,6 +1,6 @@
 {
  "schema": "quake-sim-experiment-manifest-v1",
- "generated": "2026-09-15T23:29:41.109Z",
+ "generated": "2026-09-16T17:03:46.167Z",
  "identityRule": "qsx1-<sha256[:16] of file bytes>; manifest excluded from its own listing",
  "entries": [
   {
@@ -101,6 +101,24 @@
    "track": null,
    "gate": null,
    "mtime": "2026-09-15T17:25:52.290Z"
+  },
+  {
+   "id": "qsx1-7b7bd36dd41b964a",
+   "name": "cs-kappa-by-class.json",
+   "bytes": 2332,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-16T17:03:32.727Z"
+  },
+  {
+   "id": "qsx1-42ca5a5c5c777b40",
+   "name": "cs-kappa-scenario-report.json",
+   "bytes": 330,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-16T17:03:32.881Z"
   },
   {
    "id": "qsx1-e1810e09a68efc3f",

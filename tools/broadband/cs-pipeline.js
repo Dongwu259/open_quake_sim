@@ -191,7 +191,7 @@ const CS_GATE_ROLE = {
   semantics: 'the shape gate measures SHIPPED-SYNTH vs CONDITIONAL-SPECTRUM(zhao) consistency on the scenario deagg population — it is a model-form comparison, not a correctness claim about either side',
   shortBand: {
     finding: 'v4 FAIL (psv 0.794 / shOnly 0.776 vs 0.30); v5: HF-owned (share 1.000 — the fcHz=1 Hz hard partition), stress lever DEAD (S*=0, postHoc 0.53 > 0.15), kappa excluded (v3), P-SV excluded (v4, MEASURED-NO-CURE), target construction consistent (maxMuDelta 0.00466); v7 aligned retest: the shipped configuration on REAL events lands ON the observed shapes (alignedDs(0.2s) = +0.02 vs the legacy brune arm -0.238) — the configuration chain carries ~+0.26 dex of shape and the scenario population adds ~+0.3 more, with a CLASS SPLIT (0.2 s medians: crustal +0.071, interplate -0.265, intraslab -0.142)',
-    disposition: 'the FAIL stands as a scenario-population and class-structured configuration property. Registered cure candidate (NOT scheduled): an observation-anchored, per-class recalibration of the configuration chain. Global single-parameter cures are all measured-dead (kappa, stress, P-SV, LF gain)'
+    disposition: 'the FAIL stands as a scenario-population and class-structured configuration property. The registered cure candidate (per-class kappa) WAS scheduled 2026-09-17 (PRE_REG_V8), fitted on real events (G1 pass: interplate 0.018 / crustal 0.046 / intraslab 0.027), and KILLED by the pre-registered G3 scenario gate (short 0.776 -> 0.96, long 0.574 -> 0.777): the real-event optimum and the scenario-gate optimum have OPPOSITE SIGNS, and the anchor-at-seam coupling transmits any HF change into the LF bands through the single Sa(1s) scale. The line is CLOSED — no global or per-class single-parameter cure exists (kappa, stress, P-SV, LF gain all measured-dead)'
   },
   longBand: {
     finding: 'v4 FAIL (psv 0.727 / shOnly 0.574 vs 0.25) with a SIGN SPLIT (kochi deficit -0.51..-0.33 vs osaka excess +0.50..+0.49 at 3-5 s); v6 column swap: SOURCE-OWNED by the pre-registered reversal rule (0.198; linear column share ~40%); the v3 LF-gain exclusion and the v1 halfspace/Q exclusions stand; the band scores a fitted calibration (fit-circular, disclosed)',
@@ -874,6 +874,106 @@ function runV6Diag(cases, cal, periods, bedrockGrid) {
   console.log('elapsed ' + ((Date.now() - t0) / 1000 / 60).toFixed(1) + ' min');
 }
 
+// ===========================================================================
+//  --kappa-scenario <file> (PRE_REG_V8 G3): re-score the scenario hybrid
+//  arm with kappaByClass from <file> (paired seeds vs the frozen v4 rows)
+//  and compare the three band absMax values + the anchor against the
+//  frozen v4 shOnly numbers. Diagnosis runner - writes nothing unless
+//  --write is also passed (then cs-kappa-scenario-report.json).
+// ===========================================================================
+function runKappaScenario(cases, cal, periods, bedrockGrid, kcFile) {
+  const anchorIdx = periods.indexOf(PRE_REG.anchorPeriodSec);
+  const SHORT = [0, 1, 2, 3, 4, 5], MID = [6, 7, 8, 9], LONG = [10, 11, 12];
+  const kc = JSON.parse(fs.readFileSync(path.join(ROOT, kcFile), 'utf8')).classes;
+  const v4 = JSON.parse(fs.readFileSync(path.join(ROOT, 'tools', 'data', 'cs-pipeline-v4-report.json'), 'utf8'));
+  const fullRows = v4.realizations.filter((r) => r.arm === 'hybrid' && r.psaGal && r.condMuLn);
+  const stressFor = (cls) => cal.stressByClass[cls] || 50;
+  const biasLnOf = (rows) => periods.map((_, pi) => {
+    let s = 0, n = 0;
+    for (const r of rows) { if (!r.condMuLn) continue; s += Math.log(r.psaGal[pi]) - r.condMuLn[pi]; n++; }
+    return n ? s / n : null;
+  });
+  const bandAbsMax = (biasOf) => {
+    const bands = { short: SHORT, mid: MID, long: LONG };
+    const out = {};
+    for (const b of Object.keys(bands)) {
+      let worst = 0;
+      for (const c of cases) {
+        if (!c.mscs) continue;
+        const bl = biasOf(c);
+        if (!bl) continue;
+        for (const pi of bands[b]) if (bl[pi] != null) worst = Math.max(worst, Math.abs(bl[pi] / LN10));
+      }
+      out[b] = +worst.toFixed(3);
+    }
+    return out;
+  };
+
+  const rowsByCase = {};
+  let anchorMax = 0;
+  for (const c of cases) {
+    if (!c.mscs) continue;
+    const bedrockM = Physics.lookupResearchGrid(bedrockGrid, c.site.lat, c.site.lng);
+    const profile = Physics.synthSiteProfile(c.vs30, bedrockM);
+    const pool = c.deagg.bins.filter((b) => b.meanRrupKm >= PRE_REG.minRrupKmForSampling);
+    const poolMass = pool.reduce((a, b) => a + b.prob, 0);
+    const cum = []; let acc = 0;
+    for (const b of pool) { acc += b.prob / poolMass; cum.push(acc); }
+    const condOf = new Map();
+    c.mscs.binCond.forEach((bc) => condOf.set(bc.srcType + '|' + (+bc.repr.mw.toFixed(3)) + '|' + (+bc.repr.rRupKm.toFixed(2)), bc));
+    const siteCurveFor = (mw, srcType, rRupKm, depthKm) => {
+      if (!profile || profile.length < 2) return null;
+      const g = Physics._pshaBranchMotion('zhao2006', 'pga', srcType, mw, rRupKm, depthKm, c.vs30, Physics.PSHA_CLASS_RAKE[srcType] || 0);
+      if (!g || !(g.median > 0)) return null;
+      const freqs = [];
+      for (let i = 0; i < 120; i++) freqs.push(0.3 * Math.pow(20 / 0.3, i / 119));
+      const res = Physics.siteResponse1D(profile, freqs, { rockPgaG: g.median / 980.665 });
+      if (!res || !res.amp) return null;
+      return { freqs, amps: res.amp.map((a2) => Math.max(0.2, Math.min(8, a2))) };
+    };
+    const rows = [];
+    for (let i = 0; i < 25; i++) {
+      const rng = Physics.seededRng(hashSeed(c.site.id + ':' + c.rp + ':hybrid:' + i));
+      const u = rng(); let bi = 0;
+      while (bi < cum.length - 1 && u > cum[bi]) bi++;
+      const bin = pool[bi] || pool[pool.length - 1];
+      const strike = +(rng() * 360).toFixed(2);
+      const siteCurve = siteCurveFor(bin.repr.mw, bin.srcType, bin.meanRrupKm, bin.repr.depthKm);
+      const kClass = kc[bin.srcType] ? kc[bin.srcType].kappa : cal.kappaSec;
+      const out = synthesize(c, bin, 'hybrid', {
+        strike, stressMPa: stressFor(bin.srcType), kappaSec: kClass,
+        siteCurve, seed: hashSeed(c.site.id + ':' + c.rp + ':hybrid:' + i + ':synth'),
+        lfGainFn: lfGainFnFor(cal, bin.repr.mw, bin.meanRrupKm)
+      });
+      const psa = psaOf(out, periods);
+      const anchorPsa = psa[anchorIdx];
+      if (!(anchorPsa > 0) || !isFinite(anchorPsa)) continue;
+      const scale = c.imTarget / anchorPsa;
+      const scaled = psa.map((v) => v * scale);
+      const bc = condOf.get(bin.srcType + '|' + (+bin.repr.mw.toFixed(3)) + '|' + (+bin.meanRrupKm.toFixed(2)));
+      rows.push({ i, psaGal: scaled, condMuLn: bc ? bc.muLn : null });
+      anchorMax = Math.max(anchorMax, Math.abs(Math.log10(scale)));
+    }
+    rowsByCase[c.site.id + ':' + c.rp] = rows;
+  }
+  const biasOf = (c) => biasLnOf(rowsByCase[c.site.id + ':' + c.rp] || []);
+  const bandsNew = bandAbsMax(biasOf);
+  const bandsOld = bandAbsMax((c) => biasLnOf(fullRows.filter((r) => r.site === c.site.id && r.rp === c.rp)));
+  const nonReg = bandsNew.mid <= bandsOld.mid + 0.05 && bandsNew.long <= bandsOld.long + 0.05;
+  const pass = bandsNew.short < bandsOld.short && nonReg;
+  console.log('=== PRE_REG_V8 G3 kappa-scenario ===');
+  console.log('short:', bandsOld.short, '->', bandsNew.short, '| mid:', bandsOld.mid, '->', bandsNew.mid, '| long:', bandsOld.long, '->', bandsNew.long);
+  console.log('anchor log10|scale| max', anchorMax.toFixed(3), '(0 = exact by construction)');
+  console.log('G3:', pass ? 'PASS' : 'FAIL', '(short strictly decreases AND no other band worsens by > 0.05)');
+  if (process.argv.includes('--write')) {
+    fs.writeFileSync(path.join(ROOT, 'tools', 'data', 'cs-kappa-scenario-report.json'), JSON.stringify({
+      schema: 'quake-sim-cs-kappa-scenario-v1', generatedAt: new Date().toISOString(),
+      preRegisteredFile: kcFile, bandsOld, bandsNew, anchorMaxLog10: +anchorMax.toFixed(4), pass
+    }, null, 1));
+    console.log('wrote tools/data/cs-kappa-scenario-report.json');
+  }
+}
+
 function main() {
   const write = process.argv.includes('--write');
   const doFit = process.argv.includes('--fit');
@@ -904,6 +1004,7 @@ function main() {
 
   if (process.argv.includes('--v5-diag')) { runV5Diag(cases, cal, periods, bedrockGrid); return; }
   if (process.argv.includes('--v6-diag')) { runV6Diag(cases, cal, periods, bedrockGrid); return; }
+  if (process.argv.includes('--kappa-scenario')) { runKappaScenario(cases, cal, periods, bedrockGrid, process.argv[process.argv.indexOf('--kappa-scenario') + 1]); return; }
 
   const realizations = [];
   const t0 = Date.now();

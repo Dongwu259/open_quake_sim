@@ -208,8 +208,31 @@ test('cs-align-retest — class split frozen (crustal warm, interplate/intraslab
 test('CS_GATE_ROLE — the closure statement frozen', () => {
   const role = require('../tools/broadband/cs-pipeline.js').CS_GATE_ROLE;
   assert.equal(role.revised, '2026-09-16 (CS research line closure)');
-  assert.ok(role.shortBand.disposition.includes('NOT scheduled'), 'no recalibration may be implied as scheduled');
+  assert.ok(role.shortBand.disposition.includes('KILLED by the pre-registered G3'), 'the candidate must stay on record as measured-dead, not pending');
+  assert.ok(role.shortBand.disposition.includes('OPPOSITE SIGNS'), 'the population-contrast mechanism must stay named');
   assert.ok(role.shortBand.finding.includes('alignedDs(0.2s) = +0.02'), 'the v7 measured anchor must appear');
   assert.ok(role.longBand.disposition.includes('no global LF cure exists'));
   assert.ok(role.production.includes('MEASURED-NO-CURE'), 'the P-SV retirement must stay linked');
+});
+
+// ===========================================================================
+//  PRE_REG_V8 (2026-09-17, user-scheduled): the per-class kappa cure,
+//  fitted on real events (G1 pass) and KILLED by the pre-registered G3
+//  scenario non-regression gate. G2 was moot per the registration (any
+//  FAIL -> NEGATIVE, nothing wired). kappa stays global 0.04.
+// ===========================================================================
+const kbc = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'tools', 'data', 'cs-kappa-by-class.json'), 'utf8'));
+const ksc = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'tools', 'data', 'cs-kappa-scenario-report.json'), 'utf8'));
+
+test('PRE_REG_V8 — the fit and its kill are frozen', () => {
+  assert.equal(kbc.schema, 'quake-sim-cs-kappa-by-class-v1');
+  assert.equal(kbc.G1.pass, true);
+  assert.deepEqual([kbc.classes.interplate.kappa, kbc.classes.crustal.kappa, kbc.classes.intraslab.kappa], [0.01783, 0.04595, 0.02671]);
+  // the first draft had the physical sign inverted (it "passed" G1 against
+  // its own wrong-sign model) — the frozen model text carries the correction
+  assert.ok(kbc.preRegistered.model.includes('physical sign'));
+  assert.equal(ksc.schema, 'quake-sim-cs-kappa-scenario-v1');
+  assert.equal(ksc.pass, false);
+  assert.deepEqual([ksc.bandsOld.short, ksc.bandsNew.short], [0.776, 0.96]);
+  assert.deepEqual([ksc.bandsOld.long, ksc.bandsNew.long], [0.574, 0.777]);
 });

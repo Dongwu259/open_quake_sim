@@ -1,0 +1,94 @@
+{
+ "schema": "quake-sim-cs-kappa-by-class-v1",
+ "generatedAt": "2026-09-16T16:20:09.019Z",
+ "preRegistered": {
+  "gate": "G1 analytic residual(0.2s) <= 0.05/class and spread <= 0.10; G2 paired re-synthesis per-class median |DsA(0.2s)| <= 0.06, spread <= 0.12; G3 scenario short-band absMax strictly decreases from 0.776, no other band worsens by > 0.05, anchor exact. All three PASS -> wire kappaByClass into cs-repair-calibration + full v3 gate re-freeze + CS_GATE_ROLE updated; any FAIL -> NEGATIVE published, nothing wired",
+  "model": "physical sign: shape shifts by -2pi(f-1)*dKappa/ln10 dex per +dKappa; dKappa_c = +ln10 * sum(DsA*x) / (2pi * sum(x^2)), x = f-1, f in {2,2.5,3.33,5,6.67} Hz (0.1 s excluded); kappa_c = clamp(0.04 + dKappa_c, 0.005, 0.10)",
+  "basis": "tools/data/cs-align-retest-report.json (frozen 2026-09-16); against OBSERVED shapes, not zhao (non-circular)",
+  "sampleSizes": {
+   "interplate": 3,
+   "crustal": 8,
+   "intraslab": 2
+  }
+ },
+ "classes": {
+  "interplate": {
+   "n": 3,
+   "dsaMedians": {
+    "0.15": -0.239,
+    "0.2": -0.265,
+    "0.3": -0.236,
+    "0.4": -0.214,
+    "0.5": -0.15
+   },
+   "dKappa": -0.02217,
+   "kappa": 0.01783,
+   "clamped": false,
+   "fitResidual": {
+    "0.15": 0.1038,
+    "0.2": -0.0231,
+    "0.3": -0.0949,
+    "0.4": -0.1233,
+    "0.5": -0.0895
+   }
+  },
+  "crustal": {
+   "n": 8,
+   "dsaMedians": {
+    "0.15": 0.12,
+    "0.2": 0.07100000000000001,
+    "0.3": -0.012,
+    "0.4": -0.014499999999999999,
+    "0.5": 0.0075
+   },
+   "dKappa": 0.00595,
+   "kappa": 0.04595,
+   "clamped": false,
+   "fitResidual": {
+    "0.15": 0.0281,
+    "0.2": 0.0061,
+    "0.3": -0.0499,
+    "0.4": -0.0388,
+    "0.5": -0.0087
+   }
+  },
+  "intraslab": {
+   "n": 2,
+   "dsaMedians": {
+    "0.15": -0.144,
+    "0.2": -0.1425,
+    "0.3": -0.17500000000000002,
+    "0.4": -0.127,
+    "0.5": -0.07550000000000001
+   },
+   "dKappa": -0.01329,
+   "kappa": 0.02671,
+   "clamped": false,
+   "fitResidual": {
+    "0.15": 0.0615,
+    "0.2": 0.0026,
+    "0.3": -0.0904,
+    "0.4": -0.0726,
+    "0.5": -0.0392
+   }
+  }
+ },
+ "G1": {
+  "perClass": {
+   "interplate": {
+    "residual02": -0.0231,
+    "pass": true
+   },
+   "crustal": {
+    "residual02": 0.0061,
+    "pass": true
+   },
+   "intraslab": {
+    "residual02": 0.0026,
+    "pass": true
+   }
+  },
+  "spread02": 0.0292,
+  "pass": true
+ }
+}

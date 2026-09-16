@@ -1,0 +1,17 @@
+{
+ "schema": "quake-sim-cs-kappa-scenario-v1",
+ "generatedAt": "2026-09-16T16:27:44.712Z",
+ "preRegisteredFile": "tools/data/cs-kappa-by-class.json",
+ "bandsOld": {
+  "short": 0.776,
+  "mid": 0.432,
+  "long": 0.574
+ },
+ "bandsNew": {
+  "short": 0.96,
+  "mid": 0.445,
+  "long": 0.777
+ },
+ "anchorMaxLog10": 2.3862,
+ "pass": false
+}
