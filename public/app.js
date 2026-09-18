@@ -607,7 +607,7 @@ function rebuildLayerControl() {
 // -- Global region mode (pilot, test-flagged): lazily loads a world basemap and
 // a region pack (stations/presets) behind the #global-mode checkbox. Japan
 // flows are byte-identical while it is off; pack = region-california.json.
-var REGION_STATE = { active: null, pack: null, savedStations: null, presetIds: [] };
+var REGION_STATE = { active: null, pack: null, savedStations: null, presetIds: [], realStations: null };
 // World basemap sources, probed in order at first enable. Not every network can
 // reach every provider (tile.openstreetmap.org is unreachable from some CN
 // networks), so the first source whose test tile loads wins and is remembered.
@@ -811,17 +811,23 @@ function regionActivate(pack) {
     sel.appendChild(opt);
   }
   if (sel.value) { sel.value = ''; applyPresetSelection(''); }
+  // Real-station metadata package: fetched in parallel with the basemap; the
+  // triangle layer appears behind #show-all-stations once it lands (honest
+  // failure note otherwise - never silently empty).
+  _regionLoadRealStations(pack);
   // World basemap: probe sources on first run (async), then finish activation.
   regionEnsureGlobalBase(function () {
     if (REGION_STATE.active !== pack.id) return; // unchecked while probing
     _regionInstallGlobalBase();
     var row = document.getElementById('region-row');
     if (row) row.style.display = '';
+    _regionProgressShow(80, 'Swapping region stations · 切换区域测站');
     // reset first (it re-centers on the Japan home view), then jump to the region.
     // fitBounds, not flyToBounds: the bundled Leaflet build's fly animation never
     // advances (movestart fires, no frames) - observed 2026-09-19, also affects rtFlyJapan.
     _regionSetSimSafe();
     map.fitBounds(pack.bounds, { padding: [6, 6] });
+    _regionProgressDone();
   });
 }
 function regionDeactivate() {
@@ -844,17 +850,21 @@ function regionDeactivate() {
   map.fitBounds([[30.0, 128.0], [45.3, 145.5]], { padding: [4, 4] });
   var row = document.getElementById('region-row');
   if (row) row.style.display = 'none';
+  if (REGION_STATE.realStations) _regionUnloadRealStations();
   REGION_STATE.active = null; REGION_STATE.pack = null;
 }
 var globalModeEl = document.getElementById('global-mode');
 if (globalModeEl) globalModeEl.addEventListener('change', function () {
   if (this.checked) {
+    _regionProgressShow(8, 'Loading region package · 加载区域数据包');
     fetch('/geojson/region-california.json').then(function (r) { return r.json(); }).then(function (pack) {
       if (!pack || pack.schema !== 'quake-sim-region-pack-v1' || !pack.stations || !pack.presets) throw new Error('bad region pack');
+      _regionProgressShow(30, 'Drawing world coastline · 绘制世界海岸线');
       regionActivate(pack);
     }).catch(function (e) {
       console.error('region pack load failed:', e);
       globalModeEl.checked = false;
+      _regionProgressDone(); // never strand the boot overlay over a failed switch
     });
   } else if (REGION_STATE.active) {
     regionDeactivate();
@@ -864,6 +874,63 @@ var regionSelEl = document.getElementById('region-select');
 if (regionSelEl) regionSelEl.addEventListener('change', function () {
   if (REGION_STATE.pack && REGION_STATE.active === this.value) map.fitBounds(REGION_STATE.pack.bounds, { padding: [6, 6] });
 });
+// Region activation reuses the boot loading overlay (updateMapLoadingProgress):
+// entering global mode gets the same visible loading feedback as boot. Step
+// texts are hardcoded bilingual, matching the boot loader style (the boot
+// loader has no loading.* i18n keys either).
+function _regionProgressShow(pct, text) {
+  var ov = document.getElementById('map-loading-overlay');
+  if (!ov) return;
+  ov.style.transition = '';
+  ov.style.opacity = '1';
+  ov.style.display = 'flex';
+  updateMapLoadingProgress(pct, text);
+}
+function _regionProgressDone() {
+  var ov = document.getElementById('map-loading-overlay');
+  if (!ov) return;
+  updateMapLoadingProgress(100, 'Global mode ready · 全球模式就绪');
+  ov.style.transition = 'opacity .4s ease';
+  setTimeout(function () { ov.style.opacity = '0'; }, 200);
+  setTimeout(function () { ov.style.display = 'none'; }, 500);
+}
+// Display-only real-station metadata layer (FDSN operational stations frozen
+// per region by tools/fetch-region-stations.js, provenance in the package).
+// These are NOT simulation receivers - Renderer.drawAllStations paints them as
+// small triangles behind #show-all-stations, and the map-click popup shows
+// metadata only.
+function _regionLoadRealStations(pack) {
+  var rid = pack.id;
+  fetch('/geojson/region-stations-' + rid + '.json').then(function (r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  }).then(function (pkg) {
+    if (REGION_STATE.active !== rid) return; // user unchecked while loading
+    if (!pkg || pkg.schema !== 'quake-sim-region-stations-v1' || !pkg.stations) throw new Error('bad region stations package');
+    pkg.stations.forEach(function (s) { s.realStation = true; });
+    REGION_STATE.realStations = pkg.stations;
+    if (typeof Renderer !== 'undefined' && Renderer.invalidateCaches) Renderer.invalidateCaches();
+    var note = document.getElementById('region-st-note');
+    if (note) {
+      note.style.display = '';
+      note.textContent = t('region.st_note').replace('{n}', pkg.stations.length);
+    }
+    if (typeof drawFrame === 'function') drawFrame();
+  }).catch(function (e) {
+    console.error('region stations load failed:', e);
+    if (REGION_STATE.active !== rid) return;
+    REGION_STATE.realStations = null;
+    var note = document.getElementById('region-st-note');
+    if (note) { note.style.display = ''; note.textContent = t('region.st_fail'); }
+  });
+}
+function _regionUnloadRealStations() {
+  REGION_STATE.realStations = null;
+  var note = document.getElementById('region-st-note');
+  if (note) { note.style.display = 'none'; note.textContent = ''; }
+  if (typeof Renderer !== 'undefined' && Renderer.invalidateCaches) Renderer.invalidateCaches();
+  if (typeof drawFrame === 'function') drawFrame();
+}
 
 // -- Fixed station network generation --
 var TOTAL_STATIONS = 0; // set after loading
@@ -2791,6 +2858,8 @@ function initWaveCanvas() {
     // when in show-all mode so pre-simulation / not-yet-arrived stations are pickable.
     var best = null, bestDist = 30;
     var searchSet = showAllStations ? rawLandGrid : visibleCircles;
+    // Region real-station metadata stations are pickable in show-all mode too.
+    if (showAllStations && REGION_STATE.active && REGION_STATE.realStations) searchSet = searchSet.concat(REGION_STATE.realStations);
     for (var i = 0; i < searchSet.length; i++) {
       var c = searchSet[i];
       if (!_stationNetworkVisible(c)) continue;
@@ -2800,6 +2869,19 @@ function initWaveCanvas() {
       if (d < bestDist) { bestDist = d; best = c; }
     }
     if (!best) { sp.style.display = 'none'; return; }
+    // Region real-station hit: metadata-only popup (FDSN station, not a sim
+    // receiver - no shindo/PGA/waveform actions apply).
+    if (best.realStation) {
+      sp.classList.add('sp-interactive');
+      sp.innerHTML = '<div class="sp-name">' + escapeHTML(best.net + ' · ' + best.code) + ' <small style="opacity:.6">' + escapeHTML(t('region.st_real')) + '</small></div>'
+        + '<span class="sp-val">' + best.lat.toFixed(3) + '°N, ' + best.lng.toFixed(3) + '°E</span>'
+        + (isFinite(best.elev) ? ' · ' + Math.round(best.elev) + ' m' : '')
+        + '<br>' + escapeHTML(best.site || '');
+      sp.style.display = 'block';
+      sp.style.left = (containerPt.x + 15) + 'px';
+      sp.style.top = (containerPt.y - 10) + 'px';
+      return;
+    }
     // In non-show-all mode, only pop up for shaking stations (legacy behavior).
     if (!showAllStations && best.shindo === 0) { sp.style.display = 'none'; return; }
     var typeTag = best.isSeafloor ? t('station.type_seafloor') : t('station.type_land');

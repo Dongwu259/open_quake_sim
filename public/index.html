@@ -27,7 +27,7 @@
 <link rel="stylesheet" href="leaflet/leaflet.css?v=f885c4">
 <link rel="stylesheet" href="style.css?v=6fd405">
 <link rel="preload" href="leaflet/leaflet.js?v=5a640f" as="script">
-<link rel="preload" href="app.js?v=798922" as="script">
+<link rel="preload" href="app.js?v=e1e058" as="script">
 <link rel="preload" href="style.css?v=6fd405" as="style">
 <link rel="preload" href="config.js?v=ba58e3" as="script">
 <link rel="preload" href="physics.js?v=17ff56" as="script">
@@ -200,6 +200,7 @@
             <label class="switch-row"><input type="checkbox" id="beachball-enable" checked><span class="switch-ui"></span><span data-i18n="chk.beachball">海滩球</span></label>
             <label class="switch-row"><input type="checkbox" id="mwf-enable"><span class="switch-ui"></span><span data-i18n="chk.mwf">多测站波形</span></label>
             <label class="switch-row"><input type="checkbox" id="show-all-stations"><span class="switch-ui"></span><span data-i18n="chk.showall">显示所有测站</span></label>
+            <div id="region-st-note" style="display:none;margin:-2px 0 4px 30px;font-size:.72em;color:var(--text-secondary);line-height:1.35"></div>
             <label class="station-network-filter"><span data-i18n="station.seafloor_filter">海底测站网络</span><select id="seafloor-network-filter"><option value="all" data-i18n="station.network_all">全部网络</option><option value="S-net">S-net</option><option value="DONET1">DONET1</option><option value="DONET2">DONET2</option><option value="N-net">N-net</option><option value="none" data-i18n="station.network_none">隐藏海底测站</option></select></label>
             <label class="switch-row"><input type="checkbox" id="historical-tsunami-enable"><span class="switch-ui"></span><span data-i18n="chk.historical_tsunami">历史海啸观测</span></label>
           </div>
@@ -747,7 +748,7 @@
 <script src="research.js?v=d9aad6"></script>
 <script src="data-catalog.js?v=bee20f"></script>
 <script src="grid-package.js?v=865d26"></script>
-<script src="i18n.js?v=acfe60"></script>
+<script src="i18n.js?v=d0b70f"></script>
 <script src="dc3d.js?v=2865dd"></script>
 <script src="physics.js?v=17ff56"></script>
 
@@ -848,7 +849,7 @@ window._loadThreeJS = function(cb) {
     </div>
   </div>
 </div>
-<script src="app.js?v=798922"></script>
+<script src="app.js?v=e1e058"></script>
 <script src="aftershock.js?v=e29837"></script>
 <script src="rt-data.js?v=6780e5"></script>
 <script src="rt-kmoni.js?v=b581c5"></script>
@@ -859,7 +860,7 @@ window._loadThreeJS = function(cb) {
 
 <script src="rt-waveform.js?v=61c0cb"></script>
 <script src="info-panel.js?v=a39a13"></script>
-<script src="renderer.js?v=c4072c"></script>
+<script src="renderer.js?v=e74d7b"></script>
 <div id="help-overlay" class="help-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="help-dialog-title">
   <div class="help-panel" tabindex="-1">
     <div class="help-header"><span id="help-dialog-title" data-i18n="help.header">📖 使用帮助</span><button id="btn-help-close" class="help-close" data-i18n-aria="aria.close" aria-label="Close">&times;</button></div>

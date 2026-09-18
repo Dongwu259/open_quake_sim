@@ -967,7 +967,8 @@
   var zoom = map.getZoom();
   var CIR_R = Math.max(cfgGet("cirRMin"), Math.min(cfgGet("cirRMax"), 10 * Math.pow(2, (zoom-6)/2)));
   var cache=layerCache('allStations');
-  var cacheKey=_renderRevision+'|'+zoom+'|'+rawLandGrid.length+'|'+CIR_R.toFixed(2)+'|'+_seafloorNetworkFilter;
+  var realSt = (typeof REGION_STATE !== 'undefined' && REGION_STATE && REGION_STATE.active && REGION_STATE.realStations) ? REGION_STATE.realStations : null;
+  var cacheKey=_renderRevision+'|'+zoom+'|'+rawLandGrid.length+'|'+CIR_R.toFixed(2)+'|'+_seafloorNetworkFilter+'|'+(realSt?realSt.length:0);
   if(cache.key===cacheKey){waveCtx.drawImage(cache.canvas,0,0);return;}
   var targetCtx=cache.ctx;targetCtx.clearRect(0,0,cache.canvas.width,cache.canvas.height);
   var r3 = Math.max(2, CIR_R * 0.35);
@@ -987,6 +988,28 @@
       targetCtx.beginPath(); targetCtx.arc(pt.x, pt.y, r3, 0, Math.PI*2);
       targetCtx.fillStyle = 'rgba(180,180,200,0.30)'; targetCtx.fill();
       targetCtx.strokeStyle = 'rgba(200,200,220,0.20)'; targetCtx.lineWidth = 0.6; targetCtx.stroke();
+    }
+  }
+  // Region real-station metadata layer (FDSN operational stations, display
+  // only - never sim receivers): small up-pointing triangles, distinct from
+  // the sim-station dots/seafloor squares. Bounds-culled; the cached layer is
+  // invalidated when the package loads (cacheKey carries the count).
+  if (realSt) {
+    targetCtx.fillStyle = 'rgba(58,166,145,0.42)';
+    targetCtx.strokeStyle = 'rgba(58,166,145,0.60)';
+    targetCtx.lineWidth = 0.7;
+    for (var ri = 0; ri < realSt.length; ri++) {
+      var st = realSt[ri];
+      if (st.lat < bounds.getSouth()-pad || st.lat > bounds.getNorth()+pad ||
+          st.lng < bounds.getWest()-pad || st.lng > bounds.getEast()+pad) continue;
+      var rpt = toCanvas(st.lat, st.lng);
+      var rr = Math.max(2.5, CIR_R * 0.30);
+      targetCtx.beginPath();
+      targetCtx.moveTo(rpt.x, rpt.y - rr);
+      targetCtx.lineTo(rpt.x + rr * 0.9, rpt.y + rr * 0.7);
+      targetCtx.lineTo(rpt.x - rr * 0.9, rpt.y + rr * 0.7);
+      targetCtx.closePath();
+      targetCtx.fill(); targetCtx.stroke();
     }
   }
   cache.key=cacheKey;waveCtx.drawImage(cache.canvas,0,0);

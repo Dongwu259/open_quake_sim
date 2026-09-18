@@ -2,7 +2,16 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/) where practical.
 
-## [Unreleased]
+## [Unreleased] — 全球真实台站（显示层）
+
+同步自上游 quake_sim（全球真实台站批）：
+
+### Added
+- **全球模式真实台站层**：勾选「显示所有测站」时以青绿小三角显示 6,232 个真实台站元数据（SCEDC 5,893 / NCEDC 337 / EarthScope 全球骨干 2），仅展示、不参与模拟；点击弹出台站元数据，侧栏显示计数注记
+- 全球模式启用时复用启动进度条（区域包 → 世界海岸线 → 测站切换 → 完成）
+- tools/fetch-region-stations.js：FDSN station-text 三源抓取工具（quake-sim-region-stations-v1 冻结包，provenance 记录逐源计数）
+- tests/region-stations.test.js：包契约测试（provenance 守恒/bbox/去重/锚点台站）
+
 ## [6.4.0] — 2026-09-19 全球区域试点 + v6.4 身份
 
 同步自上游 quake_sim（dfa30b8）：
