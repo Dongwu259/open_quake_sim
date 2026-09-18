@@ -1037,3 +1037,8 @@ body.presenter-mode .autofocus-label{left:290px;bottom:44px}
    (the settings-row #lang-select was too buried for non-Chinese visitors) */
 .lang-top-select { margin: 4px auto 0; display: block; font-size: 11px; color: var(--text); background: transparent; border: 1px solid var(--border); border-radius: 4px; padding: 1px 4px; max-width: 160px; cursor: pointer; }
 .lang-top-select option { color: #111; background: #fff; }
+
+/* global region mode (pilot): test badge next to the mode/region labels */
+.test-badge { font-size: 9px; line-height: 1; padding: 2px 4px; border-radius: 3px; color: #fff; background: #c26a1b; opacity: .92; margin-left: 5px; letter-spacing: .08em; flex: 0 0 auto; }
+#region-row { display: flex; align-items: center; gap: 6px; }
+#region-row .rt-select { flex: 0 1 auto; min-width: 0; }

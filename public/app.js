@@ -604,6 +604,88 @@ function rebuildLayerControl() {
   layerControl = L.control.layers(lc, null, {position:'bottomright'}).addTo(map);
 }
 
+// -- Global region mode (pilot, test-flagged): lazily loads a world basemap and
+// a region pack (stations/presets) behind the #global-mode checkbox. Japan
+// flows are byte-identical while it is off; pack = region-california.json.
+var REGION_STATE = { active: null, pack: null, savedStations: null, presetIds: [] };
+var GLOBAL_TILE_LAYER = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 12, attribution: '&copy; OpenStreetMap contributors' });
+tileDefs['tile.osm_global'] = GLOBAL_TILE_LAYER;
+var REGION_BASE_OFFLINE = offlineBasemap;
+function _regionSetSimSafe() { try { resetSimulation(); } catch (e) { /* nothing running */ } }
+function regionActivate(pack) {
+  REGION_STATE.pack = pack; REGION_STATE.active = pack.id;
+  // Station swap - same fields as the StationXML import path.
+  REGION_STATE.savedStations = rawLandGrid;
+  rawLandGrid = pack.stations.map(function (s, i) {
+    return { lat: s.lat, lng: s.lng, id: i, name: s.name, siteFactor: (s.siteFactor != null) ? s.siteFactor : 1, vs30: (s.vs30 != null) ? s.vs30 : 500, regionStation: true };
+  });
+  TOTAL_STATIONS = rawLandGrid.length;
+  buildGridCells();
+  var sel = document.getElementById('preset');
+  for (var pi = 0; pi < pack.presets.length; pi++) {
+    var pr = pack.presets[pi];
+    pr.regionPreset = true;
+    PRESETS[pr.id] = pr; REGION_STATE.presetIds.push(pr.id);
+    var opt = document.createElement('option');
+    opt.value = pr.id; opt.textContent = pr.label;
+    sel.appendChild(opt);
+  }
+  if (sel.value) { sel.value = ''; applyPresetSelection(''); }
+  if (map.hasLayer(REGION_BASE_OFFLINE)) map.removeLayer(REGION_BASE_OFFLINE);
+  if (!map.hasLayer(GLOBAL_TILE_LAYER)) GLOBAL_TILE_LAYER.addTo(map);
+  rebuildLayerControl();
+  var row = document.getElementById('region-row');
+  if (row) row.style.display = '';
+  // reset first (it re-centers on the Japan home view), then jump to the region.
+  // fitBounds, not flyToBounds: the bundled Leaflet build's fly animation never
+  // advances (movestart fires, no frames) - observed 2026-09-19, also affects rtFlyJapan.
+  _regionSetSimSafe();
+  map.fitBounds(pack.bounds, { padding: [6, 6] });
+}
+function regionDeactivate() {
+  if (REGION_STATE.savedStations) {
+    rawLandGrid = REGION_STATE.savedStations; TOTAL_STATIONS = rawLandGrid.length;
+    buildGridCells(); REGION_STATE.savedStations = null;
+  }
+  var sel = document.getElementById('preset');
+  for (var pi = 0; pi < REGION_STATE.presetIds.length; pi++) {
+    delete PRESETS[REGION_STATE.presetIds[pi]];
+    var opt = sel.querySelector('option[value="' + REGION_STATE.presetIds[pi] + '"]');
+    if (opt) opt.remove();
+  }
+  REGION_STATE.presetIds = [];
+  if (sel.value) { sel.value = ''; applyPresetSelection(''); }
+  if (map.hasLayer(GLOBAL_TILE_LAYER)) map.removeLayer(GLOBAL_TILE_LAYER);
+  if (!map.hasLayer(REGION_BASE_OFFLINE)) REGION_BASE_OFFLINE.addTo(map);
+  rebuildLayerControl();
+  // reset first (it re-centers on the Japan home view), then jump back to Japan
+  // (fitBounds for the same reason as regionActivate; bounds = JAPAN_HOME_BOUNDS,
+  // duplicated because rt-data.js keeps the original module-scoped)
+  _regionSetSimSafe();
+  map.fitBounds([[30.0, 128.0], [45.3, 145.5]], { padding: [4, 4] });
+  var row = document.getElementById('region-row');
+  if (row) row.style.display = 'none';
+  REGION_STATE.active = null; REGION_STATE.pack = null;
+}
+var globalModeEl = document.getElementById('global-mode');
+if (globalModeEl) globalModeEl.addEventListener('change', function () {
+  if (this.checked) {
+    fetch('/geojson/region-california.json').then(function (r) { return r.json(); }).then(function (pack) {
+      if (!pack || pack.schema !== 'quake-sim-region-pack-v1' || !pack.stations || !pack.presets) throw new Error('bad region pack');
+      regionActivate(pack);
+    }).catch(function (e) {
+      console.error('region pack load failed:', e);
+      globalModeEl.checked = false;
+    });
+  } else if (REGION_STATE.active) {
+    regionDeactivate();
+  }
+});
+var regionSelEl = document.getElementById('region-select');
+if (regionSelEl) regionSelEl.addEventListener('change', function () {
+  if (REGION_STATE.pack && REGION_STATE.active === this.value) map.fitBounds(REGION_STATE.pack.bounds, { padding: [6, 6] });
+});
+
 // -- Fixed station network generation --
 var TOTAL_STATIONS = 0; // set after loading
 
@@ -957,17 +1039,37 @@ async function loadJapanGeoJSON() {
 
 function buildGridCells() {
   gridCells = []; stationToCell = {};
-  for (var lat = GRID_ORIGIN_LAT; lat < 46.5; lat += GRID_CELL)
-    for (var lng = GRID_ORIGIN_LNG; lng < 150; lng += GRID_CELL)
+  // Region packs (global mode) place stations outside the Japan lattice; in that
+  // case derive the cell lattice from the live station bbox instead of Japan's.
+  var latMin = GRID_ORIGIN_LAT, lngMin = GRID_ORIGIN_LNG, latMax = 46.5, lngMax = 150, cols = GRID_COLS;
+  for (var sb = 0; sb < rawLandGrid.length; sb++) {
+    if (rawLandGrid[sb].lat < latMin || rawLandGrid[sb].lng < lngMin) {
+      var bLatMin = latMin, bLngMin = lngMin, bLatMax = latMax, bLngMax = lngMax;
+      for (var sc = 0; sc < rawLandGrid.length; sc++) {
+        if (rawLandGrid[sc].lat < bLatMin) bLatMin = rawLandGrid[sc].lat;
+        if (rawLandGrid[sc].lat > bLatMax) bLatMax = rawLandGrid[sc].lat;
+        if (rawLandGrid[sc].lng < bLngMin) bLngMin = rawLandGrid[sc].lng;
+        if (rawLandGrid[sc].lng > bLngMax) bLngMax = rawLandGrid[sc].lng;
+      }
+      latMin = Math.floor(bLatMin / GRID_CELL) * GRID_CELL;
+      latMax = Math.ceil(bLatMax / GRID_CELL) * GRID_CELL;
+      lngMin = Math.floor(bLngMin / GRID_CELL) * GRID_CELL;
+      lngMax = Math.ceil(bLngMax / GRID_CELL) * GRID_CELL;
+      cols = Math.round((lngMax - lngMin) / GRID_CELL);
+      break;
+    }
+  }
+  for (var lat = latMin; lat < latMax; lat += GRID_CELL)
+    for (var lng = lngMin; lng < lngMax; lng += GRID_CELL)
       gridCells.push({minLat:lat, maxLat:lat+GRID_CELL, minLng:lng, maxLng:lng+GRID_CELL, onLand:false});
   // Map stations to cells using station id (not coordinate key)
   // Skip ocean stations (safety net: stations.json should already be land-filtered)
   for (var si = 0; si < rawLandGrid.length; si++) {
     var sp = rawLandGrid[si];
     if (japanLandPolygons && isOceanPoint(sp.lat, sp.lng)) continue;
-    var ri = Math.floor((sp.lat - GRID_ORIGIN_LAT) / GRID_CELL);
-    var ci = Math.floor((sp.lng - GRID_ORIGIN_LNG) / GRID_CELL);
-    var idx = ri * GRID_COLS + ci;
+    var ri = Math.floor((sp.lat - latMin) / GRID_CELL);
+    var ci = Math.floor((sp.lng - lngMin) / GRID_CELL);
+    var idx = ri * cols + ci;
     if (idx >= 0 && idx < gridCells.length) {
       gridCells[idx].onLand = true;
       stationToCell[sp.id] = idx;
@@ -6989,6 +7091,11 @@ function applyPresetSelection(value){
     currentRake = (OBSERVED[value].rake != null) ? OBSERVED[value].rake : 0;
     _dipExplicit = OBSERVED[value].dip != null;
     _rakeExplicit = OBSERVED[value].rake != null;
+  } else if (p.regionPreset && (p.dip != null || p.rake != null)) {
+    // Region-pack presets carry their own focal mechanism (no observed.json entry).
+    currentDip = (p.dip != null) ? p.dip : Physics.recommendedFaultDip(activeSrcType());
+    currentRake = (p.rake != null) ? p.rake : 0;
+    _dipExplicit = p.dip != null; _rakeExplicit = p.rake != null;
   } else {
     currentDip = Physics.recommendedFaultDip(activeSrcType()); currentRake = 0; _dipExplicit = false; _rakeExplicit = false;
   }
@@ -8526,6 +8633,12 @@ function updatePrefForecastTable() {
   var card = document.getElementById('pref-forecast-card');
   var tbl = document.getElementById('pref-forecast-table');
   if (!card || !tbl) return;
+  // Japan-prefecture forecast is meaningless outside Japan (region packs).
+  if (REGION_STATE.active) {
+    if (tbl._renderedHtml !== '') { tbl._renderedHtml = ''; tbl.innerHTML = ''; }
+    card.style.display = 'none';
+    return;
+  }
   var rows = [];
   if (isRunning) {
     for (var pid in _predictedPrefectureShindos) rows.push(_predictedPrefectureShindos[pid]);

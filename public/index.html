@@ -25,10 +25,10 @@
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <title>日本地震模拟器 v6.3 | Earthquake Simulator Pro</title>
 <link rel="stylesheet" href="leaflet/leaflet.css?v=f885c4">
-<link rel="stylesheet" href="style.css?v=28d54d">
+<link rel="stylesheet" href="style.css?v=6fd405">
 <link rel="preload" href="leaflet/leaflet.js?v=5a640f" as="script">
-<link rel="preload" href="app.js?v=633179" as="script">
-<link rel="preload" href="style.css?v=28d54d" as="style">
+<link rel="preload" href="app.js?v=b996a7" as="script">
+<link rel="preload" href="style.css?v=6fd405" as="style">
 <link rel="preload" href="config.js?v=ba58e3" as="script">
 <link rel="preload" href="physics.js?v=17ff56" as="script">
 </head>
@@ -159,6 +159,8 @@
         <details class="sidebar-disclosure" open>
           <summary><span data-i18n="basic.simulation">模拟功能</span></summary>
           <div class="disclosure-body switch-list">
+            <label class="switch-row"><input type="checkbox" id="global-mode"><span class="switch-ui"></span><span data-i18n="region.mode">全球模式</span><span class="test-badge" data-i18n="region.test_badge">测试</span></label>
+            <div class="switch-row" id="region-row" style="display:none"><span data-i18n="region.label">试点区域</span><select id="region-select" class="rt-select"><option value="california" data-i18n="region.california">加州</option></select><span class="test-badge" data-i18n="region.test_badge">测试</span></div>
             <label class="switch-row"><input type="checkbox" id="tsunami-enable" checked><span class="switch-ui"></span><span data-i18n="tsunami.enable">启用海啸</span></label>
             <label class="switch-row" id="bathy-row" style="display:none"><input type="checkbox" id="bathy-enable"><span class="switch-ui"></span><span data-i18n="bathy.show">海底地形</span></label>
             <label class="switch-row"><input type="checkbox" id="vs30-enable"><span class="switch-ui"></span><span data-i18n="vs30.show">Vs30 场地分布</span></label>
@@ -745,7 +747,7 @@
 <script src="research.js?v=d9aad6"></script>
 <script src="data-catalog.js?v=bee20f"></script>
 <script src="grid-package.js?v=865d26"></script>
-<script src="i18n.js?v=d32eae"></script>
+<script src="i18n.js?v=4a9b7f"></script>
 <script src="dc3d.js?v=2865dd"></script>
 <script src="physics.js?v=17ff56"></script>
 
@@ -846,7 +848,7 @@ window._loadThreeJS = function(cb) {
     </div>
   </div>
 </div>
-<script src="app.js?v=633179"></script>
+<script src="app.js?v=b996a7"></script>
 <script src="aftershock.js?v=e29837"></script>
 <script src="rt-data.js?v=6780e5"></script>
 <script src="rt-kmoni.js?v=b581c5"></script>
