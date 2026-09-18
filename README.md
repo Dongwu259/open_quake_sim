@@ -131,6 +131,14 @@ docker-compose up -d
 
 The full English README lives at [README_EN.md](README_EN.md).
 
+## 引用
+
+如果本软件或随库分发的冻结数据集对你的工作有帮助，请引用软件发布（引所有版本用概念 DOI）：
+
+> Dongwu259 (2026). *Earthquake Simulator Pro (quake_sim)*. Zenodo. DOI [10.5281/zenodo.22828697](https://doi.org/10.5281/zenodo.22828697)（版本 v6.3.3；概念 DOI [10.5281/zenodo.22828696](https://doi.org/10.5281/zenodo.22828696)）
+
+机器可读引用元数据见 [CITATION.cff](CITATION.cff)，GitHub 仓库页 "Cite this repository" 直接可用。
+
 ## License
 
 [MIT](LICENSE) © 2026 Dongwu259

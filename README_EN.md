@@ -122,6 +122,14 @@ The research-grade improvements are built on observation data, benchmark cases a
 
 Mapping libraries: Leaflet, Turf.js. Model references (GMPE / site response / dynamic rupture) are cited item by item in [docs/PHYSICS_BENCHMARKS.md](docs/PHYSICS_BENCHMARKS.md) and [docs/METHODS.md](docs/METHODS.md).
 
+## Citation
+
+If this software or its bundled frozen datasets contribute to your work, please cite the software release (cite all versions via the concept DOI):
+
+> Dongwu259 (2026). *Earthquake Simulator Pro (quake_sim)*. Zenodo. DOI [10.5281/zenodo.22828697](https://doi.org/10.5281/zenodo.22828697) (version v6.3.3; concept DOI [10.5281/zenodo.22828696](https://doi.org/10.5281/zenodo.22828696))
+
+Machine-readable citation metadata: [CITATION.cff](CITATION.cff) — the "Cite this repository" button on GitHub uses it directly.
+
 ## License
 
 [MIT](LICENSE) © 2026 Dongwu259
