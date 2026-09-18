@@ -3542,11 +3542,23 @@ Physics.mmiToShindo = function(mmi) {
   return 7;
 };
 
+// JMA Shindo → Chinese seismic intensity (GB/T 17742, 12-degree CSIS).
+// Approximate alignment through the 12-degree equivalence with MMI (both span
+// I-XII with broadly similar PGA anchors); JMA 7 maps to XI — XII is the
+// near-total-destruction degree and is deliberately unreachable from
+// instrumental shindo (documented approximation, same spirit as shindoToMMI).
+Physics.SHINDO_TO_CSIS = {0:1, 1:2, 2:4, 3:5, 4:6, '5-':7, '5+':8, '6-':9, '6+':10, 7:11, 5:7, 6:9};
+Physics.shindoToCsis = function(shindo) {
+  if (typeof shindo === 'number') shindo = Physics.shindoLabel(shindo);
+  return Physics.SHINDO_TO_CSIS[shindo] != null ? Physics.SHINDO_TO_CSIS[shindo] : shindo;
+};
+
 // v4.2: Convert a shindo value to the configured intensity scale for display
 Physics.convertIntensity = function(shindo, scale) {
   if (!scale || scale === 'shindo') return shindo;
   if (scale === 'mmi') return Physics.shindoToMMI(shindo);
   if (scale === 'ems98') return Physics.shindoToEMS(shindo);
+  if (scale === 'csis') return Physics.shindoToCsis(shindo);
   return shindo;
 };
 

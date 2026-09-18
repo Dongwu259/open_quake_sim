@@ -90,6 +90,18 @@
 
   Renderer.drawFrame = function() {
   if (!waveCtx) return;
+  // Heal any waveCanvas/container size desync (a 0-sized canvas silently
+  // no-ops draws but makes drawImage(layerCache) THROW and kill the whole
+  // frame — observed as "California stations never react" with the canvas
+  // stuck at 0x0 after a region swap, 2026-09-19).
+  var _mc = map.getContainer ? map.getContainer() : null;
+  if (_mc) {
+    var _mw = _mc.clientWidth | 0, _mh = _mc.clientHeight | 0;
+    if (_mw > 0 && _mh > 0 && (waveCanvas.width !== _mw || waveCanvas.height !== _mh)) {
+      waveCanvas.width = _mw;
+      waveCanvas.height = _mh;
+    }
+  }
   waveCtx.clearRect(0, 0, waveCanvas.width, waveCanvas.height);
   // A freshly drawn frame is glued to the CURRENT map view: drop any gesture
   // tracking transform and record the view for syncOverlayTransform().
@@ -99,7 +111,9 @@
   _drawnViewPt = map.latLngToContainerPoint(_drawnViewCenter);
   // Show-all-stations layer renders even before an epicenter is set, so the
   // user can pick observation stations pre-simulation.
-  drawAllStations();
+  // safeDraw: one broken layer must never kill the rest of the frame.
+  function safeDraw(fn) { try { fn(); } catch (e) { if (typeof console !== 'undefined' && console.warn) console.warn('[renderer] layer error', e); } }
+  safeDraw(drawAllStations);
   if (!epicenter) return;
 
   // Detection mode: never show system wave rings — only station circles.
@@ -109,23 +123,23 @@
 
     // Bottom layer: grid, circles, warnings, fault
   if (!_reportActive) {
-    drawShakingGrid();
-    drawIntensityCircles();
+    safeDraw(drawShakingGrid);
+    safeDraw(drawIntensityCircles);
   }
-  drawPlateBoundaries();
-  drawHistoricalQuakes();
-  drawHistoricalTsunamiObservations();
-  drawBathymetry();
-  drawVs30Field();
-  drawResearchTsunami();
-  drawTsunamiWarnings();
-  drawIsoseismalLines();
+  safeDraw(drawPlateBoundaries);
+  safeDraw(drawHistoricalQuakes);
+  safeDraw(drawHistoricalTsunamiObservations);
+  safeDraw(drawBathymetry);
+  safeDraw(drawVs30Field);
+  safeDraw(drawResearchTsunami);
+  safeDraw(drawTsunamiWarnings);
+  safeDraw(drawIsoseismalLines);
   // v5.5 haze fix round 2: drawDamageHeatmap removed — its 15-30 px red discs
   // only appeared around shindo 6+/7 stations and read as the "震度7 圆圈在
   // 发光" halo; the intensity circles already carry that information.
-  drawPWaveFlash();
-  spawnWaveParticles();
-  drawWaveParticles();
+  safeDraw(drawPWaveFlash);
+  safeDraw(spawnWaveParticles);
+  safeDraw(drawWaveParticles);
   // Fault plane now drawn as Leaflet polygon — see createFaultLayer()
 
   // Depth progress bars for all active events (hidden in detection mode)
@@ -1117,7 +1131,10 @@
       waveCtx.strokeStyle = 'rgba(255,255,255,0.8)'; waveCtx.lineWidth = 1.5; waveCtx.stroke();
     }
     if (showNumber) {
-      var lb = String(c.shindo);
+      // 12-degree/MMI display scales convert the number label; colors stay
+      // keyed by internal JMA shindo.
+      var _isc = (typeof cfgGet === 'function') ? cfgGet('intensityScale') : 'shindo';
+      var lb = (_isc && _isc !== 'shindo') ? String(Physics.convertIntensity(c.shindo, _isc)) : String(c.shindo);
       waveCtx.save(); waveCtx.font = 'bold '+Math.round((lb.length>2?7:9)*fs)+'px sans-serif';
       waveCtx.fillStyle = '#fff'; waveCtx.textAlign = 'center'; waveCtx.textBaseline = 'middle';
       waveCtx.fillText(lb, pt.x, pt.y); waveCtx.restore();
@@ -1156,8 +1173,11 @@
   if (chk && !chk.checked) { releaseLayerCache('plates'); return; }
   if (!_platesData || !_platesData.features) { releaseLayerCache('plates'); return; }
   var cache=layerCache('plates');
-  var cacheKey=_renderRevision+'|'+_platesData.features.length;
-  if(cache.key===cacheKey){waveCtx.drawImage(cache.canvas,0,0);return;}
+  // The projection is view-dependent: include the view in the key or a canvas
+  // drawn at the Japan view gets pasted verbatim over any other region.
+  var _pc=(typeof map.getCenter==='function'&&map.getCenter())?map.getCenter():{lat:0,lng:0};
+  var cacheKey=_renderRevision+'|'+_platesData.features.length+'|'+map.getZoom()+'|'+Math.round(_pc.lat*5)+'|'+Math.round(_pc.lng*5);
+  if(cache.key===cacheKey){ if(cache.canvas.width>0&&cache.canvas.height>0) waveCtx.drawImage(cache.canvas,0,0); return;}
   var targetCtx=cache.ctx;targetCtx.clearRect(0,0,cache.canvas.width,cache.canvas.height);
   targetCtx.save();
   targetCtx.strokeStyle = 'rgba(255,100,50,0.4)';
@@ -1174,7 +1194,8 @@
   }
   targetCtx.setLineDash([]);
   targetCtx.restore();
-  cache.key=cacheKey;waveCtx.drawImage(cache.canvas,0,0);
+  cache.key=cacheKey;
+  if(cache.canvas.width>0&&cache.canvas.height>0) waveCtx.drawImage(cache.canvas,0,0);
 }
 
   Renderer.drawHistoricalQuakes = function() {

@@ -2,7 +2,19 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/) where practical.
 
-## [Unreleased] — 全球真实台站（显示层）
+## [Unreleased] — 全球真实台站测站化 + 12级烈度播报
+
+同步自上游 quake_sim（全球真实台站+12级烈度批）：
+
+### Fixed
+- **「加州测站没反应」根因**：waveCanvas 卡在 0×0 时 drawImage 层缓存直接抛异常并杀死整帧渲染——drawFrame 现在逐层隔离（safeDraw）并在开头自愈画布尺寸；板块边界缓存键补视图维度（旧键会把日本视图的线原样贴到其他区域）
+
+### Added
+- **真实台站成为模拟测站**：加州 6,232 个 FDSN 真实台站载入后直接作为模拟接收点（站名 NET.CODE + 站址；Vs30 以 500 m/s 估计并如实标注）
+- **12级烈度（CSIS）模式**：显示尺度新增「中国烈度」——标签/图例/台站数字图标按 12 级换算（JMA 震度对齐近似，7 级上限 XI，公开记录）
+- **12级播报**：Intensity1–12 提示音（懒加载，首次播放弹出下载提示）+ 最终速报/报告页「最大烈度 N 度」句子走浏览器 TTS
+- 音频懒加载：中英语言包 ~130 个播报片段不再启动预热，改为首次播放按需加载
+ — 全球真实台站（显示层）
 
 同步自上游 quake_sim（全球真实台站批）：
 

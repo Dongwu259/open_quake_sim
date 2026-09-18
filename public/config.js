@@ -46,7 +46,7 @@ var CFG_DEFAULTS = {
 
   // Site amplification
   siteModel:    { v:'vs30', opts:['vs30','eqlin-1d','geo','none'], cat:'site' },
-  intensityScale:{ v:'shindo', opts:['shindo','mmi','ems98'], cat:'display' },
+  intensityScale:{ v:'shindo', opts:['shindo','mmi','ems98','csis'], cat:'display' },
   intensityMethod:{ v:'empirical', opts:['empirical','jma3c'], cat:'display' },
   directivity:  { v:'off', opts:['off','somerville1997'], cat:'atten' },
   siteBase:     { v:1.00, min:0.50, max:2.00, step:0.01, fmt:'%.2f',      cat:'site' },

@@ -909,6 +909,16 @@ function _regionLoadRealStations(pack) {
     if (!pkg || pkg.schema !== 'quake-sim-region-stations-v1' || !pkg.stations) throw new Error('bad region stations package');
     pkg.stations.forEach(function (s) { s.realStation = true; });
     REGION_STATE.realStations = pkg.stations;
+    // Real stations BECOME the simulation receivers (user request): the same
+    // station-swap path as regionActivate/StationXML import. Vs30 has no
+    // California site grid yet - the 500 m/s default is labelled an estimate.
+    rawLandGrid = pkg.stations.map(function (s, i) {
+      return { lat: s.lat, lng: s.lng, id: i,
+               name: s.net + '.' + s.code + ' ' + s.site,
+               siteFactor: 1, vs30: 500, vs30Source: 'default-estimate', regionStation: true };
+    });
+    TOTAL_STATIONS = rawLandGrid.length;
+    buildGridCells();
     if (typeof Renderer !== 'undefined' && Renderer.invalidateCaches) Renderer.invalidateCaches();
     var note = document.getElementById('region-st-note');
     if (note) {
@@ -1972,26 +1982,11 @@ function preloadAudio() {
   for (var i = 0; i < sounds.length; i++) {
     AudioManager.preloadBuffer(getSoundPath(sounds[i], lang));
   }
-  // Japanese information speech is fully dynamic; local fragments are only
-  // needed by the English and Chinese modes.
+  // Japanese information speech is fully dynamic. The local EN/ZH fragment
+  // voices (~130 files per language: info words + 0-99 numerals + phrases)
+  // used to be boot-preloaded - they now load on demand at first play via
+  // AudioManager.ensureDecoded (resource policy 2026-09-19: lazy audio).
   if (lang === 'jp') return;
-  // Also preload TTS info sounds
-  var ttsNames = ['1','2','3','4','5-','5+','6-','6+','7','foreign'];
-  for (var j = 0; j < ttsNames.length; j++) {
-    AudioManager.preloadBuffer('sounds/' + lang + '/info/female/' + ttsNames[j] + '.wav');
-  }
-  // Preload bulletin TTS fragments (fixed phrases + intensity shorts)
-  var bulPhrases = ['ph_hour','ph_min','ph_intro1','ph_intro2','ph_mag','ph_depth','ph_km','ph_decimal',
-    'ph_tsu_major','ph_tsu_warning','ph_tsu_advisory','ph_affected'];
-  var bulInts = ['int_0','int_1','int_2','int_3','int_4','int_5m','int_5p','int_6m','int_6p','int_7'];
-  var bulNums = [];
-  for (var n = 0; n < 100; n++) bulNums.push('num_' + String(n).padStart(2, '0'));
-  var bulFrags = bulPhrases.concat(bulInts).concat(bulNums);
-  for (var k = 0; k < bulFrags.length; k++) {
-    // English rendering does not use explicit hour/minute classifier fragments.
-    if (lang === 'en' && (bulFrags[k] === 'ph_hour' || bulFrags[k] === 'ph_min')) continue;
-    AudioManager.preloadBuffer('sounds/' + lang + '/info/female/' + bulFrags[k] + '.wav');
-  }
 }
 
 function _initAudio() { AudioManager.initContext(); }
@@ -2043,11 +2038,35 @@ function _focusLockRadius(fLat, fLng, radiusKm) {
 }
 function playShindoAlert(level) {
   if (soundModeEl.value === 'off' || _maxAnnouncedShindo !== -1) return;
-  var sn = AudioManager.getShindoSoundName(level);
+  // 12-degree (CSIS) mode routes to the Intensity1-12 cue set; the JMA set
+  // stays for shindo/MMI/EMS display scales.
+  var csis = (typeof cfgGet === 'function' && cfgGet('intensityScale') === 'csis');
+  var sn = csis ? AudioManager.getIntensity12Name(Physics.shindoToCsis(level))
+                : AudioManager.getShindoSoundName(level);
   if (!sn) return;
   _maxAnnouncedShindo = level;
-  // The final observed maximum is announced once per simulation.
-  playEEWSound(sn);
+  // The final observed maximum is announced once per simulation. The 12-level
+  // cues are lazy (never boot-preloaded) - prompt once when they download.
+  if (csis) _playLazySound(sn);
+  else playEEWSound(sn);
+}
+var _audioDlToastTimer = null;
+function _showAudioDownloadToast(name) {
+  var el = document.getElementById('audio-loading');
+  if (!el) return;
+  var prog = document.getElementById('audio-progress');
+  el.style.display = '';
+  el.style.opacity = '';
+  if (prog) prog.textContent = t('audio.lazy');
+  if (_audioDlToastTimer) clearTimeout(_audioDlToastTimer);
+  _audioDlToastTimer = setTimeout(function() { el.style.display = 'none'; }, 4000);
+}
+function _playLazySound(name) {
+  try {
+    var p = getSoundPath(name, soundModeEl.value);
+    if (!AudioManager._bufferCache || !AudioManager._bufferCache[p]) _showAudioDownloadToast(name);
+  } catch (e) { /* indicator is non-critical */ }
+  playEEWSound(name);
 }
 
 function _preparePgaCue() {
@@ -2858,8 +2877,8 @@ function initWaveCanvas() {
     // when in show-all mode so pre-simulation / not-yet-arrived stations are pickable.
     var best = null, bestDist = 30;
     var searchSet = showAllStations ? rawLandGrid : visibleCircles;
-    // Region real-station metadata stations are pickable in show-all mode too.
-    if (showAllStations && REGION_STATE.active && REGION_STATE.realStations) searchSet = searchSet.concat(REGION_STATE.realStations);
+    // (Real stations now join rawLandGrid as sim receivers once the package
+    // loads, so no separate search set is needed here anymore.)
     for (var i = 0; i < searchSet.length; i++) {
       var c = searchSet[i];
       if (!_stationNetworkVisible(c)) continue;
@@ -6394,6 +6413,13 @@ function _zoomToAffectedPrefectures() {
 function _playReportSound() {
   var lang = soundModeEl.value;
   if (lang === 'off') return;
+  // 12-degree (CSIS) mode: scale-appropriate sentence via browser TTS.
+  if (typeof cfgGet === 'function' && cfgGet('intensityScale') === 'csis') {
+    try {
+      AudioManager.playBrowserTTS(t('bulletin.csis_line').replace('{n}', Physics.shindoToCsis(_globalMaxShindo)), soundVolume, null, null);
+    } catch (e) { /* browser TTS unavailable - silent */ }
+    return;
+  }
   AudioManager.initContext();
   if (AudioManager._audioCtx && AudioManager._audioCtx.state === 'suspended')
     AudioManager._audioCtx.resume();
@@ -6616,6 +6642,20 @@ function _playFinalBulletinTTS() {
   if (lang === 'off') { bulletinFinished(); return; }
   var ttsEnabled = document.getElementById('tts-enable');
   if (ttsEnabled && !ttsEnabled.checked) { bulletinFinished(); return; }
+
+  // 12-degree (CSIS) mode: the bundled fragment voice speaks JMA 震度 wording,
+  // so the announcement goes through the browser TTS engine as a scale-
+  // appropriate sentence instead (12-level announcement system, 2026-09-19).
+  if (typeof cfgGet === 'function' && cfgGet('intensityScale') === 'csis') {
+    var csisLine = t('bulletin.csis_line').replace('{n}', Physics.shindoToCsis(_globalMaxShindo));
+    var csisDone = false;
+    var csisFinish = function() { if (!csisDone) { csisDone = true; bulletinFinished(); } };
+    try {
+      AudioManager.playBrowserTTS(csisLine, soundVolume, csisFinish, csisFinish);
+      setTimeout(csisFinish, 12000); // never wedge the bulletin on a silent TTS
+    } catch (e) { csisFinish(); }
+    return;
+  }
 
   // Build the sequence of audio fragments
   var seq = [];
@@ -8462,7 +8502,7 @@ var ADV_OPTION_LABELS = {
   log:'adv.opt.log','si-midorikawa':'adv.opt.si','log-ff':'adv.opt.logff',kanno2006:'adv.opt.kanno',zhao2006:'adv.opt.zhao',
   vs30:'adv.opt.vs30',geo:'adv.opt.geo',none:'adv.opt.none',off:'adv.opt.off',on:'adv.opt.on',ss14:'adv.opt.ss14','eqlin-1d':'adv.opt.eqlin',
   somerville1997:'adv.opt.somerville',pgaOnly:'adv.opt.pga',pgaPgv:'adv.opt.pgagv',exceedance:'adv.opt.exceedance',
-  shindo:'intensity.shindo',mmi:'intensity.mmi',ems98:'intensity.ems98',bilateral:'ff.bilateral',unilateral:'ff.unilateral',
+  shindo:'intensity.shindo',mmi:'intensity.mmi',ems98:'intensity.ems98',csis:'intensity.csis',bilateral:'ff.bilateral',unilateral:'ff.unilateral',
   iasp91:'adv.opt.iasp91',jivsm:'adv.opt.jivsm',boussinesq:'adv.opt.boussinesq',
   landuse:'adv.opt.landuse','per-patch':'adv.opt.perPatch',cumulative:'adv.opt.cumulative',
   empirical:'adv.opt.empirical',jma3c:'adv.opt.jma3c',nonlinearSWE:'adv.opt.nonlinearSWE',linearSWE:'adv.opt.linearSWE',travelTime:'adv.opt.travelTime',
