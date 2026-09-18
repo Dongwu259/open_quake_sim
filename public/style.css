@@ -1032,3 +1032,8 @@ body.presenter-mode .autofocus-label{left:290px;bottom:44px}
 .finite-fault-bundled-row { display: flex; align-items: center; gap: 6px; margin: 4px 0; }
 .finite-fault-bundled-row label { font-size: 11px; color: var(--text-secondary); flex: 0 0 auto; }
 .finite-fault-bundled-row .rt-select { flex: 1 1 auto; min-width: 0; }
+
+/* language UX batch: always-visible language switcher in the sidebar header
+   (the settings-row #lang-select was too buried for non-Chinese visitors) */
+.lang-top-select { margin: 4px auto 0; display: block; font-size: 11px; color: var(--text); background: transparent; border: 1px solid var(--border); border-radius: 4px; padding: 1px 4px; max-width: 160px; cursor: pointer; }
+.lang-top-select option { color: #111; background: #fff; }

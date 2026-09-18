@@ -23,12 +23,12 @@
 <meta name="apple-mobile-web-app-title" content="QuakeSim">
 <link rel="manifest" href="manifest.json?v=ef84c7">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
-<title>地震模拟器 v6.2 | Earthquake Simulator Pro</title>
+<title>日本地震模拟器 v6.3 | Earthquake Simulator Pro</title>
 <link rel="stylesheet" href="leaflet/leaflet.css?v=f885c4">
-<link rel="stylesheet" href="style.css?v=702ef0">
+<link rel="stylesheet" href="style.css?v=28d54d">
 <link rel="preload" href="leaflet/leaflet.js?v=5a640f" as="script">
-<link rel="preload" href="app.js?v=9ed0e4" as="script">
-<link rel="preload" href="style.css?v=702ef0" as="style">
+<link rel="preload" href="app.js?v=633179" as="script">
+<link rel="preload" href="style.css?v=28d54d" as="style">
 <link rel="preload" href="config.js?v=ba58e3" as="script">
 <link rel="preload" href="physics.js?v=17ff56" as="script">
 </head>
@@ -37,13 +37,14 @@
 <div id="app" role="application" aria-label="Earthquake Simulator">
   <div id="sidebar" role="complementary" aria-label="控制面板">
     <div id="sidebar-header">
-      <h1 data-i18n="app.title">地震模拟器 v6.2</h1>
+      <h1 data-i18n="app.title">日本地震模拟器 v6.3</h1>
       <div id="build-ver" style="font-size:.65em;color:var(--text-secondary);opacity:.5;margin-top:-2px" data-sw="sw.js=v490974">(······)</div>
       <button id="btn-report-page" class="report-entry-btn" type="button" data-i18n="report.entry_btn">📋 体验报告</button>
       <button id="btn-guide-page" class="report-entry-btn" type="button" data-i18n="guide.entry_btn">🧭 使用说明</button>
       <button id="btn-help" class="help-link" type="button" data-i18n="help.title">使用帮助</button>
       <button id="btn-formulas" class="help-link" type="button" data-i18n="formulas.title">公式原理</button>
       <button id="btn-settings" class="help-link" type="button" data-i18n="settings.title">设置</button>
+      <select id="lang-top-select" class="lang-top-select" data-i18n-title="lang.label" aria-label="UI language / 言語 / 界面语言"><option value="ja">🌐 日本語</option><option value="zh">🌐 中文</option><option value="en">🌐 English</option></select>
     </div>
 
     <!-- Tab navigation -->
@@ -206,7 +207,7 @@
           <summary><span data-i18n="basic.playback">播放与语言</span></summary>
           <div class="disclosure-body">
             <div class="form-group"><label data-i18n="speed.label">模拟速度</label><div class="speed-group" id="speed-group"><button class="speed-btn" data-speed="0.5">0.5x</button><button class="speed-btn active" data-speed="1">1x</button><button class="speed-btn" data-speed="3">3x</button><button class="speed-btn" data-speed="5">5x</button><button class="speed-btn" data-speed="10">10x</button></div><select id="sim-speed" style="display:none"><option value="0.5">0.5x</option><option value="1" selected>1x</option><option value="3">3x</option><option value="5">5x</option><option value="10">10x</option></select></div>
-            <div class="field-pair"><label><span data-i18n="sound.label">音效</span><select id="sound-mode"><option value="jp">🔊 JP</option><option value="en">🔊 EN</option><option value="zh">🔊 ZH</option><option value="off">🔇 OFF</option></select></label><label><span data-i18n="lang.label">界面语言</span><select id="lang-select"><option value="ja">🌐 JA</option><option value="zh">🌐 ZH</option><option value="en">🌐 EN</option></select></label></div>
+            <div class="field-pair"><label><span data-i18n="sound.label">音效</span><select id="sound-mode"><option value="jp">🔊 JP</option><option value="en">🔊 EN</option><option value="zh">🔊 ZH</option><option value="off">🔇 OFF</option></select></label><label><span data-i18n="lang.label">界面语言</span><select id="lang-select"><option value="ja">🌐 日本語</option><option value="zh">🌐 中文</option><option value="en">🌐 English</option></select></label></div>
             <label class="switch-row compact-switch"><input type="checkbox" id="tts-enable" checked><span class="switch-ui"></span><span data-i18n="tts.enable">TTS语音</span></label>
             <div class="form-group"><label><span data-i18n="sound.volume">音量</span> <span class="vd" id="vol-val">80%</span></label><input type="range" id="volume-slider" min="0" max="100" value="80" step="5"></div>
           </div>
@@ -744,7 +745,7 @@
 <script src="research.js?v=d9aad6"></script>
 <script src="data-catalog.js?v=bee20f"></script>
 <script src="grid-package.js?v=865d26"></script>
-<script src="i18n.js?v=43b2c4"></script>
+<script src="i18n.js?v=d32eae"></script>
 <script src="dc3d.js?v=2865dd"></script>
 <script src="physics.js?v=17ff56"></script>
 
@@ -845,7 +846,7 @@ window._loadThreeJS = function(cb) {
     </div>
   </div>
 </div>
-<script src="app.js?v=9ed0e4"></script>
+<script src="app.js?v=633179"></script>
 <script src="aftershock.js?v=e29837"></script>
 <script src="rt-data.js?v=6780e5"></script>
 <script src="rt-kmoni.js?v=b581c5"></script>

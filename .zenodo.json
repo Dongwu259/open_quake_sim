@@ -1,5 +1,5 @@
 {
-  "title": "Earthquake Simulator Pro (quake_sim)",
+  "title": "Earthquake Simulator Pro (quake_sim) — Japan earthquake, tsunami and EEW simulation",
   "description": "<p>Web-based research-oriented earthquake and tsunami simulation platform for Japan. Faithful Zhao et al. (2006) GMPE with frozen calibration tables and a three-family GMPE logic tree, 1D equivalent-linear site response (Thomson-Haskell + Darendeli curves, SHAKE-91 external benchmark), ensemble uncertainty fields with spatial correlation, kinematic finite-fault sources (Okada DC3D, von Karman slip spectra, segmented/listric geometry), a PSHA engine with conditional spectrum / UHS, hazard deaggregation and BPT time-dependent renewal, a conditional-spectrum broadband synthesis pipeline (SH production line; the P-SV completion arm was executed on a pre-registered quad-double array and retired with frozen negative reports), two-way AMR nonlinear shallow-water tsunami solver with optional Boussinesq dispersion, EEW detection rehearsal, and a real-time monitoring suite (JMA EEW / Kmoni / tsunami / 551 bulletins, live GSN waveforms via a miniSEED STEIM1/2 decoder). All validation results, including negative ones, are frozen in PHYSICS_BENCHMARKS.md and docs/SCIENTIFIC-REPORT.md; per-dataset provenance and licences in public/data-catalog.js.</p><p>Bundled derived datasets: J-SHIS Vs30 derived grid (J-SHIS terms), JIVSM derived bedrock/column grids (J-SHIS terms), KiK-net surface/borehole derived spectral-ratio statistics (NIED DOI 10.17598/NIED.0004, derived quantities only), GEBCO 2025 resample (doi:10.5285/37c52e96-24ea-67ce-e063-7086abc05f29), JMA observation data (気象庁, government open work).</p>",
   "license": "MIT",
   "creators": [
@@ -22,6 +22,5 @@
   ],
   "access_right": "open",
   "upload_type": "software",
-  "language": "eng",
-  "notes": "Source repository: https://github.com/Dongwu259/open_quake_sim (MIT). This record archives the tagged release; the research manifest (public/data-catalog.js) is the authoritative per-dataset provenance record."
+  "notes": "Trilingual UI (Japanese / English / Chinese; follows the browser language on first visit, switchable at the top of the sidebar). Simulates Japanese scenarios only: Japan-wide station network, JMA intensity scale, JMA tsunami forecast areas, JMA-style EEW; the realtime monitoring suite likewise tracks Japanese official feeds. Source repository: https://github.com/Dongwu259/open_quake_sim (MIT). This record archives the tagged release; the research manifest (public/data-catalog.js) is the authoritative per-dataset provenance record."
 }

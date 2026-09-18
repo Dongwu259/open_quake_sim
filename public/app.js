@@ -8034,7 +8034,9 @@ document.addEventListener('keydown', function(e){
   if (e.code === 'Minus' || e.code === 'NumpadSubtract') simSpeedEl.selectedIndex = Math.max(0, simSpeedEl.selectedIndex-1);
 });
 
-document.getElementById('lang-select').addEventListener('change', function(){applyLanguage(this.value);});
+function syncLangSelectors(v){var a=document.getElementById('lang-select'),b=document.getElementById('lang-top-select');if(a)a.value=v;if(b)b.value=v;}
+document.getElementById('lang-select').addEventListener('change', function(){syncLangSelectors(this.value);applyLanguage(this.value);});
+var langTopSelect=document.getElementById('lang-top-select');if(langTopSelect)langTopSelect.addEventListener('change', function(){syncLangSelectors(this.value);applyLanguage(this.value);});
 ['tsunami-enable','detect-mode','aftershock-enable','multi-event-mode'].forEach(function(id) {
   var el = document.getElementById(id); if (el) el.addEventListener('change', updateSimulationSummary);
 });
@@ -9264,7 +9266,7 @@ async function init() {
   // Apply URL params before anything else
   applyUrlParams();
   initWaveCanvas();
-  document.getElementById('lang-select').value = cl;
+  syncLangSelectors(cl);
   applyLanguage(cl);
   // Non-critical UI binding: never let an Advanced-panel error block station loading / the map.
   try { advBind(); } catch (e) { console.error('advBind failed (Advanced panel disabled):', e); }
