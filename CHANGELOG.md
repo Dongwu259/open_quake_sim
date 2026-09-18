@@ -3,6 +3,22 @@
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/) where practical.
 
 ## [Unreleased]
+## [6.4.0] — 2026-09-19 全球区域试点 + v6.4 身份
+
+同步自上游 quake_sim（dfa30b8）：
+
+### Added
+- **全球模式（测试）**：模拟功能列表勾选开启——懒加载世界底图（OSM/CARTO/Esri 三源自动探测 + 运行时看门狗回退，全部不可达时保留日本离线底图）与加州试点区域包（50 城市台站 + 1906/1989/1994/1971 四历史预设，USGS ComCat 参数硬编码）
+- **quake-sim-region-pack-v1** 区域包架构：台站/预设/边界一个 JSON 包，懒加载可回滚；0.5° 台站格网从台站集合推导（日本路径字节不变）；都道府县预报表全球模式门控
+- 语言体验：首访按浏览器语言自动选择（日/中/英）；侧栏顶部常驻语言切换器；标签页标题随界面语言
+
+### Changed
+- 应用与元数据明确 Japan 限定（Japan Earthquake Simulator / 日本地震模拟器）
+- **fitBounds 替代 flyToBounds**（捆绑 Leaflet 的 fly 动画从不前进——已知问题，rtFlyJapan 同病）
+
+### 诚实边界
+- 加州强度模型未标定（日本标定模型直接适用并如实标注）；海啸暂不支持；全球 EEW 无开放源
+
 ## [6.3.3] — 2026-09-18 CS 宽频带研究线闭卷同步
 
 同步自上游 quake_sim（CS v4 执行 → v5–v8 归因收官，master 3478f47e）：

@@ -608,59 +608,51 @@ function rebuildLayerControl() {
 // a region pack (stations/presets) behind the #global-mode checkbox. Japan
 // flows are byte-identical while it is off; pack = region-california.json.
 var REGION_STATE = { active: null, pack: null, savedStations: null, presetIds: [] };
-var GLOBAL_TILE_LAYER = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 12, attribution: '&copy; OpenStreetMap contributors' });
-tileDefs['tile.osm_global'] = GLOBAL_TILE_LAYER;
-var REGION_BASE_OFFLINE = offlineBasemap;
-function _regionSetSimSafe() { try { resetSimulation(); } catch (e) { /* nothing running */ } }
-function regionActivate(pack) {
-  REGION_STATE.pack = pack; REGION_STATE.active = pack.id;
-  // Station swap - same fields as the StationXML import path.
-  REGION_STATE.savedStations = rawLandGrid;
-  rawLandGrid = pack.stations.map(function (s, i) {
-    return { lat: s.lat, lng: s.lng, id: i, name: s.name, siteFactor: (s.siteFactor != null) ? s.siteFactor : 1, vs30: (s.vs30 != null) ? s.vs30 : 500, regionStation: true };
+var GLOBAL_TILE_LAYER = null, GLOBAL_TILE_SRC = null, GLOBAL_TILE_SRC_IDX = -1;
+function _globalTileProbeOne(src, z, x, y, sub) {
+  return new Promise(function (resolve) {
+    var img = new Image();
+    var done = false;
+    var timer = setTimeout(function () { if (!done) { done = true; resolve(false); } }, 2500);
+    img.onload = function () { if (!done) { done = true; clearTimeout(timer); resolve(img.naturalWidth > 0); } };
+    img.onerror = function () { if (!done) { done = true; clearTimeout(timer); resolve(false); } };
+    img.src = src.url.replace('{s}', sub).replace('{z}', z).replace('{x}', x).replace('{y}', y) + (src.url.indexOf('?') > -1 ? '&' : '?') + 'p=' + z + x + y;
   });
-  TOTAL_STATIONS = rawLandGrid.length;
-  buildGridCells();
-  var sel = document.getElementById('preset');
-  for (var pi = 0; pi < pack.presets.length; pi++) {
-    var pr = pack.presets[pi];
-    pr.regionPreset = true;
-    PRESETS[pr.id] = pr; REGION_STATE.presetIds.push(pr.id);
-    var opt = document.createElement('option');
-    opt.value = pr.id; opt.textContent = pr.label;
-    sel.appendChild(opt);
-  }
-  if (sel.value) { sel.value = ''; applyPresetSelection(''); }
-  if (map.hasLayer(REGION_BASE_OFFLINE)) map.removeLayer(REGION_BASE_OFFLINE);
-  if (!map.hasLayer(GLOBAL_TILE_LAYER)) GLOBAL_TILE_LAYER.addTo(map);
-  rebuildLayerControl();
-  var row = document.getElementById('region-row');
-  if (row) row.style.display = '';
-  // reset first (it re-centers on the Japan home view), then jump to the region.
-  // fitBounds, not flyToBounds: the bundled Leaflet build's fly animation never
-  // advances (movestart fires, no frames) - observed 2026-09-19, also affects rtFlyJapan.
-  _regionSetSimSafe();
-  map.fitBounds(pack.bounds, { padding: [6, 6] });
 }
-function regionDeactivate() {
-  if (REGION_STATE.savedStations) {
-    rawLandGrid = REGION_STATE.savedStations; TOTAL_STATIONS = rawLandGrid.length;
-    buildGridCells(); REGION_STATE.savedStations = null;
-  }
-  var sel = document.getElementById('preset');
-  for (var pi = 0; pi < REGION_STATE.presetIds.length; pi++) {
-    delete PRESETS[REGION_STATE.presetIds[pi]];
-    var opt = sel.querySelector('option[value="' + REGION_STATE.presetIds[pi] + '"]');
-    if (opt) opt.remove();
-  }
-  REGION_STATE.presetIds = [];
-  if (sel.value) { sel.value = ''; applyPresetSelection(''); }
-  if (map.hasLayer(GLOBAL_TILE_LAYER)) map.removeLayer(GLOBAL_TILE_LAYER);
-  if (!map.hasLayer(REGION_BASE_OFFLINE)) REGION_BASE_OFFLINE.addTo(map);
-  rebuildLayerControl();
+// Some networks (GFW-style resets) let a single tile slip through then kill the
+// stream - one lucky image is not enough: three distinct tiles must all load.
+function _globalTileProbe(src) {
+  return Promise.all([
+    _globalTileProbeOne(src, '6', '10', '24', 'a'),
+    _globalTileProbeOne(src, '6', '12', '25', 'b'),
+    _globalTileProbeOne(src, '7', '21', '49', 'c')
+  ]).then(function (rs) {
+    for (var i = 0; i < rs.length; i++) if (!rs[i]) return false;
+    return true;
+  });
+}
+function _globalTileBuild(src) {
+  GLOBAL_TILE_SRC = src;
+  GLOBAL_TILE_SRC_IDX = GLOBAL_TILE_SOURCES.indexOf(src);
+  GLOBAL_TILE_LAYER = L.tileLayer(src.url, { maxZoom: 12, attribution: src.attribution, subdomains: src.subdomains || 'abc' });
+  tileDefs['tile.osm_global'] = GLOBAL_TILE_LAYER;
+  try { localStorage.setItem('qs-global-tile', src.id); } catch (e) { /* private mode */ }
+}
+function _globalTileWatchdog(after) {
+  // A provider can pass the probe then die under sustained load (flappy resets).
+  // If the first seconds bring only errors, silently advance to the next source.
+  var errs = 0, loads = 0;
+  var onErr = function () { errs++; }, onOk = function () { loads++; };
+  GLOBAL_TILE_LAYER.on('tileerror', onErr);
+  GLOBAL_TILE_LAYER.on('tileload', onOk);
+  setTimeout(function () {
+    if (!GLOBAL_TILE_LAYER) return;
+    GLOBAL_TILE_LAYER.off('tileerror', onErr);
+    GLOBAL_TILE_LAYER.off('tileload', onOk);
+    if (REGION_STATE.active && loads === 0 && errs >= 3 && GLOBAL_TILE_SRC_IDX < GLOBAL_TILE_SOURCES.length - 1) {
+      _regionRestoreJapanBase();
   // reset first (it re-centers on the Japan home view), then jump back to Japan
-  // (fitBounds for the same reason as regionActivate; bounds = JAPAN_HOME_BOUNDS,
-  // duplicated because rt-data.js keeps the original module-scoped)
+  // (bounds = JAPAN_HOME_BOUNDS, duplicated because rt-data.js keeps the original module-scoped)
   _regionSetSimSafe();
   map.fitBounds([[30.0, 128.0], [45.3, 145.5]], { padding: [4, 4] });
   var row = document.getElementById('region-row');
@@ -9758,7 +9750,7 @@ var ScenarioManager = (function(){
       if (isFinite(+a.lat) && isFinite(+a.lng)) { e.lat = +a.lat; e.lng = +a.lng; }
       return e;
     });
-    return { schema:Research.SCENARIO_SCHEMA,name:name || tr('scn.untitled'),version:2,appVersion:'v6.3',
+    return { schema:Research.SCENARIO_SCHEMA,name:name || tr('scn.untitled'),version:2,appVersion:'v6.4',
              seed:Research.normalizeSeed(cfgGet('randomSeed')),events:events,flags:flags,config:JSON.parse(JSON.stringify(CFG)),
              faultOpts:FiniteFaultEditor.getState(),manualAftershocks:manAs,display:_researchDisplayState(),dataVersions:versions.data,modelVersions:versions.model,
              experiment:_currentExperiment,created:(function(){try{return new Date().toISOString();}catch(e){return '';}})() };

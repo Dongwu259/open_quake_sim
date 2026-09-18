@@ -23,7 +23,7 @@
 <meta name="apple-mobile-web-app-title" content="QuakeSim">
 <link rel="manifest" href="manifest.json?v=ef84c7">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
-<title>日本地震模拟器 v6.3 | Earthquake Simulator Pro</title>
+<title>日本地震模拟器 v6.4 | Earthquake Simulator Pro</title>
 <link rel="stylesheet" href="leaflet/leaflet.css?v=f885c4">
 <link rel="stylesheet" href="style.css?v=6fd405">
 <link rel="preload" href="leaflet/leaflet.js?v=5a640f" as="script">
@@ -37,7 +37,7 @@
 <div id="app" role="application" aria-label="Earthquake Simulator">
   <div id="sidebar" role="complementary" aria-label="控制面板">
     <div id="sidebar-header">
-      <h1 data-i18n="app.title">日本地震模拟器 v6.3</h1>
+      <h1 data-i18n="app.title">日本地震模拟器 v6.4</h1>
       <div id="build-ver" style="font-size:.65em;color:var(--text-secondary);opacity:.5;margin-top:-2px" data-sw="sw.js=v490974">(······)</div>
       <button id="btn-report-page" class="report-entry-btn" type="button" data-i18n="report.entry_btn">📋 体验报告</button>
       <button id="btn-guide-page" class="report-entry-btn" type="button" data-i18n="guide.entry_btn">🧭 使用说明</button>
@@ -905,6 +905,18 @@ window._loadThreeJS = function(cb) {
       <h3 data-i18n="help.share">📎 URL分享</h3>
       <p data-i18n="help.share_text">点击Start按钮旁的🔗按钮可复制当前模拟的完整URL链接。将链接分享给他人，对方打开后自动加载相同的震中、震级、深度等参数。支持参数：lat/lng（震中）、mag（震级）、depth（深度）、strike（走向）、dip（倾角）、preset（预设场景）、lang（语言）、detect（检测模式）、aftershock（余震）、tsunami（海啸）。</p>
       <hr style="border-color:var(--border);margin:12px 0">
+
+      <h3 data-i18n="help.v64_release">━━ v6.4 更新 ━━</h3>
+      <h3 data-i18n="help.v64_global_t">全球模式(测试)</h3>
+      <p data-i18n="help.v64_global_d">加州试点:50 城市台站 + 4 历史大震(1906/1989/1994/1971);模拟功能列表勾选开启。强度模型未标定,如实标注。</p>
+      <h3 data-i18n="help.v64_map_t">世界地图懒加载</h3>
+      <p data-i18n="help.v64_map_d">OSM/CARTO/Esri 三源自动探测,哪个通用哪个;一次记住;离线日本底图不受影响。</p>
+      <h3 data-i18n="help.v64_lang_t">语言体验</h3>
+      <p data-i18n="help.v64_lang_d">首访按浏览器语言自动选择;侧栏顶部常驻切换器;标签页标题随界面语言。</p>
+      <h3 data-i18n="help.v64_doi_t">Zenodo DOI</h3>
+      <p data-i18n="help.v64_doi_d">开源镜像 10.5281/zenodo.22828697;概念 DOI 引所有版本;引用段见 README。</p>
+      <h3 data-i18n="help.v64_bounds_t">诚实边界</h3>
+      <p data-i18n="help.v64_bounds_d">加州强度未标定;海啸暂不支持;全球 EEW 无开放源。测试徽标 = 试验功能。</p>
       <h3 data-i18n="help.v63_release">━━ v6.3 更新 ━━</h3>
       <h3 data-i18n="help.v63_bpt_t">时间依赖 PSHA</h3>
       <p data-i18n="help.v63_bpt_d">南海 3 个情景源按 BPT 更新过程评估；PSHA 卡开关切换。ERC 平均 117 年。</p>
