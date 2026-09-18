@@ -608,6 +608,14 @@ function rebuildLayerControl() {
 // a region pack (stations/presets) behind the #global-mode checkbox. Japan
 // flows are byte-identical while it is off; pack = region-california.json.
 var REGION_STATE = { active: null, pack: null, savedStations: null, presetIds: [] };
+// World basemap sources, probed in order at first enable. Not every network can
+// reach every provider (tile.openstreetmap.org is unreachable from some CN
+// networks), so the first source whose test tile loads wins and is remembered.
+var GLOBAL_TILE_SOURCES = [
+  { id: 'osm', url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', attribution: '&copy; OpenStreetMap contributors' },
+  { id: 'carto', url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', attribution: '&copy; OpenStreetMap contributors &copy; CARTO', subdomains: 'abcd' },
+  { id: 'esri', url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', attribution: 'Tiles &copy; Esri' }
+];
 var GLOBAL_TILE_LAYER = null, GLOBAL_TILE_SRC = null, GLOBAL_TILE_SRC_IDX = -1;
 function _globalTileProbeOne(src, z, x, y, sub) {
   return new Promise(function (resolve) {
@@ -639,6 +647,7 @@ function _globalTileBuild(src) {
   try { localStorage.setItem('qs-global-tile', src.id); } catch (e) { /* private mode */ }
 }
 function _globalTileWatchdog(after) {
+  if (!GLOBAL_TILE_LAYER) return; // all sources already failed - nothing to watch
   // A provider can pass the probe then die under sustained load (flappy resets).
   // If the first seconds bring only errors, silently advance to the next source.
   var errs = 0, loads = 0;
@@ -650,7 +659,185 @@ function _globalTileWatchdog(after) {
     GLOBAL_TILE_LAYER.off('tileerror', onErr);
     GLOBAL_TILE_LAYER.off('tileload', onOk);
     if (REGION_STATE.active && loads === 0 && errs >= 3 && GLOBAL_TILE_SRC_IDX < GLOBAL_TILE_SOURCES.length - 1) {
-      _regionRestoreJapanBase();
+      if (map.hasLayer(GLOBAL_TILE_LAYER)) map.removeLayer(GLOBAL_TILE_LAYER);
+      GLOBAL_TILE_LAYER = null;
+      _globalTileTryNext(function () {
+        if (GLOBAL_TILE_LAYER) { GLOBAL_TILE_LAYER.addTo(map); rebuildLayerControl(); }
+      });
+    }
+  }, 8000);
+}
+function _globalTileTryNext(after) {
+  GLOBAL_TILE_SRC_IDX++;
+  if (GLOBAL_TILE_SRC_IDX >= GLOBAL_TILE_SOURCES.length) { after(); return; } // all sources failed
+  var src = GLOBAL_TILE_SOURCES[GLOBAL_TILE_SRC_IDX];
+  _globalTileProbe(src).then(function (ok) {
+    if (ok) { _globalTileBuild(src); after(); _globalTileWatchdog(after); }
+    else _globalTileTryNext(after);
+  });
+}
+var GLOBAL_VECTOR_LAYER = null;
+var GLOBAL_LAND_POLYS = [];
+function _globalTileLat(y, z) {
+  // north-edge latitude of tile row y at zoom z (standard slippy formula -
+  // independent of the bundled Leaflet's CRS helpers)
+  var n = Math.PI - 2 * Math.PI * y / Math.pow(2, z);
+  return 180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)));
+}
+function _globalVectorBuild(geo) {
+  var dark = false;
+  try { dark = document.body.classList.contains('dark-mode'); } catch (e) { /* default light */ }
+  // Self-drawn world tiles ("make our own, consistent with the Japan map"):
+  // L.GridLayer renders local Natural Earth land polygons onto per-tile canvas.
+  // Fully offline - the bundled Leaflet's SVG vector renderer is broken for
+  // custom panes (paths collapse to "M0 0"), so no L.geoJSON here.
+  if (!map.getPane('globalBase')) {
+    map.createPane('globalBase');
+    map.getPane('globalBase').style.zIndex = 150; // beneath online tiles (200)
+  }
+  var lineColor = dark ? '#3a5a75' : '#6f93a6';
+  GLOBAL_LAND_POLYS = [];
+  (geo.features || []).forEach(function (f) {
+    var g = f.geometry;
+    if (!g) return;
+    // coastline file = LineString; land-polygon packs (Polygon/MultiPolygon) stay supported
+    var multi;
+    if (g.type === 'MultiLineString') multi = g.coordinates;
+    else if (g.type === 'LineString') multi = [g.coordinates];
+    else if (g.type === 'Polygon') multi = [g.coordinates];
+    else if (g.type === 'MultiPolygon') multi = g.coordinates;
+    else return;
+    multi.forEach(function (poly) {
+      var w = 180, s = 90, e = -180, n = -90;
+      // LineString poly = the point array itself; iterate points directly
+      poly.forEach(function (pt) {
+        if (!Array.isArray(pt)) return;
+        if (pt[0] < w) w = pt[0]; if (pt[0] > e) e = pt[0];
+        if (pt[1] < s) s = pt[1]; if (pt[1] > n) n = pt[1];
+      });
+      GLOBAL_LAND_POLYS.push({ pts: poly, w: w, s: s, e: e, n: n });
+    });
+  });
+  GLOBAL_VECTOR_LAYER = L.gridLayer({
+    pane: 'globalBase', tileSize: 256, minZoom: 1, maxZoom: 12, updateWhenIdle: true
+  });
+  GLOBAL_VECTOR_LAYER.createTile = function (coords) {
+    var canvas = document.createElement('canvas');
+    canvas.width = 256; canvas.height = 256;
+    var ctx = canvas.getContext('2d');
+    var nTiles = Math.pow(2, coords.z);
+    var west = coords.x / nTiles * 360 - 180;
+    var east = (coords.x + 1) / nTiles * 360 - 180;
+    var north = _globalTileLat(coords.y, coords.z);
+    var south = _globalTileLat(coords.y + 1, coords.z);
+    if (east - west > 360) return canvas;
+    var dLng = east - west, dLat = north - south;
+    // coastline strokes only (Natural Earth 10m lines) - atlas-outline style
+    ctx.strokeStyle = lineColor;
+    ctx.lineWidth = 0.8;
+    ctx.lineJoin = 'round';
+    for (var pi = 0; pi < GLOBAL_LAND_POLYS.length; pi++) {
+      var line = GLOBAL_LAND_POLYS[pi];
+      if (line.e < west || line.w > east || line.n < south || line.s > north) continue;
+      ctx.beginPath();
+      for (var ii = 0; ii < line.pts.length; ii++) {
+        var px = (line.pts[ii][0] - west) / dLng * 256;
+        var py = (north - line.pts[ii][1]) / dLat * 256;
+        if (ii === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+    }
+    return canvas;
+  };
+}
+function regionEnsureGlobalBase(after) {
+  // 1) offline vector world immediately (no network), then
+  // 2) optional tile upgrade in the background if any provider passes the probe -
+  // tiles render above the vector, so failed tiles simply expose the vector map.
+  var finish = function () { _regionInstallGlobalBase(); after(); };
+  var upgradeTiles = function () {
+    _globalTileTryNext(function () {
+      if (GLOBAL_TILE_LAYER && REGION_STATE.active) { GLOBAL_TILE_LAYER.addTo(map); rebuildLayerControl(); }
+      _globalTileWatchdog(function () {
+        if (GLOBAL_TILE_LAYER && REGION_STATE.active) { GLOBAL_TILE_LAYER.addTo(map); rebuildLayerControl(); }
+      });
+    });
+  };
+  if (GLOBAL_VECTOR_LAYER) { finish(); upgradeTiles(); return; }
+  fetch('/geojson/world-coastline-10m.json').then(function (r) { return r.json(); }).then(function (geo) {
+    _globalVectorBuild(geo);
+    finish();
+    upgradeTiles();
+  }).catch(function (e) {
+    console.error('world land load failed:', e);
+    finish();
+  });
+}
+function _regionInstallGlobalBase() {
+  // Every Japan-bounded base must come off (offline, GSI std, local OSM bundle)
+  // or it greys out the world view. The vector world stays beneath any tiles:
+  // failed tiles expose the vector map instead of a void.
+  [REGION_BASE_OFFLINE, tileDefs['tile.gsi_std'], tileDefs['tile.osm']].forEach(function (l) {
+    if (l && map.hasLayer(l)) map.removeLayer(l);
+  });
+  if (GLOBAL_VECTOR_LAYER && !map.hasLayer(GLOBAL_VECTOR_LAYER)) GLOBAL_VECTOR_LAYER.addTo(map);
+  if (GLOBAL_TILE_LAYER && !map.hasLayer(GLOBAL_TILE_LAYER)) GLOBAL_TILE_LAYER.addTo(map);
+  rebuildLayerControl();
+}
+function _regionRestoreJapanBase() {
+  if (GLOBAL_TILE_LAYER && map.hasLayer(GLOBAL_TILE_LAYER)) map.removeLayer(GLOBAL_TILE_LAYER);
+  if (GLOBAL_VECTOR_LAYER && map.hasLayer(GLOBAL_VECTOR_LAYER)) map.removeLayer(GLOBAL_VECTOR_LAYER);
+  if (!map.hasLayer(REGION_BASE_OFFLINE)) REGION_BASE_OFFLINE.addTo(map);
+  rebuildLayerControl();
+}
+var REGION_BASE_OFFLINE = offlineBasemap;
+function _regionSetSimSafe() { try { resetSimulation(); } catch (e) { /* nothing running */ } }
+function regionActivate(pack) {
+  REGION_STATE.pack = pack; REGION_STATE.active = pack.id;
+  // Station swap - same fields as the StationXML import path.
+  REGION_STATE.savedStations = rawLandGrid;
+  rawLandGrid = pack.stations.map(function (s, i) {
+    return { lat: s.lat, lng: s.lng, id: i, name: s.name, siteFactor: (s.siteFactor != null) ? s.siteFactor : 1, vs30: (s.vs30 != null) ? s.vs30 : 500, regionStation: true };
+  });
+  TOTAL_STATIONS = rawLandGrid.length;
+  buildGridCells();
+  var sel = document.getElementById('preset');
+  for (var pi = 0; pi < pack.presets.length; pi++) {
+    var pr = pack.presets[pi];
+    pr.regionPreset = true;
+    PRESETS[pr.id] = pr; REGION_STATE.presetIds.push(pr.id);
+    var opt = document.createElement('option');
+    opt.value = pr.id; opt.textContent = pr.label;
+    sel.appendChild(opt);
+  }
+  if (sel.value) { sel.value = ''; applyPresetSelection(''); }
+  // World basemap: probe sources on first run (async), then finish activation.
+  regionEnsureGlobalBase(function () {
+    if (REGION_STATE.active !== pack.id) return; // unchecked while probing
+    _regionInstallGlobalBase();
+    var row = document.getElementById('region-row');
+    if (row) row.style.display = '';
+    // reset first (it re-centers on the Japan home view), then jump to the region.
+    // fitBounds, not flyToBounds: the bundled Leaflet build's fly animation never
+    // advances (movestart fires, no frames) - observed 2026-09-19, also affects rtFlyJapan.
+    _regionSetSimSafe();
+    map.fitBounds(pack.bounds, { padding: [6, 6] });
+  });
+}
+function regionDeactivate() {
+  if (REGION_STATE.savedStations) {
+    rawLandGrid = REGION_STATE.savedStations; TOTAL_STATIONS = rawLandGrid.length;
+    buildGridCells(); REGION_STATE.savedStations = null;
+  }
+  var sel = document.getElementById('preset');
+  for (var pi = 0; pi < REGION_STATE.presetIds.length; pi++) {
+    delete PRESETS[REGION_STATE.presetIds[pi]];
+    var opt = sel.querySelector('option[value="' + REGION_STATE.presetIds[pi] + '"]');
+    if (opt) opt.remove();
+  }
+  REGION_STATE.presetIds = [];
+  if (sel.value) { sel.value = ''; applyPresetSelection(''); }
+  _regionRestoreJapanBase();
   // reset first (it re-centers on the Japan home view), then jump back to Japan
   // (bounds = JAPAN_HOME_BOUNDS, duplicated because rt-data.js keeps the original module-scoped)
   _regionSetSimSafe();
