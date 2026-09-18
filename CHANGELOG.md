@@ -3,6 +3,18 @@
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/) where practical.
 
 ## [Unreleased]
+## [6.3.3] — 2026-09-18 CS 宽频带研究线闭卷同步
+
+同步自上游 quake_sim（CS v4 执行 → v5–v8 归因收官，master 3478f47e）：
+
+### 条件谱宽频带研究线闭卷
+- **CS v4 全门阵列执行**：30 分片 quad-double P-SV 臂（~2.2 天墙钟）跑完，三个形状带门全 FAIL（P-SV 0.794/0.398/0.727 vs SH-only 0.776/0.432/0.574）——P-SV 补全假设否证，生产线保持 SH-only；冻结报告 `tools/data/cs-pipeline-v4-report.json`
+- **归因弧线 v5→v8**：目标审计 PASS（max μC 偏差 0.0047）；应力杠杆 DEAD（S\*=0）；台柱交换 SOURCE-OWNED（0.198）；**v7 配置对齐重测**（13 真事件 × ~700 台站，158.8 min）：alignedDs(0.2s)=+0.02 vs legacy −0.238 → CONFIG-OWNED；**v8 逐类 κ 重校准被预登记情景非回退门判死**（真事件最优与情景门最优反号 + 1s 锚-缝耦合）。形状门终版角色=合成-vs-GMPE 一致性监视器，五条单参数治愈全部实测否证、各有 tripwire 锁定
+
+### 文档与验证
+- `docs/SCIENTIFIC-REPORT.md` P-SV 终章（v12→终局弧线）+ 状态账本重判；`PHYSICS_BENCHMARKS.md` 扩容（105 文件 / 1,142 测试全绿）
+- 实验清单 manifest 79 条冻结工件
+
 ## [Unreleased] — 2026-09-04 v6.2 功能批同步（实时波形 · 波形分析 · 断层系统升级 · 动力学破裂管线）
 
 同步自上游 quake_sim（cf6ad9e→cc8e3af 五批）：
