@@ -901,21 +901,40 @@ function _regionProgressDone() {
 // metadata only.
 function _regionLoadRealStations(pack) {
   var rid = pack.id;
-  fetch('/geojson/region-stations-' + rid + '.json').then(function (r) {
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    return r.json();
-  }).then(function (pkg) {
+  Promise.all([
+    fetch('/geojson/region-stations-' + rid + '.json').then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    }),
+    // Region Vs30 grid (quake-sim-region-vs30-v1, e.g. California from Yong
+    // et al. 2014): optional — absent/failed package keeps the honest 500 m/s
+    // default-estimate for every station.
+    fetch('/geojson/region-vs30-' + rid + '.json').then(function (r) {
+      return r.ok ? r.json() : null;
+    }).catch(function () { return null; })
+  ]).then(function (results) {
+    var pkg = results[0], vs30 = results[1];
     if (REGION_STATE.active !== rid) return; // user unchecked while loading
     if (!pkg || pkg.schema !== 'quake-sim-region-stations-v1' || !pkg.stations) throw new Error('bad region stations package');
     pkg.stations.forEach(function (s) { s.realStation = true; });
     REGION_STATE.realStations = pkg.stations;
     // Real stations BECOME the simulation receivers (user request): the same
-    // station-swap path as regionActivate/StationXML import. Vs30 has no
-    // California site grid yet - the 500 m/s default is labelled an estimate.
+    // station-swap path as regionActivate/StationXML import. Vs30 comes from
+    // the region grid when it covers the station (bilinear over the 0.025°
+    // pack, nodata/absent keeps the labelled 500 m/s estimate).
+    var vs30Applied = 0, vs30Token = '';
+    if (vs30 && vs30._schema === 'quake-sim-region-vs30-v1') {
+      vs30Token = (vs30.provenance && vs30.provenance.sourceToken) || 'region-vs30-grid';
+    }
     rawLandGrid = pkg.stations.map(function (s, i) {
-      return { lat: s.lat, lng: s.lng, id: i,
-               name: s.net + '.' + s.code + ' ' + s.site,
-               siteFactor: 1, vs30: 500, vs30Source: 'default-estimate', regionStation: true };
+      var st = { lat: s.lat, lng: s.lng, id: i,
+                 name: s.net + '.' + s.code + ' ' + s.site,
+                 siteFactor: 1, vs30: 500, vs30Source: 'default-estimate', regionStation: true };
+      if (vs30Token) {
+        var v = Physics.regionVs30Sample(vs30, s.lat, s.lng);
+        if (v != null) { st.vs30 = v; st.vs30Source = vs30Token; vs30Applied++; }
+      }
+      return st;
     });
     TOTAL_STATIONS = rawLandGrid.length;
     buildGridCells();
@@ -923,7 +942,11 @@ function _regionLoadRealStations(pack) {
     var note = document.getElementById('region-st-note');
     if (note) {
       note.style.display = '';
-      note.textContent = t('region.st_note').replace('{n}', pkg.stations.length);
+      note.textContent = (vs30Applied > 0)
+        ? t('region.st_note_vs30').replace('{n}', pkg.stations.length)
+            .replace('{src}', (vs30.provenance && (vs30.provenance.label || vs30.provenance.source)) || vs30Token)
+            .replace('{m}', pkg.stations.length - vs30Applied)
+        : t('region.st_note').replace('{n}', pkg.stations.length);
     }
     if (typeof drawFrame === 'function') drawFrame();
   }).catch(function (e) {
@@ -4301,6 +4324,10 @@ function startCountdown() {
 function startSimulation() {
   if (!epicenter || isRunning) return;
   isRunning = true;
+  // v6.4 lazy scripts: prefetch the waveform-analysis engine so the end-of-run
+  // report snapshot usually finds it ready (fire-and-forget; the capture path
+  // keeps its honest absent-module guard).
+  if (typeof WaveAnalysis === 'undefined') _ensureScript('WaveAnalysis', 'waveform-analysis');
   // A stale pause must never leak into the next run (pause → Reset → Start
   // used to leave the new sim frozen at t=0 with the glyph still on ⏯).
   isPaused = false;
@@ -7109,8 +7136,18 @@ function _openReportPage() {
     out.innerHTML = html;
   }
 
-  btn.addEventListener('click', function () { refreshStations(); run(); });
-  sel.addEventListener('change', run);
+  btn.addEventListener('click', function () {
+    // v6.4 lazy scripts: the analysis engine loads on demand (also prefetched
+    // at sim start so end-of-run report capture usually finds it ready).
+    _ensureScript('WaveAnalysis', 'waveform-analysis').then(function (ok) {
+      refreshStations();
+      if (!ok) { out.innerHTML = '<div class="wfa-note">' + escapeHTML(t('info.wfa_fail', '分析失败')) + '</div>'; return; }
+      run();
+    });
+  });
+  sel.addEventListener('change', function () {
+    _ensureScript('WaveAnalysis', 'waveform-analysis').then(function (ok) { if (ok) run(); });
+  });
   // populate once on load (deferred to first paint)
   setTimeout(refreshStations, 800);
 })();
@@ -7409,7 +7446,18 @@ function applyPresetSelection(value){
   strikeSlider.value = p.strike; document.getElementById('strike-num').value = p.strike; strikeVal.textContent = p.strike+'°';
   // A preset with a bundled observed finite-fault model (2011 Tohoku) activates
   // it here, overriding the slider-derived source parameters with the model's.
-  if (p.faultModel) _activatePresetFaultModel(p.faultModel);
+  // v6.4 lazy scripts: the 708KB model libraries load on demand — kick the
+  // load and re-activate on arrival (same-preset guarded) instead of silently
+  // skipping when the user starts before they land.
+  if (p.faultModel) {
+    if (typeof ObservedFaultModels === 'undefined' || typeof FiniteFault === 'undefined') {
+      _ensureFaultModelLibs().then(function (ok) {
+        if (ok && currentPreset === value) _activatePresetFaultModel(p.faultModel);
+      });
+    } else {
+      _activatePresetFaultModel(p.faultModel);
+    }
+  }
   map.setView([p.lat, p.lng], 7);
   updateEpicenterInfo();
   if (typeof FiniteFaultEditor !== 'undefined' && FiniteFaultEditor.updateVisibility) FiniteFaultEditor.updateVisibility();
@@ -7514,9 +7562,13 @@ if (vs30Checkbox) vs30Checkbox.addEventListener('change', function() { _vs30Show
   input.addEventListener('change',function(){
     var file=input.files&&input.files[0];if(!file)return;
     var reader=new FileReader();reader.onload=function(){
-      try{
-        if(/\.json$/i.test(file.name)||/^\s*\{/.test(String(reader.result||''))){
-          if(typeof WaveformData==='undefined')throw new Error('waveform package parser unavailable');
+      // v6.4 lazy scripts: the JSON waveform-package parser loads on demand.
+      var parseJson=/\.json$/i.test(file.name)||/^\s*\{/.test(String(reader.result||''));
+      var ready=parseJson?_ensureScript('WaveformData','waveform-data'):Promise.resolve(true);
+      ready.then(function(ok){
+        if(!ok){output.textContent=t('info.observed_3c_error')+': waveform parser unavailable';return;}
+        try{
+        if(parseJson){
           var payload=JSON.parse(String(reader.result||'')),validation=WaveformData.validate(payload);
           if(!validation.valid)throw new Error(validation.errors.join(', '));
           showResult(WaveformData.toObservedMotion(payload),validation);return;
@@ -7531,13 +7583,17 @@ if (vs30Checkbox) vs30Checkbox.addEventListener('change', function() { _vs30Show
         if(times.length>2){var duration=times[times.length-1]-times[0];if(duration>0)rate=(times.length-1)/duration;}
         showResult({sampleRate:rate,components:{x:x,y:y,z:z},source:file.name},{researchReady:false});
       }catch(e){output.textContent=t('info.observed_3c_error')+': '+e.message;}
+      });
     };reader.readAsText(file);
   });
   // Bundled frozen K-NET/KiK-net waveform packages (frozen by
   // tools/fetch-kyoshin-waveforms.js with a registered NIED account).
   var pkgEvent=document.getElementById('observed-pkg-event'),pkgStation=document.getElementById('observed-pkg-station');
   var pkgRow=document.getElementById('observed-pkg-row'),pkgLoad=document.getElementById('observed-pkg-load');
-  if(typeof StrongMotionWaveforms!=='undefined'&&pkgEvent&&pkgStation){
+  // v6.4 lazy scripts: the frozen K-NET/KiK-net package browser (StrongMotion
+  // Waveforms + its WaveformData dependency) loads on demand — wiring is
+  // extracted so a first-touch card interaction can load-then-wire.
+  function wireObservedPackages(){
     var pkgCache=Object.create(null);
     StrongMotionWaveforms.fetchBundledIndex().then(function(idx){
       if(!idx.valid||!idx.events.length)return; // bundled directory absent/empty: keep the manual import only
@@ -7579,6 +7635,14 @@ if (vs30Checkbox) vs30Checkbox.addEventListener('change', function() { _vs30Show
       });
     }).catch(function(){/* offline or not bundled: manual import stays */});
   }
+  if(typeof StrongMotionWaveforms!=='undefined'&&pkgEvent&&pkgStation){
+    wireObservedPackages();
+  } else if (pkgEvent) {
+    var pkgCard=pkgEvent.closest('details')||pkgEvent.closest('.info-card');
+    if(pkgCard)pkgCard.addEventListener('pointerdown',function(){
+      _ensureScript('WaveformData','waveform-data').then(function(){return _ensureScript('StrongMotionWaveforms','strong-motion-waveforms');}).then(function(ok){if(ok)wireObservedPackages();});
+    },{once:true});
+  }
 })();
 // Import a verified single grid or a deployed multi-resolution package. The
 // selected terrain is immediately reused by tsunami physics and map layers.
@@ -7616,7 +7680,12 @@ if (vs30Checkbox) vs30Checkbox.addEventListener('change', function() { _vs30Show
   var input=document.getElementById('strong-motion-event-file'),output=document.getElementById('strong-motion-event-result');
   if(!input||!output)return;
   input.addEventListener('change',function(){
-    var file=input.files&&input.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(){
+    var file=input.files&&input.files[0];if(!file)return;
+    // v6.4 lazy scripts: StrongMotionData (+ its WaveformData dependency)
+    // load on demand; the file read gates on them.
+    _ensureScript('WaveformData','waveform-data').then(function(){return _ensureScript('StrongMotionData','strong-motion-data');}).then(function(ok){
+      if(!ok){_strongMotionPackageReady=false;_updateResearchDataCertification();output.textContent=t('info.strong_motion_error')+': strong-motion library unavailable';return;}
+      var reader=new FileReader();reader.onload=function(){
       try{
         var payload=JSON.parse(String(reader.result||'')),validation=StrongMotionData.validate(payload);
         if(!validation.valid)throw new Error(validation.errors.join(', '));
@@ -7628,6 +7697,7 @@ if (vs30Checkbox) vs30Checkbox.addEventListener('change', function() { _vs30Show
           +'<span>D5-95 '+maxDuration.toFixed(2)+' s · '+escapeHTML(validation.researchReady?t('info.waveform_research_ready'):t('info.waveform_not_certified'))+'</span>';
       }catch(e){_strongMotionPackageReady=false;_updateResearchDataCertification();output.textContent=t('info.strong_motion_error')+': '+e.message;}
     };reader.readAsText(file);
+      });
   });
 })();
 // Compare imported simulation results against the frozen historical tsunami
@@ -7674,9 +7744,13 @@ if (vs30Checkbox) vs30Checkbox.addEventListener('change', function() { _vs30Show
 // Import an observed moment tensor and use it as the authoritative mechanism.
 (function initMomentTensorImport(){
   var input=document.getElementById('moment-tensor-file'), out=document.getElementById('moment-tensor-result');
-  if(!input||!out||typeof MomentTensor==='undefined') return;
+  // v6.4 lazy scripts: MomentTensor loads on demand — the wiring must not
+  // depend on the module at boot; the file read gates on it below.
+  if(!input||!out) return;
   input.addEventListener('change',function(){
     var file=input.files&&input.files[0]; if(!file)return;
+    _ensureScript('MomentTensor','moment-tensor').then(function(ok){
+      if(!ok){out.textContent='Import error: moment-tensor library unavailable';return;}
     var reader=new FileReader(); reader.onload=function(){
       try {
         var raw=String(reader.result||''), parsed=MomentTensor.parse(raw,{source:file.name});
@@ -7706,6 +7780,7 @@ if (vs30Checkbox) vs30Checkbox.addEventListener('change', function() { _vs30Show
         updateSimulationSummary();
       } catch(e) { _observedMomentTensor=null; _observedFaultPlaneSelection=null; out.textContent='Import error: '+e.message; }
     }; reader.readAsText(file);
+    });
   });
 })();
 function _finiteFaultWarningLabel(code){
@@ -7754,6 +7829,16 @@ function _deactivateObservedFiniteFault(reason){
 // 2011 Tohoku Hayes 2017 model). Mirrors the manual import "use" flow but
 // keeps currentPreset intact so validation and bulletins stay preset-aware.
 var _presetFaultModelCache = {};
+// v6.4 lazy scripts: resolve the bundled-model libraries on demand (both are
+// required by the preset and import flows below). Resolves false on failure
+// so callers keep their existing honest "model unavailable" behavior.
+function _ensureFaultModelLibs() {
+  if (typeof ObservedFaultModels !== 'undefined' && typeof FiniteFault !== 'undefined') return Promise.resolve(true);
+  return Promise.all([
+    _ensureScript('ObservedFaultModels', 'observed-fault-models'),
+    _ensureScript('FiniteFault', 'finite-fault')
+  ]).then(function (r) { return r[0] && r[1]; });
+}
 // Resolve a bundled observed/scenario fault model by id for chain sub-events
 // (shared cache with _activatePresetFaultModel; returns null when missing).
 function _chainFaultModel(id){
@@ -7804,7 +7889,9 @@ function _activatePresetFaultModel(id){
 // authoritative source shared by Rrup, rupture animation, tsunami and 3-D.
 (function initFiniteFaultImport(){
   var input=document.getElementById('finite-fault-file'),useButton=document.getElementById('finite-fault-use'),clearButton=document.getElementById('finite-fault-clear');
-  if(!input||typeof FiniteFault==='undefined')return;
+  // v6.4 lazy scripts: FiniteFault loads on demand — the card wiring must not
+  // depend on the module being present at boot; parseCurrent gates on it.
+  if(!input)return;
   var rawText='',fileName='';
   function provenance(){
     var out={},source=(document.getElementById('finite-fault-source')||{}).value,url=(document.getElementById('finite-fault-url')||{}).value,license=(document.getElementById('finite-fault-license')||{}).value;
@@ -7812,10 +7899,13 @@ function _activatePresetFaultModel(id){
   }
   function parseCurrent(){
     if(!rawText)return;
-    try{
-      _pendingFiniteFault=FiniteFault.parse(rawText,{provenance:provenance()});
-      _renderFiniteFaultImport(_pendingFiniteFault,null);
-    }catch(error){_pendingFiniteFault=null;_renderFiniteFaultImport(null,error.message);}
+    _ensureFaultModelLibs().then(function(ok){
+      if(!ok){_pendingFiniteFault=null;_renderFiniteFaultImport(null,'model libraries unavailable (lazy load failed)');return;}
+      try{
+        _pendingFiniteFault=FiniteFault.parse(rawText,{provenance:provenance()});
+        _renderFiniteFaultImport(_pendingFiniteFault,null);
+      }catch(error){_pendingFiniteFault=null;_renderFiniteFaultImport(null,error.message);}
+    });
   }
   input.addEventListener('change',function(){var file=input.files&&input.files[0];if(!file)return;fileName=file.name;var reader=new FileReader();reader.onload=function(){rawText=String(reader.result||'');parseCurrent();};reader.readAsText(file);});
   // v6.2 tier-2 pipeline: bundled dynamic-rupture models (lazy registry fetch —
@@ -9726,7 +9816,7 @@ async function init() {
   initMobileToggle();
   // Register service worker for offline PWA support (non-critical)
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js?v=490974').catch(function(e) {
+    navigator.serviceWorker.register('sw.js?v=719833').catch(function(e) {
       console.warn('SW registration failed (non-critical):', e);
     });
   }

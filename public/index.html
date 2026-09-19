@@ -27,10 +27,10 @@
 <link rel="stylesheet" href="leaflet/leaflet.css?v=f885c4">
 <link rel="stylesheet" href="style.css?v=6fd405">
 <link rel="preload" href="leaflet/leaflet.js?v=5a640f" as="script">
-<link rel="preload" href="app.js?v=c7a095" as="script">
+<link rel="preload" href="app.js?v=46d874" as="script">
 <link rel="preload" href="style.css?v=6fd405" as="style">
 <link rel="preload" href="config.js?v=6c74f8" as="script">
-<link rel="preload" href="physics.js?v=41c299" as="script">
+<link rel="preload" href="physics.js?v=78b00b" as="script">
 </head>
 <body>
 <a href="#map" class="skip-link" data-i18n="aria.skip">跳转到内容</a>
@@ -38,7 +38,7 @@
   <div id="sidebar" role="complementary" aria-label="控制面板">
     <div id="sidebar-header">
       <h1 data-i18n="app.title">日本地震模拟器 v6.4</h1>
-      <div id="build-ver" style="font-size:.65em;color:var(--text-secondary);opacity:.5;margin-top:-2px" data-sw="sw.js=v490974">(······)</div>
+      <div id="build-ver" style="font-size:.65em;color:var(--text-secondary);opacity:.5;margin-top:-2px" data-sw="sw.js=v719833">(······)</div>
       <button id="btn-report-page" class="report-entry-btn" type="button" data-i18n="report.entry_btn">📋 体验报告</button>
       <button id="btn-guide-page" class="report-entry-btn" type="button" data-i18n="guide.entry_btn">🧭 使用说明</button>
       <button id="btn-help" class="help-link" type="button" data-i18n="help.title">使用帮助</button>
@@ -748,21 +748,13 @@
 <script src="research.js?v=d9aad6"></script>
 <script src="data-catalog.js?v=bee20f"></script>
 <script src="grid-package.js?v=865d26"></script>
-<script src="i18n.js?v=dddb8e"></script>
+<script src="i18n.js?v=f3829a"></script>
 <script src="dc3d.js?v=2865dd"></script>
-<script src="physics.js?v=41c299"></script>
+<script src="physics.js?v=78b00b"></script>
 
-<script src="waveform-analysis.js?v=c86267"></script>
 <script src="tsunami-solver-host.js?v=2432a8"></script>
 <script src="ensemble-solver-host.js?v=153d61"></script>
-<script src="reference-backend.js?v=3ead82"></script>
-<script src="waveform-data.js?v=27c01f"></script>
-<script src="strong-motion-waveforms.js?v=4ab568"></script>
-<script src="strong-motion-data.js?v=f345d3"></script>
 <script src="tsunami-validation.js?v=45a850"></script>
-<script src="moment-tensor.js?v=3f7583"></script>
-<script src="finite-fault.js?v=a1f2c7"></script>
-<script src="observed-fault-models.js?v=c07cb6"></script>
 <script src="audio.js?v=228004"></script>
 <script src="settings.js?v=a47ebe"></script>
 <script src="tts-text-builder.js?v=06c065"></script>
@@ -777,7 +769,7 @@ window._loadThreeJS = function(cb) {
   if (cb) _threeCallbacks.push(cb);
   if (_threeLoading) return;
   _threeLoading = true;
-  var scripts = ['three.min.js','OrbitControls.js?v=c40487','quake3d.js?v=25f632'];
+  var scripts = ['three.min.js?v=ccabb6','OrbitControls.js?v=c40487','quake3d.js?v=25f632'];
   var index = 0;
   function finish(err) {
     _threeLoading = false;
@@ -796,6 +788,46 @@ window._loadThreeJS = function(cb) {
     document.head.appendChild(s);
   }
   loadNext();
+};
+// v6.4 lazy-script round 1: research/fault-import modules (~775KB) off the
+// boot path — observed-fault-models(708KB)/finite-fault load at their preset
+// and import-card entries, analysis tools at their card buttons. Each loads
+// once; the SW fetch handler runtime-caches same-origin ?v= assets, so the
+// offline contract survives (available after first use).
+window._loadScript = function(src) {
+  if (!window._loadScriptCache) window._loadScriptCache = {};
+  var cache = window._loadScriptCache;
+  if (!cache[src]) {
+    cache[src] = new Promise(function(resolve, reject) {
+      var s = document.createElement('script');
+      s.src = src; s.async = false;
+      s.onload = function() { resolve(); };
+      s.onerror = function() { s.remove(); delete cache[src]; reject(new Error('Failed to load ' + src)); };
+      document.head.appendChild(s);
+    });
+  }
+  return cache[src];
+};
+// key -> versioned URL. Single-quoted inline versioned URLs so
+// tools/bump-versions.js stage 2.5 syncs these like src= attributes.
+window.LAZY_SCRIPTS = {
+  'observed-fault-models': 'observed-fault-models.js?v=c07cb6',
+  'finite-fault': 'finite-fault.js?v=a1f2c7',
+  'waveform-analysis': 'waveform-analysis.js?v=c86267',
+  'moment-tensor': 'moment-tensor.js?v=3f7583',
+  'waveform-data': 'waveform-data.js?v=27c01f',
+  'strong-motion-data': 'strong-motion-data.js?v=f345d3',
+  'strong-motion-waveforms': 'strong-motion-waveforms.js?v=4ab568'
+};
+// Resolve a lazy module by its browser global; resolves false when the
+// manifest lacks the key or the load fails (callers keep honest degrades).
+window._ensureScript = function(globalName, key) {
+  if (typeof window[globalName] !== 'undefined') return Promise.resolve(true);
+  var url = window.LAZY_SCRIPTS && window.LAZY_SCRIPTS[key];
+  if (!url) return Promise.resolve(false);
+  return window._loadScript(url)
+    .then(function() { return typeof window[globalName] !== 'undefined'; })
+    .catch(function() { return false; });
 };
 </script>
 <div id="settings-overlay" class="help-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="settings-dialog-title">
@@ -849,7 +881,7 @@ window._loadThreeJS = function(cb) {
     </div>
   </div>
 </div>
-<script src="app.js?v=c7a095"></script>
+<script src="app.js?v=46d874"></script>
 <script src="aftershock.js?v=e29837"></script>
 <script src="rt-data.js?v=6780e5"></script>
 <script src="rt-kmoni.js?v=b581c5"></script>

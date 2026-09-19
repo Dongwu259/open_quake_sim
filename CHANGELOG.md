@@ -2,7 +2,18 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/) where practical.
 
-## [Unreleased] — 全球真实台站测站化 + 12级烈度播报
+## [Unreleased] — 资源懒加载 + 加州 Vs30 真实网格
+
+同步自上游 quake_sim（v6.4 懒加载批 + 加州 Vs30 批）：
+
+### Added
+- **加州 Vs30 真实网格**：Yong et al. (2014, BSSA 104(5), USGS public domain) 7.5 角秒加州 Vs30 图重采样为 0.025° 包——6,232 个真实台站中 94.1% 直接取得真实场地 Vs30（双线性采样，水域/出界格点诚实回退 500 m/s 估计并计数标注），台站弹窗显示数据来源
+- **懒加载基建**：`_loadScript` + `LAZY_SCRIPTS` 版本清单 + `_ensureScript` 按需加载器
+
+### Changed
+- **首屏脚本瘦身 ~775KB**：observed-fault-models(708KB)/finite-fault/waveform-analysis/moment-tensor/waveform-data/strong-motion-data/waveforms 移出启动路径——预设断层模型、有限断层/矩张量/强震动导入、波形分析等入口按需加载（模块缺席时诚实降级，绝不静默假数据）；Service Worker 预缓存同步瘦身（首次取用后运行时缓存，离线契约保持）
+- reference-backend.js 不再是页面脚本（仅 node 测试使用）
+ — 全球真实台站测站化 + 12级烈度播报
 
 同步自上游 quake_sim（全球真实台站+12级烈度批）：
 

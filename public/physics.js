@@ -3562,6 +3562,34 @@ Physics.convertIntensity = function(shindo, scale) {
   return shindo;
 };
 
+// v6.4 region Vs30: bilinear sample of a quake-sim-region-vs30-v1 package
+// (built per region, e.g. California from Yong et al. 2014). Corners coded
+// nodata (0, offshore/water) drop out of the bilinear blend with renormalized
+// weights; an all-nodata footprint or an out-of-grid point returns null — the
+// caller keeps its honest 500 m/s default-estimate fallback. Exported pure
+// for node tests.
+Physics.regionVs30Sample = function (pack, lat, lng) {
+  if (!pack || pack._schema !== 'quake-sim-region-vs30-v1' || !pack.data) return null;
+  var nx = pack.nx | 0, ny = pack.ny | 0, res = +pack.res;
+  if (!nx || !ny || !(res > 0)) return null;
+  var data = pack.data, lat0 = +pack.origin[1], lng0 = +pack.origin[0];
+  var fx = (lng - lng0) / res, fy = (lat - lat0) / res;
+  if (!isFinite(fx) || !isFinite(fy)) return null;
+  var x0 = Math.floor(fx), y0 = Math.floor(fy);
+  if (x0 < 0 || y0 < 0 || x0 + 1 >= nx || y0 + 1 >= ny) return null;
+  var tx = fx - x0, ty = fy - y0;
+  var i00 = y0 * nx + x0, i10 = i00 + 1, i01 = i00 + nx, i11 = i01 + 1;
+  var w00 = (1 - tx) * (1 - ty), w10 = tx * (1 - ty), w01 = (1 - tx) * ty, w11 = tx * ty;
+  var sum = 0, wsum = 0;
+  var corners = [[i00, w00], [i10, w10], [i01, w01], [i11, w11]];
+  for (var k = 0; k < 4; k++) {
+    var v = data[corners[k][0]];
+    if (v != null && v > 0 && isFinite(v)) { sum += v * corners[k][1]; wsum += corners[k][1]; }
+  }
+  if (wsum <= 0) return null;
+  return Math.round((sum / wsum) * 10) / 10;
+};
+
 // ================================================================
 //  FAULT SCALING (Wells & Coppersmith / Strasser et al.)
 // ================================================================

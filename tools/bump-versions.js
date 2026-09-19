@@ -4,6 +4,9 @@
 //
 //  1. Rewrites every ?v=N in public/index.html to the first 6 hex chars
 //     of the asset's SHA-1, so the version changes iff the content changes.
+//     Covers src=/href= attributes AND single-quoted inline-script strings
+//     (lazy-loader URLs in the _loadThreeJS array and LAZY_SCRIPTS manifest;
+//     sw.js registration strings excluded — they carry the numeric SW version).
 //  2. Derives the service-worker version from sw.js content and syncs it
 //     across the three markers that must agree (checked by
 //     tools/validate-release.js):
@@ -94,7 +97,13 @@ const swMarkers = [
   {
     name: 'index.html data-sw marker', file: 'index.html',
     test: () => DATA_RE.test(html),
-    apply: () => { html = html.replace(DATA_RE, '$1' + swNum + '$2'); }
+    apply: () => {
+      html = html.replace(DATA_RE, '$1' + swNum + '$2');
+      // Stage immediately: the stage-2 src=/href= pass reads index.html via
+      // contentOf(), which must see the data-sw fix or the two stages will
+      // fight (the loser's content silently reverts the winner's rewrite).
+      staged['index.html'] = html;
+    }
   }
 ];
 
@@ -140,9 +149,31 @@ for (const hf of HTML_FILES) {
 if (bumped.length) {
   for (const b of bumped) recordChange(b.html, `?v= ${b.file}: ${b.old} -> ${b.neu}`);
 }
-// index.html is written whenever it diverges from disk (moved data-sw marker
-// or bumped ?v= strings).
-if (html !== fs.readFileSync(INDEX, 'utf8')) staged['index.html'] = html;
+
+// ---- Stage 2.5: inline-script ?v= sync (single-quoted JS strings) ----
+// Lazy-loaded scripts (_loadThreeJS array, LAZY_SCRIPTS manifest) live in
+// inline <script> blocks where no src= attribute exists. Any single-quoted
+// 'rel.js?v=hex' string in index.html whose file exists is synced exactly
+// like a src= version, so lazy URLs can never go stale. sw.js is skipped —
+// its registration string carries the numeric SW version, not a hash.
+const INLINE_RE = /'([A-Za-z0-9_\-./]+\.js)\?v=([0-9a-fA-F]*)'/g;
+{
+  const before = contentOf('index.html');
+  const after = before.replace(INLINE_RE, (full, rel, oldV) => {
+    if (rel === 'sw.js') return full;
+    const h = hashOf(rel);
+    if (!h) return full; // file missing — leave version untouched
+    if (h === oldV) return full;
+    recordChange('index.html', `inline ?v= ${rel}: ${oldV} -> ${h}`);
+    return "'" + rel + '?v=' + h + "'";
+  });
+  if (after !== before) staged['index.html'] = after;
+}
+// index.html is written whenever it diverges from disk — but an already-staged
+// version (data-sw marker + src=/href= passes above) always wins; writing the
+// stage-1 `html` here would revert those rewrites.
+if (!Object.prototype.hasOwnProperty.call(staged, 'index.html') &&
+    html !== fs.readFileSync(INDEX, 'utf8')) staged['index.html'] = html;
 
 // ---- Report ----
 const prefix = (dryRun ? '[DRY-RUN] ' : '') + (checkMode ? '[CHECK] ' : '');

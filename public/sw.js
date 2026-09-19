@@ -2,11 +2,16 @@
 //  QuakeSim Service Worker — PWA shell (v5.6, cache-first)
 //  Bump CACHE_VERSION when changing SW behavior to purge old caches.
 // ============================================================
-var CACHE_VERSION = 'qs-cache-v490974';
+var CACHE_VERSION = 'qs-cache-v719833';
 var CORE_CACHE    = CACHE_VERSION + '-core';
 
 // v4.2: Slim precache — app shell + critical JS/CSS only.
 // Three.js, OrbitControls, quake3d.js are lazy-loaded on demand.
+// v6.4: observed-fault-models + finite-fault + the analysis/research import
+// modules (waveform-analysis, moment-tensor, waveform-data, strong-motion-*)
+// load on demand via window._ensureScript and are runtime-cached by the fetch
+// handler (same-origin ?v= assets) — offline after first use. reference-backend
+// left unlisted (node-test-only module, no longer a boot script at all).
 var PRECACHE_URLS = [
   './',
   'index.html',
@@ -16,24 +21,16 @@ var PRECACHE_URLS = [
   'style.css',
   'app.js',
   'physics.js',
-  'waveform-analysis.js',
   'dc3d.js',
-  'reference-backend.js',
-  'waveform-data.js',
-  'strong-motion-waveforms.js',
   'sim-utils.js',
   'research.js',
   'data-catalog.js',
   'grid-package.js',
-  'strong-motion-data.js',
   'tsunami-validation.js',
   'tsunami-solver-host.js',
   'tsunami-worker.js',
   'ensemble-solver-host.js',
   'ensemble-worker.js',
-  'moment-tensor.js',
-  'finite-fault.js',
-  'observed-fault-models.js',
   'audio.js',
   'tts-text-builder.js',
   'srev-announcer.js',
