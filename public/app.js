@@ -297,6 +297,8 @@ var _subareaBBoxes = null;          // cached bboxes matching _subareaGeoData.fe
 var _subareaForecast = {};          // {areaName: {id, nam, nam_ja, shindo}} — subdivision GMPE forecast
 var _liveAreaColors = {};           // {areaName: shindoString} — current subdivision display colors
 var _liveAreaShindos = {};          // {areaName: shindoString} — observed subdivision maxima
+var _liveRegionColors = {};         // {areaName: shindoString} — region-mode (e.g. CA county) display colors
+var _liveRegionShindos = {};        // {areaName: shindoString} — region-mode observed maxima
 var _lastPrefUpdateSec = -1;        // last sim-second when live prefecture layer was updated
 var _detectEEWTriggered = false;      // one-shot: EEW triggered from detection (detect mode only)
 // Final Bulletin state (after all stations quiet)
@@ -607,7 +609,7 @@ function rebuildLayerControl() {
 // -- Global region mode (pilot, test-flagged): lazily loads a world basemap and
 // a region pack (stations/presets) behind the #global-mode checkbox. Japan
 // flows are byte-identical while it is off; pack = region-california.json.
-var REGION_STATE = { active: null, pack: null, savedStations: null, presetIds: [], realStations: null };
+var REGION_STATE = { active: null, pack: null, savedStations: null, presetIds: [], realStations: null, areas: null };
 // World basemap sources, probed in order at first enable. Not every network can
 // reach every provider (tile.openstreetmap.org is unreachable from some CN
 // networks), so the first source whose test tile loads wins and is remembered.
@@ -815,6 +817,10 @@ function regionActivate(pack) {
   // triangle layer appears behind #show-all-stations once it lands (honest
   // failure note otherwise - never silently empty).
   _regionLoadRealStations(pack);
+  // Area boundaries (e.g. CA counties): the JMA prefecture/subdivision
+  // equivalents that drive the live shindo coloring + the area forecast
+  // table. Optional - absent/failed package means no coloring (honest).
+  _regionLoadAreas(pack);
   // World basemap: probe sources on first run (async), then finish activation.
   regionEnsureGlobalBase(function () {
     if (REGION_STATE.active !== pack.id) return; // unchecked while probing
@@ -851,7 +857,45 @@ function regionDeactivate() {
   var row = document.getElementById('region-row');
   if (row) row.style.display = 'none';
   if (REGION_STATE.realStations) _regionUnloadRealStations();
+  _regionUnloadAreas();
   REGION_STATE.active = null; REGION_STATE.pack = null;
+}
+
+// -- Region area boundaries (v6.4): county/prefecture-equivalent polygons --
+// Loaded per region from geojson/region-counties-<rid>.json
+// (quake-sim-region-areas-v1). They become the top-priority source of the
+// live shindo coloring layer and the area forecast table in region mode.
+var _regionAreaCentroids = null;  // [{id, nam, nam_ja, lat, lng}] for _predictPrefectureShindosFor
+var _regionAreaBBoxes = null;
+var _regionAreaForecast = {};     // {areaName: {id, nam, nam_ja, shindo, i, lpgm}}
+function _regionLoadAreas(pack) {
+  var rid = pack.id;
+  REGION_STATE.areas = null;
+  fetch('/geojson/region-counties-' + rid + '.json').then(function (r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  }).then(function (pkg) {
+    if (REGION_STATE.active !== rid) return; // unchecked while loading
+    if (!pkg || pkg._schema !== 'quake-sim-region-areas-v1' || !pkg.areas || !pkg.areas.features || !pkg.areas.features.length) {
+      throw new Error('bad region areas package');
+    }
+    REGION_STATE.areas = pkg.areas;
+    _regionAreaBBoxes = pkg.areas.features.map(function (f) { return turf.bbox(f); });
+    _regionAreaCentroids = pkg.areas.features.map(function (f) {
+      var c = turf.centroid(f);
+      return { id: f.properties.name, nam: f.properties.name, nam_ja: null,
+               lat: c.geometry.coordinates[1], lng: c.geometry.coordinates[0] };
+    });
+    console.log('region areas loaded: ' + pkg.areas.features.length + ' (' + (pkg.unit || 'area') + ')');
+  }).catch(function (e) {
+    console.warn('region areas load failed (no live area coloring):', e.message);
+    REGION_STATE.areas = null; _regionAreaCentroids = null;
+  });
+}
+function _regionUnloadAreas() {
+  REGION_STATE.areas = null;
+  _regionAreaCentroids = null; _regionAreaBBoxes = null;
+  _regionAreaForecast = {}; _liveRegionColors = {}; _liveRegionShindos = {};
 }
 var globalModeEl = document.getElementById('global-mode');
 if (globalModeEl) globalModeEl.addEventListener('change', function () {
