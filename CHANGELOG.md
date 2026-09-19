@@ -2,7 +2,19 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/) where practical.
 
-## [Unreleased] — 资源懒加载 + 加州 Vs30 真实网格
+## [Unreleased] — 县级速报 + 地图涂色 + 烈度尺度快捷切换
+
+同步自上游 quake_sim（v6.4 区域面积批）：
+
+### Added
+- **加州县级边界包**：USGS cb_2018 20m 公版 58 县（71KB）——全球模式下的都道府县等价物
+- **县级震度速报与地图涂色**：`_areaLayerSource()` 三层优先（区域县 > JMA 细分区 > 都道府县）——区域模式Live 涂色、县级 GMPE 预测（质心无关引擎）与观测聚合（turf 点在多边形）、「区域预测震度」表（县 / ±1σ / 长周期列，与都道府县表同构）；无面积包的区域诚实隐藏
+- **烈度尺度快捷切换**：显示偏好面板新增「显示烈度尺度」下拉（日本气象厅震度 / MMI / EMS-98 / 中国烈度），与高级面板同键联动
+
+### Fixed
+- 重复设置行（快捷切换 vs 高级面板）数值互相同步
+- 区域预报卡标题在回到日本模式后正确还原
+ — 资源懒加载 + 加州 Vs30 真实网格
 
 同步自上游 quake_sim（v6.4 懒加载批 + 加州 Vs30 批）：
 

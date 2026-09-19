@@ -27,7 +27,7 @@
 <link rel="stylesheet" href="leaflet/leaflet.css?v=f885c4">
 <link rel="stylesheet" href="style.css?v=6fd405">
 <link rel="preload" href="leaflet/leaflet.js?v=5a640f" as="script">
-<link rel="preload" href="app.js?v=46d874" as="script">
+<link rel="preload" href="app.js?v=27c5a9" as="script">
 <link rel="preload" href="style.css?v=6fd405" as="style">
 <link rel="preload" href="config.js?v=6c74f8" as="script">
 <link rel="preload" href="physics.js?v=78b00b" as="script">
@@ -222,6 +222,7 @@
             <label class="switch-row"><input type="checkbox" id="perf-mode"><span class="switch-ui"></span><span data-i18n="perf.mode">性能优先（卡顿时启用）</span></label>
             <label class="switch-row"><input type="checkbox" id="reduce-motion"><span class="switch-ui"></span><span data-i18n="reduce.motion">减轻动效</span></label>
             <div id="ui-scale-row" class="ui-scale-control"><span data-i18n="ui.scale">UI缩放</span><input type="range" id="ui-scale-slider" min="80" max="150" value="100" step="5"><span id="ui-scale-val">100%</span></div>
+            <div class="adv-row" data-cfg="intensityScale"><span data-i18n="adv.intensityScale">显示烈度尺度</span><select></select><span class="adv-val"></span><button class="adv-rst" type="button">&#8634;</button></div>
           </div>
         </details>
 
@@ -426,7 +427,7 @@
             </div>
           </details>
           <details class="info-card" id="pref-forecast-card" style="display:none" open>
-            <summary><span data-i18n="info.pref_forecast">都道府县预测震度</span></summary>
+            <summary><span data-i18n="info.pref_forecast" id="pref-forecast-title">都道府县预测震度</span></summary>
             <div class="info-card-body">
               <div id="pref-forecast-table"></div>
             </div>
@@ -748,7 +749,7 @@
 <script src="research.js?v=d9aad6"></script>
 <script src="data-catalog.js?v=bee20f"></script>
 <script src="grid-package.js?v=865d26"></script>
-<script src="i18n.js?v=f3829a"></script>
+<script src="i18n.js?v=eb63b0"></script>
 <script src="dc3d.js?v=2865dd"></script>
 <script src="physics.js?v=78b00b"></script>
 
@@ -881,7 +882,7 @@ window._ensureScript = function(globalName, key) {
     </div>
   </div>
 </div>
-<script src="app.js?v=46d874"></script>
+<script src="app.js?v=27c5a9"></script>
 <script src="aftershock.js?v=e29837"></script>
 <script src="rt-data.js?v=6780e5"></script>
 <script src="rt-kmoni.js?v=b581c5"></script>

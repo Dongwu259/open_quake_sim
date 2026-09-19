@@ -4241,6 +4241,7 @@ function startCountdown() {
   if (!detectMode) {
     _predictedPrefectureShindos = _predictPrefectureShindos();
     _subareaForecast = _predictSubareaShindos();
+    _regionAreaForecast = _predictRegionAreaShindos();
     _updateSubareaUncertainty();
     _predictedMaxShindo = 0;
     for (var pid in _predictedPrefectureShindos) {
@@ -4253,8 +4254,10 @@ function startCountdown() {
     _eewWarranted = Physics.shindoNum(_predictedMaxShindo) >= Physics.shindoNum('5-');
   } else {
     // Detect mode: wait for station P-wave detections → _checkDetectEEW()
+    // (region-area detect forecast stays empty too - observed coloring only)
     _predictedPrefectureShindos = {};
     _subareaForecast = {};
+    _regionAreaForecast = {};
     _predictedMaxShindo = 0;
     _predictedMaxShindoI = -1;
     _eewWarranted = false;
@@ -6215,18 +6218,40 @@ function _shindoFillAlpha(sh, observed) {
   return n >= Physics.shindoNum('6-') ? 0.07 : 0.10;
 }
 
+// v6.4 region areas: display granularity of the live coloring layer, in
+// priority order — region area boundaries (e.g. CA counties from
+// region-counties-<rid>.json) > JMA subdivisions > prefectures. Each source
+// carries its own geo/keyProp/forecast/colors/observed quadruple.
+var _liveAreaLayerMode = 'pref';
+function _liveColorsForMode(mode) {
+  return mode === 'region' ? _liveRegionColors : (mode === 'area' ? _liveAreaColors : _livePrefColors);
+}
+function _liveKeyPropForMode(mode) { return mode === 'pref' ? 'id' : 'name'; }
+function _areaLayerSource() {
+  if (REGION_STATE.active && REGION_STATE.areas && REGION_STATE.areas.features) {
+    return { mode: 'region', geo: REGION_STATE.areas, keyProp: 'name',
+             forecast: _regionAreaForecast, colors: _liveRegionColors, observed: _liveRegionShindos };
+  }
+  if (_subareaGeoData && _subareaGeoData.features) {
+    return { mode: 'area', geo: _subareaGeoData, keyProp: 'name',
+             forecast: _subareaForecast, colors: _liveAreaColors, observed: _liveAreaShindos };
+  }
+  if (_prefGeoData) {
+    return { mode: 'pref', geo: _prefGeoData, keyProp: 'id',
+             forecast: _predictedPrefectureShindos, colors: _livePrefColors, observed: _livePrefectureShindos };
+  }
+  return null;
+}
+
 function _initLivePrefLayer() {
   // Remove previous layer if any
   if (_livePrefLayer) { map.removeLayer(_livePrefLayer); _livePrefLayer = null; }
-  // Display granularity: JMA subdivisions when available, prefectures as fallback
-  var useAreas = !!(_subareaGeoData && _subareaGeoData.features);
-  var geo = useAreas ? _subareaGeoData : _prefGeoData;
-  if (!geo) return;
-  var keyProp = useAreas ? 'name' : 'id';
-  var forecast = useAreas ? _subareaForecast : _predictedPrefectureShindos;
-  // Rebuild the active color table (the layer's style fn reads the globals)
-  if (useAreas) { _liveAreaColors = {}; } else { _livePrefColors = {}; }
-  var colors = useAreas ? _liveAreaColors : _livePrefColors;
+  var src = _areaLayerSource();
+  if (!src) return;
+  _liveAreaLayerMode = src.mode;
+  var geo = src.geo, keyProp = src.keyProp, forecast = src.forecast;
+  var colors = src.colors;
+  for (var k in colors) delete colors[k]; // reset book in place (captured refs stay valid)
   // Initialize colors from forecast (only show Shindo >= 4)
   // Always init all features to 0 so _updateLivePrefLayer can fill from observations
   var feats = geo.features;
@@ -6235,11 +6260,12 @@ function _initLivePrefLayer() {
     var sh = forecast[pid].shindo;
     if (Physics.shindoNum(sh) >= Physics.shindoNum(4)) colors[pid] = sh;
   }
-  // Create persistent GeoJSON layer
+  // Create persistent GeoJSON layer (style reads the per-mode color book)
+  var modeAtInit = _liveAreaLayerMode;
   _livePrefLayer = L.geoJSON(geo, {
     style: function(feature) {
-      var cur = (_subareaGeoData && _subareaGeoData.features) ? _liveAreaColors : _livePrefColors;
-      var sh = cur[feature.properties[(_subareaGeoData && _subareaGeoData.features) ? 'name' : 'id']] || 0;
+      var cur = _liveColorsForMode(modeAtInit);
+      var sh = cur[feature.properties[_liveKeyPropForMode(modeAtInit)]] || 0;
       if (sh === 0 || sh === '0') return { fillOpacity: 0, color: 'transparent', weight: 0, interactive: false };
       var fill = SHINDO_FILL[sh] || '#888';
       // Forecast phase: band-scaled alpha; observation phase will increase
@@ -6254,13 +6280,13 @@ function _initLivePrefLayer() {
 // to forecast-only — calling it on every estimate refresh made observed
 // prefectures blink back to forecast colors once several tracks were active.
 function _applyForecastToLivePrefLayer() {
-  var useAreas = !!(_subareaGeoData && _subareaGeoData.features);
-  if (!useAreas && !_prefGeoData) return;
+  var src = _areaLayerSource();
+  if (!src) return;
   if (!_livePrefLayer) { _initLivePrefLayer(); return; }
-  var keyProp = useAreas ? 'name' : 'id';
-  var forecast = useAreas ? _subareaForecast : _predictedPrefectureShindos;
-  var colors = useAreas ? _liveAreaColors : _livePrefColors;
-  var observedBook = useAreas ? _liveAreaShindos : _livePrefectureShindos;
+  var keyProp = src.keyProp;
+  var forecast = src.forecast;
+  var colors = src.colors;
+  var observedBook = src.observed;
   var changed = false;
   for (var pid in forecast) {
     var sh = forecast[pid].shindo;
@@ -6282,24 +6308,27 @@ function _applyForecastToLivePrefLayer() {
     layer.setStyle(observed
       ? { fillColor: fill, fillOpacity: _shindoFillAlpha(sh, true), color: fill, weight: 1.2, opacity: 0.35 }
       : { fillColor: fill, fillOpacity: _shindoFillAlpha(sh, false), color: fill, weight: 1, opacity: 0.3 });
-    if (useAreas) _uncertaintyStyle(layer, pid);
+    if (src.mode === 'area') _uncertaintyStyle(layer, pid);
   });
 }
 
 function _updateLivePrefLayer() {
   if (!_livePrefLayer) return;
-  var useAreas = !!(_subareaGeoData && _subareaGeoData.features);
-  if (!useAreas && !_prefGeoData) return;
+  var src = _areaLayerSource();
+  if (!src) return;
   // Prefecture-level bookkeeping for reports/TTS stays prefecture-grained
+  // (empty in region mode - Japan prefecture data is not loaded there)
   var curPrefShindos = _computePrefectureShindos();
   for (var pid2 in curPrefShindos) {
     if (Physics.shindoNum(curPrefShindos[pid2]) > Physics.shindoNum(_livePrefectureShindos[pid2] || 0)) {
       _livePrefectureShindos[pid2] = curPrefShindos[pid2];
     }
   }
-  // Display colors aggregate at subdivision granularity when available
-  var cur = useAreas ? _computeSubareaShindos() : curPrefShindos;
-  var colors = useAreas ? _liveAreaColors : _livePrefColors;
+  // Display colors aggregate at the active granularity (region counties /
+  // subdivisions / prefectures)
+  var cur = (src.mode === 'region') ? _computeRegionAreaShindos()
+          : (src.mode === 'area') ? _computeSubareaShindos() : curPrefShindos;
+  var colors = src.colors;
   var changed = false;
   // Merge: keep max of predicted (forecast) and observed; only increase
   for (var pid in cur) {
@@ -6310,16 +6339,17 @@ function _updateLivePrefLayer() {
       changed = true;
     }
   }
-  if (useAreas) {
+  if (src.mode !== 'pref') {
+    var obsBook = src.observed;
     for (var pid3 in cur) {
-      if (Physics.shindoNum(cur[pid3]) > Physics.shindoNum(_liveAreaShindos[pid3] || 0)) {
-        _liveAreaShindos[pid3] = cur[pid3];
+      if (Physics.shindoNum(cur[pid3]) > Physics.shindoNum(obsBook[pid3] || 0)) {
+        obsBook[pid3] = cur[pid3];
       }
     }
   }
   if (!changed) return;
   // Restyle changed features (only Shindo >= 4 get colored)
-  var keyProp = useAreas ? 'name' : 'id';
+  var keyProp = src.keyProp;
   _livePrefLayer.eachLayer(function(layer) {
     var pid = layer.feature.properties[keyProp];
     var sh = colors[pid] || 0;
@@ -6328,9 +6358,50 @@ function _updateLivePrefLayer() {
     } else {
       var fill = SHINDO_FILL[sh] || '#888';
       layer.setStyle({ fillColor: fill, fillOpacity: _shindoFillAlpha(sh, true), color: fill, weight: 1.2, opacity: 0.35 });
-      if (useAreas) _uncertaintyStyle(layer, pid);
+      if (src.mode === 'area') _uncertaintyStyle(layer, pid);
     }
   });
+}
+
+// Observed aggregation over region area boundaries (county-level equivalent
+// of _computeSubareaShindos) - the live coloring granularity in region mode.
+function _computeRegionAreaShindos() {
+  var out = {};
+  if (!(REGION_STATE.active && REGION_STATE.areas && REGION_STATE.areas.features)) return out;
+  var features = REGION_STATE.areas.features;
+  for (var i = 0; i < features.length; i++) out[features[i].properties.name] = 0;
+  var bboxes = _regionAreaBBoxes;
+  if (!bboxes) {
+    bboxes = [];
+    for (var j = 0; j < features.length; j++) bboxes.push(turf.bbox(features[j]));
+  }
+  for (var si = 0; si < visibleCircles.length; si++) {
+    var c = visibleCircles[si];
+    if (c.shindo === 0) continue;
+    for (var pi = 0; pi < features.length; pi++) {
+      var bb = bboxes[pi];
+      if (c.lng < bb[0] || c.lng > bb[2] || c.lat < bb[1] || c.lat > bb[3]) continue;
+      try {
+        if (turf.booleanPointInPolygon(turf.point([c.lng, c.lat]), features[pi])) {
+          var nm = features[pi].properties.name;
+          if (Physics.shindoNum(c.shindo) > Physics.shindoNum(out[nm] || 0)) out[nm] = c.shindo;
+          break;
+        }
+      } catch(e) {}
+    }
+  }
+  return out;
+}
+
+// Region-level GMPE forecast at the county centroids - the area-forecast
+// table source in region mode (same centroid-agnostic engine as subdivisions).
+function _predictRegionAreaShindos() {
+  if (!epicenter || !_regionAreaCentroids) return {};
+  return _predictPrefectureShindosFor(
+    epicenter.lat, epicenter.lng, _liveMag, _liveDepth,
+    parseFloat(strikeSlider.value), currentDip, epicenterSrc, eventMw, _liveMag,
+    _regionAreaCentroids
+  );
 }
 
 // ================================================================
@@ -7303,7 +7374,7 @@ function resetSimulation() {
   _livePrefColors = {};
   _liveAreaColors = {}; _liveAreaShindos = {};
   // Reset EEW forecast state
-  _predictedPrefectureShindos = {}; _subareaForecast = {}; _subareaUncertainty = null; _subareaUncertaintyKey = ''; _predictedMaxShindo = 0; _predictedMaxShindoI = -1; _eewWarranted = false; _detectEEWTriggered = false;
+  _predictedPrefectureShindos = {}; _subareaForecast = {}; _regionAreaForecast = {}; _subareaUncertainty = null; _subareaUncertaintyKey = ''; _predictedMaxShindo = 0; _predictedMaxShindoI = -1; _eewWarranted = false; _detectEEWTriggered = false;
   var pfcRst = document.getElementById('pref-forecast-card');
   if (pfcRst) pfcRst.style.display = 'none';
   var pftRst = document.getElementById('pref-forecast-table');
@@ -8701,6 +8772,9 @@ function advBind() {
       if (valEl) valEl.textContent = '';
       sel.addEventListener('change', function() {
         cfgSet(key, sel.value);
+        // keep duplicate rows of the same key (e.g. the preferences-panel
+        // quick intensity-scale toggle vs the ADV row) visually in sync
+        document.querySelectorAll('.adv-row[data-cfg="' + key + '"] select').forEach(function(other) { if (other !== sel) other.value = sel.value; });
         if (key === 'sourceTypeOverride') applyAutomaticDip();
         if (key === 'sourceTypeOverride' && typeof FiniteFaultEditor!=='undefined') FiniteFaultEditor.drawPreview();
         if (key === 'tsunamiMapMode') {
@@ -9024,15 +9098,28 @@ function updatePrefForecastTable() {
   var card = document.getElementById('pref-forecast-card');
   var tbl = document.getElementById('pref-forecast-table');
   if (!card || !tbl) return;
-  // Japan-prefecture forecast is meaningless outside Japan (region packs).
-  if (REGION_STATE.active) {
+  // v6.4 region areas: region mode renders the county-level forecast (same
+  // engine, region centroids); no region areas loaded -> the card stays hidden
+  // (honest, no Japan prefecture rows fabricated outside Japan).
+  var regionMode = !!(REGION_STATE.active && REGION_STATE.areas && REGION_STATE.areas.features);
+  if (REGION_STATE.active && !regionMode) {
     if (tbl._renderedHtml !== '') { tbl._renderedHtml = ''; tbl.innerHTML = ''; }
     card.style.display = 'none';
     return;
   }
+  var forecastBook = regionMode ? _regionAreaForecast : _predictedPrefectureShindos;
+  var prefThKey = regionMode ? 'region.area_th' : 'info.pref';
+  var titleEl = document.getElementById('pref-forecast-title');
+  if (titleEl && regionMode) {
+    if (titleEl.getAttribute('data-i18n') !== 'region.area_forecast') titleEl.setAttribute('data-i18n', 'region.area_forecast');
+    if (titleEl.textContent !== t('region.area_forecast')) titleEl.textContent = t('region.area_forecast');
+  } else if (titleEl && titleEl.getAttribute('data-i18n') !== 'info.pref_forecast') {
+    titleEl.setAttribute('data-i18n', 'info.pref_forecast');
+    titleEl.textContent = t('info.pref_forecast');
+  }
   var rows = [];
   if (isRunning) {
-    for (var pid in _predictedPrefectureShindos) rows.push(_predictedPrefectureShindos[pid]);
+    for (var pid in forecastBook) rows.push(forecastBook[pid]);
   }
   if (!rows.length) {
     if (tbl._renderedHtml !== '') { tbl._renderedHtml = ''; tbl.innerHTML = ''; }
@@ -9042,7 +9129,7 @@ function updatePrefForecastTable() {
   // Sort by shindo descending, take top 20
   rows.sort(function(a,b){ return Physics.shindoScore(b.shindo)-Physics.shindoScore(a.shindo); });
   rows = rows.slice(0, 20);
-  var h = '<table><tr><th>' + t('info.pref') + '</th><th>' + t('info.shindo') + '</th><th>' + t('info.range_1sigma') + '</th><th>' + t('info.lpgm') + '</th></tr>';
+  var h = '<table><tr><th>' + t(prefThKey) + '</th><th>' + t('info.shindo') + '</th><th>' + t('info.range_1sigma') + '</th><th>' + t('info.lpgm') + '</th></tr>';
   for (var i = 0; i < rows.length; i++) {
     var it = rows[i];
     var fill = SHINDO_FILL[it.shindo] || '#888';
