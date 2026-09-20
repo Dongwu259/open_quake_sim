@@ -1,6 +1,6 @@
 # Earthquake Simulator Pro（地震模拟器 Pro）
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Node.js ≥18](https://img.shields.io/badge/node-%E2%89%A5%2018-brightgreen)](package.json) [![CI](https://github.com/Dongwu259/open_quake_sim/actions/workflows/ci.yml/badge.svg)](https://github.com/Dongwu259/open_quake_sim/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/Dongwu259/open_quake_sim)](https://github.com/Dongwu259/open_quake_sim/releases) [![npm](https://img.shields.io/npm/v/open_quake_sim)](https://www.npmjs.com/package/open_quake_sim) [![官网](https://img.shields.io/badge/%E5%AE%98%E7%BD%91-dwfileshare.top-blue)](https://dwfileshare.top) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Node.js ≥18](https://img.shields.io/badge/node-%E2%89%A5%2018-brightgreen)](package.json) [![CI](https://github.com/Dongwu259/open_quake_sim/actions/workflows/ci.yml/badge.svg)](https://github.com/Dongwu259/open_quake_sim/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/Dongwu259/open_quake_sim)](https://github.com/Dongwu259/open_quake_sim/releases) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22828696.svg)](https://doi.org/10.5281/zenodo.22828696) [![npm](https://img.shields.io/npm/v/open_quake_sim)](https://www.npmjs.com/package/open_quake_sim) [![官网](https://img.shields.io/badge/%E5%AE%98%E7%BD%91-dwfileshare.top-blue)](https://dwfileshare.top) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 **中文** | [English](README_EN.md)
 
@@ -138,6 +138,8 @@ The full English README lives at [README_EN.md](README_EN.md).
 > Dongwu259 (2026). *Earthquake Simulator Pro (quake_sim)*. Zenodo. DOI [10.5281/zenodo.22828697](https://doi.org/10.5281/zenodo.22828697)（版本 v6.3.3；概念 DOI [10.5281/zenodo.22828696](https://doi.org/10.5281/zenodo.22828696)）
 
 机器可读引用元数据见 [CITATION.cff](CITATION.cff)，GitHub 仓库页 "Cite this repository" 直接可用。
+
+> Zenodo 存档自 v6.3.3 起（更早的 GitHub release 标签未入档）；概念 DOI 始终解析到最新已归档版本，后续每个 release 会自动获得新的版本 DOI。
 
 ## License
 

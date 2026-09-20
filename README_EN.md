@@ -1,6 +1,6 @@
 # Earthquake Simulator Pro
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Node.js ≥18](https://img.shields.io/badge/node-%E2%89%A5%2018-brightgreen)](package.json) [![CI](https://github.com/Dongwu259/open_quake_sim/actions/workflows/ci.yml/badge.svg)](https://github.com/Dongwu259/open_quake_sim/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/Dongwu259/open_quake_sim)](https://github.com/Dongwu259/open_quake_sim/releases) [![npm](https://img.shields.io/npm/v/open_quake_sim)](https://www.npmjs.com/package/open_quake_sim) [![Website](https://img.shields.io/badge/website-dwfileshare.top-blue)](https://dwfileshare.top) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Node.js ≥18](https://img.shields.io/badge/node-%E2%89%A5%2018-brightgreen)](package.json) [![CI](https://github.com/Dongwu259/open_quake_sim/actions/workflows/ci.yml/badge.svg)](https://github.com/Dongwu259/open_quake_sim/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/Dongwu259/open_quake_sim)](https://github.com/Dongwu259/open_quake_sim/releases) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22828696.svg)](https://doi.org/10.5281/zenodo.22828696) [![npm](https://img.shields.io/npm/v/open_quake_sim)](https://www.npmjs.com/package/open_quake_sim) [![Website](https://img.shields.io/badge/website-dwfileshare.top-blue)](https://dwfileshare.top) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 [中文文档](README.md) | **English**
 
@@ -129,6 +129,8 @@ If this software or its bundled frozen datasets contribute to your work, please 
 > Dongwu259 (2026). *Earthquake Simulator Pro (quake_sim)*. Zenodo. DOI [10.5281/zenodo.22828697](https://doi.org/10.5281/zenodo.22828697) (version v6.3.3; concept DOI [10.5281/zenodo.22828696](https://doi.org/10.5281/zenodo.22828696))
 
 Machine-readable citation metadata: [CITATION.cff](CITATION.cff) — the "Cite this repository" button on GitHub uses it directly.
+
+> Zenodo archiving starts at v6.3.3 (earlier GitHub release tags are not archived); the concept DOI always resolves to the latest archived version, and every future release automatically receives its own version DOI.
 
 ## License
 
