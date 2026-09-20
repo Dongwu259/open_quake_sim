@@ -11,7 +11,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const ROOT = path.join(__dirname, '..');
-const pack = JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-counties-california.json'), 'utf8'));
+const pack = JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-areas-california.json'), 'utf8'));
 const stationsPack = JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson/region-stations-california.json'), 'utf8'));
 
 test('package schema + provenance (data honesty contract)', () => {

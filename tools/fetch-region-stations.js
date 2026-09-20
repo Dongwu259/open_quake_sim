@@ -15,32 +15,46 @@
 //   end >= '2500' = NCEDC encodes open epochs as 3000-01-01
 // Dedupe key = network|station (priority: SCEDC > NCEDC > EarthScope).
 //
-// Usage: node tools/fetch-region-stations.js   (writes public/geojson/region-stations-california.json)
+// Usage: node tools/fetch-region-stations.js [--region california|italy|chile]
+//   (writes public/geojson/region-stations-<region>.json)
 'use strict';
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
-const OUT = path.join(__dirname, '..', 'public', 'geojson', 'region-stations-california.json');
-const BBOX = { minlat: 32.3, maxlat: 42.2, minlon: -124.6, maxlon: -114.1 }; // = region pack bounds
+// Per-region source sets. bbox = the region pack bounds; sources are tried in
+// order and deduped by network|station (earlier source wins).
+const esNets = 'IU,II,IC,US,IW';
+const REGION_DEFS = {
+  california: {
+    bbox: { minlat: 32.3, maxlat: 42.2, minlon: -124.6, maxlon: -114.1 },
+    sources: [
+      { name: 'SCEDC (Caltech/USGS Southern California Seismic Network)', priority: 1, url: (b) => `https://service.scedc.caltech.edu/fdsnws/station/1/query?minlat=${b.minlat}&maxlat=${b.maxlat}&minlon=${b.minlon}&maxlon=${b.maxlon}&level=station&format=text` },
+      { name: 'NCEDC (USGS Northern California Seismic System + UC Berkeley)', priority: 2, url: (b) => `https://service.ncedc.org/fdsnws/station/1/query?minlat=${b.minlat}&maxlat=${b.maxlat}&minlon=${b.minlon}&maxlon=${b.maxlon}&level=station&format=text` },
+      { name: `EarthScope (global permanent backbone ${esNets})`, priority: 3, url: (b) => `https://service.earthscope.org/fdsnws/station/1/query?minlat=${b.minlat}&maxlat=${b.maxlat}&minlon=${b.minlon}&maxlon=${b.maxlon}&net=${esNets}&level=station&format=text` },
+    ],
+  },
+  italy: {
+    bbox: { minlat: 36.5, maxlat: 47.2, minlon: 6.5, maxlon: 18.6 },
+    sources: [
+      { name: 'INGV (Istituto Nazionale di Geofisica e Vulcanologia, Roma)', priority: 1, url: (b) => `https://webservices.ingv.it/fdsnws/station/1/query?minlat=${b.minlat}&maxlat=${b.maxlat}&minlon=${b.minlon}&maxlon=${b.maxlon}&level=station&format=text` },
+      { name: `EarthScope (global permanent backbone ${esNets})`, priority: 2, url: (b) => `https://service.earthscope.org/fdsnws/station/1/query?minlat=${b.minlat}&maxlat=${b.maxlat}&minlon=${b.minlon}&maxlon=${b.maxlon}&net=${esNets}&level=station&format=text` },
+    ],
+  },
+  chile: {
+    bbox: { minlat: -56.0, maxlat: -17.0, minlon: -76.0, maxlon: -66.0 },
+    sources: [
+      { name: 'EarthScope (CSN national network C1 + backbone IU/II/IW)', priority: 1, url: (b) => `https://service.earthscope.org/fdsnws/station/1/query?minlat=${b.minlat}&maxlat=${b.maxlat}&minlon=${b.minlon}&maxlon=${b.maxlon}&net=C1,${esNets}&level=station&format=text` },
+    ],
+  },
+};
 
-const SOURCES = [
-  {
-    name: 'SCEDC (Caltech/USGS Southern California Seismic Network)',
-    url: `https://service.scedc.caltech.edu/fdsnws/station/1/query?minlat=${BBOX.minlat}&maxlat=${BBOX.maxlat}&minlon=${BBOX.minlon}&maxlon=${BBOX.maxlon}&level=station&format=text`,
-    priority: 1
-  },
-  {
-    name: 'NCEDC (USGS Northern California Seismic System + UC Berkeley)',
-    url: `https://service.ncedc.org/fdsnws/station/1/query?minlat=${BBOX.minlat}&maxlat=${BBOX.maxlat}&minlon=${BBOX.minlon}&maxlon=${BBOX.maxlon}&level=station&format=text`,
-    priority: 2
-  },
-  {
-    name: 'EarthScope (global permanent backbone IU/II/IC/US/IW)',
-    url: `https://service.earthscope.org/fdsnws/station/1/query?minlat=${BBOX.minlat}&maxlat=${BBOX.maxlat}&minlon=${BBOX.minlon}&maxlon=${BBOX.maxlon}&net=IU,II,IC,US,IW&level=station&format=text`,
-    priority: 3
-  }
-];
+const REGION = (process.argv[process.argv.indexOf('--region') + 1] || 'california');
+const DEF = REGION_DEFS[REGION];
+if (!DEF) { console.error('unknown region: ' + REGION + ' (known: ' + Object.keys(REGION_DEFS).join(', ') + ')'); process.exit(1); }
+const BBOX = DEF.bbox;
+const OUT = path.join(__dirname, '..', 'public', 'geojson', 'region-stations-' + REGION + '.json');
+const SOURCES = DEF.sources.map((s) => ({ name: s.name, priority: s.priority, url: s.url(BBOX) }));
 
 function get(url, redirects) {
   return new Promise((resolve, reject) => {
@@ -49,6 +63,7 @@ function get(url, redirects) {
         res.resume();
         return resolve(get(new URL(res.headers.location, url).toString(), (redirects || 0) + 1));
       }
+      if (res.statusCode === 204) { res.resume(); return resolve(''); } // FDSN no-data for this source
       if (res.statusCode !== 200) { res.resume(); return reject(new Error(url + ' -> HTTP ' + res.statusCode)); }
       let buf = '';
       res.setEncoding('utf8');
@@ -100,7 +115,7 @@ function parseStationText(text) {
   const stations = [...byKey.values()].sort((a, b) => a.net.localeCompare(b.net) || a.code.localeCompare(b.code));
   const out = {
     schema: 'quake-sim-region-stations-v1',
-    region: 'california',
+    region: REGION,
     generated: new Date().toISOString().slice(0, 10),
     bbox: [BBOX.minlat, BBOX.minlon, BBOX.maxlat, BBOX.maxlon],
     note: 'Display-only real seismic station metadata (FDSN station service, operational epochs). Stations are NOT simulation receivers and carry no instrument response here.',

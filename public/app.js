@@ -871,7 +871,7 @@ var _regionAreaForecast = {};     // {areaName: {id, nam, nam_ja, shindo, i, lpg
 function _regionLoadAreas(pack) {
   var rid = pack.id;
   REGION_STATE.areas = null;
-  fetch('/geojson/region-counties-' + rid + '.json').then(function (r) {
+  fetch('/geojson/region-areas-' + rid + '.json').then(function (r) {
     if (!r.ok) throw new Error('HTTP ' + r.status);
     return r.json();
   }).then(function (pkg) {
@@ -898,26 +898,54 @@ function _regionUnloadAreas() {
   _regionAreaForecast = {}; _liveRegionColors = {}; _liveRegionShindos = {};
 }
 var globalModeEl = document.getElementById('global-mode');
+// v6.4 multi-region: pilot regions available in the region select. Each id
+// must have a region-<id>.json pack, an i18n key region.<id> (x3) and the
+// optional region-stations-/region-areas-/region-vs30-<id>.json companions.
+var REGION_CATALOG = ['california', 'italy', 'chile'];
+function _regionActivateSelected() {
+  var rid = (regionSelEl && regionSelEl.value) || 'california';
+  _regionProgressShow(8, 'Loading region package · 加载区域数据包');
+  fetch('/geojson/region-' + rid + '.json').then(function (r) { return r.json(); }).then(function (pack) {
+    if (!pack || pack.schema !== 'quake-sim-region-pack-v1' || !pack.stations || !pack.presets) throw new Error('bad region pack');
+    if (pack.id !== rid) throw new Error('region pack id mismatch');
+    _regionProgressShow(30, 'Drawing world coastline · 绘制世界海岸线');
+    regionActivate(pack);
+  }).catch(function (e) {
+    console.error('region pack load failed:', e);
+    globalModeEl.checked = false;
+    _regionProgressDone(); // never strand the boot overlay over a failed switch
+  });
+}
 if (globalModeEl) globalModeEl.addEventListener('change', function () {
   if (this.checked) {
-    _regionProgressShow(8, 'Loading region package · 加载区域数据包');
-    fetch('/geojson/region-california.json').then(function (r) { return r.json(); }).then(function (pack) {
-      if (!pack || pack.schema !== 'quake-sim-region-pack-v1' || !pack.stations || !pack.presets) throw new Error('bad region pack');
-      _regionProgressShow(30, 'Drawing world coastline · 绘制世界海岸线');
-      regionActivate(pack);
-    }).catch(function (e) {
-      console.error('region pack load failed:', e);
-      globalModeEl.checked = false;
-      _regionProgressDone(); // never strand the boot overlay over a failed switch
-    });
+    _regionActivateSelected();
   } else if (REGION_STATE.active) {
     regionDeactivate();
   }
 });
 var regionSelEl = document.getElementById('region-select');
-if (regionSelEl) regionSelEl.addEventListener('change', function () {
-  if (REGION_STATE.pack && REGION_STATE.active === this.value) map.fitBounds(REGION_STATE.pack.bounds, { padding: [6, 6] });
-});
+if (regionSelEl) {
+  // append the catalog after the static california option (data-i18n so
+  // applyLanguage keeps the labels in sync on language switches)
+  for (var _rci = 0; _rci < REGION_CATALOG.length; _rci++) {
+    var _rid = REGION_CATALOG[_rci];
+    if (regionSelEl.querySelector('option[value="' + _rid + '"]')) continue;
+    var _opt = document.createElement('option');
+    _opt.value = _rid;
+    _opt.setAttribute('data-i18n', 'region.' + _rid);
+    _opt.textContent = t('region.' + _rid);
+    regionSelEl.appendChild(_opt);
+  }
+  regionSelEl.addEventListener('change', function () {
+    if (REGION_STATE.active && REGION_STATE.active !== this.value) {
+      // live region switch: tear down the current region, activate the new one
+      regionDeactivate();
+      _regionActivateSelected();
+    } else if (REGION_STATE.pack && REGION_STATE.active === this.value) {
+      map.fitBounds(REGION_STATE.pack.bounds, { padding: [6, 6] });
+    }
+  });
+}
 // Region activation reuses the boot loading overlay (updateMapLoadingProgress):
 // entering global mode gets the same visible loading feedback as boot. Step
 // texts are hardcoded bilingual, matching the boot loader style (the boot

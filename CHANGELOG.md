@@ -2,7 +2,20 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/) where practical.
 
-## [Unreleased] — 县级速报 + 地图涂色 + 烈度尺度快捷切换
+## [Unreleased] — 多区域：意大利 + 智利
+
+同步自上游 quake_sim（v6.4 多区域批）：
+
+### Added
+- **全球模式多区域**：区域注册表（加州 / 意大利 / 智利）——区域选择器切换即卸载旧区域、激活新区域（进度条覆盖全程）
+- **意大利**：INGV FDSN 697 个在网站 + ISTAT 110 省界（CC-BY 4.0，openpolis 处理）+ 5 个历史地震预设（Norcia / Amatrice / L'Aquila / Irpinia / Messina）
+- **智利**：CSN 国家网 C1 经 EarthScope FDSN 84 站 + Natural Earth 10m 16 大区（公版）+ 4 个历史地震预设（Valdivia M9.5 / Maule M8.8 / Illapel M8.3 / Iquique M8.1）
+- 新数据工具：`fetch-region-stations.js --region`（多区域参数化）/ `fetch-region-areas.js` / `build-region-packs.js`
+
+### Changed
+- 县界包更名 `region-areas-<rid>.json`（与 quake-sim-region-areas-v1 schema 一致）
+- 新区域暂无区域水深数据，海啸模拟如实保持关闭（包内 notes 注记）
+ — 县级速报 + 地图涂色 + 烈度尺度快捷切换
 
 同步自上游 quake_sim（v6.4 区域面积批）：
 

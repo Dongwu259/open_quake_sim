@@ -15,7 +15,7 @@
 //   (region-priority) source of the live area coloring layer.
 //
 // Usage:
-//   node tools/fetch-region-counties.js            # download + write the pack
+//   node tools/fetch-region-counties.js            # download + write the pack (region-areas-california.json)
 //   node tools/fetch-region-counties.js --check    # exit 0 if the pack exists
 'use strict';
 const fs = require('fs');
@@ -23,7 +23,7 @@ const path = require('path');
 const https = require('https');
 
 const ROOT = path.resolve(__dirname, '..');
-const OUT = path.join(ROOT, 'public', 'geojson', 'region-counties-california.json');
+const OUT = path.join(ROOT, 'public', 'geojson', 'region-areas-california.json');
 const BLOB_SHA = 'c8dbfc0dc4920aae2c3ba1dae290ab986a6b44fd';
 const EXPECTED_BLOB_SIZE = 3216816;
 const CA_STATE_FIPS = '06';
