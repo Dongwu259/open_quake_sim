@@ -126,7 +126,7 @@ Mapping libraries: Leaflet, Turf.js. Model references (GMPE / site response / dy
 
 If this software or its bundled frozen datasets contribute to your work, please cite the software release (cite all versions via the concept DOI):
 
-> Dongwu259 (2026). *Earthquake Simulator Pro (quake_sim)*. Zenodo. DOI [10.5281/zenodo.22828697](https://doi.org/10.5281/zenodo.22828697) (version v6.3.3; concept DOI [10.5281/zenodo.22828696](https://doi.org/10.5281/zenodo.22828696))
+> Dongwu259 (2026). *Earthquake Simulator Pro (quake_sim)*. Zenodo. DOI [10.5281/zenodo.22862886](https://doi.org/10.5281/zenodo.22862886) (version v6.4.0; concept DOI [10.5281/zenodo.22828696](https://doi.org/10.5281/zenodo.22828696))
 
 Machine-readable citation metadata: [CITATION.cff](CITATION.cff) — the "Cite this repository" button on GitHub uses it directly.
 

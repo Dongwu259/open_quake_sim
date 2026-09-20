@@ -28,11 +28,13 @@ keywords:
   - Japan
   - simulation
 license: MIT
-doi: 10.5281/zenodo.22828696
+doi: 10.5281/zenodo.22862886
 version: 6.4.0
 date-released: '2026-09-20'
 commit: v6.4.0
 identifiers:
-  - description: Version DOI (v6.3.3 archive; backfilled per release)
-    identifier: '10.5281/zenodo.22828697'
+  - description: Concept DOI (cites all versions)
+    identifier: '10.5281/zenodo.22828696'
+  - description: Version DOI (this release, v6.4.0)
+    identifier: '10.5281/zenodo.22862886'
     type: doi
