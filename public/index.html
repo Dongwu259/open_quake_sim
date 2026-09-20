@@ -5,15 +5,15 @@
 <script>/* align <html lang> with the saved language before first paint (applyLanguage keeps it in sync afterwards) */try{var __l=localStorage.getItem('qs-lang');if(__l==='ja'||__l==='en'||__l==='zh')document.documentElement.lang=__l;}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0a0e1a">
-<meta name="description" content="Earthquake Simulator Pro v6.0，面向日本的可复现地震与海啸情景模拟器。包含多种GMPE、矩守恒有限断层、JMA逐站独立验证、非线性浅水方程、科研结果对比和SREV式实时TTS。">
+<meta name="description" content="Earthquake Simulator Pro v6.4，面向日本并含全球区域试点的可复现地震与海啸情景模拟器。包含多种GMPE、矩守恒有限断层、JMA逐站独立验证、非线性浅水方程、科研结果对比和SREV式实时TTS。">
 <meta name="keywords" content="earthquake simulator,地震模拟,震度,地震波,日本地震,GMPE,Shindo,JMA">
-<meta property="og:title" content="Earthquake Simulator Pro v6.0 — 地震与海啸情景模拟">
+<meta property="og:title" content="Earthquake Simulator Pro v6.4 — 地震与海啸情景模拟">
 <meta property="og:description" content="Web-based earthquake simulation for Japan. Real physics engine with 6 GMPE models, finite fault editor, TTS bulletin broadcast, and real-time monitoring from 5 data sources.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://quake-sim.example.com/">
 <meta property="og:image" content="https://quake-sim.example.com/og-image.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Earthquake Simulator Pro v6.0">
+<meta name="twitter:title" content="Earthquake Simulator Pro v6.4">
 <meta name="twitter:description" content="Real-time earthquake wave propagation simulator for Japan. 6 GMPE, TTS bulletin, PWA offline.">
 <meta name="twitter:image" content="https://quake-sim.example.com/og-image.png">
 <link rel="canonical" href="https://quake-sim.example.com/">
@@ -21,14 +21,14 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="QuakeSim">
-<link rel="manifest" href="manifest.json?v=ef84c7">
+<link rel="manifest" href="manifest.json?v=916c2c">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <title>日本地震模拟器 v6.4 | Earthquake Simulator Pro</title>
-<link rel="stylesheet" href="leaflet/leaflet.css?v=f885c4">
-<link rel="stylesheet" href="style.css?v=6fd405">
+<link rel="stylesheet" href="leaflet/leaflet.css?v=c27524">
+<link rel="stylesheet" href="style.css?v=113680">
 <link rel="preload" href="leaflet/leaflet.js?v=5a640f" as="script">
-<link rel="preload" href="app.js?v=d10f04" as="script">
-<link rel="preload" href="style.css?v=6fd405" as="style">
+<link rel="preload" href="app.js?v=0a3271" as="script">
+<link rel="preload" href="style.css?v=113680" as="style">
 <link rel="preload" href="config.js?v=6c74f8" as="script">
 <link rel="preload" href="physics.js?v=78b00b" as="script">
 </head>
@@ -38,12 +38,13 @@
   <div id="sidebar" role="complementary" aria-label="控制面板">
     <div id="sidebar-header">
       <h1 data-i18n="app.title">日本地震模拟器 v6.4</h1>
-      <div id="build-ver" style="font-size:.65em;color:var(--text-secondary);opacity:.5;margin-top:-2px" data-sw="sw.js=v719833">(······)</div>
+      <div id="build-ver" style="font-size:.65em;color:var(--text-secondary);opacity:.5;margin-top:-2px" data-sw="sw.js=v578102">(······)</div>
       <button id="btn-report-page" class="report-entry-btn" type="button" data-i18n="report.entry_btn">📋 体验报告</button>
-      <button id="btn-guide-page" class="report-entry-btn" type="button" data-i18n="guide.entry_btn">🧭 使用说明</button>
       <button id="btn-help" class="help-link" type="button" data-i18n="help.title">使用帮助</button>
       <button id="btn-formulas" class="help-link" type="button" data-i18n="formulas.title">公式原理</button>
       <button id="btn-settings" class="help-link" type="button" data-i18n="settings.title">设置</button>
+      <button id="btn-privacy" class="help-link" type="button" data-i18n="privacy.title">隐私信息</button>
+      <button id="btn-api" class="help-link" type="button" data-i18n="api.title">API接口</button>
       <select id="lang-top-select" class="lang-top-select" data-i18n-title="lang.label" aria-label="UI language / 言語 / 界面语言"><option value="ja">🌐 日本語</option><option value="zh">🌐 中文</option><option value="en">🌐 English</option></select>
     </div>
 
@@ -58,7 +59,7 @@
       <!-- ====== BASIC TAB ====== -->
       <div id="tab-basic" class="tab-panel active" role="tabpanel" aria-labelledby="tab-btn-basic" tabindex="0">
         <section class="ui-card live-card" aria-labelledby="basic-live-title">
-          <div class="ui-card-heading"><span id="basic-live-title" data-i18n="basic.live">实时数据</span></div>
+          <div class="ui-card-heading"><span id="basic-live-title" data-i18n="basic.live">实时数据</span><a href="https://dwfileshare.top/earthquake" target="_blank" rel="noopener" class="ui-card-link" data-i18n="realtime.history">📋 历史地震数据</a></div>
           <div id="realtime-bar">
             <button id="btn-realtime" class="realtime-btn" data-i18n="realtime.off">实时监测: 关闭</button>
             <label id="realtime-auto-lbl" class="switch-row" style="display:none"><input type="checkbox" id="rt-auto-sim" checked><span class="switch-ui"></span><span data-i18n="realtime.auto">自动模拟新地震</span></label>
@@ -192,7 +193,7 @@
               <button type="button" id="btn-fault-path-done" class="rt-mini-btn" style="display:none" data-i18n="fault.path_done">完成</button>
               <button type="button" id="btn-fault-path-clear" class="rt-mini-btn" style="display:none" data-i18n="fault.path_clear">清除</button>
               <span id="fault-path-status" class="fault-path-status"></span>
-            
+            </div>
             <label class="switch-row"><input type="checkbox" id="3d-enable" checked><span class="switch-ui"></span><span data-i18n="3d.enable">3D模式（信息页面）</span></label>
             <label class="switch-row"><input type="checkbox" id="isoseismal-enable" checked><span class="switch-ui"></span><span data-i18n="chk.isoseismal">等震度线</span></label>
             <label class="switch-row"><input type="checkbox" id="plates-enable" checked><span class="switch-ui"></span><span data-i18n="chk.plates">板块边界</span></label>
@@ -253,8 +254,9 @@
           </div>
         </div>
         <div class="disclaimer" data-i18n="disclaimer.text">本模拟器仅用于地震防灾研究与教学用途，请勿在公共场所最大音量外放，以免引起不必要的恐慌。模拟结果不代表实际地震预警信息。</div>
-        <div id="author-credit" data-i18n="author.credit">作者：Bilibili东吴摄影</div>
-              </div>
+        <div id="visit-counter"><span data-i18n="counter.visits">访问人次</span>: <span id="visit-count">--</span></div>
+        <div id="expiry-info" style="display:none;text-align:center;font-size:.7em;color:var(--text-secondary);margin-top:4px"><span data-i18n="expiry.label">服务器到期</span>: <span id="expiry-days" data-i18n="expiry.days" data-i18n-vars="days">剩余 {days} 天</span></div>
+      </div>
 
       <!-- ====== ADVANCED TAB ====== -->
       <div id="tab-advanced" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-advanced" tabindex="0">
@@ -369,8 +371,9 @@
           <div class="adv-row" data-cfg="aspSigmaI"><span data-i18n="adv.aspSigI">凹凸体 σ 走向</span><input type="range"><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div>
           <div class="adv-row" data-cfg="aspSigmaJ"><span data-i18n="adv.aspSigJ">凹凸体 σ 倾向</span><input type="range"><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div>
           <div class="adv-row" data-cfg="hypocenterFrac"><span data-i18n="adv.hypoFrac">震源深度比</span><input type="range"><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div>
-          <div class="adv-row" data-cfg="slipPerturbation"><span data-i18n="adv.slipPert">滑移扰动</span><input type="range"><span class="adv-val"></span><button class="adv-rst">&#8634;</button>
-          <div class="adv-row" data-cfg="shallowSlipDeficit"><span data-i18n="adv.shallowSlipDeficit">浅部滑移亏损</span><input type="range"><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div><div class="adv-row" data-cfg="faultListricDip"><span data-i18n="adv.faultListricDip">铲式倾角减量</span><input type="range"><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div></div>
+          <div class="adv-row" data-cfg="slipPerturbation"><span data-i18n="adv.slipPert">滑移扰动</span><input type="range"><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div>
+          <div class="adv-row" data-cfg="shallowSlipDeficit"><span data-i18n="adv.shallowSlipDeficit">浅部滑移亏损</span><input type="range"><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div>
+          <div class="adv-row" data-cfg="faultListricDip"><span data-i18n="adv.faultListricDip">铲式倾角减量</span><input type="range"><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div>
           <div class="adv-row" data-cfg="slipThreshold"><span data-i18n="adv.slipThr">滑移阈值</span><input type="range"><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div>
           <div class="adv-row" data-cfg="ruptureMode"><span data-i18n="adv.rupMode">破裂模式</span><select></select><span class="adv-val"></span><button class="adv-rst">&#8634;</button></div>
         </div>
@@ -438,11 +441,12 @@
               <div class="chart-block"><div class="info-mini-hdr"><span data-i18n="info.spectrum">加速度反应谱 PSA(T)</span><button class="chart-download" data-canvas="spectrum-canvas" data-i18n-aria="info.download_chart" aria-label="Download chart">&#11015;</button></div><canvas id="spectrum-canvas" width="320" height="90" class="info-plot" role="img" data-i18n-aria="a11y.canvas.spectrum" aria-label="Response spectrum"></canvas></div>
               <div class="chart-block"><div class="info-mini-hdr"><span data-i18n="info.atten_curve">PGA 距离衰减曲线</span><button class="chart-download" data-canvas="atten-canvas" data-i18n-aria="info.download_chart" aria-label="Download chart">&#11015;</button></div><canvas id="atten-canvas" width="320" height="120" class="info-plot" role="img" data-i18n-aria="a11y.canvas.attenuation" aria-label="Attenuation curve"></canvas></div>
               <div class="chart-block"><div class="info-mini-hdr"><span data-i18n="info.gmpe_compare">GMPE模型对比</span><button class="chart-download" data-canvas="gmpe-compare-canvas" data-i18n-aria="info.download_chart" aria-label="Download chart">&#11015;</button></div><canvas id="gmpe-compare-canvas" width="320" height="130" class="info-plot" role="img" data-i18n-aria="a11y.canvas.gmpe" aria-label="GMPE comparison"></canvas></div>
-              <div class="chart-block"><div class="info-mini-hdr"><span data-i18n="info.azimuth">方位角 PGA 方向性</span><button class="chart-download" data-canvas="azimuth-canvas" data-i18n-aria="info.download_chart" aria-label="Download chart">&#11015;</button></div><canvas id="azimuth-canvas" width="200" height="200" class="info-plot info-plot-sq" role="img" data-i18n-aria="a11y.canvas.azimuth" aria-label="Azimuth directivity"></canvas>
+              <div class="chart-block"><div class="info-mini-hdr"><span data-i18n="info.azimuth">方位角 PGA 方向性</span><button class="chart-download" data-canvas="azimuth-canvas" data-i18n-aria="info.download_chart" aria-label="Download chart">&#11015;</button></div><canvas id="azimuth-canvas" width="200" height="200" class="info-plot info-plot-sq" role="img" data-i18n-aria="a11y.canvas.azimuth" aria-label="Azimuth directivity"></canvas></div>
               <div class="chart-block" id="wfa-block"><div class="info-mini-hdr"><span data-i18n="info.wfa_title">波形分析工具</span><select id="wfa-station" class="rt-select rt-select-narrow" aria-label="station"></select><button id="wfa-run" class="rt-mini-btn" type="button" data-i18n="info.wfa_run">分析</button></div>
                 <canvas id="wfa-canvas" width="320" height="80" class="info-plot" role="img" data-i18n-aria="a11y.canvas.wfa" aria-label="Waveform analysis"></canvas>
                 <div id="wfa-result"></div>
                 <div class="wfa-note" id="wfa-note" data-i18n="info.wfa_note">确定性合成载体（Brune 谱）锚定 GMPE PGA；震级反演与锚定同源，为模型一致性检查。应力降假定 10 MPa。</div>
+              </div>
             </div>
           </details>
           <details class="info-card" id="fault-rupture-card">
@@ -455,6 +459,7 @@
               <div id="frv-stats"></div>
               <div class="wfa-note" data-i18n="info.frv_note">合成断层为 von Kármán 谱非均匀滑移场（Mai &amp; Beroza 2002 型，H=0.75，沿走向/下倾各向异性）；导入模型为实测反演补片。矩速率为补片 STF 之差分合成。</div>
             </div>
+          </details>
           <details class="info-card" id="psha-card">
             <summary><span data-i18n="info.psha">地震危险性 (PSHA)</span></summary>
             <div class="info-card-body">
@@ -577,7 +582,7 @@
             <summary><span data-i18n="info.finite_fault_import">实测有限断层导入</span></summary>
             <div class="info-card-body finite-fault-import">
               <p data-i18n="info.finite_fault_import_hint">导入标准有限断层 JSON、USGS 风格 GeoJSON 或 SRCMOD/FSP。每个子断层的四角坐标、滑移、机制和破裂时间将直接进入 Rrup、地图及 3D 计算。</p>
-              <div class="finite-fault-bundled-row"><label data-i18n="info.finite_fault_bundled">捆绑动力学破裂模型</label><select id="finite-fault-bundled" class="rt-select"><option value="" data-i18n="info.finite_fault_bundled_none">— 选择模型 —</option></select>
+              <div class="finite-fault-bundled-row"><label data-i18n="info.finite_fault_bundled">捆绑动力学破裂模型</label><select id="finite-fault-bundled" class="rt-select"><option value="" data-i18n="info.finite_fault_bundled_none">— 选择模型 —</option></select></div>
               <input type="file" id="finite-fault-file" accept=".json,.geojson,.fsp,.txt,application/json,application/geo+json,text/plain">
               <div class="finite-fault-provenance">
                 <input type="text" id="finite-fault-source" data-i18n-ph="info.finite_fault_source_ph" placeholder="数据来源">
@@ -745,19 +750,17 @@
 <script src="leaflet/leaflet.js?v=5a640f"></script>
 <script src="turf/turf.min.js?v=07f3b6"></script>
 <script src="config.js?v=6c74f8"></script>
-<script src="sim-utils.js?v=b2aa4c"></script>
-<script src="research.js?v=d9aad6"></script>
+<script src="sim-utils.js?v=58ccc5"></script>
+<script src="research.js?v=3ee192"></script>
 <script src="data-catalog.js?v=bee20f"></script>
 <script src="grid-package.js?v=865d26"></script>
-<script src="i18n.js?v=3ae8c7"></script>
+<script src="i18n.js?v=da3411"></script>
 <script src="dc3d.js?v=2865dd"></script>
 <script src="physics.js?v=78b00b"></script>
-
 <script src="tsunami-solver-host.js?v=2432a8"></script>
 <script src="ensemble-solver-host.js?v=153d61"></script>
 <script src="tsunami-validation.js?v=45a850"></script>
 <script src="audio.js?v=228004"></script>
-<script src="settings.js?v=a47ebe"></script>
 <script src="tts-text-builder.js?v=06c065"></script>
 <script src="srev-announcer.js?v=76ac4e"></script>
 <script>
@@ -831,10 +834,131 @@ window._ensureScript = function(globalName, key) {
     .catch(function() { return false; });
 };
 </script>
+<div id="promo-overlay" class="promo-overlay" role="dialog" aria-modal="true" aria-labelledby="promo-title">
+  <div class="promo-panel" tabindex="-1">
+    <div class="promo-header">
+      <div>
+        <h2 id="promo-title" data-i18n="promo.title">相关网站</h2>
+        <p class="promo-creator" data-i18n="promo.creator">作者：bilibili东吴摄影</p>
+      </div>
+      <button id="btn-promo-close" class="promo-close" type="button" data-i18n-aria="aria.close" aria-label="关闭">&times;</button>
+    </div>
+    <div class="promo-stats" aria-live="polite">
+      <div><span data-i18n="promo.visits">网站访问总次数</span><strong id="promo-visit-count"></strong></div>
+      <div><span data-i18n="promo.uptime">网站累计运行时长</span><strong id="promo-uptime"></strong></div>
+    </div>
+    <div class="promo-cta-row">
+    <button id="btn-promo-guide" class="promo-guide-btn" type="button">
+      <span class="promo-guide-spark" aria-hidden="true">🧭</span>
+      <span data-i18n="promo.guide_entry">带图例的使用说明</span>
+    </button>
+    <button id="btn-promo-whatsnew" class="promo-whatsnew-btn" type="button">
+      <span class="promo-whatsnew-spark" aria-hidden="true">✨</span>
+      <span data-i18n="promo.whatsnew_entry">看看 v6.4 更新了什么</span>
+      <span class="promo-whatsnew-badge">v6.4</span>
+    </button>
+    <a class="promo-github-btn" href="https://github.com/Dongwu259/open_quake_sim" target="_blank" rel="noopener noreferrer" data-i18n-aria="promo.github_aria" aria-label="GitHub">
+      <svg class="promo-github-logo" viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" focusable="false"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+      <span class="promo-github-swap" aria-hidden="true"><span data-i18n="promo.github_a">GitHub</span><span data-i18n="promo.github_b">已开源</span></span>
+    </a>
+    </div>
+    <h3 class="promo-links-title" data-i18n="promo.other_sites">作者制作的其他网站</h3>
+    <nav class="promo-links" data-i18n-aria="promo.navigation" aria-label="相关网站">
+      <a href="https://dwfileshare.top/earthquake" target="_blank" rel="noopener noreferrer">
+        <span class="promo-link-copy"><span data-i18n="promo.earthquake">全球地震信息收集网站</span><small>https://dwfileshare.top/earthquake</small></span><span class="promo-external" aria-hidden="true">&#8599;</span><span class="visually-hidden" data-i18n="promo.new_tab">在新标签页打开</span>
+      </a>
+      <a href="https://dwfileshare.top/ai" target="_blank" rel="noopener noreferrer">
+        <span class="promo-link-copy"><span data-i18n="promo.ai">大模型排行榜网站</span><small>https://dwfileshare.top/ai</small></span><span class="promo-external" aria-hidden="true">&#8599;</span><span class="visually-hidden" data-i18n="promo.new_tab">在新标签页打开</span>
+      </a>
+      <a href="https://studio.dwphoto.top" target="_blank" rel="noopener noreferrer">
+        <span class="promo-link-copy"><span data-i18n="promo.studio">AI摄影工作流软件</span><small>https://studio.dwphoto.top</small></span><span class="promo-external" aria-hidden="true">&#8599;</span><span class="visually-hidden" data-i18n="promo.new_tab">在新标签页打开</span>
+      </a>
+      <a href="https://studio.dwphoto.top/videotool" target="_blank" rel="noopener noreferrer">
+        <span class="promo-link-copy"><span data-i18n="promo.videotool">片语-AI自动宣传片生成软件</span><small>https://studio.dwphoto.top/videotool</small></span><span class="promo-external" aria-hidden="true">&#8599;</span><span class="visually-hidden" data-i18n="promo.new_tab">在新标签页打开</span>
+      </a>
+      <a href="https://dwphoto.top" target="_blank" rel="noopener noreferrer">
+        <span class="promo-link-copy"><span data-i18n="promo.author">作者个人网站</span><small>https://dwphoto.top</small></span><span class="promo-external" aria-hidden="true">&#8599;</span><span class="visually-hidden" data-i18n="promo.new_tab">在新标签页打开</span>
+      </a>
+    </nav>
+  </div>
+</div>
+<div id="whatsnew-overlay" class="help-overlay whatsnew-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="whatsnew-title">
+  <div class="help-panel whatsnew-panel" tabindex="-1">
+    <div class="whatsnew-hero">
+      <div class="wn-rings" aria-hidden="true">
+        <span class="wn-ring wn-ring-p"></span>
+        <span class="wn-ring wn-ring-s"></span>
+        <span class="wn-epi"></span>
+      </div>
+      <div class="whatsnew-hero-copy">
+        <h2 id="whatsnew-title" data-i18n="whatsnew.title">v6.0 更新</h2>
+        <p data-i18n="whatsnew.subtitle">不确定性建模 × 场地反应标定 · 科研级升级</p>
+      </div>
+      <div class="wn-waves" aria-hidden="true"><span></span><span></span></div>
+    </div>
+    <div class="whatsnew-cards">
+      <div class="wn-card">
+        <span class="wn-icon wn-icon-live" aria-hidden="true"><i></i><i></i></span>
+        <h3 data-i18n="whatsnew.f7_t">逻辑树与集合不确定性</h3>
+        <p data-i18n="whatsnew.f7_d">GMPE 逻辑树(LLH 定权)聚合预测;Monte Carlo 集合引擎可开关细分区 P10–P90 不确定度描边,超越概率与解析式互验。</p>
+      </div>
+      <div class="wn-card">
+        <span class="wn-icon wn-icon-agency" aria-hidden="true"></span>
+        <h3 data-i18n="whatsnew.f8_t">1D 等效线性场地反应</h3>
+        <p data-i18n="whatsnew.f8_d">场地模型新增 eqlin-1d:Darendeli(2001) 模量–阻尼曲线等效线性迭代,逐台站剖面由 J-SHIS Vs30 + JIVSM 基岩深度构成,计算非线性场地放大。</p>
+      </div>
+      <div class="wn-card">
+        <span class="wn-icon wn-icon-aftershock" aria-hidden="true"><i></i><i></i><i></i></span>
+        <h3 data-i18n="whatsnew.f1_t">集合可靠度验证</h3>
+        <p data-i18n="whatsnew.f1_d">预登记验收:冻结 13 事件 1,633 站 68%/80% 区间覆盖率 0.696/0.811(偏差 ≤5pp);Brier 技巧分 +0.40..0.54 入报告。</p>
+      </div>
+      <div class="wn-card">
+        <span class="wn-icon wn-icon-worker" aria-hidden="true"><i></i><i></i><i></i></span>
+        <h3 data-i18n="whatsnew.f2_t">数据底座升级</h3>
+        <p data-i18n="whatsnew.f2_d">J-SHIS 表层 Vs30 网格(17,848 格)与 JIVSM 工程基岩深度网格入库;研究数据认证角色逐项解锁。</p>
+      </div>
+      <div class="wn-card">
+        <span class="wn-icon wn-icon-astsu" aria-hidden="true"></span>
+        <h3 data-i18n="whatsnew.f3_t">KiK-net 实测标定</h3>
+        <p data-i18n="whatsnew.f3_d">冻结 197 组地表/井下谱比与 670 孔 PS 测井(派生量);经验 f0(Vs30) 先验修正合成剖面,软土场地强度偏差 -0.98 → -0.58。</p>
+      </div>
+      <div class="wn-card">
+        <span class="wn-icon wn-icon-detect" aria-hidden="true"></span>
+        <h3 data-i18n="whatsnew.f4_t">条件谱 CS ±1σ</h3>
+        <p data-i18n="whatsnew.f4_d">Jayaram(2011) 日本周期对相关表驱动;台站反应谱图新增虚线条件带——锚定 PGA 周期处收窄、远离锚定逐渐展宽。</p>
+      </div>
+      <div class="wn-card">
+        <span class="wn-icon wn-icon-redetect" aria-hidden="true"><i></i><i></i></span>
+        <h3 data-i18n="whatsnew.f5_t">海啸荷载指标</h3>
+        <p data-i18n="whatsnew.f5_d">新增 hydroLoad 地图模式与分区面板:水深×流速 (m²/s) 逐格瞬时峰值与 Froude 数,对齐 JMA 津波浸水想定的荷载评价思路。</p>
+      </div>
+      <div class="wn-card">
+        <span class="wn-icon wn-icon-pin" aria-hidden="true"></span>
+        <h3 data-i18n="whatsnew.f6_t">方向性与基准修正</h3>
+        <p data-i18n="whatsnew.f6_d">方向性方位角改大圆初始方位(东西分量曾高估至 ~39%);Zhao2006 对 openquake.hazardlib 2,400 点逐点断言,偏差 <3×10⁻¹⁵。</p>
+      </div>
+    </div>
+    <div class="whatsnew-footer">
+      <button id="btn-whatsnew-close" type="button" data-i18n="whatsnew.close">开始体验</button>
+    </div>
+  </div>
+</div>
+<script src="settings.js?v=a47ebe"></script>
+<script src="app.js?v=0a3271"></script>
+<script src="aftershock.js?v=e29837"></script>
+<script src="rt-data.js?v=27ac29"></script>
+<script src="rt-kmoni.js?v=b581c5"></script>
+<script src="rt-eew.js?v=222d18"></script>
+<script src="rt-demo.js?v=c99e56"></script>
+<script src="rt-quakeinfo.js?v=b6b2bc"></script>
+<script src="rt-tsunami.js?v=d59204"></script>
+<script src="rt-waveform.js?v=61c0cb"></script>
+<script src="info-panel.js?v=a39a13"></script>
+<script src="renderer.js?v=451f71"></script>
 <div id="settings-overlay" class="help-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="settings-dialog-title">
   <div class="help-panel" tabindex="-1">
     <div class="help-header"><span id="settings-dialog-title" data-i18n="settings.header">⚙ 设置</span><button id="btn-settings-close" class="help-close" data-i18n-aria="aria.close" aria-label="关闭">&times;</button></div>
-    <div class="help-body" style="font-size:.9em">
+    <div class="help-body">
       <div class="settings-section">
         <h3 data-i18n="settings.tts">TTS 语音</h3>
         <div class="settings-row">
@@ -882,18 +1006,6 @@ window._ensureScript = function(globalName, key) {
     </div>
   </div>
 </div>
-<script src="app.js?v=d10f04"></script>
-<script src="aftershock.js?v=e29837"></script>
-<script src="rt-data.js?v=6780e5"></script>
-<script src="rt-kmoni.js?v=b581c5"></script>
-<script src="rt-eew.js?v=222d18"></script>
-<script src="rt-demo.js?v=c99e56"></script>
-<script src="rt-quakeinfo.js?v=b6b2bc"></script>
-<script src="rt-tsunami.js?v=d59204"></script>
-
-<script src="rt-waveform.js?v=61c0cb"></script>
-<script src="info-panel.js?v=a39a13"></script>
-<script src="renderer.js?v=451f71"></script>
 <div id="help-overlay" class="help-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="help-dialog-title">
   <div class="help-panel" tabindex="-1">
     <div class="help-header"><span id="help-dialog-title" data-i18n="help.header">📖 使用帮助</span><button id="btn-help-close" class="help-close" data-i18n-aria="aria.close" aria-label="Close">&times;</button></div>
@@ -934,6 +1046,8 @@ window._ensureScript = function(globalName, key) {
       <p data-i18n="help.intensity_table_text">信息标签页顶部显示JMA风格震度速报表，按震级降序排列前20个有感城市。每行显示城市名、彩色震度徽章和峰值加速度（PGA/gal）。模拟期间实时更新。无震感的城市自动隐藏。点击地图上的震度圆圈可弹出观测点详情窗口（含P波和S波到达时间）。</p>
       <h3 data-i18n="help.tts">TTS语音播报</h3>
       <p data-i18n="help.tts_text">支持日语、英语和中文语音。日语 EEW、推定最大震度修订、震度调查、最终地震信息和海啸更新使用 SREV 式 FIFO 队列。调查语音结束后界面自动关闭，长播报不会再被请求超时中途截断。新增独立 EEW 提示音与震度1至7音效，每次模拟只播放最终最大震度对应的一种。</p>
+      <h3 data-i18n="help.visitor">访问人次</h3>
+      <p data-i18n="help.visitor_text">基本标签页免责声明下方显示页面累计访问次数。每次页面加载时自动递增，重启不丢失。</p>
       <h3 data-i18n="help.error">错误显示</h3>
       <p data-i18n="help.error_text">模拟过程中如发生JavaScript错误，浏览器窗口底部会出现红色错误面板，显示错误信息和发生位置（文件:行:列）。多个错误会堆叠显示。点击×按钮关闭，或20秒后自动隐藏。</p>
       <h3 data-i18n="help.share">📎 URL分享</h3>
@@ -941,16 +1055,31 @@ window._ensureScript = function(globalName, key) {
       <hr style="border-color:var(--border);margin:12px 0">
 
       <h3 data-i18n="help.v64_release">━━ v6.4 更新 ━━</h3>
-      <h3 data-i18n="help.v64_global_t">全球模式(测试)</h3>
-      <p data-i18n="help.v64_global_d">加州试点:50 城市台站 + 4 历史大震(1906/1989/1994/1971);模拟功能列表勾选开启。强度模型未标定,如实标注。</p>
-      <h3 data-i18n="help.v64_map_t">世界地图懒加载</h3>
-      <p data-i18n="help.v64_map_d">OSM/CARTO/Esri 三源自动探测,哪个通用哪个;一次记住;离线日本底图不受影响。</p>
-      <h3 data-i18n="help.v64_lang_t">语言体验</h3>
-      <p data-i18n="help.v64_lang_d">首访按浏览器语言自动选择;侧栏顶部常驻切换器;标签页标题随界面语言。</p>
-      <h3 data-i18n="help.v64_doi_t">Zenodo DOI</h3>
-      <p data-i18n="help.v64_doi_d">开源镜像 10.5281/zenodo.22828697;概念 DOI 引所有版本;引用段见 README。</p>
+
+      <h3 data-i18n="help.v64_global_t">全球真实台站测站化</h3>
+
+      <p data-i18n="help.v64_global_d">全球/区域模式载入 6232 个 FDSN 真实台站(SCEDC/NCEDC/EarthScope 冻结包,来源逐包留痕)直接作为模拟测站;点击查看台站元数据,侧栏计数注记如实。</p>
+
+      <h3 data-i18n="help.v64_region_t">多区域注册表:加州/意大利/智利</h3>
+
+      <p data-i18n="help.v64_region_d">区域选择器即时切换;意大利 INGV 697 站+110 省界+5 预设,智利 CSN 84 站+16 大区+4 预设;加州 58 县边界速报涂色+「区域预测震度/县」表;新区域海啸如实关闭(无水深包)。</p>
+
+      <h3 data-i18n="help.v64_csis_t">12 级烈度 CSIS</h3>
+
+      <p data-i18n="help.v64_csis_d">显示偏好切换 JMA 10 级与 CSIS 12 级(MMI 对齐公开近似);Intensity 1–12 提示音懒加载(首次播放提示下载),最终速报 12 级句子走浏览器 TTS。</p>
+
+      <h3 data-i18n="help.v64_lazy_t">首屏懒加载 ~775KB</h3>
+
+      <p data-i18n="help.v64_lazy_d">观测断层/有限断层/波形分析/矩张量/强震动包 7 模块按需加载;Service Worker 首次取用进缓存,离线契约保持。</p>
+
+      <h3 data-i18n="help.v64_ca_t">加州实测定标</h3>
+
+      <p data-i18n="help.v64_ca_d">Yong et al. (2014) Vs30 网格覆盖 94.1% 台站(缺测诚实回退+计数注记);县级速报涂色与「区域预测震度/县」表(±1σ/长周期列)。</p>
+
       <h3 data-i18n="help.v64_bounds_t">诚实边界</h3>
-      <p data-i18n="help.v64_bounds_d">加州强度未标定;海啸暂不支持;全球 EEW 无开放源。测试徽标 = 试验功能。</p>
+
+      <p data-i18n="help.v64_bounds_d">无区域 Vs30 包=500 m/s 估计如实标注;CSIS 为公开近似;区域检测模式仅观测涂色;实时 kmoni/EEW 保持 JMA 官方语义。</p>
+
       <h3 data-i18n="help.v63_release">━━ v6.3 更新 ━━</h3>
       <h3 data-i18n="help.v63_bpt_t">时间依赖 PSHA</h3>
       <p data-i18n="help.v63_bpt_d">南海 3 个情景源按 BPT 更新过程评估；PSHA 卡开关切换。ERC 平均 117 年。</p>
@@ -1030,7 +1159,7 @@ window._ensureScript = function(globalName, key) {
       <p data-i18n="help.v56_load_text">求解器逐格追踪瞬时 maxLoad=|hu,hv|(m²/s,水深×流速——非独立最大值之积)与 maxFroude;新增 hydroLoad 地图模式与分区详情行,对齐 JMA 津波浸水想定的荷载评价思路。</p>
       <h3 data-i18n="help.v56_fix">科学修正与外部断言</h3>
       <p data-i18n="help.v56_fix_text">Somerville 方向性方位角由平面 atan2 改大圆初始方位(东西分量曾按 1/cos(lat) 高估,46°N 最高约 39%,增益指向偏转 6–12.5°);Zhao2006 实现对 openquake.hazardlib 官方源码标量转录逐点断言(2,400 点,最大 |ΔlnA| 2.7×10⁻¹⁵);modelBias 留一事件验证发现小样本过拟合并如实标注。</p>
-      <h3 data-i18n="help.v55_preview">━━ v5.5正式版 更新 ━━</h3>
+      <h3 data-i18n="help.v55_preview">━━ v5.5预览版 更新 ━━</h3>
       <h3 data-i18n="help.v55_asdetect">余震次级 EEW 再检测</h3>
       <p data-i18n="help.v55_asdetect_text">检测模式下,达到事件阈值(默认 M5.5)的余震(含手动余震)现在会像主震一样触发独立的 EEW 检测轨迹:网格搜索定位、震级反演、逐报播报。较小的余震保持位置三角标记。</p>
       <h3 data-i18n="help.v55_tokyo">首都直下型 M7.3 想定预设</h3>
@@ -1042,10 +1171,8 @@ window._ensureScript = function(globalName, key) {
       <h3 data-i18n="help.v55_tsuworker">海啸求解器移入 Web Worker</h3>
       <p data-i18n="help.v55_tsuworker_text">海啸 NLSWE 求解器(含两层嵌套 AMR)移入 Web Worker:求解在后台线程进行,主线程只负责渲染,大地震与连锁剧本下海面预报/爬高图层更新更流畅;Worker 不可用或出错时自动回退主线程内同一物理引擎,结果逐位一致。</p>
       <h3 data-i18n="help.v55_aftershock">手动余震编辑器与余震生成修复</h3>
-      <p data-i18n="help.v55_aftershock_text">侧边栏开启「余震序列」后显示手动余震编辑器:可指定发震时刻(模拟秒)、震级与深度添加余震,也可用 📍 按钮在地图上为单条余震选点(默认取主震震中)。手动余震正常摇动测站、达到事件阈值时生成波圈事件并刻入时间线;自动目录可单独关闭。同时修复余震生成的多处问题:连锁剧本中余震事件从不出现(上限误把连锁子事件计入)、余震 PGA 总按主震深度计算、主震峰值微弱的测站漏算附近大余震、较晚余震到达前圆点被提前裁剪,以及最大余震读数恒为 M0.0。</p>
+      <p data-i18n="help.v55_aftershock_text">侧边栏开启「余震序列」后显示集合可靠度验证:可指定发震时刻(模拟秒)、震级与深度添加余震,也可用 📍 按钮在地图上为单条余震选点(默认取主震震中)。手动余震正常摇动测站、达到事件阈值时生成波圈事件并刻入时间线;自动目录可单独关闭。同时修复余震生成的多处问题:连锁剧本中余震事件从不出现(上限误把连锁子事件计入)、余震 PGA 总按主震深度计算、主震峰值微弱的测站漏算附近大余震、较晚余震到达前圆点被提前裁剪,以及最大余震读数恒为 M0.0。</p>
       <hr style="border-color:var(--border);margin:12px 0">
-      <h3 data-i18n="help.v55_quality">正式版质量</h3>
-      <p data-i18n="help.v55_quality_text">通过 765 项单元/集成测试与 24,200 项以上发布检查（资源、PWA、科研数据、i18n、无障碍），GMPE 精度记分卡与海啸基准全绿，PWA 缓存代次已更新。</p>
       <h3 data-i18n="help.v54_preview">━━ v5.4正式版 更新 ━━</h3>
       <h3 data-i18n="help.v54_gebco">GEBCO 2025 真实水深地形</h3>
       <p data-i18n="help.v54_gebco_text">内置地形从合成演示网格升级为 GEBCO 2025 Grid（公有领域）0.15° 分块平均重采样（经 CEDA OPeNDAP 获取，tools/build-bathymetry-gebco.py 重建）。海陆混合格元只平均水样本，里亚斯型海湾保持张开；海啸波高计对比 RMS 从 0.81 改善到 0.64，亚洲大陆不再被误认为海洋。另内置三陆、南海、相模湾、能登、北海道西南 5 个 0.025° 高分辨率沿岸网格，震中位于区域内时海啸求解器自动切换（女川爬高预测 1.5m→15.9m，实测 18.4m）。科研数据清单的地形角色升级为已认证。</p>
@@ -1055,6 +1182,8 @@ window._ensureScript = function(globalName, key) {
       <p data-i18n="help.v54_rtperf_text">强震监测的逐帧解码、链式激活检测与最强测站排行移入 Web Worker（故障自动回退主线程），大震与高速回放时界面更流畅。新增回放精度评分卡（tools/scorecard-autosim.js）：用服务器录制数据量化 EEW 逐报收敛误差与 GMPE 震度预测精度。</p>
       <h3 data-i18n="help.v54_gmpe">GMPE 自动路由与小震偏差校正</h3>
       <p data-i18n="help.v54_gmpe_text">GMPE auto 模式改为按震源类别路由：地壳地震用 Si & Midorikawa (1999)，板间/板内用带饱和保护的 Zhao 2006（n=52 实测验证：全局 RMS 1.278→约 0.95，311 M9 由 2.47→1.21）。新增分震级档校正表（tools/calibrate-gmpe.js，M<4.5 约 -0.9 震度），修复回放评分卡发现的小震系统性高估，并随录制数据积累持续改进。</p>
+      <h3 data-i18n="help.v54_api">TTS 语音合成公开 API</h3>
+      <p data-i18n="help.v54_api_text">/api/v1/tts/synthesize 支持 POST JSON 调用，API key 认证用户限流提升至 240 次/分钟并计入开发者门户用量；相同文本命中服务端音频缓存（X-TTS-Cache）。可用语音扩展为日中英韩 11 个神经语音（见 /api/v1/tts/voices 的 neuralVoices）。</p>
       <h3 data-i18n="help.v54_phase2">强震动标定、都道府县预报表与 EEW 首报修正</h3>
       <p data-i18n="help.v54_phase2_text">新增强震动观测标定管线（tools/fetch-strong-motion-obs.js + tools/scorecard-strong-motion.js）：冻结 USGS Shakemap 收录的 NIED K-NET/KiK-net 6 个历史地震共 2,626 个测站的实测 PGA/PGV（公有领域），逐站对比 GMPE 预测并产出分距离段残差报告。信息页图表区新增都道府县预测震度表：逐县列出预测震度及 ±1σ 区间（PLUM 合并行无区间）。真实检测模式的 EEW 首报震级新增 +0.7M 保守上修，随报数衰减并在 FINAL 前归零——探针实测首报因 P-S 爬升未完成系统性偏低 0.8~1.1M（tools/data/eew-mag-bias-report.json）。</p>
       <h3 data-i18n="help.v54_phase3">要石式波圈聚焦、zhao2006 分距离校正与稳态震级修正</h3>
@@ -1447,6 +1576,28 @@ damage = Σ buildings·fragility(shindo)</code>
   </div>
 </div>
 
+<div id="privacy-overlay" class="help-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="privacy-dialog-title">
+  <div class="help-panel" tabindex="-1">
+    <div class="help-header"><span id="privacy-dialog-title" data-i18n="privacy.header">🔒 隐私信息</span><button id="btn-privacy-close" class="help-close" data-i18n-aria="aria.close" aria-label="Close">&times;</button></div>
+    <div class="help-body" style="font-size:.84em">
+      <h3 data-i18n="privacy.summary">本应用不收集您的任何信息</h3>
+      <p data-i18n="privacy.summary_text">模拟计算与保存的数据均保留在浏览器内。我们不收集个人信息、地理位置或使用记录；仅在启用日语 TTS 时，会将当前模拟的播报文本发送到本站服务器进行语音合成。</p>
+      <h3 data-i18n="privacy.local">本地存储的数据</h3>
+      <p data-i18n="privacy.local_text">以下偏好与数据仅保存在您的浏览器本地，不会发送到服务器：</p>
+      <p>• <b data-i18n="privacy.item_lang">界面语言</b>（qs-lang）<br>• <b data-i18n="privacy.item_config">高级参数设置</b>（qs-config）—— P/S 波速、应力降、衰减系数、断层参数、频谱参数等<br>• <b data-i18n="privacy.item_theme">主题与 UI 缩放</b>（qs-theme / qs-ui-scale）<br>• <b data-i18n="privacy.item_scn">场景管理器保存的场景</b>（qs-scenarios）—— 包括震源、震级、深度、走向、倾角、滑移角及多事件与有限断层滑移分布模型<br>• <b data-i18n="privacy.item_guide">移动端首次引导提示</b>（qs-mobile-guided）</p>
+      <h3 data-i18n="privacy.nocloud">场景管理器与服务器</h3>
+      <p data-i18n="privacy.nocloud_text">您在「场景管理器」中保存、导入、导出的场景，以及自定义的有限断层滑移分布，全部存储在您本地浏览器中。这些数据绝不会上传到服务器，也不会与其他用户共享。您可以通过场景管理器的「导出」按钮将场景下载为 JSON 文件，完全由您掌控。</p>
+      <h3 data-i18n="privacy.network">网络请求说明</h3>
+      <p data-i18n="privacy.tts_network">启用日语 TTS 时，当前模拟的发震时刻、震源地、最大震度、深度、震级和海啸状态会作为播报文本发送到本站服务器进行语音合成；不包含个人身份信息。</p>
+      <p data-i18n="privacy.network_text">仅在以下情况会发起网络请求，且不包含任何个人身份信息：</p>
+      <p>• 加载地图瓦片与地理数据（来自公共地图服务）<br>• 访问人次计数（仅记录页面被加载的次数，无 Cookie、无 IP 关联个人身份）<br>• 可选的实时地震监测（USGS / P2PQuake 公共数据源，仅在您主动启用时连接）<br>• 预加载音频文件（服务器本地静态资源）</p>
+      <h3 data-i18n="privacy.clear">如何清除数据</h3>
+      <p data-i18n="privacy.clear_text">在浏览器设置中清除站点数据（或清除 localStorage），即可删除上述所有本地保存的内容。清除后模拟器将恢复默认设置，已保存的场景将无法恢复（除非您已导出为文件）。</p>
+    </div>
+  </div>
+</div>
+
+<!-- Error display overlay -->
 <div id="error-overlay" style="display:none" role="alert" aria-live="assertive">
   <div id="error-panel">
     <div id="error-header"><span data-i18n="error.header">⚠ 脚本错误</span><button id="error-close" data-i18n-aria="aria.close" aria-label="Close">&times;</button></div>

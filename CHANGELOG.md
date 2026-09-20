@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/) where practical.
 
-## [Unreleased] — 多区域：意大利 + 智利
+## [6.4.0] — 2026-09-20 全球真实台站 × 12 级烈度 × 多区域（加州/意大利/智利）+ 加州实测定标 + 懒加载
 
 同步自上游 quake_sim（v6.4 多区域批）：
 
@@ -59,8 +59,6 @@ All notable changes to this project are documented here. The format follows [Kee
 - 全球模式启用时复用启动进度条（区域包 → 世界海岸线 → 测站切换 → 完成）
 - tools/fetch-region-stations.js：FDSN station-text 三源抓取工具（quake-sim-region-stations-v1 冻结包，provenance 记录逐源计数）
 - tests/region-stations.test.js：包契约测试（provenance 守恒/bbox/去重/锚点台站）
-
-## [6.4.0] — 2026-09-19 全球区域试点 + v6.4 身份
 
 同步自上游 quake_sim（dfa30b8）：
 
