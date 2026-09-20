@@ -6280,7 +6280,7 @@ function updateMaxPgaPanel(curMaxPga, curMaxSh) {
 // Used by ALL three styling paths below — _applyForecastToLivePrefLayer used
 // to carry stale 0.5/0.8 constants from before the first haze fix, which is
 // why detect mode kept its heavy veil.
-// v5.5.1 haze fix round 4 (2026-08-23): halved again — layer bisect on the
+// v5.5 haze fix round 2 (2026-08-23): halved again — layer bisect on the
 // tokyoInland scenario showed this subdivision fill is THE dominant "colored
 // fog" at every zoom (removing it was the only toggle that cleaned the map).
 // Forecast is now a light tint; observed stays clearly readable.
@@ -7187,6 +7187,320 @@ function _openReportPage() {
   window.open('report.html', '_blank', 'noopener');
 }
 
+// ---- v6.2 tier-2: 弯折断层路径编辑（分段平面链） ----
+// Click-to-draw a surface-trace polyline; 完成 applies it as the active
+// fault geometry (M≥6.5 gate), 清除 reverts to the planar rectangle.
+// Per-node strike = bearing to the next node; dip/rake come from the
+// current sliders; the von Kármán slip field runs continuously through
+// the bends (physics.genSegmentedFault).
+var _faultPathNodes = null;    // applied polyline
+var _faultPathDraft = [];      // editing buffer
+var _faultPathArmed = false;
+var _faultPathLayer = null;
+
+function _faultPathTotalLen() {
+  var nodes = _faultPathArmed ? _faultPathDraft : _faultPathNodes;
+  if (!nodes || nodes.length < 2) return 0;
+  var L = 0;
+  for (var i = 1; i < nodes.length; i++) L += Physics.haversineDist(nodes[i - 1].lat, nodes[i - 1].lng, nodes[i].lat, nodes[i].lng);
+  return L;
+}
+
+function _faultPathDraw() {
+  if (_faultPathLayer) { map.removeLayer(_faultPathLayer); _faultPathLayer = null; }
+  var nodes = (_faultPathArmed ? _faultPathDraft : _faultPathNodes) || [];
+  if (nodes.length < 1) return;
+  var pts = nodes.map(function (n) { return [n.lat, n.lng]; });
+  _faultPathLayer = L.polyline(pts, {
+    color: _faultPathArmed ? '#f5a623' : '#ff8060',
+    weight: 3, dashArray: _faultPathArmed ? '6,4' : null, opacity: 0.9,
+    interactive: false
+  }).addTo(map);
+  if (_faultPathArmed) {
+    for (var i = 0; i < pts.length; i++) {
+      L.circleMarker(pts[i], { radius: 4, color: '#f5a623', weight: 2, fillOpacity: 0.9, interactive: false }).addTo(_faultPathLayer);
+    }
+  }
+}
+
+function _faultPathSyncUI() {
+  var btn = document.getElementById('btn-fault-path');
+  var done = document.getElementById('btn-fault-path-done');
+  var clear = document.getElementById('btn-fault-path-clear');
+  var status = document.getElementById('fault-path-status');
+  if (!btn) return;
+  btn.style.display = _faultPathArmed ? 'none' : '';
+  done.style.display = _faultPathArmed ? '' : 'none';
+  clear.style.display = (_faultPathArmed || _faultPathNodes) ? '' : 'none';
+  var n = (_faultPathArmed ? _faultPathDraft : _faultPathNodes) || [];
+  if (_faultPathArmed) {
+    status.textContent = t('fault.path_hint', '点击地图添加节点') + ' · ' + n.length + ' pt' + (n.length >= 2 ? ' · ' + Math.round(_faultPathTotalLen()) + ' km' : '');
+  } else if (_faultPathNodes) {
+    status.textContent = t('fault.path_applied', '已应用') + ' · ' + _faultPathNodes.length + ' pt · ' + Math.round(_faultPathTotalLen()) + ' km';
+  } else {
+    status.textContent = '';
+  }
+  map.getContainer().style.cursor = _faultPathArmed ? 'crosshair' : '';
+}
+
+function _faultPathClearAll() {
+  _faultPathNodes = null;
+  _faultPathDraft = [];
+  _faultPathArmed = false;
+  _faultPathDraw();
+  _faultPathSyncUI();
+}
+
+(function wireFaultPathEditor() {
+  var btn = document.getElementById('btn-fault-path');
+  var done = document.getElementById('btn-fault-path-done');
+  var clear = document.getElementById('btn-fault-path-clear');
+  if (!btn || !done || !clear) return;
+  btn.addEventListener('click', function () {
+    _faultPathArmed = true;
+    _faultPathDraft = _faultPathNodes ? _faultPathNodes.map(function (n) { return { lat: n.lat, lng: n.lng }; }) : [];
+    if (_liveMag < 6.5) {
+      if (typeof toast === 'function') toast(t('fault.path_need65', '弯折断层需 M≥6.5（有限断层门槛）'), 'warn');
+    }
+    _faultPathDraw();
+    _faultPathSyncUI();
+  });
+  done.addEventListener('click', function () {
+    if (_faultPathDraft.length < 2) {
+      if (typeof toast === 'function') toast(t('fault.path_need2', '至少需要 2 个节点'), 'warn');
+      return;
+    }
+    if (_liveMag < 6.5) {
+      if (typeof toast === 'function') toast(t('fault.path_need65', '弯折断层需 M≥6.5（有限断层门槛）'), 'warn');
+    }
+    _faultPathNodes = _faultPathDraft.slice();
+    _faultPathDraft = [];
+    _faultPathArmed = false;
+    _faultPathDraw();
+    _faultPathSyncUI();
+  });
+  clear.addEventListener('click', _faultPathClearAll);
+  _faultPathSyncUI();
+})();
+
+// ---- v6.2 断层破裂详情 (info panel) ----
+// Cross-section (along-strike × depth) of the canonical fault geometry —
+// synthetic von Kármán slip fields AND imported observed patches share the
+// rendering path (slipM / ruptureTime fields normalize here). Live rupture
+// animation while the sim runs; static full view afterwards.
+var _lastRuptureGeometry = null;
+(function wireFaultRuptureView() {
+  var canvas = document.getElementById('frv-xsec-canvas');
+  var mrfCanvas = document.getElementById('frv-mrf-canvas');
+  var statsEl = document.getElementById('frv-stats');
+  var colorSel = document.getElementById('frv-colorby');
+  if (!canvas || !mrfCanvas || !statsEl) return;
+  var lastDraw = null, lastAnimFrame = -1;
+
+  function frvT(key, fb) { try { var v = t(key); return (v && v !== key) ? v : fb; } catch (e) { return fb; } }
+
+  // normalized patch view: {x: along-strike km, y: depth km, slip, rt, rise, ref}
+  function patchViews(geo) {
+    var subs = geo && geo.subs;
+    if (!subs || !subs.length) return null;
+    var strikeRad = null;
+    if (geo.strikeDeg != null) strikeRad = geo.strikeDeg * Math.PI / 180;
+    else if (subs[0].strikeDeg != null) strikeRad = subs[0].strikeDeg * Math.PI / 180;
+    var refLat = geo.lat != null ? geo.lat : (subs[0].lat || 0);
+    var refLng = geo.lng != null ? geo.lng : (subs[0].lng || 0);
+    var out = [];
+    for (var i = 0; i < subs.length; i++) {
+      var s2 = subs[i];
+      var x, y;
+      if (s2.alongStrikeKm != null) { x = s2.alongStrikeKm; y = s2.depth; }
+      else {
+        // imported: project the patch centre onto the representative strike axis
+        var cLat = s2.lat, cLng = s2.lng, cDepth = s2.depth;
+        if (cLat == null && s2.corners && s2.corners.length) {
+          var sl = 0, sg = 0, sd = 0;
+          for (var ci = 0; ci < s2.corners.length; ci++) { sl += s2.corners[ci].lat; sg += s2.corners[ci].lng; sd += s2.corners[ci].depthKm || 0; }
+          cLat = sl / s2.corners.length; cLng = sg / s2.corners.length; cDepth = sd / s2.corners.length;
+        }
+        if (cLat == null) continue;
+        var d = Physics.haversineDist(refLat, refLng, cLat, cLng);
+        var br = Physics.bearingRad(refLat, refLng, cLat, cLng);
+        x = strikeRad != null ? d * Math.cos(br - strikeRad) : d;
+        y = cDepth;
+      }
+      if (!isFinite(x) || !isFinite(y)) continue;
+      out.push({
+        x: x, y: y,
+        slip: s2.slipM != null ? s2.slipM : 0,
+        rt: s2.ruptureTime != null ? s2.ruptureTime : (s2.ruptureTimeS || 0),
+        rise: s2.riseTime != null ? s2.riseTime : (s2.riseTimeS || 0),
+        ref: s2
+      });
+    }
+    return out.length ? out : null;
+  }
+
+  function frvColor(v, lo, hi) { // viridis-like ramp
+    var u = Math.max(0, Math.min(1, hi > lo ? (v - lo) / (hi - lo) : 0.5));
+    var stops = [[68, 1, 84], [49, 104, 142], [53, 183, 121], [253, 231, 37]];
+    var f = u * (stops.length - 1), k = Math.min(stops.length - 2, Math.floor(f)), w = f - k;
+    var r = stops[k][0] + w * (stops[k + 1][0] - stops[k][0]);
+    var g = stops[k][1] + w * (stops[k + 1][1] - stops[k][1]);
+    var b = stops[k][2] + w * (stops[k + 1][2] - stops[k][2]);
+    return 'rgb(' + Math.round(r) + ',' + Math.round(g) + ',' + Math.round(b) + ')';
+  }
+
+  function drawXsec(views, colorBy, elapsed) {
+    var ctx = canvas.getContext('2d');
+    var _whp = window.hidpiPrepCanvas(canvas), W = _whp.W, H = _whp.H;
+    var hasDark = false;
+    try { hasDark = document.body.classList.contains('dark-mode'); } catch (e) {}
+    ctx.clearRect(0, 0, W, H);
+    var xs = views.map(function (v) { return v.x; }), ys = views.map(function (v) { return v.y; });
+    var x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs);
+    var y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys);
+    var padX = Math.max(2, (x1 - x0) * 0.05), padY = Math.max(1, (y1 - y0) * 0.06);
+    x0 -= padX; x1 += padX; y0 -= padY; y1 += padY;
+    if (!(y1 > y0)) y1 = y0 + 1;
+    var PL = 30, PR = 8, PT = 10, PB = 16;
+    var px = function (v) { return PL + (v - x0) / (x1 - x0) * (W - PL - PR); };
+    var py = function (v) { return PT + (v - y0) / (y1 - y0) * (H - PT - PB); };
+    ctx.strokeStyle = hasDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)';
+    ctx.fillStyle = hasDark ? '#9cc3e0' : '#4a6a8a';
+    ctx.lineWidth = 1;
+    ctx.font = '9px sans-serif';
+    ctx.strokeRect(PL, PT, W - PL - PR, H - PT - PB);
+    ctx.textAlign = 'center';
+    for (var gi = 0; gi <= 4; gi++) {
+      var gx = x0 + (x1 - x0) * gi / 4;
+      ctx.fillText(String(Math.round(gx)), px(gx), H - 5);
+    }
+    ctx.textAlign = 'right';
+    for (var gj = 0; gj <= 3; gj++) {
+      var gy = y0 + (y1 - y0) * gj / 3;
+      ctx.fillText(String(Math.round(gy)), PL - 3, py(gy) + 3);
+    }
+    var vals = colorBy === 'time' ? views.map(function (v) { return v.rt; }) : views.map(function (v) { return v.slip; });
+    var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
+    var stepX = (x1 - x0) / Math.max(1, Math.sqrt(views.length) * 2);
+    var cellW = Math.max(2.5, Math.abs(px(x0 + stepX) - px(x0)));
+    for (var i = 0; i < views.length; i++) {
+      var v = views[i];
+      var cv = colorBy === 'time' ? v.rt : v.slip;
+      ctx.fillStyle = frvColor(cv, lo, hi);
+      if (elapsed != null) {
+        var frac = Physics.rupturePatchFraction(v.ref, elapsed);
+        ctx.globalAlpha = frac > 0 ? (0.12 + 0.88 * frac) : 0.08;
+      } else ctx.globalAlpha = 1;
+      ctx.fillRect(px(v.x) - cellW / 2, py(v.y) - cellW / 2, cellW, cellW);
+    }
+    ctx.globalAlpha = 1;
+    // hypocenter = first-rupturing patch (synthetic AND imported)
+    var hypo = views[0], minRt = Infinity;
+    for (i = 0; i < views.length; i++) if (views[i].rt < minRt) { minRt = views[i].rt; hypo = views[i]; }
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    for (var a2 = 0; a2 < 4; a2++) {
+      var ang = Math.PI / 2 * a2;
+      ctx.moveTo(px(hypo.x), py(hypo.y));
+      ctx.lineTo(px(hypo.x) + 6 * Math.cos(ang), py(hypo.y) + 6 * Math.sin(ang));
+    }
+    ctx.stroke();
+    // colorbar with range labels
+    var barX = PL + 4, barY = PT + 4, barW = Math.min(90, (W - PL - PR) / 3);
+    for (i = 0; i < barW; i++) {
+      ctx.fillStyle = frvColor(lo + (hi - lo) * i / barW, lo, hi);
+      ctx.fillRect(barX + i, barY, 1.5, 6);
+    }
+    ctx.fillStyle = hasDark ? '#cfe2f0' : '#33526e';
+    ctx.textAlign = 'left';
+    var unit = colorBy === 'time' ? ' s' : ' m';
+    ctx.fillText((colorBy === 'time' ? 't ' : '') + lo.toFixed(colorBy === 'time' ? 0 : 1) + '–' + hi.toFixed(colorBy === 'time' ? 0 : 1) + unit, barX, barY + 15);
+    return { lo: lo, hi: hi };
+  }
+
+  function drawMrf(mr) {
+    var ctx = mrfCanvas.getContext('2d');
+    var _whp = window.hidpiPrepCanvas(mrfCanvas), W = _whp.W, H = _whp.H;
+    var hasDark = false;
+    try { hasDark = document.body.classList.contains('dark-mode'); } catch (e) {}
+    ctx.clearRect(0, 0, W, H);
+    var t1 = mr.t[mr.t.length - 1], rateMax = Math.max.apply(null, mr.rate);
+    var PL = 6, PR = 6, PT = 6, PB = 13;
+    var px = function (v) { return PL + v / t1 * (W - PL - PR); };
+    var py = function (v) { return H - PB - v / rateMax * (H - PT - PB); };
+    ctx.strokeStyle = hasDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)';
+    ctx.beginPath(); ctx.moveTo(PL, H - PB); ctx.lineTo(W - PR, H - PB); ctx.stroke();
+    ctx.fillStyle = hasDark ? '#9cc3e0' : '#4a6a8a';
+    ctx.font = '9px sans-serif'; ctx.textAlign = 'center';
+    for (var gi = 0; gi <= 4; gi++) ctx.fillText(Math.round(t1 * gi / 4) + 's', px(t1 * gi / 4), H - 3);
+    ctx.fillStyle = 'rgba(94,166,255,0.55)';
+    ctx.beginPath();
+    ctx.moveTo(px(0), H - PB);
+    for (var i = 0; i < mr.t.length; i++) ctx.lineTo(px(mr.t[i]), py(mr.rate[i]));
+    ctx.lineTo(px(t1), H - PB);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#f5a623';
+    ctx.setLineDash([4, 3]);
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    for (i = 0; i < mr.t.length; i++) {
+      var cy = H - PB - mr.cum[i] * (H - PT - PB);
+      if (i === 0) ctx.moveTo(px(mr.t[i]), cy); else ctx.lineTo(px(mr.t[i]), cy);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = hasDark ? '#cfe2f0' : '#33526e';
+    ctx.textAlign = 'left';
+    ctx.fillText(frvT('info.frv_peak_at', '峰值') + ' ' + mr.peakRateAt.toFixed(0) + 's', PL + 4, PT + 9);
+  }
+
+  function row(label, value) { return '<tr><td>' + escapeHTML(label) + '</td><td>' + value + '</td></tr>'; }
+
+  function refresh(force) {
+    var geo = _lastRuptureGeometry;
+    var card = document.getElementById('fault-rupture-card');
+    if (!geo || !geo.subs || !geo.subs.length) {
+      statsEl.innerHTML = '<div class="wfa-note">' + escapeHTML(frvT('info.frv_waiting', 'M≥6.5 或导入断层模型后可用')) + '</div>';
+      return;
+    }
+    var views = patchViews(geo);
+    if (!views) return;
+    var colorBy = colorSel ? colorSel.value : 'slip';
+    var elapsed = (typeof isRunning !== 'undefined' && isRunning) ? simElapsed : null;
+    var frameKey = elapsed != null ? Math.floor(simElapsed * 2) : 999;
+    if (!force && frameKey === lastAnimFrame && colorBy === lastDraw) return;
+    lastAnimFrame = frameKey; lastDraw = colorBy;
+    drawXsec(views, colorBy, elapsed);
+    var mr = Physics.momentRateSeries(geo.subs, geo, 0.5);
+    if (mr) drawMrf(mr);
+    var st = Physics.faultRuptureStats(geo.subs, geo);
+    var html = '<table class="wfa-table"><tbody>';
+    html += row(frvT('info.frv_dims', '断层尺寸'), Math.round(geo.L || 0) + ' × ' + Math.round(geo.W || 0) + ' km · ' + st.patches + ' ' + frvT('info.frv_patches', '补片'));
+    html += row(frvT('info.frv_mean_slip', '平均滑移'), st.meanSlipM.toFixed(2) + ' m');
+    html += row(frvT('info.frv_max_slip', '最大滑移'), st.maxSlipM.toFixed(2) + ' m' + (st.maxSlipAt && st.maxSlipAt.ruptureTimeS != null ? ' <span class="wfa-sub">@' + st.maxSlipAt.ruptureTimeS.toFixed(0) + 's</span>' : ''));
+    html += row(frvT('info.frv_asperity', '凹凸体面积占比 (≥1.5×均值)'), (st.asperityAreaFraction * 100).toFixed(1) + ' %');
+    html += row(frvT('info.frv_duration', '破裂持时'), st.ruptureDurationS.toFixed(1) + ' s');
+    html += row(frvT('info.frv_rise', '上升时间 (均/最大)'), st.meanRiseTimeS.toFixed(1) + ' / ' + st.maxRiseTimeS.toFixed(1) + ' s');
+    if (st.ruptureVelKmS && st.ruptureVelKmS.max > 0) html += row(frvT('info.frv_vel', '破裂速度范围'), st.ruptureVelKmS.min.toFixed(1) + '–' + st.ruptureVelKmS.max.toFixed(1) + ' km/s');
+    if (mr) html += row(frvT('info.frv_peak_rate', '矩释放峰值时刻'), mr.peakRateAt.toFixed(1) + ' s' + (mr.weightUnits === 'slip-area-proxy' ? ' <span class="wfa-sub">(' + frvT('info.frv_proxy', '滑移×面积代理') + ')</span>' : ''));
+    html += row(frvT('info.frv_moment_check', '矩守恒核验'), st.momentRelErr != null ? (st.momentRelErr < 1e-9 ? '✓' : st.momentRelErr.toExponential(1)) : '—');
+    html += '</tbody></table>';
+    statsEl.innerHTML = html;
+    if (card) card.dataset.ready = '1';
+  }
+
+  if (colorSel) colorSel.addEventListener('change', function () { refresh(true); });
+  // cheap polling: 500 ms while the card is open — animation while running,
+  // catches preset/parameter changes otherwise without hooking code paths
+  setInterval(function () {
+    var card = document.getElementById('fault-rupture-card');
+    if (!card || !card.open) return;
+    refresh(false);
+  }, 500);
+  setTimeout(function () { refresh(true); }, 1000);
+})();
 // ---- v6.2 波形分析工具 (info panel, on-demand) ----
 (function wireWaveAnalysisTool() {
   var sel = document.getElementById('wfa-station');
@@ -7300,8 +7614,8 @@ function _openReportPage() {
   if (side) side.addEventListener('click', _openReportPage);
   // v6.2 post-release: the popup entry became the illustrated guide page;
   // the report page keeps its sidebar entry under the app title
-  var guideSide = document.getElementById('btn-guide-page');
-  if (guideSide) guideSide.addEventListener('click', function() { window.open('guide.html', '_blank', 'noopener'); });
+  var promoGuide = document.getElementById('btn-promo-guide');
+  if (promoGuide) promoGuide.addEventListener('click', function() { window.open('guide.html', '_blank', 'noopener'); });
 })();
 
 function endSimulation() {
@@ -8091,7 +8405,6 @@ function _activatePresetFaultModel(id){
       });
     });
   }
-
   ['finite-fault-source','finite-fault-url','finite-fault-license'].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener('change',parseCurrent);});
   if(useButton)useButton.addEventListener('click',function(){
     if(!_pendingFiniteFault||isRunning)return;
@@ -8155,6 +8468,18 @@ if (btnFormulas) btnFormulas.addEventListener('click', function(){
     if (opening) openFormulaModal(); else closeFormulaModal();
     if (opening && typeof loadHelpI18n === 'function') loadHelpI18n();
   }
+});
+var btnPrivacy = document.getElementById('btn-privacy');
+if (btnPrivacy) btnPrivacy.addEventListener('click', function(){
+  var ov = document.getElementById('privacy-overlay');
+  if (ov) {
+    if (ov.style.display === 'flex') closeAccessibleModal('privacy-overlay');
+    else openAccessibleModal('privacy-overlay', '#btn-privacy-close');
+  }
+});
+var btnApi = document.getElementById('btn-api');
+if (btnApi) btnApi.addEventListener('click', function(){
+  window.open('/api-docs', '_blank');
 });
 // Auto-focus button
 var btnAF = document.getElementById('btn-autofocus');
@@ -8253,7 +8578,91 @@ document.getElementById('btn-realtime').addEventListener('click', function() {
   if (!_rtMode && !isRunning) exitPresenterMode();
 });
 
+
 // Modal buttons: bind immediately when markup exists, otherwise after DOM ready.
+var _promoLastFocus = null;
+var _siteStatsPromise = null;
+var _promoUptimeBase = null;
+var _promoUptimeFetchedAt = 0;
+var _promoUptimeTimer = null;
+function formatPromoUptime(totalSeconds) {
+  totalSeconds = Math.max(0, Math.floor(Number(totalSeconds) || 0));
+  var days = Math.floor(totalSeconds / 86400);
+  var hours = Math.floor(totalSeconds % 86400 / 3600);
+  var minutes = Math.floor(totalSeconds % 3600 / 60);
+  var seconds = totalSeconds % 60;
+  function pad(value) { return value < 10 ? '0' + value : String(value); }
+  return days + t('promo.day_unit') + ' ' + pad(hours) + ':' + pad(minutes) + ':' + pad(seconds);
+}
+function refreshPromoUptime() {
+  if (_promoUptimeBase === null) return;
+  var elapsed = Math.floor((Date.now() - _promoUptimeFetchedAt) / 1000);
+  var target = document.getElementById('promo-uptime');
+  if (target) target.textContent = formatPromoUptime(_promoUptimeBase + elapsed);
+}
+function loadSiteStats() {
+  if (_siteStatsPromise) return _siteStatsPromise;
+  var counterRequest = fetch('/api/counter').then(function(resp) {
+    if (!resp.ok) throw new Error('Counter request failed');
+    return resp.json();
+  }).catch(function() { return null; });
+  _siteStatsPromise = counterRequest.then(function(counter) {
+    if (counter && typeof counter.count === 'number') {
+      var formattedCount = counter.count.toLocaleString();
+      var sidebarCount = document.getElementById('visit-count');
+      var promoCount = document.getElementById('promo-visit-count');
+      if (sidebarCount) sidebarCount.textContent = formattedCount;
+      if (promoCount) promoCount.textContent = formattedCount;
+    }
+    if (counter && typeof counter.totalUptime === 'number') {
+      _promoUptimeBase = counter.totalUptime;
+      _promoUptimeFetchedAt = Date.now();
+      refreshPromoUptime();
+      var overlay = document.getElementById('promo-overlay');
+      if (!_promoUptimeTimer && overlay && overlay.style.display !== 'none') {
+        _promoUptimeTimer = setInterval(refreshPromoUptime, 1000);
+      }
+    }
+    return counter;
+  });
+  return _siteStatsPromise;
+}
+function closePromoModal() {
+  var overlay = document.getElementById('promo-overlay');
+  if (!overlay || overlay.style.display === 'none') return;
+  overlay.style.display = 'none';
+  if (_promoUptimeTimer) { clearInterval(_promoUptimeTimer); _promoUptimeTimer = null; }
+  if (_promoLastFocus && typeof _promoLastFocus.focus === 'function') _promoLastFocus.focus();
+  _promoLastFocus = null;
+}
+function bindPromoModal() {
+  var overlay = document.getElementById('promo-overlay');
+  var closeBtn = document.getElementById('btn-promo-close');
+  if (!overlay || !closeBtn || overlay.getAttribute('data-bound') === '1') return false;
+  overlay.setAttribute('data-bound', '1');
+  _promoLastFocus = document.activeElement;
+  loadSiteStats();
+  closeBtn.addEventListener('click', closePromoModal);
+  var whatsnewBtn = document.getElementById('btn-promo-whatsnew');
+  if (whatsnewBtn) whatsnewBtn.addEventListener('click', function() {
+    closePromoModal();
+    openAccessibleModal('whatsnew-overlay');
+  });
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) closePromoModal();
+  });
+  overlay.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') { e.preventDefault(); closePromoModal(); return; }
+    if (e.key !== 'Tab') return;
+    var focusable = overlay.querySelectorAll('button:not([disabled]),a[href]');
+    if (!focusable.length) return;
+    var first = focusable[0], last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
+  setTimeout(function() { closeBtn.focus(); }, 0);
+  return true;
+}
 function bindHelpModal(){
   var btnClose = document.getElementById('btn-help-close');
   var overlay = document.getElementById('help-overlay');
@@ -8267,6 +8676,18 @@ function bindHelpModal(){
   return false;
 }
 var _accessibleModalLastFocus = Object.create(null);
+function bindWhatsnewModal(){
+  var btnClose = document.getElementById('btn-whatsnew-close');
+  var overlay = document.getElementById('whatsnew-overlay');
+  if (btnClose && overlay && overlay.getAttribute('data-bound') !== '1') {
+    overlay.setAttribute('data-bound', '1');
+    btnClose.addEventListener('click', function(){ closeAccessibleModal('whatsnew-overlay'); });
+    overlay.addEventListener('click', function(e){ if (e.target === overlay) closeAccessibleModal('whatsnew-overlay'); });
+    overlay.addEventListener('keydown', function(e){ trapAccessibleModalKey(e, overlay, function(){ closeAccessibleModal('whatsnew-overlay'); }); });
+    return true;
+  }
+  return false;
+}
 function openAccessibleModal(id, preferredSelector) {
   var overlay = document.getElementById(id);
   if (!overlay) return;
@@ -8298,6 +8719,16 @@ function trapAccessibleModalKey(e, overlay, closeFn) {
   var first = focusable[0], last = focusable[focusable.length - 1];
   if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
   else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+}
+function bindPrivacyModal() {
+  var overlay = document.getElementById('privacy-overlay');
+  var closeBtn = document.getElementById('btn-privacy-close');
+  if (!overlay || !closeBtn || overlay.getAttribute('data-bound') === '1') return false;
+  overlay.setAttribute('data-bound', '1');
+  closeBtn.addEventListener('click', function(){ closeAccessibleModal('privacy-overlay'); });
+  overlay.addEventListener('click', function(e){ if (e.target === overlay) closeAccessibleModal('privacy-overlay'); });
+  overlay.addEventListener('keydown', function(e){ trapAccessibleModalKey(e, overlay, function(){ closeAccessibleModal('privacy-overlay'); }); });
+  return true;
 }
 var _formulaLastFocus = null;
 function setFormulaMode(mode) {
@@ -8408,7 +8839,10 @@ function fallbackCopy(value, onDone) {
 // was already in place). Config switches to 'landuse' load it via
 // onTsunamiRuntimeConfigChanged.
 if (cfgGet('tsunamiRoughness') === 'landuse') _loadLanduseManningPack();
+if (!bindPromoModal()) window.addEventListener('DOMContentLoaded', bindPromoModal);
 if (!bindHelpModal()) window.addEventListener('DOMContentLoaded', bindHelpModal);
+if (!bindWhatsnewModal()) window.addEventListener('DOMContentLoaded', bindWhatsnewModal);
+if (!bindPrivacyModal()) window.addEventListener('DOMContentLoaded', bindPrivacyModal);
 if (!bindFormulaModal()) window.addEventListener('DOMContentLoaded', bindFormulaModal);
 if (!bindErrorOverlay()) window.addEventListener('DOMContentLoaded', bindErrorOverlay);
 document.getElementById('multi-event-mode').addEventListener('change', function(){
@@ -9942,6 +10376,24 @@ async function init() {
   if (epicenter && isOceanPoint(epicenter.lat, epicenter.lng)) _prefetchRegionalBathy(epicenter.lat, epicenter.lng);
   try { var orsp = await observedPromise; if (orsp && orsp.ok) OBSERVED = await orsp.json(); }
   catch(e) { console.warn('observed.json load failed:', e); }
+  // Reuse the popup's early request so one page visit is counted only once.
+  try { await loadSiteStats(); } catch (e) { /* ignore public stats errors */ }
+  // Fetch server expiry
+  try {
+    var expResp = await fetch('/api/admin/expiry');
+    if (expResp.ok) {
+      var expData = await expResp.json();
+      if (expData.daysLeft != null) {
+        var ei = document.getElementById('expiry-info');
+        var ed = document.getElementById('expiry-days');
+        if (ei) ei.style.display = 'block';
+        if (ed) {
+          var dText = t('expiry.days', {days: expData.daysLeft});
+          ed.textContent = dText;
+        }
+      }
+    }
+  } catch (e) { /* ignore */ }
   preloadAudio();
   // Audio loading indicator on map (disappears once all sounds are cached)
   try {
@@ -9975,7 +10427,7 @@ async function init() {
   initMobileToggle();
   // Register service worker for offline PWA support (non-critical)
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js?v=719833').catch(function(e) {
+    navigator.serviceWorker.register('sw.js?v=578102').catch(function(e) {
       console.warn('SW registration failed (non-critical):', e);
     });
   }
@@ -10866,7 +11318,6 @@ function drawResponseSpectrum() {
       : 'Directivity pulse P=' + _bruneCache.pulse.probability + ' Tp=' + _bruneCache.pulse.tpSec + 's'), W / 2, 12);
   }
 }
-
 
 // --- PSHA hazard curve & UHS (v6.1 P2, 2026-09-01) ------------------------
 // Site hazard from the bundled self-computed source model

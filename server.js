@@ -18,8 +18,8 @@ function isLoopbackIp(ip) {
 
 // Proxy-header trust can be disabled with QUAKE_TRUST_PROXY=0 when the
 // process is NOT behind a same-host reverse proxy (a misconfigured proxy
-// that forwards client-supplied headers would let callers choose their
-// rate-limit identity).
+// that forwards client-supplied headers would let attackers choose their
+// rate-limit/audit identity).
 var TRUST_PROXY_HEADERS = process.env.QUAKE_TRUST_PROXY !== '0';
 
 // Proxy headers are authoritative only when the direct peer is this host's
@@ -54,7 +54,7 @@ function buildCatalogRequests(searchParams) {
   fdsn.searchParams.set('maxlongitude', '152');
   fdsn.searchParams.set('limit', '50');
 
-  var live = new URL(LIVE_API_BASE + '/api/v1/earthquakes');
+  var live = new URL('http://127.0.0.1:7891/api/v1/earthquakes');
   live.searchParams.set('minMag', Number.isFinite(minMag) ? String(minMag) : '4');
   live.searchParams.set('hours', '720');
   live.searchParams.set('region', 'japan');
@@ -103,6 +103,10 @@ const PYTHON_BIN = process.env.PYTHON_BIN || (process.platform === 'win32' ? 'py
 const SERVER_START = Date.now();
 const PUBLIC = path.join(__dirname, 'public');
 const SOUNDS = path.join(__dirname, 'sounds');
+const COUNTER_FILE = path.join(__dirname, 'counter.json');
+const EXPIRY_FILE  = path.join(__dirname, 'expiry.json');
+const BulletinBuilder = require('./tools/bulletin-builder.js');
+const webhookManager = require('./tools/webhook-manager.js').init(path.join(__dirname, 'webhooks.json'));
 const TRAFFIC_FILE = path.join(__dirname, 'traffic.json');
 
 // HTTP Keep-Alive agents for outbound connection reuse
@@ -131,12 +135,10 @@ function ttsSettingsPayload() {
     keyMode: localSettings.ttsApiKeyMode || 'query'
   };
 }
-// Base URL of the local multi-source earthquake collector proxied by
-// /api/live-quakes, /api/earthquakes and /api/catalog.
-const LIVE_API_BASE = process.env.LIVE_API_BASE || 'http://127.0.0.1:7891';
 const TTS_MAX_TEXT_LENGTH = 300;
 const TTS_MAX_AUDIO_BYTES = 8 * 1024 * 1024;
 const TTS_SYNTHESIS_RATE_LIMIT = 60;
+const TTS_SYNTHESIS_KEY_RATE_LIMIT = 240; // authenticated API-key principals
 const TTS_CACHE_MAX_ENTRIES = 200;
 const TTS_CACHE_MAX_BYTES = 64 * 1024 * 1024;
 const TTS_CACHE_MAX_ITEM_BYTES = 2 * 1024 * 1024;
@@ -146,6 +148,12 @@ const TTS_VOICES = new Set([
   'en-US-AriaNeural', 'en-US-GuyNeural', 'en-US-JennyNeural',
   'ko-KR-SunHiNeural', 'ko-KR-InJoonNeural'
 ]);
+const PASSWORD_FILE = path.join(__dirname, 'admin_password.txt');
+const CRYPTO = require('crypto');
+const API_KEY = process.env.QUAKE_API_KEY || 'qs-' + CRYPTO.randomBytes(24).toString('hex'); // 48-char hex
+const DAILY_FILE = path.join(__dirname, 'daily_visits.json');
+const API_KEYS_FILE = path.join(__dirname, 'api_keys.json');
+
 // Serialize writes per file and replace atomically so concurrent requests or a
 // process interruption cannot leave truncated JSON behind.
 const _persistQueues = new Map();
@@ -179,11 +187,308 @@ function flushPendingWrites() {
   return Promise.allSettled(Array.from(_persistQueues.values()));
 }
 
-// ---- In-memory error log (last 50 entries) ----
-let errorLogs = []; // [{time, message, stack}]
+// ---- API key store (persisted to api_keys.json) ----
+// Format: { <sha256(key)>: { prefix, label, created, lastUsed, requestCount, owner } }.
+// Keys are high-entropy random tokens, so a plain SHA-256 lookup hash is
+// sufficient (unlike human passwords, which use scrypt below). Full key
+// material is never persisted — it is returned exactly once, at creation.
+let apiKeys = {};
+try {
+  if (fs.existsSync(API_KEYS_FILE)) {
+    apiKeys = JSON.parse(fs.readFileSync(API_KEYS_FILE, 'utf8'));
+  }
+} catch(e) { apiKeys = {}; }
+function apiKeyHash(key) {
+  return CRYPTO.createHash('sha256').update(String(key)).digest('hex');
+}
+function apiKeyByPrefix(prefix) {
+  for (var hk in apiKeys) if (apiKeys[hk] && apiKeys[hk].prefix === prefix) return apiKeys[hk];
+  return null;
+}
+// Bootstrap key: the env-configured key joins the persistent store; a randomly
+// generated key (no QUAKE_API_KEY) is session-only and must NOT be persisted —
+// the previous behavior appended one dead key to the store on every restart.
+var _bootstrapKeyHash = apiKeyHash(API_KEY);
+if (process.env.QUAKE_API_KEY && !apiKeys[_bootstrapKeyHash]) {
+  apiKeys[_bootstrapKeyHash] = { prefix: API_KEY.slice(0, 15), label: 'env', created: Date.now(), lastUsed: null };
+}
+function saveApiKeys() {
+  return queueJsonWrite(API_KEYS_FILE, apiKeys, true);
+}
+
+// ---- User system (persisted to users.json) ----
+const USERS_FILE = path.join(__dirname, 'users.json');
+let users = {}; // {username: {username, passwordHash, salt, created, apiKeys:[]}}
+try {
+  if (fs.existsSync(USERS_FILE)) {
+    users = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
+  }
+} catch(e) { users = {}; }
+function saveUsers() {
+  return queueJsonWrite(USERS_FILE, users, true);
+}
+
+// One-time migration from the legacy plaintext key store ({ 'qs-...': {...} })
+// to hash-keyed records, plus cleanup of restart-artifact keys: before the
+// session-key fix above, every boot without QUAKE_API_KEY appended one unused
+// 'default' key (207 had accumulated). users.apiKeys references are remapped
+// from full keys to stored prefixes.
+(function migrateLegacyApiKeys() {
+  var hasLegacy = Object.keys(apiKeys).some(function(k) { return !/^[a-f0-9]{64}$/.test(k); });
+  var legacyToPrefix = {};
+  if (hasLegacy) {
+    for (var k in apiKeys) {
+      if (/^[a-f0-9]{64}$/.test(k)) continue;
+      var info = apiKeys[k] || {};
+      var h = apiKeyHash(k);
+      if (!apiKeys[h]) apiKeys[h] = Object.assign({}, info, { prefix: String(k).slice(0, 15) });
+      legacyToPrefix[k] = String(k).slice(0, 15);
+      delete apiKeys[k];
+    }
+  }
+  var usersModified = false;
+  for (var u in users) {
+    var arr = users[u] && users[u].apiKeys;
+    if (!Array.isArray(arr)) continue;
+    for (var i = 0; i < arr.length; i++) {
+      if (typeof arr[i] === 'string' && legacyToPrefix[arr[i]]) {
+        arr[i] = legacyToPrefix[arr[i]];
+        usersModified = true;
+      }
+    }
+  }
+  var pruned = 0;
+  for (var hk in apiKeys) {
+    var rec = apiKeys[hk];
+    if (!rec || rec.label !== 'default' || rec.lastUsed || rec.owner) continue;
+    var referenced = false;
+    for (var u2 in users) {
+      var a2 = users[u2] && users[u2].apiKeys;
+      if (Array.isArray(a2) && a2.indexOf(rec.prefix) !== -1) { referenced = true; break; }
+    }
+    if (!referenced) { delete apiKeys[hk]; pruned++; }
+  }
+  if (hasLegacy || pruned || usersModified) {
+    console.log('[api-keys] migrated to hashed storage' +
+      (pruned ? (', pruned ' + pruned + ' unused restart-artifact key(s)') : ''));
+    saveApiKeys();
+    if (usersModified) saveUsers();
+  }
+})();
+saveApiKeys(); // persist startup changes (e.g. a newly added env key)
+
+// Password hashing. Existing SHA-256 records are upgraded after a successful login.
+function hashPassword(password, salt, kdf) {
+  if (!salt) salt = CRYPTO.randomBytes(16).toString('hex');
+  kdf = kdf || 'scrypt';
+  var hash = kdf === 'scrypt'
+    ? CRYPTO.scryptSync(password, salt, 64).toString('hex')
+    : CRYPTO.createHash('sha256').update(salt + password).digest('hex');
+  return { hash: hash, salt: salt, kdf: kdf };
+}
+
+// Async scrypt for request paths — scryptSync blocks the event loop and a
+// login flood could stall every other connection (2026-08-23 audit). Boot-time
+// hashing may stay on the sync variant.
+function hashPasswordAsync(password, salt, kdf) {
+  if (!salt) salt = CRYPTO.randomBytes(16).toString('hex');
+  kdf = kdf || 'scrypt';
+  if (kdf === 'scrypt' && typeof CRYPTO.scrypt === 'function') {
+    return new Promise(function(resolve, reject) {
+      CRYPTO.scrypt(String(password), salt, 64, function(err, buf) {
+        if (err) reject(err);
+        else resolve({ hash: buf.toString('hex'), salt: salt, kdf: kdf });
+      });
+    });
+  }
+  return Promise.resolve(hashPassword(password, salt, kdf));
+}
+function verifyPasswordAsync(password, record) {
+  if (!record || !record.passwordHash || !record.salt) return Promise.resolve(false);
+  return hashPasswordAsync(password, record.salt, record.passwordKdf || 'sha256').then(function(c) {
+    return safeHashEqual(c.hash, record.passwordHash);
+  });
+}
+function persistAdminPasswordAsync(password) {
+  return hashPasswordAsync(password).then(function(credential) {
+    var tempPath = PASSWORD_FILE + '.' + process.pid + '.tmp';
+    fs.writeFileSync(tempPath, JSON.stringify({ hash: credential.hash, salt: credential.salt, kdf: credential.kdf }), { encoding: 'utf8', mode: 0o600 });
+    fs.renameSync(tempPath, PASSWORD_FILE);
+    try { fs.chmodSync(PASSWORD_FILE, 0o600); } catch (e) {}
+    adminPasswordHash = credential.hash;
+    adminPasswordSalt = credential.salt;
+    adminPasswordKdf = credential.kdf;
+  });
+}
+function verifyAdminPasswordAsync(pw) {
+  if (adminPasswordHash && adminPasswordSalt) {
+    return hashPasswordAsync(pw, adminPasswordSalt, adminPasswordKdf || 'sha256').then(function(c) {
+      var ok = safeHashEqual(c.hash, adminPasswordHash);
+      if (ok && adminPasswordKdf !== 'scrypt') return persistAdminPasswordAsync(pw).then(function() { return true; });
+      return ok;
+    });
+  }
+  // Legacy plaintext-memory fallback (first boot migrates immediately).
+  return Promise.resolve(verifyAdminPassword(pw));
+}
+
+function safeHashEqual(a, b) {
+  try {
+    var aa = Buffer.from(String(a || ''), 'hex'), bb = Buffer.from(String(b || ''), 'hex');
+    return aa.length > 0 && aa.length === bb.length && CRYPTO.timingSafeEqual(aa, bb);
+  } catch(e) { return false; }
+}
+
+function verifyPassword(password, record) {
+  if (!record || !record.passwordHash || !record.salt) return false;
+  var candidate = hashPassword(password, record.salt, record.passwordKdf || 'sha256');
+  return safeHashEqual(candidate.hash, record.passwordHash);
+}
+
+// ---- Developer session tokens (in-memory, 24h expiry) ----
+let devTokens = {}; // {token: {username, created}}
+const DEV_TOKEN_TTL = 24 * 3600 * 1000;
+function cleanDevTokens() {
+  var now = Date.now();
+  for (var k in devTokens) {
+    if (now - devTokens[k].created > DEV_TOKEN_TTL) delete devTokens[k];
+  }
+}
+var _devTokenCleanupTimer = setInterval(cleanDevTokens, 600000); // every 10 min
+
+function checkDevToken(req) {
+  var auth = req.headers['authorization'] || '';
+  var token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
+  if (token && devTokens[token]) {
+    if (Date.now() - devTokens[token].created < DEV_TOKEN_TTL) return devTokens[token].username;
+    delete devTokens[token];
+  }
+  return null;
+}
+
+// ---- Developer API rate limit stores ----
+var _devRegisterLimit = {}; // {ip: [timestamps]} — 3 per hour
+var _devLoginFails = {};    // {ip: {count, resetTime}} — 5 per 15 min
+
+// ---- Admin: daily visits, error logs, IP logs ----
+let dailyVisits = {}; // { "2026-06-12": 5, "2026-06-13": 12, ... }
+try { dailyVisits = JSON.parse(fs.readFileSync(DAILY_FILE, 'utf-8')); } catch(e) { console.error('daily_visits.json load failed:', e.message); } // console.error, NOT logError — errorLogs is still in its TDZ during boot (fresh-deploy hang)
+function saveDailyVisits() { return queueJsonWrite(DAILY_FILE, dailyVisits); }
+function todayKey() { return new Date().toISOString().slice(0, 10); }
+
+let errorLogs = []; // [{time, message, stack}] — last 50
+const ERROR_LOG_FILE = path.join(__dirname, 'error_log.json');
+// Load persisted error logs on startup
+try {
+  if (fs.existsSync(ERROR_LOG_FILE)) {
+    var savedErrors = JSON.parse(fs.readFileSync(ERROR_LOG_FILE, 'utf-8'));
+    if (Array.isArray(savedErrors)) errorLogs = savedErrors.slice(-50);
+  }
+} catch(e) { console.error('error_log.json load failed:', e.message); }
+function saveErrorLogs() {
+  return queueJsonWrite(ERROR_LOG_FILE, errorLogs);
+}
+let ipLogs = []; // [{ip, time, path}] — last 200
+
+// Append to the in-memory error log surfaced via /api/admin/errors (capped at 50).
 function logError(message, stack) {
   errorLogs.push({ time: Date.now(), message: String(message), stack: String(stack || '').slice(0, 500) });
   if (errorLogs.length > 50) errorLogs.shift();
+  saveErrorLogs(); // persist to disk
+}
+
+// ---- admin password (hashed storage) ----
+let adminPassword = '';
+let adminPasswordHash = '';
+let adminPasswordSalt = '';
+let adminPasswordKdf = '';
+function persistAdminPassword(password) {
+  var credential = hashPassword(password);
+  var tempPath = PASSWORD_FILE + '.' + process.pid + '.tmp';
+  fs.writeFileSync(tempPath, JSON.stringify({ hash:credential.hash, salt:credential.salt, kdf:credential.kdf }), {encoding:'utf8', mode:0o600});
+  fs.renameSync(tempPath, PASSWORD_FILE);
+  fs.chmodSync(PASSWORD_FILE, 0o600);
+  adminPasswordHash = credential.hash;
+  adminPasswordSalt = credential.salt;
+  adminPasswordKdf = credential.kdf;
+}
+try {
+  if (process.env.ADMIN_PASSWORD) {
+    adminPassword = process.env.ADMIN_PASSWORD;
+    persistAdminPassword(adminPassword);
+    console.log('Admin password set from ADMIN_PASSWORD env var');
+  } else if (fs.existsSync(PASSWORD_FILE)) {
+    var raw = fs.readFileSync(PASSWORD_FILE, 'utf8').trim();
+    try {
+      var stored = JSON.parse(raw);
+      if (stored.hash && stored.salt) {
+        adminPasswordHash = stored.hash;
+        adminPasswordSalt = stored.salt;
+        adminPasswordKdf = stored.kdf || 'sha256';
+        console.log('Admin password loaded from file (hashed)');
+      } else {
+        adminPassword = raw;
+        persistAdminPassword(adminPassword);
+        console.log('Admin password migrated from plaintext to scrypt');
+      }
+    } catch(e) {
+      adminPassword = raw;
+      persistAdminPassword(adminPassword);
+      console.log('Admin password migrated from plaintext to scrypt');
+    }
+  } else {
+    adminPassword = CRYPTO.randomBytes(16).toString('hex');
+    persistAdminPassword(adminPassword);
+    // First-boot credentials must not leak into process logs (logs often
+    // outlive the deployment). Drop an owner-readable one-time file instead;
+    // the console fallback only fires if the write itself failed.
+    var pwNoted = false;
+    try {
+      var pwFile = path.join(__dirname, 'admin-password.txt');
+      fs.writeFileSync(pwFile, adminPassword + '\n', { encoding: 'utf8', mode: 0o600 });
+      console.log('Admin password generated (random 32-char hex): see ' + pwFile + ' (delete after noting it)');
+      pwNoted = true;
+    } catch(e2) {}
+    if (!pwNoted) console.log('Admin password generated (random 32-char hex): ' + adminPassword);
+  }
+} catch(e) { adminPassword = CRYPTO.randomBytes(16).toString('hex'); console.error('Password init error'); }
+
+function verifyAdminPassword(pw) {
+  if (adminPasswordHash && adminPasswordSalt) {
+    var h = hashPassword(pw, adminPasswordSalt, adminPasswordKdf || 'sha256').hash;
+    var ok = safeHashEqual(h, adminPasswordHash);
+    if (ok && adminPasswordKdf !== 'scrypt') persistAdminPassword(pw);
+    return ok;
+  }
+  var plainCandidate = CRYPTO.createHash('sha256').update(String(pw || '')).digest('hex');
+  var plainExpected = CRYPTO.createHash('sha256').update(String(adminPassword || '')).digest('hex');
+  var plainOk = safeHashEqual(plainCandidate, plainExpected);
+  if (plainOk) persistAdminPassword(pw);
+  return plainOk;
+}
+
+// ---- admin session tokens (in-memory, 24h expiry) ----
+let adminTokens = {};  // {token: {created: Date.now()}}
+const ADMIN_TOKEN_TTL = 24 * 3600 * 1000;  // 24 hours
+
+function cleanAdminTokens() {
+  var now = Date.now();
+  for (var k in adminTokens) {
+    if (now - adminTokens[k].created > ADMIN_TOKEN_TTL) delete adminTokens[k];
+  }
+}
+var _adminTokenCleanupTimer = setInterval(cleanAdminTokens, 600000); // every 10 min
+
+// ---- server expiry (persisted to expiry.json) ----
+let serverExpiry = null; // ISO string or null
+try {
+  if (fs.existsSync(EXPIRY_FILE)) {
+    serverExpiry = JSON.parse(fs.readFileSync(EXPIRY_FILE, 'utf8')).expiresAt || null;
+  }
+} catch(e) { serverExpiry = null; logError('expiry.json load failed: ' + e.message); }
+
+function saveExpiry() {
+  return queueJsonWrite(EXPIRY_FILE, {expiresAt: serverExpiry});
 }
 
 // ---- traffic stats (persisted to traffic.json) ----
@@ -217,34 +522,80 @@ function totalUptimeSeconds() {
   return Math.max(accumulated, Math.floor((Date.now() - SERVER_START) / 1000));
 }
 // Periodic save every 60s (traffic + rate limits)
-var _trafficSaveTimer = setInterval(function() { checkpointUptime(); saveTraffic(); saveRateLimits(); }, 60000);
+var _trafficSaveTimer = setInterval(function() { checkpointUptime(); saveTraffic(); saveRateLimits(); saveApiKeys(); }, 60000);
 
 // Periodic cleanup: purge rate limit entries older than 1 hour
 var _rateLimitCleanupTimer = setInterval(function() {
   var cutoff = Date.now() - 3600000;
-  [ _ttsRateLimit, _ttsSynthesisRateLimit, _testRateLimit, _wfRateLimit, _exportRateLimit ].forEach(function(store) {
+  // The login-fail stores hold {count, resetTime} objects — their resetTime
+  // horizon is 15 min, so an hour-old sweep reclaims every dead IP entry.
+  [ _ttsRateLimit, _ttsSynthesisRateLimit, _testRateLimit, _wfRateLimit, _exportRateLimit, _counterLast,
+    _devRegisterLimit, _devLoginFails, _adminLoginFails ].forEach(function(store) {
     if (!store) return;
     for (var ip in store) {
+      if (!Object.prototype.hasOwnProperty.call(store, ip)) continue;
       if (Array.isArray(store[ip])) {
         store[ip] = store[ip].filter(function(t) { return t > cutoff; });
         if (store[ip].length === 0) delete store[ip];
       } else if (typeof store[ip] === 'number' && store[ip] < cutoff) {
+        delete store[ip];
+      } else if (store[ip] && typeof store[ip] === 'object' && store[ip].resetTime != null && store[ip].resetTime < cutoff) {
         delete store[ip];
       }
     }
   });
 }, 600000); // every 10 minutes
 
+// ---- visit counter (persisted to counter.json) ----
+let visitCount = 0;
+try {
+  if (fs.existsSync(COUNTER_FILE)) {
+    const raw = fs.readFileSync(COUNTER_FILE, 'utf8');
+    const obj = JSON.parse(raw);
+    visitCount = obj.count || 0;
+  }
+} catch (e) { visitCount = 0; logError('counter.json load failed: ' + e.message); }
+console.log('Visit counter loaded: ' + visitCount);
 loadRateLimits(); // restore rate limit state from disk
 
+// ---- Station data cache (in-memory, loaded at startup) ----
+var _stationsCache = null;      // Array of land station objects
+var _seafloorStationsCache = null; // Array of seafloor station objects
+var _observedCache = null;      // Object of preset earthquakes with observed shindo
+
+function loadStationsCache() {
+  try {
+    if (fs.existsSync(path.join(PUBLIC, 'geojson', 'stations.json'))) {
+      _stationsCache = JSON.parse(fs.readFileSync(path.join(PUBLIC, 'geojson', 'stations.json'), 'utf8'));
+      console.log('Station cache loaded: ' + _stationsCache.length + ' land stations');
+    }
+  } catch(e) { logError('stations.json load failed: ' + e.message); _stationsCache = []; }
+  try {
+    if (fs.existsSync(path.join(PUBLIC, 'geojson', 'seafloor_stations.json'))) {
+      _seafloorStationsCache = JSON.parse(fs.readFileSync(path.join(PUBLIC, 'geojson', 'seafloor_stations.json'), 'utf8'));
+      console.log('Seafloor station cache loaded: ' + _seafloorStationsCache.length + ' stations');
+    }
+  } catch(e) { logError('seafloor_stations.json load failed: ' + e.message); _seafloorStationsCache = []; }
+  try {
+    if (fs.existsSync(path.join(PUBLIC, 'geojson', 'observed.json'))) {
+      _observedCache = JSON.parse(fs.readFileSync(path.join(PUBLIC, 'geojson', 'observed.json'), 'utf8'));
+      var presetCount = Object.keys(_observedCache).filter(function(k) { return k.charAt(0) !== '_'; }).length;
+      console.log('Observed cache loaded: ' + presetCount + ' presets');
+    }
+  } catch(e) { logError('observed.json load failed: ' + e.message); _observedCache = {}; }
+}
+loadStationsCache();
+var _counterLast = {};    // per-IP last access time
+var _counterCleanup = 0;  // periodic cleanup counter
 var _ttsRateLimit = {};    // {ip: [timestamp, ...]} — rate limit state for TTS bulletin
 var _ttsSynthesisRateLimit = {}; // independent limiter for dynamic neural TTS
 var _ttsAudioCache = new Map();  // voice+'\n'+text -> Buffer, LRU via delete+set
 var _ttsAudioCacheBytes = 0;
 var _testRateLimit = {};   // {ip: [timestamp, ...]} — rate limit state for test endpoint
-var _settingsRateLimit = null;
-var _wfRateLimit = {};     // {ip: [timestamp, ...]} — rate limit state for waveform fetch
+var _wfRateLimit = {};     // {ip: [timestamp, ...]} — rate limit state for webhook delivery
 var _exportRateLimit = {}; // {ip: [timestamp, ...]} — rate limit state for replay export
+var _adminLoginFails = {}; // {ip: {count, resetTime}} — rate limit state for admin login
+var _settingsRateLimit = null; // settings-page POST limiter (loopback only, lazy init)
 var _rateLimitPersist = process.env.RATELIMIT_PERSIST !== 'false'; // default true (persist to disk)
 var RATELIMIT_FILE = path.join(__dirname, 'ratelimit.json');
 
@@ -262,6 +613,19 @@ function loadRateLimits() {
           if (timestamps.length > 0) _ttsRateLimit[ip] = timestamps;
         }
       }
+      // Restore admin login fails, filtering expired entries
+      if (data.login) {
+        for (var ip in data.login) {
+          var entry = data.login[ip];
+          if (entry && now < entry.resetTime) _adminLoginFails[ip] = entry;
+        }
+      }
+      // Restore counter rate limits, filtering expired entries
+      if (data.counter) {
+        for (var ip in data.counter) {
+          if (now - data.counter[ip] < 60000) _counterLast[ip] = data.counter[ip];
+        }
+      }
     }
   } catch(e) { /* ignore corrupted file */ }
 }
@@ -271,11 +635,19 @@ function saveRateLimits() {
   try {
     // Only save if there's data to persist (avoid writing empty files)
     var ttsKeys = Object.keys(_ttsRateLimit);
-    if (ttsKeys.length === 0) return;
+    var loginKeys = Object.keys(_adminLoginFails);
+    var counterKeys = Object.keys(_counterLast);
+    if (ttsKeys.length === 0 && loginKeys.length === 0 && counterKeys.length === 0) return;
     fs.writeFileSync(RATELIMIT_FILE, JSON.stringify({
-      tts: _ttsRateLimit
+      tts: _ttsRateLimit,
+      login: _adminLoginFails,
+      counter: _counterLast
     }));
   } catch(e) { /* ignore write errors */ }
+}
+
+function saveCounter() {
+  return queueJsonWrite(COUNTER_FILE, { count: visitCount });
 }
 
 const MIME = {
@@ -302,6 +674,12 @@ function cacheHeader(ext) {
 }
 
 // ---- security headers ----
+// CSP notes: 'unsafe-inline' in script-src stays because index.html carries
+// two inline scripts, one of which embeds bump-versions-managed ?v= URLs —
+// a sha256-hash policy would silently break on every version bump.
+// 'unsafe-eval' is ALSO required: the bundled turf.min.js builds expression
+// evaluators with new Function() (verified live — removing it broke turf and
+// killed init). object-src/base-uri still lock down plugin injection.
 const SECURITY_HEADERS = {
   'X-Content-Type-Options': 'nosniff',
   'X-Frame-Options': 'SAMEORIGIN',
@@ -473,6 +851,8 @@ let usgsCache = null, usgsCacheTime = 0;
 let _catalogCache = null; // {url, data, time}
 // ---- Live earthquake API proxy (local eq-collector, cached) ----
 let _liveQuakeCache = null, _liveQuakeCacheTime = 0;
+let _liveStatsCache = null, _liveStatsCacheTime = 0;
+let _liveSourcesCache = null, _liveSourcesCacheTime = 0;
 const USGS_URL = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson';
 
 // Shared HTTP GET helper with keep-alive + timeout
@@ -543,7 +923,7 @@ function serveUSGS(res) {
   }, 10000);
 
   // Fetch live multi-source API and inject non-USGS events
-  var lqUrl = LIVE_API_BASE + '/api/v1/earthquakes?minMag=3&hours=72&region=japan&limit=100&order=desc';
+  var lqUrl = 'http://127.0.0.1:7891/api/v1/earthquakes?minMag=3&hours=72&region=japan&limit=100&order=desc';
   _httpGet(lqUrl, function(err, data, statusCode) {
     var hasLive = false;
     if (!err && statusCode === 200) {
@@ -595,7 +975,12 @@ const server = http.createServer((req, res) => {
   trafficStats.requests++;
   // Track request body bytes for upload stats
   req.on('data', function(chunk) { trafficStats.bytesUp += chunk.length; });
+  // IP access log (last 200 entries, HTML pages only)
   var _reqIp = getClientIp(req);
+  if (req.url === '/' || req.url.endsWith('.html')) {
+    ipLogs.push({ip: _reqIp, time: Date.now(), path: req.url});
+    if (ipLogs.length > 200) ipLogs.shift();
+  }
   // Track bytes sent via wrapper on res.end
   // Defer writeHead so we can add Content-Encoding in res.end (gzip)
   var _origEnd = res.end;
@@ -701,10 +1086,53 @@ const server = http.createServer((req, res) => {
     sendError(res, 403, 'FORBIDDEN', 'Path escape blocked'); return;
   }
 
+  // visit counter endpoint (rate-limited: 1 req/s per IP)
+  if (reqPath === '/api/counter') {
+    var cip = _reqIp;
+    var now2 = Date.now();
+    if (_counterLast[cip] && now2 - _counterLast[cip] < 1000) {
+      res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' });
+      res.end(JSON.stringify({ count: visitCount, totalUptime: totalUptimeSeconds() }));
+      return;
+    }
+    _counterLast[cip] = now2;
+    // Clean up old entries every 100 requests
+    if (++_counterCleanup > 100) { _counterCleanup = 0;
+      for (var k in _counterLast) { if (now2 - _counterLast[k] > 60000) delete _counterLast[k]; }
+    }
+    visitCount++;
+    saveCounter();
+    var dk = todayKey(); dailyVisits[dk] = (dailyVisits[dk] || 0) + 1; saveDailyVisits();
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' });
+    res.end(JSON.stringify({ count: visitCount, totalUptime: totalUptimeSeconds() }));
+    return;
+  }
+
+  // Helper: verify API key for protected endpoints
+  function getApiPrincipal(req) {
+    const url = new URL(req.url, 'http://localhost');
+    const qKey = url.searchParams.get('key');
+    const auth = req.headers['authorization'] || '';
+    const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
+    const key = qKey || token;
+    const h = key ? apiKeyHash(key) : '';
+    // Persistent key store (hash lookup — full key material is never stored)
+    if (h && apiKeys[h]) {
+      apiKeys[h].lastUsed = Date.now(); apiKeys[h].requestCount = (apiKeys[h].requestCount || 0) + 1;
+      return 'key:' + h;
+    }
+    // Session bootstrap key (env-provided before first persist, or per-boot random)
+    if (h && h === _bootstrapKeyHash) return 'key:' + h;
+    // Allow localhost requests without key
+    if (isLoopbackIp(_reqIp)) return 'local';
+    return null;
+  }
+  function checkApiKey(req) { return !!getApiPrincipal(req); }
+
   // Test endpoint: inject fake earthquake for auto-sim testing
   if (reqPath === '/api/test/earthquake' && req.method === 'POST') {
-    if (!isLoopbackIp(req.socket.remoteAddress)) {
-      sendError(res, 403, 'FORBIDDEN', 'Loopback only');
+    if (!checkApiKey(req)) {
+      sendError(res, 401, 'API_KEY_REQUIRED', 'API key required. Use ?key=YOUR_KEY or Authorization: Bearer YOUR_KEY');
       return;
     }
     // Rate limit: 10 req/min per IP
@@ -754,8 +1182,8 @@ const server = http.createServer((req, res) => {
   // Test EEW injection: POST /api/test/eew — broadcasts a raw Wolfx-shaped
   // jma_eew frame so rt-eew.js can be exercised without a live EEW.
   if (reqPath === '/api/test/eew' && req.method === 'POST') {
-    if (!isLoopbackIp(req.socket.remoteAddress)) {
-      sendError(res, 403, 'FORBIDDEN', 'Loopback only');
+    if (!checkApiKey(req)) {
+      sendError(res, 401, 'API_KEY_REQUIRED', 'API key required. Use ?key=YOUR_KEY or Authorization: Bearer YOUR_KEY');
       return;
     }
     if (!_testRateLimit) _testRateLimit = {};
@@ -810,6 +1238,32 @@ const server = http.createServer((req, res) => {
       } catch(e) {
         sendError(res, 400, 'INVALID_PARAM', e.message);
       }
+    });
+    return;
+  }
+
+  // POST /api/simulation/complete — client-side trigger for simulation.complete webhook
+  if (reqPath === '/api/simulation/complete' && req.method === 'POST') {
+    if (!checkApiKey(req)) {
+      sendError(res, 401, 'API_KEY_REQUIRED', 'API key required. Use ?key=YOUR_KEY or Authorization: Bearer YOUR_KEY');
+      return;
+    }
+    var simBody = '';
+    req.on('data', function(c) { if (simBody.length < 16384) simBody += c; });
+    req.on('end', function() {
+      var payload = {};
+      try { if (simBody) payload = JSON.parse(simBody); } catch(e) {}
+      webhookManager.deliver('simulation.complete', {
+        mag: Number(payload.mag) || 0,
+        lat: Number(payload.lat) || 0,
+        lng: Number(payload.lng) || 0,
+        depth: Number(payload.depth) || 0,
+        maxShindo: String(payload.maxShindo || ''),
+        duration: Number(payload.duration) || 0,
+        time: (new Date()).toISOString()
+      });
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ ok: true, msg: 'simulation.complete delivered to webhooks' }));
     });
     return;
   }
@@ -1198,39 +1652,6 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // Wolfx geoIP proxy (approximate user location for EEW countdown reference)
-  if (reqPath === '/api/geoip') {
-    // Per-client-IP 60 s cache (same TTL + stale-if-error shape as /api/ntp):
-    // the response describes the visitor, so it is keyed by the visitor's IP.
-    var geoNow = Date.now();
-    var geoCached = _geoipCache[_reqIp];
-    if (geoCached && geoNow - geoCached.fetchedAt < 60000) {
-      res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'private, max-age=300' });
-      res.end(geoCached.body);
-      return;
-    }
-    // Forward the client IP so the lookup describes the visitor, not this server.
-    // Private/loopback IPs get the server-side default (dev only) — the client
-    // falls back to the map center when lat/lng come back null.
-    var geoUrl = 'https://api.wolfx.jp/geoip.php';
-    if (_reqIp && !isLoopbackIp(_reqIp)) geoUrl += '?ip=' + encodeURIComponent(_reqIp);
-    _geoipFetchFn(geoUrl, function(err, body) {
-      if (!err && body && body.charAt(0) === '{') {
-        _geoipCachePut(_reqIp, body);
-        res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'private, max-age=300' });
-        res.end(body);
-      } else if (geoCached) {
-        // Fresh on success, stale on upstream error — both better than nothing
-        res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'private, max-age=300' });
-        res.end(geoCached.body);
-      } else {
-        sendError(res, 502, 'UPSTREAM_ERROR', 'GeoIP source unavailable');
-      }
-    });
-    return;
-  }
-
-  // health check endpoint (includes P2P connection state + uptime)
   // ---- Local settings (settings page) ----
   // GET is public (no secrets: just the effective TTS upstream + its source);
   // POST is loopback-only so a remote visitor can never repoint the upstream
@@ -1302,6 +1723,45 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // Wolfx geoIP proxy (approximate user location for EEW countdown reference)
+  if (reqPath === '/api/geoip') {
+    // Per-client-IP 60 s cache (same TTL + stale-if-error shape as /api/ntp):
+    // the response describes the visitor, so it is keyed by the visitor's IP.
+    var geoNow = Date.now();
+    var geoCached = _geoipCache[_reqIp];
+    if (geoCached && geoNow - geoCached.fetchedAt < 60000) {
+      res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'private, max-age=300' });
+      res.end(geoCached.body);
+      return;
+    }
+    // Forward the client IP so the lookup describes the visitor, not this server.
+    // Private/loopback IPs get the server-side default (dev only) — the client
+    // falls back to the map center when lat/lng come back null.
+    var geoUrl = 'https://api.wolfx.jp/geoip.php';
+    if (_reqIp && !isLoopbackIp(_reqIp)) geoUrl += '?ip=' + encodeURIComponent(_reqIp);
+    _geoipFetchFn(geoUrl, function(err, body) {
+      if (!err && body && body.charAt(0) === '{') {
+        _geoipCachePut(_reqIp, body);
+        res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'private, max-age=300' });
+        res.end(body);
+      } else if (geoCached) {
+        // Fresh on success, stale on upstream error — both better than nothing
+        res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'private, max-age=300' });
+        res.end(geoCached.body);
+      } else {
+        sendError(res, 502, 'UPSTREAM_ERROR', 'GeoIP source unavailable');
+      }
+    });
+    return;
+  }
+
+  // Shortcut: /admin → admin.html
+  if (reqPath === '/admin') {
+    reqPath = '/admin.html';
+    filePath = path.join(PUBLIC, 'admin.html');
+  }
+
+  // health check endpoint (includes P2P connection state + uptime)
   if (reqPath === '/health') {
     const p2pConnected = !!(p2pWs && p2pWs.readyState === 1);
     const wolfxEewOk = !!(wolfxEewWs && wolfxEewWs.readyState === 1);
@@ -1313,8 +1773,8 @@ const server = http.createServer((req, res) => {
     const code = allOk ? 200 : 503;
     // _replayInfo() may gunzip the day's recording file; the per-file
     // size/mtime cache misses constantly because the recorder appends every
-    // few seconds. Memo the replay block (same TTL as /api/replay/info) so a
-    // /health flood cannot block the event loop.
+    // few seconds. Memo the replay block (same TTL as /api/replay/info) so an
+    // unauthenticated /health flood cannot block the event loop.
     if (!_healthReplayCache || Date.now() - _healthReplayCache.at >= 10000) {
       const _rh = _replayInfo();
       _healthReplayCache = { at: Date.now(), block: { frames: _rh.frames, earliest: _rh.earliest, latest: _rh.latest, diskBytes: _rh.diskBytes } };
@@ -1336,6 +1796,494 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // ---- Admin API ----
+  // POST /api/admin/login
+  if (reqPath === '/api/admin/login' && req.method === 'POST') {
+    var clientIP = _reqIp;
+    var now = Date.now();
+    var fail = _adminLoginFails[clientIP];
+    if (!fail || now > fail.resetTime) _adminLoginFails[clientIP] = fail = {count: 0, resetTime: now + 900000};
+    if (fail.count >= 5) {
+      res.writeHead(429, {'Content-Type':'application/json'});
+      res.end(JSON.stringify({ok:false, error:'Too many attempts. Try again later.'}));
+      return;
+    }
+    var body = '', blen = 0;
+    req.on('data', function(c) { blen += c.length; if (blen <= 1024) body += c; });
+    req.on('end', function() {
+      trafficStats.bytesUp += blen;
+      try {
+        var d = JSON.parse(body);
+        verifyAdminPasswordAsync(d.password).then(function(ok) {
+          if (ok) {
+            delete _adminLoginFails[clientIP];
+            var token = CRYPTO.randomUUID();
+            adminTokens[token] = {created: Date.now()};
+            res.writeHead(200, {'Content-Type':'application/json'});
+            res.end(JSON.stringify({ok:true, token:token, expiresIn: ADMIN_TOKEN_TTL/1000}));
+          } else {
+            fail.count++;
+            res.writeHead(401, {'Content-Type':'application/json'});
+            res.end(JSON.stringify({ok:false, error:'Invalid password'}));
+          }
+        }).catch(function() {
+          res.writeHead(401, {'Content-Type':'application/json'});
+          res.end(JSON.stringify({ok:false, error:'Invalid password'}));
+        });
+      } catch(e) {
+        res.writeHead(400, {'Content-Type':'application/json'});
+        res.end(JSON.stringify({ok:false, error:'Invalid request'}));
+      }
+    });
+    return;
+  }
+
+  // Helper: verify admin token
+  function checkAdminToken(req) {
+    var auth = req.headers['authorization'] || '';
+    var token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
+    if (token && adminTokens[token]) {
+      if (Date.now() - adminTokens[token].created < ADMIN_TOKEN_TTL) return true;
+      delete adminTokens[token];
+    }
+    return false;
+  }
+
+  // POST /api/admin/logout
+  if (reqPath === '/api/admin/logout' && req.method === 'POST') {
+    var auth = req.headers['authorization'] || '';
+    var token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
+    if (token) delete adminTokens[token];
+    res.writeHead(200, {'Content-Type':'application/json'});
+    res.end(JSON.stringify({ok:true}));
+    return;
+  }
+
+  // GET /api/admin/expiry (public — main page uses this)
+  if (reqPath === '/api/admin/expiry' && req.method === 'GET') {
+    var daysLeft = null;
+    if (serverExpiry) {
+      var expMs = new Date(serverExpiry).getTime();
+      daysLeft = Math.max(0, Math.ceil((expMs - Date.now()) / 86400000));
+    }
+    res.writeHead(200, {'Content-Type':'application/json','Cache-Control':'no-cache'});
+    res.end(JSON.stringify({expiresAt: serverExpiry, daysLeft: daysLeft}));
+    return;
+  }
+
+  // POST /api/admin/expiry (requires token)
+  if (reqPath === '/api/admin/expiry' && req.method === 'POST') {
+    if (!checkAdminToken(req)) {
+      res.writeHead(401, {'Content-Type':'application/json'});
+      res.end(JSON.stringify({ok:false, error:'Unauthorized'}));
+      return;
+    }
+    var body2 = '', blen2 = 0;
+    req.on('data', function(c) { blen2 += c.length; if (blen2 <= 1024) body2 += c; });
+    req.on('end', function() {
+      try {
+        var d2 = JSON.parse(body2);
+        if (d2.expiresAt) {
+          serverExpiry = d2.expiresAt;
+          saveExpiry();
+          res.writeHead(200, {'Content-Type':'application/json'});
+          res.end(JSON.stringify({ok:true, expiresAt: serverExpiry}));
+        } else {
+          res.writeHead(400, {'Content-Type':'application/json'});
+          res.end(JSON.stringify({ok:false, error:'Missing expiresAt'}));
+        }
+      } catch(e) {
+        res.writeHead(400, {'Content-Type':'application/json'});
+        res.end(JSON.stringify({ok:false, error:'Invalid JSON'}));
+      }
+    });
+    return;
+  }
+
+  // GET /api/admin/stats (requires token)
+  if (reqPath === '/api/admin/stats' && req.method === 'GET') {
+    if (!checkAdminToken(req)) {
+      res.writeHead(401, {'Content-Type':'application/json'});
+      res.end(JSON.stringify({ok:false, error:'Unauthorized'}));
+      return;
+    }
+    res.writeHead(200, {'Content-Type':'application/json','Cache-Control':'no-cache'});
+    res.end(JSON.stringify({
+      bytesUp: trafficStats.bytesUp,
+      bytesDown: trafficStats.bytesDown,
+      requests: trafficStats.requests,
+      visits: visitCount
+    }));
+    return;
+  }
+
+  // PATCH /api/admin/counter (requires token) — set visit count
+  if (reqPath === '/api/admin/counter' && req.method === 'PATCH') {
+    if (!checkAdminToken(req)) {
+      res.writeHead(401, {'Content-Type':'application/json'});
+      res.end(JSON.stringify({ok:false, error:'Unauthorized'}));
+      return;
+    }
+    let body = '', bl = 0;
+    req.on('data', c => { bl += c.length; if (bl <= 1024) body += c; });
+    req.on('end', () => {
+      try {
+        const data = JSON.parse(body);
+        if (typeof data.count === 'number' && data.count >= 0) {
+          visitCount = Math.round(data.count);
+          saveCounter();
+          res.writeHead(200, {'Content-Type':'application/json'});
+          res.end(JSON.stringify({ok:true, count: visitCount}));
+        } else {
+          res.writeHead(400, {'Content-Type':'application/json'});
+          res.end(JSON.stringify({ok:false, error:'Invalid count'}));
+        }
+      } catch(e) {
+        res.writeHead(400, {'Content-Type':'application/json'});
+        res.end(JSON.stringify({ok:false, error:'Invalid JSON'}));
+      }
+    });
+    return;
+  }
+
+  // PATCH /api/admin/requests (requires token) — set request count
+  if (reqPath === '/api/admin/requests' && req.method === 'PATCH') {
+    if (!checkAdminToken(req)) { res.writeHead(401,{'Content-Type':'application/json'}); res.end(JSON.stringify({ok:false, error:'Unauthorized'})); return; }
+    let body = '', bl2 = 0;
+    req.on('data', c => { bl2 += c.length; if (bl2 <= 1024) body += c; });
+    req.on('end', () => {
+      try {
+        const data = JSON.parse(body);
+        if (typeof data.requests === 'number' && data.requests >= 0) {
+          trafficStats.requests = Math.round(data.requests);
+          res.writeHead(200, {'Content-Type':'application/json'});
+          res.end(JSON.stringify({ok:true, requests: trafficStats.requests}));
+        } else {
+          res.writeHead(400, {'Content-Type':'application/json'});
+          res.end(JSON.stringify({ok:false, error:'Invalid value'}));
+        }
+      } catch(e) {
+        res.writeHead(400, {'Content-Type':'application/json'});
+        res.end(JSON.stringify({ok:false, error:'Invalid JSON'}));
+      }
+    });
+    return;
+  }
+
+  // GET /api/admin/system — server status
+  if (reqPath === '/api/admin/system' && req.method === 'GET') {
+    if (!checkAdminToken(req)) { res.writeHead(401,{'Content-Type':'application/json'}); res.end(JSON.stringify({ok:false, error:'Unauthorized'})); return; }
+    var mem = process.memoryUsage();
+    res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-cache'});
+    res.end(JSON.stringify({
+      uptime: process.uptime(),
+      nodeVersion: process.version,
+      platform: process.platform,
+      memRss: mem.rss,
+      memHeap: mem.heapUsed,
+      memHeapTotal: mem.heapTotal,
+      pid: process.pid
+    }));
+    return;
+  }
+
+  // GET /api/admin/daily — daily visit trend
+  if (reqPath === '/api/admin/daily' && req.method === 'GET') {
+    if (!checkAdminToken(req)) { res.writeHead(401,{'Content-Type':'application/json'}); res.end('{"error":"Unauthorized"}'); return; }
+    res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-cache'});
+    res.end(JSON.stringify(dailyVisits));
+    return;
+  }
+
+  // GET /api/admin/errors — error log
+  if (reqPath === '/api/admin/errors' && req.method === 'GET') {
+    if (!checkAdminToken(req)) { res.writeHead(401,{'Content-Type':'application/json'}); res.end('{"error":"Unauthorized"}'); return; }
+    res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-cache'});
+    res.end(JSON.stringify(errorLogs));
+    return;
+  }
+
+  // GET /api/admin/iplogs — IP access log
+  if (reqPath === '/api/admin/iplogs' && req.method === 'GET') {
+    if (!checkAdminToken(req)) { res.writeHead(401,{'Content-Type':'application/json'}); res.end('{"error":"Unauthorized"}'); return; }
+    res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-cache'});
+    res.end(JSON.stringify(ipLogs.slice(-100).reverse()));
+    return;
+  }
+
+  // GET /api/admin/sources — data source health
+  if (reqPath === '/api/admin/sources' && req.method === 'GET') {
+    if (!checkAdminToken(req)) { res.writeHead(401,{'Content-Type':'application/json'}); res.end(JSON.stringify({ok:false, error:'Unauthorized'})); return; }
+    res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-cache'});
+    res.end(JSON.stringify(sourceStatus));
+    return;
+  }
+
+  // GET /api/admin/apikeys — list API keys (requires token, masked)
+  if (reqPath === '/api/admin/apikeys' && req.method === 'GET') {
+    if (!checkAdminToken(req)) { res.writeHead(401,{'Content-Type':'application/json'}); res.end('{"error":"Unauthorized"}'); return; }
+    var maskedKeys = {};
+    for (var hk in apiKeys) {
+      var kinfo = apiKeys[hk] || {};
+      maskedKeys[(kinfo.prefix || hk.slice(0, 8)) + '...'] = {
+        id: hk.slice(0, 16),
+        label: kinfo.label || '', owner: kinfo.owner || '', created: kinfo.created, lastUsed: kinfo.lastUsed
+      };
+    }
+    res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-cache'});
+    res.end(JSON.stringify({ keys: maskedKeys }));
+    return;
+  }
+
+  // POST /api/admin/apikeys — generate a new API key (requires token)
+  if (reqPath === '/api/admin/apikeys' && req.method === 'POST') {
+    if (!checkAdminToken(req)) { res.writeHead(401,{'Content-Type':'application/json'}); res.end('{"error":"Unauthorized"}'); return; }
+    var akBody = '';
+    req.on('data', function(c) { akBody += c; if (akBody.length > 1024) req.destroy(); });
+    req.on('end', function() {
+      try {
+        var akParams = JSON.parse(akBody);
+        var newKey = 'qs-' + CRYPTO.randomBytes(24).toString('hex');
+        var akLabel = akParams.label || 'manual';
+        apiKeys[apiKeyHash(newKey)] = { prefix: newKey.slice(0, 15), label: akLabel, created: Date.now(), lastUsed: null };
+        saveApiKeys();
+        res.writeHead(201,{'Content-Type':'application/json'});
+        res.end(JSON.stringify({ ok: true, key: newKey, label: akLabel }));
+      } catch(e) {
+        res.writeHead(400,{'Content-Type':'application/json'});
+        res.end(JSON.stringify({ ok: false, error: 'Invalid JSON' }));
+      }
+    });
+    return;
+  }
+
+  // DELETE /api/admin/apikeys/:key — revoke an API key (requires token)
+  if (reqPath.startsWith('/api/admin/apikeys/') && req.method === 'DELETE') {
+    if (!checkAdminToken(req)) { res.writeHead(401,{'Content-Type':'application/json'}); res.end('{"error":"Unauthorized"}'); return; }
+    var targetKey = reqPath.slice('/api/admin/apikeys/'.length);
+    if (!targetKey || targetKey.indexOf('/') >= 0) {
+      res.writeHead(400,{'Content-Type':'application/json'});
+      res.end(JSON.stringify({ ok: false, error: 'Invalid key identifier' }));
+      return;
+    }
+    // Accept the creation-time full key (legacy), the opaque id from the list
+    // API (hash prefix), or the stored key prefix. Store keys are hashes.
+    var foundHash = null;
+    for (var kh in apiKeys) {
+      if (targetKey === kh || targetKey === apiKeys[kh].prefix || (targetKey.length === 16 && kh.slice(0, 16) === targetKey)) {
+        foundHash = kh; break;
+      }
+    }
+    if (foundHash && apiKeys[foundHash]) {
+      if (Object.keys(apiKeys).length <= 1) {
+        res.writeHead(400,{'Content-Type':'application/json'});
+        res.end(JSON.stringify({ ok: false, error: 'Cannot revoke the last API key' }));
+        return;
+      }
+      var revokedPrefix = apiKeys[foundHash].prefix;
+      var revokedOwner = apiKeys[foundHash].owner;
+      delete apiKeys[foundHash];
+      if (revokedOwner && users[revokedOwner] && Array.isArray(users[revokedOwner].apiKeys)) {
+        users[revokedOwner].apiKeys = users[revokedOwner].apiKeys.filter(function(p) { return p !== revokedPrefix; });
+        saveUsers();
+      }
+      saveApiKeys();
+      res.writeHead(200,{'Content-Type':'application/json'});
+      res.end(JSON.stringify({ ok: true }));
+    } else {
+      res.writeHead(404,{'Content-Type':'application/json'});
+      res.end(JSON.stringify({ ok: false, error: 'Key not found' }));
+    }
+    return;
+  }
+
+  // ================================================================
+  //  DATA APIs — station catalog, earthquake history, preset catalog
+  // ================================================================
+
+  // GET /api/v1/stations — paginated station list
+  if (reqPath === '/api/stations' && req.method === 'GET') {
+    var urlObj = new URL(req.url, 'http://localhost');
+    var page = Math.max(1, parseInt(urlObj.searchParams.get('page')) || 1);
+    var limit = Math.min(200, Math.max(1, parseInt(urlObj.searchParams.get('limit')) || 50));
+    var stype = urlObj.searchParams.get('type') || 'all'; // 'land', 'seafloor', 'all'
+    var snetwork = (urlObj.searchParams.get('network') || '').trim();
+    var sname = (urlObj.searchParams.get('name') || '').toLowerCase().trim();
+
+    var stations = [];
+    if (stype === 'all' || stype === 'land') {
+      if (_stationsCache) stations = stations.concat(_stationsCache);
+    }
+    if (stype === 'all' || stype === 'seafloor') {
+      if (_seafloorStationsCache) stations = stations.concat(_seafloorStationsCache);
+    }
+
+    // Filter by name (case-insensitive substring match)
+    if (sname) {
+      stations = stations.filter(function(s) {
+        return (s.name || '').toLowerCase().indexOf(sname) >= 0;
+      });
+    }
+    if (snetwork) stations = stations.filter(function(s) {
+      return String(s.network || (s.type === 'seafloor' ? 'S-net' : 'Hi-net')).toLowerCase() === snetwork.toLowerCase();
+    });
+
+    // Paginate
+    var total = stations.length;
+    var offset = (page - 1) * limit;
+    var items = stations.slice(offset, offset + limit).map(function(s) {
+      return {
+        name: s.name || '',
+        lat: s.lat || 0,
+        lng: s.lng || 0,
+        type: s.type || 'land',
+        network: s.network || (s.type === 'seafloor' ? 'S-net' : 'Hi-net'),
+        vs30: s.vs30 || null,
+        siteFactor: s.siteFactor || null,
+        depth: s.depth || null,
+        officialCode: s.officialCode || null,
+        sourceUrl: s.sourceUrl || null,
+        sourceRetrieved: s.sourceRetrieved || null,
+        catalogStatus: s.catalogStatus || null,
+        operationalStatus: s.operationalStatus || null
+      };
+    });
+
+    res.writeHead(200, {'Content-Type':'application/json','Cache-Control':'public, max-age=3600'});
+    res.end(JSON.stringify({
+      data: items,
+      pagination: { page: page, limit: limit, total: total, pages: Math.ceil(total / limit) }
+    }));
+    return;
+  }
+
+  // GET /api/v1/quake-catalog — historical & preset earthquake catalog
+  if (reqPath === '/api/quake-catalog' && req.method === 'GET') {
+    var urlObj2 = new URL(req.url, 'http://localhost');
+    var page2 = Math.max(1, parseInt(urlObj2.searchParams.get('page')) || 1);
+    var limit2 = Math.min(100, Math.max(1, parseInt(urlObj2.searchParams.get('limit')) || 20));
+    var minMag = parseFloat(urlObj2.searchParams.get('minMag')) || 0;
+    var maxMag = parseFloat(urlObj2.searchParams.get('maxMag')) || 10;
+    var minDepth = parseInt(urlObj2.searchParams.get('minDepth')) || 0;
+    var maxDepth = parseInt(urlObj2.searchParams.get('maxDepth')) || 1000;
+
+    var quakes = [];
+
+    // Add observed presets
+    if (_observedCache) {
+      for (var qkey in _observedCache) {
+        if (qkey.charAt(0) === '_') continue;
+        var evt = _observedCache[qkey];
+        quakes.push({
+          id: qkey,
+          name: qkey,
+          mag: evt.mag || 0,
+          mw: evt.mw || evt.mag || 0,
+          depth: evt.depth || null,
+          lat: evt.lat || null,
+          lng: evt.lng || null,
+          sourceType: evt.src || null,
+          dip: evt.dip || null,
+          rake: evt.rake || null,
+          time: evt.time || null,
+          estimated: evt.estimated || false,
+          observationCount: Object.keys(evt.obs || {}).length,
+          category: 'preset'
+        });
+      }
+    }
+
+    // Add recent earthquakes from live multi-source API cache (if available)
+    if (_liveQuakeCache) {
+      try {
+        var liveCached = (_liveQuakeCache && typeof _liveQuakeCache === 'object') ? _liveQuakeCache.body : _liveQuakeCache;
+        var liveData = JSON.parse(liveCached);
+        if (liveData && liveData.data) {
+          for (var li = 0; li < liveData.data.length; li++) {
+            var leq = liveData.data[li];
+            quakes.push({
+              id: 'recent-' + leq.id,
+              name: leq.place || 'Recent',
+              mag: leq.mag || 0,
+              mw: leq.mag || 0,
+              depth: leq.depth || null,
+              lat: leq.lat, lng: leq.lng,
+              sourceType: null,
+              dip: null, rake: null,
+              time: leq.time ? new Date(leq.time * 1000).toISOString() : null,
+              estimated: true,
+              observationCount: 0,
+              category: 'recent',
+              sources: leq.sources || []
+            });
+          }
+        }
+      } catch(e) { /* ignore cache parse errors */ }
+    }
+
+    // Filter
+    var catFilter = urlObj2.searchParams.get('category') || 'all';
+    quakes = quakes.filter(function(q) {
+      if (q.mag < minMag || q.mag > maxMag) return false;
+      if (q.depth !== null && (q.depth < minDepth || q.depth > maxDepth)) return false;
+      if (catFilter === 'preset' && q.category !== 'preset') return false;
+      if (catFilter === 'recent' && q.category !== 'recent') return false;
+      return true;
+    });
+
+    // Sort by mag descending
+    quakes.sort(function(a, b) { return b.mag - a.mag; });
+
+    var total2 = quakes.length;
+    var offset2 = (page2 - 1) * limit2;
+    var items2 = quakes.slice(offset2, offset2 + limit2);
+
+    res.writeHead(200, {'Content-Type':'application/json','Cache-Control':'public, max-age=3600'});
+    res.end(JSON.stringify({
+      data: items2,
+      pagination: { page: page2, limit: limit2, total: total2, pages: Math.ceil(total2 / limit2) }
+    }));
+    return;
+  }
+
+  // GET /api/v1/presets — full preset earthquake catalog with metadata
+  if (reqPath === '/api/presets' && req.method === 'GET') {
+    var presets = [];
+    if (_observedCache) {
+      var shindoScore = function(s) {
+        var scores = {0:0,1:1,2:2,3:3,4:4,'5-':4.75,'5+':5.25,'6-':5.75,'6+':6.25,7:6.75};
+        return scores.hasOwnProperty(s) ? scores[s] : (isNaN(Number(s)) ? 0 : Number(s));
+      };
+      for (var pk in _observedCache) {
+        if (pk.charAt(0) === '_') continue;
+        var pevt = _observedCache[pk];
+        var obsValues = Object.values(pevt.obs || {});
+        var maxObs = obsValues.length > 0 ? Math.max.apply(null, obsValues.map(function(s) { return shindoScore(s); })) : 0;
+        presets.push({
+          id: pk,
+          name: pk,
+          mag: pevt.mag || 0,
+          mw: pevt.mw || pevt.mag || 0,
+          depth: pevt.depth || null,
+          lat: pevt.lat || null,
+          lng: pevt.lng || null,
+          sourceType: pevt.src || null,
+          dip: pevt.dip || null,
+          rake: pevt.rake || null,
+          time: pevt.time || null,
+          estimated: pevt.estimated || false,
+          observationCount: obsValues.length,
+          maxObservedShindo: maxObs,
+          observationCities: Object.keys(pevt.obs || {})
+        });
+      }
+    }
+
+    res.writeHead(200, {'Content-Type':'application/json','Cache-Control':'public, max-age=86400'});
+    res.end(JSON.stringify({ presets: presets }));
+    return;
+  }
+
   // ================================================================
   //  LIVE EARTHQUAKE API — proxy to local eq-collector (port 7891)
   // ================================================================
@@ -1344,7 +2292,7 @@ const server = http.createServer((req, res) => {
   if (reqPath === '/api/live-quakes' && req.method === 'GET') {
     var lqNow = Date.now();
     var lqUrlObj = new URL(req.url, 'http://localhost');
-    var eqUrl = LIVE_API_BASE + '/api/v1/earthquakes?minMag=' + encodeURIComponent(lqUrlObj.searchParams.get('minMag') || '3') +
+    var eqUrl = 'http://127.0.0.1:7891/api/v1/earthquakes?minMag=' + encodeURIComponent(lqUrlObj.searchParams.get('minMag') || '3') +
       '&hours=' + encodeURIComponent(lqUrlObj.searchParams.get('hours') || '72') +
       '&region=' + encodeURIComponent(lqUrlObj.searchParams.get('region') || 'japan') +
       '&limit=' + encodeURIComponent(lqUrlObj.searchParams.get('limit') || '100') + '&order=desc';
@@ -1377,6 +2325,435 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // GET /api/live-stats — earthquake statistics summary
+  if (reqPath === '/api/live-stats' && req.method === 'GET') {
+    var lsNow = Date.now();
+    if (_liveStatsCache && (lsNow - _liveStatsCacheTime) < 120000) {
+      res.writeHead(200, {'Content-Type':'application/json','Cache-Control':'public, max-age=60'});
+      return res.end(_liveStatsCache);
+    }
+    _httpGet('http://127.0.0.1:7891/api/v1/earthquakes/stats?hours=168', function(err, body, statusCode) {
+      if (!err && statusCode === 200) { _liveStatsCache = body; _liveStatsCacheTime = lsNow; }
+      if (_liveStatsCache || body) {
+        res.writeHead(200, {'Content-Type':'application/json','Cache-Control':'public, max-age=60'});
+        res.end(_liveStatsCache || body);
+      } else {
+        res.writeHead(502, {'Content-Type':'application/json'});
+        res.end(JSON.stringify({ok:false, data:null, error:'Stats unavailable'}));
+      }
+    }, 5000);
+    return;
+  }
+
+  // GET /api/live-sources — data source health status
+  if (reqPath === '/api/live-sources' && req.method === 'GET') {
+    var lsrcNow = Date.now();
+    if (_liveSourcesCache && (lsrcNow - _liveSourcesCacheTime) < 300000) {
+      res.writeHead(200, {'Content-Type':'application/json','Cache-Control':'public, max-age=120'});
+      return res.end(_liveSourcesCache);
+    }
+    _httpGet('http://127.0.0.1:7891/api/v1/sources', function(err, body, statusCode) {
+      if (!err && statusCode === 200) { _liveSourcesCache = body; _liveSourcesCacheTime = lsrcNow; }
+      if (_liveSourcesCache || body) {
+        res.writeHead(200, {'Content-Type':'application/json','Cache-Control':'public, max-age=120'});
+        res.end(_liveSourcesCache || body);
+      } else {
+        res.writeHead(502, {'Content-Type':'application/json'});
+        res.end(JSON.stringify({ok:false, data:[], error:'Sources unavailable'}));
+      }
+    }, 5000);
+    return;
+  }
+
+  // ================================================================
+  //  WEBHOOK API — event subscription for external services
+  // ================================================================
+
+  // POST /api/v1/webhooks — register a new webhook (requires API key)
+  if (reqPath === '/api/webhooks' && req.method === 'POST') {
+    if (process.env.WEBHOOKS_ENABLED === 'false') {
+      sendError(res, 503, 'SERVICE_UNAVAILABLE', 'Webhooks are disabled. Set WEBHOOKS_ENABLED=true to enable.');
+      return;
+    }
+    var whOwner = getApiPrincipal(req);
+    if (!whOwner) {
+      sendError(res, 401, 'API_KEY_REQUIRED', 'API key required. Use ?key=YOUR_KEY or Authorization: Bearer YOUR_KEY');
+      return;
+    }
+    var whBody = '';
+    req.on('data', function(c) { whBody += c; if (whBody.length > 4096) req.destroy(); });
+    req.on('end', function() {
+      try {
+        var whParams = JSON.parse(whBody);
+        var result = webhookManager.register(
+          whParams.url,
+          whParams.events || [],
+          whParams.secret || null,
+          whOwner
+        );
+        if (result.ok) {
+          res.writeHead(201, {'Content-Type':'application/json'});
+          res.end(JSON.stringify(result));
+        } else {
+          sendError(res, 400, 'INVALID_PARAM', result.error);
+        }
+      } catch(e) {
+        sendError(res, 400, 'INVALID_JSON', 'Invalid JSON: ' + e.message);
+      }
+    });
+    return;
+  }
+
+  // GET /api/v1/webhooks — list all registered webhooks (requires API key)
+  if (reqPath === '/api/webhooks' && req.method === 'GET') {
+    if (process.env.WEBHOOKS_ENABLED === 'false') {
+      sendError(res, 503, 'SERVICE_UNAVAILABLE', 'Webhooks are disabled.');
+      return;
+    }
+    var whListOwner = getApiPrincipal(req);
+    if (!whListOwner) {
+      sendError(res, 401, 'API_KEY_REQUIRED', 'API key required');
+      return;
+    }
+    res.writeHead(200, {'Content-Type':'application/json','Cache-Control':'no-cache'});
+    res.end(JSON.stringify({ webhooks: webhookManager.list(whListOwner) }));
+    return;
+  }
+
+  // DELETE /api/v1/webhooks/:id — remove a webhook (requires API key)
+  if (reqPath.startsWith('/api/webhooks/') && req.method === 'DELETE') {
+    if (process.env.WEBHOOKS_ENABLED === 'false') {
+      sendError(res, 503, 'SERVICE_UNAVAILABLE', 'Webhooks are disabled.');
+      return;
+    }
+    var whDeleteOwner = getApiPrincipal(req);
+    if (!whDeleteOwner) {
+      sendError(res, 401, 'API_KEY_REQUIRED', 'API key required');
+      return;
+    }
+    var whId = reqPath.slice('/api/webhooks/'.length);
+    if (!whId || whId.indexOf('/') >= 0) {
+      sendError(res, 400, 'INVALID_PARAM', 'Invalid webhook ID');
+      return;
+    }
+    var delResult = webhookManager.delete(whId, whDeleteOwner);
+    if (delResult.ok) {
+      res.writeHead(200, {'Content-Type':'application/json'});
+      res.end(JSON.stringify(delResult));
+    } else {
+      sendError(res, 404, 'NOT_FOUND', delResult.error);
+    }
+    return;
+  }
+
+  // PATCH /api/webhooks/:id/activate — reactivate a paused webhook
+  if (reqPath.startsWith('/api/webhooks/') && reqPath.endsWith('/activate') && req.method === 'PATCH') {
+    if (process.env.WEBHOOKS_ENABLED === 'false') {
+      sendError(res, 503, 'SERVICE_UNAVAILABLE', 'Webhooks are disabled.');
+      return;
+    }
+    var whActivateOwner = getApiPrincipal(req);
+    if (!whActivateOwner) {
+      sendError(res, 401, 'API_KEY_REQUIRED', 'API key required');
+      return;
+    }
+    var whId2 = reqPath.slice('/api/webhooks/'.length, -'/activate'.length);
+    if (!whId2 || whId2.indexOf('/') >= 0) {
+      sendError(res, 400, 'INVALID_PARAM', 'Invalid webhook ID');
+      return;
+    }
+    var actResult = webhookManager.activate(whId2, whActivateOwner);
+    if (actResult && actResult.ok) {
+      res.writeHead(200, {'Content-Type':'application/json'});
+      res.end(JSON.stringify(actResult));
+    } else {
+      sendError(res, 404, 'NOT_FOUND', (actResult && actResult.error) || 'Webhook not found');
+    }
+    return;
+  }
+
+  // ================================================================
+  //  DEVELOPER PORTAL API — user accounts + self-service API keys
+  // ================================================================
+
+  // POST /api/dev/register — create a new developer account
+  if (reqPath === '/api/dev/register' && req.method === 'POST') {
+    // Rate limit: 3 registrations per hour per IP
+    var regIp = _reqIp;
+    if (!_devRegisterLimit[regIp]) _devRegisterLimit[regIp] = [];
+    var regNow = Date.now();
+    _devRegisterLimit[regIp] = _devRegisterLimit[regIp].filter(function(t) { return regNow - t < 3600000; });
+    if (_devRegisterLimit[regIp].length >= 3) {
+      sendError(res, 429, 'RATE_LIMITED', 'Too many registrations. Max 3 per hour.');
+      return;
+    }
+    var regBody = '';
+    req.on('data', function(c) { regBody += c; if (regBody.length > 1024) req.destroy(); });
+    req.on('end', function() {
+      try {
+        var reg = JSON.parse(regBody);
+        var uname = (reg.username || '').trim();
+        var pwd = (reg.password || '');
+        // Validate — the dangerous JS property names must never become keys
+        // of the users table (users['__proto__'] = ... pollutes its prototype).
+        if (uname === '__proto__' || uname === 'constructor' || uname === 'prototype') {
+          sendError(res, 400, 'INVALID_PARAM', 'Reserved username');
+          return;
+        }
+        if (!/^[a-zA-Z0-9_]{3,20}$/.test(uname)) {
+          sendError(res, 400, 'INVALID_PARAM', 'Username: 3-20 chars, letters/numbers/underscore only');
+          return;
+        }
+        if (pwd.length < 6) {
+          sendError(res, 400, 'INVALID_PARAM', 'Password must be at least 6 characters');
+          return;
+        }
+        if (users[uname]) {
+          sendError(res, 409, 'INVALID_PARAM', 'Username already taken');
+          return;
+        }
+        hashPasswordAsync(pwd).then(function(hp) {
+          users[uname] = {
+            username: uname,
+            passwordHash: hp.hash,
+            salt: hp.salt,
+            passwordKdf: hp.kdf,
+            created: Date.now(),
+            apiKeys: []
+          };
+          saveUsers();
+          _devRegisterLimit[regIp].push(regNow);
+          res.writeHead(201, {'Content-Type':'application/json'});
+          res.end(JSON.stringify({ ok: true, username: uname, message: 'Account created. You can now log in.' }));
+        }).catch(function() {
+          try { sendError(res, 500, 'INTERNAL_ERROR', 'Registration failed'); } catch (e3) {}
+        });
+      } catch(e) {
+        sendError(res, 400, 'INVALID_JSON', 'Invalid JSON');
+      }
+    });
+    return;
+  }
+
+  // POST /api/dev/login — developer login
+  if (reqPath === '/api/dev/login' && req.method === 'POST') {
+    var loginIp = _reqIp;
+    var loginNow = Date.now();
+    var fail = _devLoginFails[loginIp];
+    if (!fail || loginNow > fail.resetTime) _devLoginFails[loginIp] = fail = {count: 0, resetTime: loginNow + 900000};
+    if (fail.count >= 5) {
+      sendError(res, 429, 'RATE_LIMITED', 'Too many login attempts. Try again later.');
+      return;
+    }
+    var loginBody = '';
+    req.on('data', function(c) { loginBody += c; if (loginBody.length > 1024) req.destroy(); });
+    req.on('end', function() {
+      try {
+        var cred = JSON.parse(loginBody);
+        var uname = (cred.username || '').trim();
+        var pwd = cred.password || '';
+        var user = users[uname];
+        if (!user || typeof user !== 'object' || !user.passwordHash) { fail.count++; sendError(res, 401, 'UNAUTHORIZED', 'Invalid username or password'); return; }
+        verifyPasswordAsync(pwd, user).then(function(ok) {
+          if (!ok) {
+            fail.count++;
+            sendError(res, 401, 'UNAUTHORIZED', 'Invalid username or password');
+            return;
+          }
+          var upgrade = (user.passwordKdf !== 'scrypt')
+            ? hashPasswordAsync(pwd).then(function(upgraded) {
+                user.passwordHash = upgraded.hash; user.salt = upgraded.salt; user.passwordKdf = upgraded.kdf;
+                saveUsers();
+              })
+            : Promise.resolve();
+          upgrade.then(function() {
+            delete _devLoginFails[loginIp];
+            var dtoken = CRYPTO.randomUUID();
+            devTokens[dtoken] = { username: uname, created: Date.now() };
+            res.writeHead(200, {'Content-Type':'application/json'});
+            res.end(JSON.stringify({ ok: true, token: dtoken, username: uname, expiresIn: DEV_TOKEN_TTL / 1000 }));
+          });
+        }).catch(function() {
+          try { sendError(res, 400, 'INVALID_JSON', 'Invalid JSON'); } catch (e2) {}
+        });
+      } catch(e) {
+        sendError(res, 400, 'INVALID_JSON', 'Invalid JSON');
+      }
+    });
+    return;
+  }
+
+  // POST /api/dev/logout — developer logout
+  if (reqPath === '/api/dev/logout' && req.method === 'POST') {
+    var auth = req.headers['authorization'] || '';
+    var dtoken = auth.startsWith('Bearer ') ? auth.slice(7) : '';
+    if (dtoken) delete devTokens[dtoken];
+    res.writeHead(200, {'Content-Type':'application/json'});
+    res.end(JSON.stringify({ ok: true }));
+    return;
+  }
+
+  // GET /api/dev/me — current user info
+  if (reqPath === '/api/dev/me' && req.method === 'GET') {
+    var uname2 = checkDevToken(req);
+    if (!uname2) { sendError(res, 401, 'UNAUTHORIZED', 'Login required'); return; }
+    var user2 = users[uname2];
+    res.writeHead(200, {'Content-Type':'application/json','Cache-Control':'no-cache'});
+    res.end(JSON.stringify({
+      username: uname2,
+      created: user2.created,
+      apiKeyCount: (user2.apiKeys || []).length
+    }));
+    return;
+  }
+
+  // GET /api/dev/keys — list user's API keys (masked; full keys are only
+  // returned once, at creation — they are not recoverable from hashed storage)
+  if (reqPath === '/api/dev/keys' && req.method === 'GET') {
+    var uname3 = checkDevToken(req);
+    if (!uname3) { sendError(res, 401, 'UNAUTHORIZED', 'Login required'); return; }
+    var user3 = users[uname3];
+    var keys = (user3.apiKeys || []).map(function(p) {
+      var info = apiKeyByPrefix(p) || {};
+      return {
+        id: p,
+        key: p + '...',
+        label: info.label || '',
+        created: info.created || null,
+        lastUsed: info.lastUsed || null,
+        requestCount: info.requestCount || 0
+      };
+    });
+    res.writeHead(200, {'Content-Type':'application/json','Cache-Control':'no-cache'});
+    res.end(JSON.stringify({ keys: keys }));
+    return;
+  }
+
+  // POST /api/dev/keys — create a new API key
+  if (reqPath === '/api/dev/keys' && req.method === 'POST') {
+    var uname4 = checkDevToken(req);
+    if (!uname4) { sendError(res, 401, 'UNAUTHORIZED', 'Login required'); return; }
+    var user4 = users[uname4];
+    if ((user4.apiKeys || []).length >= 10) {
+      sendError(res, 400, 'INVALID_PARAM', 'Maximum 10 API keys per user');
+      return;
+    }
+    var keyBody = '';
+    req.on('data', function(c) { keyBody += c; if (keyBody.length > 1024) req.destroy(); });
+    req.on('end', function() {
+      try {
+        var kp = JSON.parse(keyBody);
+        var newKey = 'qs-' + CRYPTO.randomBytes(24).toString('hex');
+        var keyPrefix = newKey.slice(0, 15);
+        var keyLabel = kp.label || ('Key ' + ((user4.apiKeys || []).length + 1));
+        apiKeys[apiKeyHash(newKey)] = {
+          prefix: keyPrefix,
+          label: keyLabel,
+          created: Date.now(),
+          lastUsed: null,
+          owner: uname4,
+          requestCount: 0
+        };
+        if (!user4.apiKeys) user4.apiKeys = [];
+        user4.apiKeys.push(keyPrefix);
+        saveApiKeys();
+        saveUsers();
+        res.writeHead(201, {'Content-Type':'application/json'});
+        res.end(JSON.stringify({ ok: true, key: newKey, id: keyPrefix, label: keyLabel }));
+      } catch(e) {
+        sendError(res, 400, 'INVALID_JSON', 'Invalid JSON');
+      }
+    });
+    return;
+  }
+
+  // DELETE /api/dev/keys/:id — delete an API key by its prefix id
+  if (reqPath.startsWith('/api/dev/keys/') && req.method === 'DELETE') {
+    var uname5 = checkDevToken(req);
+    if (!uname5) { sendError(res, 401, 'UNAUTHORIZED', 'Login required'); return; }
+    var target = reqPath.slice('/api/dev/keys/'.length);
+    if (!target || target.indexOf('/') >= 0) {
+      sendError(res, 400, 'INVALID_PARAM', 'Invalid key');
+      return;
+    }
+    var user5 = users[uname5];
+    // Key references are stored as prefixes (full key material is never persisted).
+    var foundPrefix = null;
+    for (var i = 0; i < (user5.apiKeys || []).length; i++) {
+      if (user5.apiKeys[i] === target) { foundPrefix = target; break; }
+    }
+    if (foundPrefix) {
+      user5.apiKeys = user5.apiKeys.filter(function(k) { return k !== foundPrefix; });
+      for (var dhk in apiKeys) {
+        if (apiKeys[dhk] && apiKeys[dhk].prefix === foundPrefix && apiKeys[dhk].owner === uname5) delete apiKeys[dhk];
+      }
+      saveApiKeys();
+      saveUsers();
+      res.writeHead(200, {'Content-Type':'application/json'});
+      res.end(JSON.stringify({ ok: true }));
+    } else {
+      sendError(res, 404, 'NOT_FOUND', 'Key not found');
+    }
+    return;
+  }
+
+  // GET /api/dev/usage — usage summary for user's keys
+  if (reqPath === '/api/dev/usage' && req.method === 'GET') {
+    var uname6 = checkDevToken(req);
+    if (!uname6) { sendError(res, 401, 'UNAUTHORIZED', 'Login required'); return; }
+    var user6 = users[uname6];
+    var now = Date.now();
+    var todayStart = new Date().setHours(0,0,0,0);
+    var weekStart = now - 7 * 86400000;
+    var totalReqs = 0, todayReqs = 0, weekReqs = 0;
+    (user6.apiKeys || []).forEach(function(p) {
+      var info = apiKeyByPrefix(p) || {};
+      var rc = info.requestCount || 0;
+      totalReqs += rc;
+      // Approximate daily/weekly from lastUsed — exact tracking would need per-day counters
+      if (info.lastUsed && info.lastUsed > todayStart) todayReqs += Math.min(rc, Math.ceil(rc / Math.max(1, (now - info.created) / 86400000)));
+      if (info.lastUsed && info.lastUsed > weekStart) weekReqs += Math.min(rc, Math.ceil(rc / Math.max(1, (now - info.created) / (7 * 86400000))));
+    });
+    res.writeHead(200, {'Content-Type':'application/json','Cache-Control':'no-cache'});
+    res.end(JSON.stringify({
+      username: uname6,
+      keyCount: (user6.apiKeys || []).length,
+      totalRequests: totalReqs,
+      todayRequests: todayReqs,
+      weekRequests: weekReqs
+    }));
+    return;
+  }
+
+  // ================================================================
+  //  TTS BULLETIN API (audio fragment playlist construction)
+  // ================================================================
+
+  // GET /api/openapi.json — OpenAPI 3.0 specification
+  if (reqPath === '/api/openapi.json' && req.method === 'GET') {
+    serveFile(req, res, path.join(PUBLIC, 'openapi.json'));
+    return;
+  }
+
+  // GET /developer — Developer Portal
+  if (reqPath === '/developer' && req.method === 'GET') {
+    serveFile(req, res, path.join(PUBLIC, 'developer.html'));
+    return;
+  }
+
+  // GET /api-docs — API documentation page
+  if (reqPath === '/api-docs' && req.method === 'GET') {
+    serveFile(req, res, path.join(PUBLIC, 'api.html'));
+    return;
+  }
+
+  // GET /api/tts/languages — list available TTS languages
+  if (reqPath === '/api/tts/languages' && req.method === 'GET') {
+    res.writeHead(200, {'Content-Type':'application/json','Cache-Control':'public, max-age=86400'});
+    res.end(JSON.stringify({ languages: BulletinBuilder.LANGUAGES }));
+    return;
+  }
+
   // GET|POST /api/tts/synthesize — SREV-compatible dynamic neural TTS.
   // The upstream remains fixed at 127.0.0.1:7896 by default to prevent SSRF.
   if (reqPath === '/api/tts/synthesize' && (req.method === 'GET' || req.method === 'POST')) {
@@ -1392,12 +2769,15 @@ const server = http.createServer((req, res) => {
         return;
       }
       if (!TTS_VOICES.has(synthVoice)) {
-        sendError(res, 400, 'INVALID_PARAM', 'Unsupported TTS voice.');
+        sendError(res, 400, 'INVALID_PARAM', 'Unsupported TTS voice. See /api/tts/voices (neuralVoices).');
         return;
       }
-      // Anonymous per-IP rate limit.
-      var bucket = 'ip:' + _reqIp;
-      var limit = TTS_SYNTHESIS_RATE_LIMIT;
+      // Authenticated API keys get a higher per-minute budget and per-key
+      // usage metering (developer portal); anonymous traffic stays per-IP.
+      var principal = getApiPrincipal(req);
+      var keyed = typeof principal === 'string' && principal.indexOf('key:') === 0;
+      var bucket = keyed ? principal : 'ip:' + _reqIp;
+      var limit = keyed ? TTS_SYNTHESIS_KEY_RATE_LIMIT : TTS_SYNTHESIS_RATE_LIMIT;
       var synthNow = Date.now();
       if (!_ttsSynthesisRateLimit[bucket]) _ttsSynthesisRateLimit[bucket] = [];
       _ttsSynthesisRateLimit[bucket] = _ttsSynthesisRateLimit[bucket].filter(function(t) {
@@ -1427,6 +2807,94 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // GET /api/tts/fragments — fragment catalog for discovery/documentation
+  if (reqPath === '/api/tts/fragments' && req.method === 'GET') {
+    res.writeHead(200, {'Content-Type':'application/json','Cache-Control':'public, max-age=86400'});
+    res.end(JSON.stringify(BulletinBuilder.getFragmentCatalog()));
+    return;
+  }
+
+  // GET /api/tts/voices — available TTS voice metadata
+  if (reqPath === '/api/tts/voices' && req.method === 'GET') {
+    res.writeHead(200, {'Content-Type':'application/json','Cache-Control':'public, max-age=86400'});
+    res.end(JSON.stringify({
+      voices: [
+        { id: 'jp-female', lang: 'jp', gender: 'female', name: 'ja-JP-NanamiNeural', engine: 'edge-tts', fragmentCount: 179, description: 'Japanese female voice (Nanami)' },
+        { id: 'en-female', lang: 'en', gender: 'female', name: 'en-US-JennyNeural',  engine: 'edge-tts', fragmentCount: 177, description: 'English female voice (Jenny)' },
+        { id: 'zh-female', lang: 'zh', gender: 'female', name: 'zh-CN-XiaoxiaoNeural', engine: 'edge-tts', fragmentCount: 179, description: 'Chinese female voice (Xiaoxiao)' }
+      ],
+      // Voices accepted by /api/tts/synthesize (dynamic neural TTS).
+      neuralVoices: [
+        { name: 'ja-JP-NanamiNeural', lang: 'ja', gender: 'female' },
+        { name: 'ja-JP-KeitaNeural',  lang: 'ja', gender: 'male' },
+        { name: 'ja-JP-AoiNeural',    lang: 'ja', gender: 'female' },
+        { name: 'zh-CN-XiaoxiaoNeural', lang: 'zh', gender: 'female' },
+        { name: 'zh-CN-YunxiNeural',  lang: 'zh', gender: 'male' },
+        { name: 'zh-CN-YunyangNeural', lang: 'zh', gender: 'male' },
+        { name: 'en-US-AriaNeural',   lang: 'en', gender: 'female' },
+        { name: 'en-US-GuyNeural',    lang: 'en', gender: 'male' },
+        { name: 'en-US-JennyNeural',  lang: 'en', gender: 'female' },
+        { name: 'ko-KR-SunHiNeural',  lang: 'ko', gender: 'female' },
+        { name: 'ko-KR-InJoonNeural', lang: 'ko', gender: 'male' }
+      ]
+    }));
+    return;
+  }
+
+  // POST /api/tts/bulletin — build TTS fragment playlist from earthquake parameters
+  if (reqPath === '/api/tts/bulletin' && req.method === 'POST') {
+    // Rate limit: 10 req/min per IP to prevent abuse
+    var ttsIp = _reqIp;
+    if (!_ttsRateLimit[ttsIp]) _ttsRateLimit[ttsIp] = [];
+    var now2 = Date.now();
+    _ttsRateLimit[ttsIp] = _ttsRateLimit[ttsIp].filter(function(t) { return now2 - t < 60000; });
+    if (_ttsRateLimit[ttsIp].length >= 10) {
+      sendError(res, 429, 'RATE_LIMITED', 'Too many requests. Max 10 per minute.');
+      return;
+    }
+    _ttsRateLimit[ttsIp].push(now2);
+
+    var body = '';
+    req.on('data', function(c) { body += c; if (body.length > 8192) req.destroy(); });
+    req.on('end', function() {
+      try {
+        var params = JSON.parse(body);
+
+        // Resolve affected prefectures from both formats
+        if (!params.affected && params.affectedByShindo) {
+          params.affected = null; // buildBulletin will use affectedByShindo
+        }
+
+        // Set URL base from host header for absolute URLs
+        var host = req.headers.host || '';
+        var proto = req.headers['x-forwarded-proto'] || 'http';
+        if (host) params.urlBase = proto + '://' + host;
+
+        // includeText: default true, pass ?text=0 to omit text field
+        var _ttsUrl = new URL(req.url, 'http://localhost');
+        params.includeText = _ttsUrl.searchParams.get('text') !== '0';
+
+        var result = BulletinBuilder.buildBulletin(params);
+
+        // Trigger webhook: bulletin.published
+        webhookManager.deliver('bulletin.published', {
+          mag: params.mag || 0,
+          maxShindo: String(params.maxShindo || ''),
+          depth: params.depth || 0,
+          tsunamiLevel: params.tsunamiLevel || 0,
+          fragmentCount: result.fragments.length,
+          lang: result.summary.lang
+        });
+
+        res.writeHead(200, {'Content-Type':'application/json','Cache-Control':'no-cache'});
+        res.end(JSON.stringify(result));
+      } catch(e) {
+        sendError(res, 400, 'INVALID_JSON', 'Invalid JSON: ' + e.message);
+      }
+    });
+    return;
+  }
+
   serveFile(req, res, filePath).then(found => {
     if (!found) {
       // API paths return JSON error; static files return plain text
@@ -1440,13 +2908,17 @@ const server = http.createServer((req, res) => {
   });
 });
 
-// Capture uncaught errors in the in-memory log
+// Capture uncaught errors for admin log
 process.on('uncaughtException', function(err) {
-  logError(err.message, err.stack);
+  errorLogs.push({time: Date.now(), message: err.message, stack: (err.stack||'').slice(0,500)});
+  if (errorLogs.length > 50) errorLogs.shift();
+  saveErrorLogs();
   console.error('Uncaught:', err);
 });
 process.on('unhandledRejection', function(reason) {
-  logError(String(reason));
+  errorLogs.push({time: Date.now(), message: String(reason), stack: ''});
+  if (errorLogs.length > 50) errorLogs.shift();
+  saveErrorLogs();
 });
 
 server.on('error', function(e) {
@@ -1460,6 +2932,7 @@ server.on('error', function(e) {
 server.listen(PORT, '127.0.0.1', () => {
   console.log(`QuakeSim running on http://127.0.0.1:${PORT}`);
   console.log(`Public dir: ${PUBLIC}`);
+  console.log('API key: ' + API_KEY.slice(0,8) + '...(hidden)');
 });
 
 // ---- P2PQuake WebSocket client (real-time Japan earthquake data) ----
@@ -1486,6 +2959,33 @@ function broadcastSSE(data) {
   sseClients = sseClients.filter(c => {
     try { c.write(msg); return true; } catch(e) { return false; }
   });
+  // Trigger webhooks for earthquake events
+  if (data.event && (data.type === 'p2pquake' || data.type === 'wolfx_eew' || data.type === 'wolfx_eq' || data.type === 'emsc' || data.type === 'jma_feed')) {
+    var hookEvt = data.event;
+    if (data.type === 'wolfx_eew') {
+      // Raw Wolfx jma_eew carries top-level fields ("Magunitude" typo is upstream's)
+      var mi = hookEvt.MaxIntensity;
+      hookEvt = {
+        mag: typeof hookEvt.Magunitude === 'number' ? hookEvt.Magunitude : 0,
+        lat: hookEvt.Latitude || 0,
+        lng: hookEvt.Longitude || 0,
+        depth: hookEvt.Depth || 30,
+        place: typeof hookEvt.Hypocenter === 'string' ? hookEvt.Hypocenter : ((hookEvt.Hypocenter || {}).name || ''),
+        maxShindo: (mi && (mi.To || mi.From)) || (typeof mi === 'string' ? mi : ''),
+        time: hookEvt.OriginTime || ''
+      };
+    }
+    webhookManager.deliver('earthquake.detected', {
+      mag: hookEvt.mag || 0,
+      lat: hookEvt.lat || 0,
+      lng: hookEvt.lng || 0,
+      depth: hookEvt.depth || 30,
+      place: hookEvt.place || '',
+      maxShindo: hookEvt.maxShindo || '',
+      time: hookEvt.time || '',
+      source: data.type
+    });
+  }
 }
 
 // ---- Realtime stream recorder / replay (回放) ----
@@ -1872,8 +3372,18 @@ let sourceStatus = {
 
 function updateSourceStatus(key, state) {
   if (sourceStatus[key]) {
+    var oldState = sourceStatus[key].state;
     sourceStatus[key].state = state;
     sourceStatus[key].since = Date.now();
+    // Trigger webhook on state change
+    if (oldState !== state) {
+      webhookManager.deliver('source.status_change', {
+        source: key,
+        name: sourceStatus[key].name,
+        previousState: oldState,
+        newState: state
+      });
+    }
   }
 }
 
@@ -2767,6 +4277,8 @@ function cleanupConnections() {
   try { _httpAgent.destroy(); } catch(e) {}
   try { _httpsAgent.destroy(); } catch(e) {}
   // Clear periodic save timers
+  if (_devTokenCleanupTimer) { clearInterval(_devTokenCleanupTimer); _devTokenCleanupTimer = null; }
+  if (_adminTokenCleanupTimer) { clearInterval(_adminTokenCleanupTimer); _adminTokenCleanupTimer = null; }
   if (_trafficSaveTimer) { clearInterval(_trafficSaveTimer); _trafficSaveTimer = null; }
   if (_rateLimitCleanupTimer) { clearInterval(_rateLimitCleanupTimer); _rateLimitCleanupTimer = null; }
 }
@@ -2777,6 +4289,12 @@ function gracefulShutdown() {
   cleanupConnections();
   checkpointUptime();
   saveTraffic();
+  saveApiKeys();
+  saveUsers();
+  saveDailyVisits();
+  saveCounter();
+  saveExpiry();
+  saveErrorLogs();
   // Force-exit after 10s if keep-alive connections don't close
   var forceExit = setTimeout(function() { process.exit(0); }, 10000);
   server.close(function() {

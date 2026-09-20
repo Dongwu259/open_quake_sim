@@ -169,6 +169,7 @@ async function preparePage(cdp, viewport) {
 }
 
 async function commonChecks(cdp) {
+  await waitFor(cdp, `document.getElementById('promo-visit-count').textContent!=='—' && document.getElementById('promo-uptime').textContent!=='—'`, 5000, 'site visit and uptime statistics');
   const basics = await cdp.evaluate(`(() => ({
     title:document.title,
     duplicateIds:[...document.querySelectorAll('[id]')].map(x=>x.id).filter((id,i,a)=>a.indexOf(id)!==i),
@@ -178,11 +179,15 @@ async function commonChecks(cdp) {
     mechanismOpen:document.getElementById('source-mechanism-panel').open,
     mapLoaded:Boolean(window.map && map._loaded),
     stationCount:Array.isArray(window.rawLandGrid)?window.rawLandGrid.length:0,
-    promoAbsent:!document.getElementById('promo-overlay') && !document.getElementById('btn-promo-close'),
+    promoLinks:[...document.querySelectorAll('#promo-overlay .promo-links a')].map(a=>({href:a.href,url:(a.querySelector('small')||{}).textContent||''})),
+    promoCount:document.getElementById('promo-visit-count').textContent,
+    sidebarCount:document.getElementById('visit-count').textContent,
+    promoUptime:document.getElementById('promo-uptime').textContent,
+    promoVisible:getComputedStyle(document.getElementById('promo-overlay')).display!=='none',
     mapA11y:{tabIndex:document.getElementById('map').tabIndex,busy:document.getElementById('map').getAttribute('aria-busy'),name:document.getElementById('map').getAttribute('aria-label')},
     canvasA11y:[...document.querySelectorAll('canvas:not([aria-hidden="true"])')].map(c=>({id:c.id,role:c.getAttribute('role'),name:c.getAttribute('aria-label'),description:c.getAttribute('aria-describedby')}))
   }))()`);
-  assert(/v6\.0/.test(basics.title), `Unexpected release title: ${basics.title}`);
+  assert(/v6\.2/.test(basics.title), `Unexpected release title: ${basics.title}`);
   assert(basics.duplicateIds.length === 0, `Duplicate DOM ids: ${basics.duplicateIds.join(', ')}`);
   assert(basics.missingButtonNames === 0, `${basics.missingButtonNames} buttons lack accessible names`);
   assert(basics.sidebarPointer !== 'none' && Number(basics.sidebarOpacity) > 0.5, 'Sidebar is blocked or visually disabled');
@@ -191,8 +196,12 @@ async function commonChecks(cdp) {
   assert(basics.mapA11y.tabIndex === 0 && basics.mapA11y.busy === 'false' && basics.mapA11y.name, `Map accessibility state is incomplete: ${JSON.stringify(basics.mapA11y)}`);
   assert(basics.canvasA11y.length >= 15 && basics.canvasA11y.every(c => c.role === 'img' && c.name), `Canvas accessibility names are incomplete: ${JSON.stringify(basics.canvasA11y)}`);
   assert(basics.canvasA11y.filter(c => !c.id.startsWith('realtime-wf') && !c.id.startsWith('mwf-canvas')).every(c => c.description), 'Scenario canvases lack text descriptions');
-  // scrub contract: the related-sites promo dialog must stay out of the open build
-  assert(basics.promoAbsent, 'Promo dialog leaked back into the open build');
+  assert(basics.promoVisible && basics.promoLinks.length === 5, `Related-sites dialog did not open with five links: ${JSON.stringify(basics.promoLinks)}`);
+  assert(basics.promoCount === basics.sidebarCount && /^\d[\d,]*$/.test(basics.promoCount), `Site visit count did not load consistently: ${basics.promoCount}/${basics.sidebarCount}`);
+  assert(/\d{2}:\d{2}:\d{2}$/.test(basics.promoUptime), `Site uptime did not load: ${basics.promoUptime}`);
+  for (const link of basics.promoLinks) assert(link.href.replace(/\/$/,'') === link.url.replace(/\/$/,''), `Promo URL text mismatch: ${link.href} / ${link.url}`);
+  await click(cdp, '#btn-promo-close');
+  await waitFor(cdp, `getComputedStyle(document.getElementById('promo-overlay')).display==='none'`, 3000, 'promo close');
 
   const menuAudit = await cdp.evaluate(`(() => { const m=document.getElementById('map');m.focus();m.dispatchEvent(new KeyboardEvent('keydown',{key:'F10',shiftKey:true,bubbles:true}));const menu=document.getElementById('ctx-menu');return {open:getComputedStyle(menu).display!=='none',focused:document.activeElement&&document.activeElement.getAttribute('role'),names:[...menu.querySelectorAll('[role="menuitem"]')].map(x=>x.textContent.trim())}; })()`);
   assert(menuAudit.open && menuAudit.focused === 'menuitem' && menuAudit.names.length === 3 && menuAudit.names.every(Boolean), `Keyboard map menu failed: ${JSON.stringify(menuAudit)}`);
@@ -211,7 +220,7 @@ async function commonChecks(cdp) {
   const helpAudit = await cdp.evaluate(`(() => { const o=document.getElementById('help-overlay'),finalHeader=o.querySelector('[data-i18n="help.v51_final_release"]'),previewHeader=o.querySelector('[data-i18n="help.v51_preview"]'),v52FinalHeader=o.querySelector('[data-i18n="help.v52_final_release"]'),v52PreviewHeader=o.querySelector('[data-i18n="help.v52_preview"]'); return {role:o.getAttribute('role'),modal:o.getAttribute('aria-modal'),forbidden:/开发者密码|developer password|管理密码/i.test(o.textContent),accuracy:o.textContent.includes('0.724'),focused:o.contains(document.activeElement),finalText:finalHeader&&finalHeader.textContent,previewText:previewHeader&&previewHeader.textContent,releaseBeforePreview:Boolean(finalHeader&&previewHeader&&(finalHeader.compareDocumentPosition(previewHeader)&Node.DOCUMENT_POSITION_FOLLOWING)),v52FinalText:v52FinalHeader&&v52FinalHeader.textContent,v52PreviewText:v52PreviewHeader&&v52PreviewHeader.textContent,v52ReleaseBeforePreview:Boolean(v52FinalHeader&&v52PreviewHeader&&(v52FinalHeader.compareDocumentPosition(v52PreviewHeader)&Node.DOCUMENT_POSITION_FOLLOWING))}; })()`);
   assert(helpAudit.role === 'dialog' && helpAudit.modal === 'true', 'Help overlay lacks dialog semantics');
   assert(!helpAudit.forbidden, 'Help contains removed developer-password material');
-  assert(helpAudit.accuracy, 'Help does not contain the current finite-fault accuracy note');
+  assert(helpAudit.accuracy, 'Help does not contain the v5.0 historical accuracy note');
   assert(/v5\.1.*正式版|v5\.1.*Release/.test(helpAudit.finalText || ''), `Formal-release help entry is missing: ${JSON.stringify(helpAudit)}`);
   assert(/v5\.1.*预览版|v5\.1.*Preview|v5\.1.*プレビュー版/.test(helpAudit.previewText || ''), `Preview help history is missing: ${JSON.stringify(helpAudit)}`);
   assert(helpAudit.releaseBeforePreview, 'Formal-release help must appear before the preview history');
@@ -228,9 +237,9 @@ async function commonChecks(cdp) {
   await click(cdp, '#btn-formulas-close');
 
   await setSelect(cdp, '#lang-select', 'en');
-  assert(/Earthquake Simulator v6\.0/.test(await cdp.evaluate(`document.querySelector('#sidebar-header h1').textContent`)), 'English release identity failed');
+  assert(/Earthquake Simulator v6\.2/.test(await cdp.evaluate(`document.querySelector('#sidebar-header h1').textContent`)), 'English release identity failed');
   await setSelect(cdp, '#lang-select', 'zh');
-  assert(/地震模拟器 v6\.0/.test(await cdp.evaluate(`document.querySelector('#sidebar-header h1').textContent`)), 'Chinese release identity failed');
+  assert(/地震模拟器 v6\.2/.test(await cdp.evaluate(`document.querySelector('#sidebar-header h1').textContent`)), 'Chinese release identity failed');
 
   const beforeZoom = await cdp.evaluate('map.getZoom()');
   await cdp.evaluate('map.setZoom(map.getZoom()+1); true');

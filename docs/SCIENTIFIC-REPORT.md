@@ -15,12 +15,12 @@
 | **强震动验证基线** | 19 个冻结事件、6,917 个 K-NET/KiK-net 台站观测峰值;GMPE 预报路径对照 | 逐事件记分卡冻结;modelBias 留一(LOEO)结论经 19 事件扩容后**公开反转** |
 | **GMPE 交叉实现** | Zhao2006 对 openquake.hazardlib 官方实现逐位对拍(2,400 点,max\|ΔlnA\| = 2.7e-15) | 锁死 |
 | **PSHA 引擎** | Poisson 年超越率积分、10,441 格 GR 震源模型 + 分段南海 BPT 情景源、UHS、危险分解 | 自验闭合;对 J-SHIS 外部对照**如实报告高估 1.83×** 并完成归因 |
-| **宽频带管线** | SH 离散波数内核 + Brune/Boore 混合 + 条件谱(CS)管线 + 短周期仲裁者 | 长周期改善 PASS(+0.143);绝对门 FAIL 如实冻结;仲裁 INCONCLUSIVE |
-| **P-SV 研究内核** | 离散波数全空间/分层 Green 函数,五轮迭代(v1→v5) | 全空间锚定(残差 ≤0.08);分层 deviatoric 序列收敛;fullTensor 通道**诚实开放** |
+| **宽频带管线** | SH 离散波数内核 + Brune/Boore 混合 + 条件谱(CS)管线 + 短周期仲裁者 | 长周期改善 PASS(+0.143);形状门 FAIL 已收口为「合成-vs-GMPE 一致性监视器」(CS_GATE_ROLE:短带=种群+类别结构化配置性质,长带=源种群性质,四条全局治愈全否证);仲裁 INCONCLUSIVE |
+| **P-SV 研究内核** | 离散波数全空间/分层 Green 函数,十二轮迭代到终局(§6) | 全空间锚定(残差 ≤0.08);QD 算术五点门 1e-13 级;series 收敛(1.0012);带内无极点实测;**CS v4 门执行完毕,P-SV 水平块对形状门 MEASURED-NO-CURE(生产保持 SH-only)** |
 | **动力学破裂** | SH/PSV 交错有限差分 + TSN 滑移弱化,TPV5-AP 官方参数 | 反平面验收通过;CVWS 参考解在登录墙后,不做逐站一致声明 |
-| **测试与门禁** | ~98 个测试文件、约 1,089 项断言;不可变实验清单;pre-push 版本门禁 | npm test 全绿为每批提交的先决条件 |
+| **测试与门禁** | 105 个测试文件、1,142 项测试;不可变实验清单;pre-push 版本门禁 | npm test 全绿为每批提交的先决条件 |
 
-本报告 §7 完整记录了 P-SV 内核七轮迭代的全部弯路与翻转——包括本批(支尾奇异因子扣除)开始时既定假设被实测**推翻**的过程:v4 冻结的"分支尾 1/√ 奇异"归因是错的,真正的元凶是**未设 qP 时泄漏型 P 波极点坐在实轴上,使波数积分成为主值意义下的发散积分**;v6 又发现登记的 Rc 反演不适用、真缺陷是 expm 传播子静默丢层 Q;v7(δ 矩阵批)落地 MGS 正交化链并修复两个传播子/链真 bug(R2 锚在冻结前抓住 triMul 交叉项丢失;μ* 反变换修复)。当前 deviatoric 通道在生产 cap 收敛(spread 1.3%),fullTensor 通道的残余=泄漏 P 峰顶带的 subdivide cap 依赖,作为登记的开放项如实冻结。
+本报告 §6 完整记录了 P-SV 内核十二轮迭代的全部弯路与翻转——包括本批(支尾奇异因子扣除)开始时既定假设被实测**推翻**的过程:v4 冻结的"分支尾 1/√ 奇异"归因是错的,真正的元凶是**未设 qP 时泄漏型 P 波极点坐在实轴上,使波数积分成为主值意义下的发散积分**;v6 又发现登记的 Rc 反演不适用、真缺陷是 expm 传播子静默丢层 Q;v7(δ 矩阵批)落地 MGS 正交化链并修复两个传播子/链真 bug(R2 锚在冻结前抓住 triMul 交叉项丢失;μ* 反变换修复)。终局(§6.17–6.21):QD bigfloat 算术把 1-ulp 混沌压到 1e-13 级、fullTensor 级数十五版不收敛就此结束(below-floor spread 1.0012,绝对值换代为信号级 1.2369);重建的定位器实测带内**本无极点**(detM 洼=远轴弱模态,埋源被积函数指数盲)——P2 负向解决;P1 水平绝对锚 6.03e-13;CS v4 预注册门经 30 分片 ~2.2 天执行,**三带门全 FAIL,P-SV 水平块假设被测量否定**,按预登记退役为 MEASURED-NO-CURE。负结果以可复现形态发表,这正是本体系的方法论输出。
 
 ---
 
@@ -110,7 +110,12 @@
 - cs-pipeline v3 冻结:κ0=0.04、应力平坦化与 LF 增益均为**否证的负结果**;形状门**如实 FAIL**(短 0.776 / 中 0.432 / 长 0.574)。
 - cs-diagnose:HF 短周期超标 100% 在 Boore HF 侧(κ0.02 贡献 ~0.186);4/6 例 MS-CS 目标结构性不可达;高知 2–4 s 亏损排除 JIVSM 与 Q → 1D SH 核对 M8.8@26 km 的固有小振幅(zhao 嵌入 3D/盆地效应)。
 - cs-arbiter(13 事件预登记):obs−zhao 配对残差中位 −0.038 @0.2 s → **目标侧 INCONCLUSIVE**;κ 杠杆否证(dKappa −0.008);合成−观测 Ds −0.238 @0.2 s(Mj≥7.5 子集 −0.221)——短周期分账需要 M8.5+ 近场记录(登记,待用户 Kyoshin 账号)。
-- v4 P-SV 激活预注册草案**在开跑前撤回**(见 §7)——预登记撤回也是纪律的一部分。
+- v4 P-SV 激活预注册草案**在开跑前撤回**(预登记撤回也是纪律的一部分)——后经 §6.20 可跑化批重立、§6.21 执行:**三带门全 FAIL,P-SV 假设被测量否定**,生产保持 SH-only。
+- **v5 诊断(2026-09-15,PRE_REG_V5 五臂)**:目标构造无 bug(maxMuDelta 0.00466≪0.02);短带 HF 独占(blend 是 fcHz=1 Hz 硬频率分割,份额 1.000)且**应力杠杆 DEAD**(S*=0,残差 0.53>0.15);**长带符号分裂**(kochi 亏损 −0.51..−0.33 vs osaka 超额 +0.50..+0.49)——单一全局 LF 杠杆原理上救不了;LF-gain 倾斜只占形状超额 ~0.1-0.3。实现收获:buildHfSpectrum 的 `(fillScale || 1)` 把 0 当 falsy(HF 归零臂失效),冒烟探针当场抓住——falsy 开关坑第三枚。
+- **v6 诊断(2026-09-15,PRE_REG_V6)**:**台柱交换**判长带分裂 SOURCE-OWNED(反转规则 0.198;线性台柱份额 ~40%)——分裂主要跟情景源种群走;**去倾斜重评分**(首跑抓到自家锚点电平污染,形状校正后)U=0.318 判 SYNTHESIS-SIDE:情景种群合成形状比 zhao 热 +0.2..+0.4@0.1s。**种群反差入冻**:真事件上同套合成比观测冷 −0.24..−0.28(arbiter DSYN)而情景种群比 zhao 热——~0.6 dex,配置混淆如实披露。
+- **v7 配置对齐重测(2026-09-15..16,PRE_REG_V7 门先于运行)**:把**管线真实配置**(JIVSM 台站柱+网格 vs30+siteCurve+stressByClass+lfGain)放到 13 个真事件 × ~700 台站上——alignedDs(0.2s)=**+0.02**(legacy 裸臂 −0.238),R1 判 **CONFIG-OWNED**:配置链自身携带 ~+0.26 dex 形状;情景种群再叠加 ~+0.3;且**按震源类别强分裂**(0.2 s 中位:地壳内 +0.071、板块间 −0.265、板内 −0.142)。登记治愈候选=对观测锚定的逐类配置链重校准(**未排期**)。
+- **v8 逐类 κ 重校准(2026-09-17,PRE_REG_V8,用户排期)**:以 v7 冻结形状按类拟合 κ(物理符号修正后 G1 过:板块间 0.018/地壳内 0.046/板内 0.027),G3 情景非回退门**判死**(短带 0.776→0.96、长带 0.574→0.777)——真事件最优方向与情景门最优方向**反号**,且 1 s 锚坐在缝上,HF 改动经单一振幅尺度漏进 LF 带。逐类单参数治愈线就此关闭;G2 按预登记免跑(任何 FAIL→NEGATIVE)。
+- **收口(CS_GATE_ROLE,2026-09-16;v8 判死后终版)**:形状门的语义改判为「shipped 合成 vs 条件谱(zhao)在情景去聚合种群上的一致性监视器」——不是任何一侧的正确性主张。三带 FAIL 作为模型形式+种群性质如实常驻;κ/应力/P-SV/LF-gain 四条全局单参数治愈全部测量否证;生产保持 SH-only,psv 留研究态。
 
 ---
 
@@ -122,7 +127,7 @@
 
 ---
 
-## 6. P-SV 离散波数内核:完整研究史(v1→v5)
+## 6. P-SV 离散波数内核:完整研究史(v1→终局)
 
 这是科研化方法论最完整的案例:一个内核从"21.3× 偏热"到"全空间锚定 + 分层部分收敛",五轮批次,每一步都是测量驱动的。
 
@@ -246,6 +251,66 @@ v10 把治愈收敛到「独立表示」一个选项。本批把这句话拆成�
 
 **4. 级数判定与阻塞再定位**。Schur 臂 dk 级数(生产接线后实测):fullTensor **194/194/523/680/541 非单调**,deviatoric 对照 0.0178→0.0083(2×)——v10 的「deviatoric 已收敛」实为**表示相对**假象(单表示误差跨 dk 自洽≠物理收敛)。**合规表示已裁决完毕,剩余阻塞是带内比任何网格都窄的极点结构在 k 积分里的未解析贡献**——登记治愈改为极点感知求积(模态扣除/复围道)。诊断 v11 重冻(verdict=`fullspace_anchored_layered_compliance_adjudicated_schur_validated_band_quadrature_full_tensor_open`),psv-schur.test.js 四锚入库(含 R2 裁决锁:legacy 若突然对上闭合解即触发重冻)。生产 opts.psv 仍 BLOCKED。
 
+### 6.13 FD-SH 退化对照批(2026-09-11):SH 裁决反转,分层柔度危机降级为探针自身 bug
+
+v12 时代的「分层柔度裁决危机」(R11:链家族 3.165e-8 vs 网格收敛 FD 2.203e-8 = 30%,无存活独立分层裁判可裁决)由本批关闭。新建 `crest-fd-sh.js`:SH 退化 FD-BVP(HALF 模量,对 shake91 解析锚定 core-SH 0.1–0.34%),本想当 SH 侧独立裁判,却在隔离测试里抓到**两个 FD 探针共享的「源上层失明」装配 bug**(vs1 2.6→0.9:core-SH +46% 而 FD 平线)——**P-SV FD 分层证据就此撤回,链家族站得住**,30% 危机降级为探针自身缺陷。修复路上顺带解决 κ~1e15 的 u/tr 量级混合下裸主元丢小分量:行/列平衡化(解向量按 colS[i] 反缩放)。det 主值扣除路线自此解除阻塞。probe v11 重冻(fdRefereeStatus 撤回 + tokyoBand referee 修正 5.79e-3)。**教训:裁判自身也要被锚——一个没有解析锚的独立裁判给出 30% 分歧时,第一怀疑对象应该是裁判。**
+
+### 6.14 det 主值扣除落地批(2026-09-11):机制交付,series 不被治愈
+
+`psvPoleModelFit`/`psvPoleModelSet`(门 0.15 + 贪心去重:±8γ₀ 阶梯双侧、双 Im 符号 Nelder-Mead、共轭复数 LS + 4× 中位离群剔除)+ `params.detSubtract` 生产接线(拟合极点去窗 + 逐样本减除 + 主支复对数解析回加;失败者回退窗;缺省字节兼容 tripwire)。合成闭式自测:极点位置 1.7e-9、欠分辨极点回加 2.6e-5(素梯形 12–14% 失败,反衬解析回加的必要)。复 k Newton 两路实测不可行:Schur 上行阶步 det 在极点处自身过零→猎点被 null 包围;raw 级联 det = v4 老病。**生产判定 = series 不被治愈**(冻结协议 detSub fullTensor 231.77/231.77/231.77/532.96/770.39/803.88 单调升 spread 1.51;deviatoric 不动)→ 新具名阻塞 = **极点定位器失准**(psvModalPoles 候选偏 0.1–0.2/km,门+去重后 7 模型)。附带一次公开撤回:「v11 冻结 schur 系列伪值/不可复现」判读是本批旋转张量侧脚本的可复现性错觉——冻结协议的 full 张量是未旋转源系牛顿量,已提交代码原样复现(tensorProtocolNote 入冻)。verdict=`…_pole_subtraction_shipped_but_series_open_candidates_mislocate`。
+
+### 6.15 极点定位器可行性批(2026-09-12):1-ulp 判别器判死原生定位器
+
+判别器从 v10 的 1e-5/km 偏移连续性检查(粗了 7 个量级)升级为 **1-ulp 阶梯**(任何真共振在 ulp 级 k 偏移下只动 (ulp/γ)²≈0;O(1) 摆动 = 舍入混沌非结构)。对照 k=0.40/km:积分函数与 C 直到 1e7 ulp 逐位稳定(全稳定数位);簇带 0.70/0.73/0.76/0.80/km:积分函数 1 ulp 摆 −89%~+1203%(零稳定数位),C 15–567%,dh 0.5 与 32 m、全源深度同然。机制闭合:detM 坐在 ~1e-16·|M|² 上(cond(M)~1e16),2×2 行列式消减噪声就是输出量级——与 v11「Schur 上行光滑」不矛盾(递推光滑,输出继承地板);v6 的 det(Rc) 定位器在 k≳0.65 结构性致盲(detM 桶极小 −6.1→−39.5、0.002/km 间距去相关、0.900 处 −690 消减针)= v12「候选失准」的根因。冻结拟合表降级为单样本锚定(候选 0.6173 的 γ₀=0.11/km 把 12 个梯子样本撒到 0.18–1.50/km,rel 0.02 反映那一个样本而非场干净度)。series 后果(seriesDhSensitivity 活测):dh FD stencil 把 fullTensor 系列在 dk0.02 挪 194/266/44.9/28.4/6.6(dh 0.5/2/16/32/64,30× 无钉死),无任何截断安全 dh 收敛——**本配置上不存在可解释为信号的 series 值**;v10「链内 FD 治愈退休」延伸到固定大 dh stencil。登记下一步 = Schur 链全补偿算术(DD),验收门 = 1-ulp 判别器在簇带翻转。verdict=`…_locator_infeasible_zero_stable_digits_series_noise_dominated`。
+
+### 6.16 DD 算术批(2026-09-12):门部分通过,步进消减现形
+
+`psv-dd.js`:Dekker/Knuth 原语无 FMA;特征向量半空间导纳、expm 传播子含 μ* 反变换、上方联合缩放乘积、C=−e^{−σ}(Y·Q11−Q21)⁻¹ 全链 DD;材料积精确 two-product;`params.ddCompliance` opt-in 缺省字节兼容。上行递推加**逐层传播子归一化**(Y 对 P→αP 不变,代数免费)消掉 e^{±114} 隐逝尺度。路上两个真 bug 被交叉验证抓住:①lamC 虚部误用复数减法 cddSub(实数 DD 被当复数拆开→嵌套 NaN);②m4maxabsDD 用复数零初始化(毒化全部 ddToNumber 比较)——而「验证」它的手动循环自身在吞 NaN(NaN 比较恒 false)。**本批最宽教训:比较型检查可疑地轻易通过时,先用已知坏输入测它。** 验收门实测(v14 probe):0.80/km 过(1-ulp 混沌 −76%→2.9e-5%)+ 对照带 DD 噪声级(双路径一致 1.2e-11;DD ~5 ms/eval vs double 1.5 ms);0.70/0.73/0.76 仍混沌(1 ulp O(10–600%))——**新具名阻塞 = 上行步进 det(P22−Y·P12) 消减 5e30–8e31**(upLegStepCancellation 诊断入导出;导纳递推穿越 below-source 子系统近共振 + P 波隐逝穿越 190 km 幔层 e^{±114})。输出混沌 ≈ eps × 步进消减 × O(1–40):DD 的 1e-32 恰被吃光,登记 quad-double(eps 1e-64)。verdict=`…_dd_landed_gate_partial_step_cancel_5e31_quad_double_registered`。
+
+### 6.17 QD 算术批(2026-09-12):五点门全过,series 十五版不收敛就此结束
+
+`psv-qd.js`:BigInt bigfloat = 值 m·2^e、尾数归一 256 位(eps ~1.7e-77 = 实测需求 1e-64 的 13+ 个量级);全原语正确舍入(精确整数积 + 精确余数舍入);exp/log 自适应级数(ln2 = 2·atanh(1/3));expm4 项数自适应化(DD 时代常数 24 项只够 eps 1e-32);链 1:1 移植含上行逐层归一化;`opts.pbits` 逐调用改尾数 = 失败时的诊断阶梯。路上真 bug = **移植丢密度因子 ρ**:propagatorBF 的 c1s/w2vs2 减了裸 ω²,DD 原文是 ρω²——两个 A 条目差 2650×、expm 输出差 e^66;被组件级 DD 对照抓住,而此前两次 scratch 对照全过(**scratch 从移植版抄公式把 bug 一起抄了 + NaN 吞比较——必须对被裁定过的模块输出对照,自己的拷贝对自己的拷贝一致什么都没验证**)。另有 4×4 单位阵写成一维向量、退休的共享传播子三联(prepare 按 target 深度切层,索引共享会静默算错物理层)。
+
+验收门全过(v15 probe 活测,确定性):1-ulp 判别器全部五点翻白——0.40/0.70/0.73/0.76/0.80/km 积分函数摆 1e-14%~1e-11%(门 1e-6%,余量 8–11 个量级),65536 ulp 仍 ≤1e-5%;C(zs) 0.73 处 1 ulp 稳 2.9e-14%;crest 守卫 null 消失 = 可解场存在;交叉路径:0.40 对照处 QD 复现 DD 到最后一位舍入双,对双精度 1.245e-11(=双链噪声级)。**步进消减预算更正**:0.40=1.727 与 0.80=2.783e26 跨精度复现,但 0.76/0.73/0.70 真消减 8.6e30/3.4e35/6.3e42——v14 表(5e30–8e31)被 DD 自身 eps 饱和(DD 链分辨不出低于 eps×scale 的 det);QD 输出噪声 ~1e-77×1e42=1e-35,过门余量 23+ 个量级。成本 ~0.07 s/链(DD 5 ms,double 1.5 ms)。
+
+series 产出(qdSeriesUrm,9 run 并行):dh 不变性 2.1e-5/2.2e-5(v13 的 7–30× 噪声实现挪动消失——「dh=噪声旋钮」判定死亡);dk 轴 1.243517(clamp 0.00316/km)→1.237305(0.002)→1.236935(0.001)→1.235870(0.0005)= −0.502%/−0.030%/−0.086%,**below-floor spread 1.0012 ≪ 冻结 1.03 收敛门——v12「>1.05 收敛时自觉解冻」条件触发,15 个版本的不收敛到此结束**;deviatoric 0.02216335→0.02214221。绝对值换代:双链时代 194.41/28.09/44.36 是噪声积分,QD 系列是本配置首个信号级测量。verdict=`…_qd_landed_gate_full_series_dh_noise_dead_below_floor_converged_locator_reopens`。
+
+### 6.18 定位器重建批(2026-09-12):定位器交付,但带内本无极点——P2 负向解决
+
+`psvModalPoles` 增 `params.qdCompliance` 分支:同一洼地协议(地表源 zs=1e-4、2.5e-4/km 格、突出度 0.5、黄金分割细化、HWHM γ、半空间支点排除),扫描对象换 Schur detM = det(Y·Q11−Q21) 大浮点链——zs≈0 时上方乘积塌缩 detM=det(Y)=表面导纳极点条件,与 det(Rc) 同物理;候选文件旁路 + `opts._qdScanStep` 测试粗化,双路径字节不变。实测(f0p5/f1p2 全扫各 ~57 min,冻结字面量):QD 定位器 ulp 精确(log|detM| 1–16 ulp 恰 0;双精度场 0.002/km 去相关)+ 噪声森林消失(f0p5:17 双时代候选[8 个 γ 打 5e-4 地板=噪声洼]→7 个真实宽度洼地;f1p2:45→9;远带位置逐位吻合 2.43/3.80)。
+
+**转折 = detM 洼不是被积函数极点**:洼深仅 0.5–1.9 log 单位(对 15.7 背景)= 远轴弱模态;埋源 QD 被积函数无极点——0.3–0.8/km 光滑 Bessel 调制 1e4–9e4,ω/vs_half≈0.70/km 以上指数塌亡(0.80 处 1.4e4 → 0.85 处 1e2 → 0.95 处 7e-7 → 1.54 处 1e-33 → 3.8 处 1e-110)。支撑带全部候选诚实过不了 0.15 拟合门(rel 0.25–0.74——A/(k−kp)+B 模型类无法表示 Bessel 振荡被积函数),死带「保留」是拟合数值尘埃。**v12「候选失准」记录就此解决 = 本无可找**:双时代拟合锁在链噪声刺上,而噪声刺恰坐落真信号塌亡处;v13「定位器不可行」判读是场的算术盲而非洼地协议缺陷。唯一真近轴结构 = f1p2 1.70–1.80/km 陷缚模态族(剪切支点 1.676 之上;detM 洼底穿透 1e-300 双精度返回地板,1.783 处 QD 解在洼底 null = eps-窄真 null),但埋源被积函数对它指数盲(隐逝半空间腿)。detSubtract 在可解场上实测 no-op(六 run,82–128 min/run:full 1.242353/1.242268/1.236453/1.235651 @dk 0.02/0.002/0.001/0.0005——对 plain QD 系列全部 ±0.50% 内,below-floor spread 1.0054 仍收敛)。CS v4 前置:P2 负向解决、P3 已完成(div10),P1 是唯一剩余门。坑两枚入冻:①f1p2 ulp 阶梯初读「噪声」实为 detM 洼底穿透双精度返回地板(ladder 量的是 log() 的 1e-300 守卫抖动非链);②驱动器候选文件往返 1/km-vs-1/m 单位错(候选静默掉到 DC 尺度)——跨文件边界的单位要断言。verdict=`…_qd_locator_built_band_pole_free_subtract_measured_noop_series_converged`。
+
+### 6.19 CS v4 P1 锚批(2026-09-13):组合端到端精确,双链地板机制定量化
+
+psv.js 两生产钩子(缺省字节兼容):`params.closedFormHalfspace`(crest-halfspace-closed.js 闭式半空间 BVP 合规注入——自由面+辐射+源跳 6×6 直解,单位真牵引,无链约定;符号 −1 按裁决跳取向;HALF 单层栈限定)+ `params.poleWindows:false`(跳过定位器——v16 实测生产带无极点、subtraction no-op,legacy 定位器 ~60s/ω 是死重)。
+
+P1 锚实测(`tools/broadband/psv-horizontal-anchor.js`,**门预注册在先 ≤1e-2**):生产管线 vs 闭式 BVP 端到端(共享积分器与水平块代数,注入式对照),HALF {strike-slip, thrust-DC}×{0.5, 1.2 Hz}×zs33。**QD 臂 PASS@worst 6.03e-13**(比门低 11 个量级——单位/约定/积分器/块代数/分层合规的组合端到端精确;纯 Mxy 的 ur=0 正确对称零)。**双精度臂配置依赖 FAIL**:f0.5 3.8e-6(过)但 f1.2 8.34——机制 = 双链 ~1e-16 detM 消减地板踩在 Rayleigh 共振 detM 洼地上(HALF f1.2 的 k=1.9/2.1/2.3/km 三点:大浮点链与 BVP 全部打印数字逐位相等而双链差 6000×;RK4-ODE 裁判 4e-3 第三方)——**v13–v15 算术故事延伸到每一根柱**:半空间 Rayleigh 族的 detM 洼在 f≳1 Hz 就坐进权重带,非 tokyo crest 特有。
+
+CS v4 运行判决 = **NOT EXECUTABLE AS PRE-REGISTERED**(入 PRE_REG_V4):诚实门臂必须跑 QD,而 QD ~0.21 s/合规三联 → ~24–30 h/(case,bin)(~197 频 × ~2500 k × 3 链),~50 case-bin 对 = 多月计算;P2 负向解决 + P3 完成如实入账;登记治愈 = 两级接线(双链打底 + detM 洼邻域大浮点替换,~10× QD 削减)或 1-ulp 认证的缩范围 v4。hybrid.js v4 臂接线就绪(psvHorizontalOnly/psvSchur/psvNoPoleWindows);tripwire:cs-pipeline 7/7 + broadband-psv 12/12(钩子契约:Schur≡BVP 逐项 <1e-9 / 多层栈 throw / poleWindows 中性 <1e-4)。
+
+### 6.20 CS v4 可跑化批(2026-09-13):多月计算压进 ~17 小时墙钟
+
+①`psv.js params.fdChannels:false`:偶极自由张量(mzz=mxz=myz=0,旋转后清零)的 Cup/Cdn 深度 FD 通道是死重——1 链替代 3 链 = 3×;调用方契约 = 零分量。首版 **2×2 复零矩阵写成 `[[0,0],[0,0]]`(两复对的向量)**:Cdn[0][0]=标量 0 → csub(0,0)=[NaN,NaN] → 被积函数全 NaN;FDDBG/ITDBG 双向探针逐层定位后修为 `[[[0,0],[0,0]],[[0,0],[0,0]]]`——v15「4×4 单位阵写成 1×4」同类坑重演,**complex 矩阵零的嵌套层级 = [层][行] = [re,im] 三层**。②hybrid `opts.psvQd`(大浮点链 = P1 实测无地板路径)+ fdChannels 随 psvHorizontalOnly 联动。③`cs-pipeline --v4` 运行器:双臂 a_shOnly(v3 原样基线)vs b_psvHorizontal(psv+psvHorizontalOnly+psvQd+psvNoPoleWindows,T1/T2 水平块大浮点链),LF gain 双臂同加(隔离块效应,披露),门限 v3 不变,独立报告;`--shardIdx/--shardN` 分片 + `--v4-merge` 合并。**分片布局 = shard s → case s%nCases × realization-group floor(s/nCases)**(shardN 须为 nCases 倍数;首版 ci%shardN 在 25/6 形状下 19 片空转且每 case 只跑 1/25——发射后才发现,杀阵重排重发)。**synthesize() psv opts 透传修复**(原 Object.assign 只带 common 字段,psv opts 全被丢弃 = hybridPsv 静默跑成 shOnly,pilot 0.0 min 曝露)。④pilot 实测:fdChannels 恒等逐位 ✓;tokyo f0.8 水平块 double-vs-QD 端到端差 46%(v4 动机在真柱定量坐实);QD 削减后 165 s/ω(39×);双 pilot realization 201.1/203.1 min(双样本锁定)。⑤30 分片全门阵列发射(6 case × 5 组)——**nohup 孤儿进程被会话清理杀 27/30 的坑**(日志干净终止、无 JS 错误 = 外部击杀),改工具托管 run_in_background 逐分片发射后 30/30 存活;频率抽稀测量被同场清理误杀,登记下一批。
+
+### 6.21 CS v4 门阵列执行批(2026-09-15):三带门全 FAIL,预注册假设否定——终局
+
+30 分片 ~2.2 天墙钟落地(快案例 kochi/osaka 先退场,12 个 tokyo 慢片收尾)。merge 两处修复:①runV4 报告块 `kappaSec` 简写引用未定义(从 v3 段复制漏改,函数内叫 kappa);②**merge 按 (site,rp,arm,i) 去重**——分片阵列把 hybrid 全 25 实现在每片重跑(5 份冗余,唯一差异 = synthSecs 计时字段),psv 组布局实测正确(每片 i%5==floor(s/6));去重后 300 唯一行,**gate 数字对拍逐位不变**。
+
+**裁决(tripwire 数字锁,900 行 0 invalid)**:
+
+| 带 | psv 臂 | shOnly 臂 | 门限 | 判定 |
+|---|---|---|---|---|
+| 0.1–0.5 s | 0.794(kochi RP2500@0.15s) | 0.776 | 0.30 | FAIL |
+| 0.5–2 s | 0.398(kochi RP475@2s) | 0.432 | 0.25 | FAIL |
+| 2–5 s | 0.727(osaka RP2500@5s) | 0.574 | 0.25 | FAIL |
+
+中带边际改善(0.432→0.398)而短带 +0.018、长带 +0.153 恶化;containment 0.334 vs 0.385(门 0.8,双 FAIL);pgaRatioDelta +0.03 在 ±0.05 非回退裕度内。per-case 混合:tokyo RP2500 改善(0.533→0.434,containment 0.462→0.615),tokyo RP475 退化(0.923→0.462),osaka/kochi ~不变。
+
+**处置 = P-SV 水平块退役 MEASURED-NO-CURE**:生产保持 v3 SH-only 臂;QD/fdChannels/poleWindows/horizontalOnly 接线留研究态;runVerdict 入 PRE_REG_V4(whyNotRunNow 标 SUPERSEDED 留决策链)。带形失配的下一假设在「缺 P-SV」之外(κ 与 LF-gain 否证照旧):候选 = 条件谱目标构造本身 / HF-LF blend 拓扑 / 逐 bin 参数重拟合,均未立项。
+
+本批从发射到收尾跨三个会话,途中四类缺陷(分片布局缺陷、nohup 清理连杀、复制漏改的未定义引用、冗余重跑的记账虚高)全部被廉价检查(进度计数、hash 对拍、抽样比对)在冻结前抓住——**900 个 QD 实现只有一个版本进入冻结报告,这正是六条纪律想要的形态:负结果也要以可复现的形态发表。**
+
 ## 7. 动力学破裂(离线)
 
 - `tools/dynamic-rupture/`:SH/PSV 交错速度-应力有限差分 + TSN 滑移弱化;TPV5-AP 官方参数逐字冻结并跑通反平面约化(10 站序列在 dynamic-rupture-report.json);有限断层导出接入 app.js 捆绑模型下拉。
@@ -280,25 +345,26 @@ v10 把治愈收敛到「独立表示」一个选项。本批把这句话拆成�
 - GMPE hazardlib 逐位对拍、2626 台站校准、LOEO 反转(19 事件);
 - PSHA 引擎自验(闭式锚 1e-12/MC 互验 0.08/守恒 0.005)+ J-SHIS 外部门(高估 1.827×)+ 归因(情景源承担超估);
 - 记分卡长周期改善 PASS;SH 混叠守卫落地 + 暴露量化;
-- P-SV 全空间锚(A1–A3)、根追踪(R8/R9)、**deviatoric 序列收敛**;
+- P-SV 全空间锚(A1–A3)、根追踪(R8/R9)、**deviatoric 序列收敛**;QD 算术五点门 1e-13 级 + fullTensor series 收敛(spread 1.0012,信号级绝对值 1.2369)+ 带内无极点实测 + P1 水平锚 6.03e-13;
 - 动力学破裂 TPV5-AP 反平面验收;
-- 全部 19 项 P-SV 锚 + 全量 npm test 绿。
+- 全部 P-SV 锚 + 全量 npm test 绿(1,142 项);CS v4 门执行完毕(900 QD 实现 0 invalid,数字冻结于 cs-pipeline-v4-report.json)。
 
 ### 10.2 黄(研究态,未接生产)
 
-- `opts.psv` 三分量:分层 deviatoric 已收敛,等 fullTensor 开放项关闭后走 CS v4 预注册门(用户闸门);
+- `opts.psv` 研究态(判定已关闭):QD 链全绿,但 P-SV 水平块对 CS 形状门 **MEASURED-NO-CURE**(§6.21)——接线保持 opt-in 研究态,不再等待生产化;
 - PSHA 绝对水平高估 1.83×:已归因,整改方向=情景率/BPT 复核,未动;
 - SH Love 模态极点窗(守卫后残余 max 0.80)。
 
 ### 10.3 红/开放(登记在案)
 
+CS v4 线关闭两项:P-SV fullTensor 序列(v12 解冻条件触发,QD series 收敛,§6.17)与 CS v4 预注册门(执行完毕,假设否定,§6.21)——均从开放表移除。 2026-09-16 再收口:CS 带形失配诊断线(v5/v6/v7 三批)完结,开放表中的失配行改写为唯一剩余候选(逐类配置链重校准,未排期)。 2026-09-17 终版:该候选被 PRE_REG_V8 的 G3 判死,治愈线全部关闭。
+
 | 开放项 | 机制 | 登记 |
 |---|---|---|
-| P-SV fullTensor 序列 | 泄漏 P 峰顶带 subdivide cap 依赖(v7 δ 矩阵链已消 det-null 坍缩;cap30/10 系列差 ~30×,cap10/4 点位收敛 16%;残余孤立 null 3 个) | compliance 链 cap 研究(cap10 成本 ~3×)或逐层 Schur 导纳步进(v7 registeredNextStep) |
 | CS 短周期分账 | 需要 M8.5+ 近场宽频记录 | cs-arbiter Ds 重跑(待用户 Kyoshin 账号) |
 | CVWS 参考解 | 登录墙 | docs/CVWS-UPLOAD.md 用户运行 |
 | BPT 时间依赖引擎 | psha-attribution mid-band 负 rate-ratio 指向 | 立项依据已归因 |
-| CS v4 预注册门 | P-SV 分层解锁后的产品化前置 | 用户闸门,开跑前预登记 |
+| (CS 带形失配治愈线已全部关闭) | v8 逐类 κ 重校准被预注册 G3 判死(短带 0.776→0.96/长带 0.574→0.777,真事件与情景门最优方向反号+锚-缝耦合);κ/应力/P-SV/LF-gain 五条参数治愈全部测量否证 | 无剩余候选;形状门保持监视器角色(CS_GATE_ROLE) |
 
 ---
 
@@ -306,7 +372,13 @@ v10 把治愈收敛到「独立表示」一个选项。本批把这句话拆成�
 
 | 工件 | 生成器 | tripwire |
 |---|---|---|
-| `tools/data/psv-scale-diagnosis.json`(v5) | `node tools/broadband/psv-scale-probe.js --write` | tests/psv-scale-diagnosis.test.js |
+| `tools/data/psv-scale-diagnosis.json`(v16,含 QD 臂/定位器/series 冻结字面量) | `node tools/broadband/psv-scale-probe.js --write` | tests/psv-scale-diagnosis.test.js |
+| `tools/data/cs-pipeline-v4-report.json`(+30 分片文件) | `node tools/broadband/cs-pipeline.js --v4 --shardIdx s --shardN 30` ×30 → `--v4-merge --shardN 30` | tests/cs-pipeline.test.js(v4 数字锁) |
+| P1 水平绝对锚(6.03e-13,PRE_REG_V4.p1Anchor) | `node tools/broadband/psv-horizontal-anchor.js`(门预注册在先) | tests/broadband-psv.test.js 钩子契约 |
+| QD 定位器扫描/series | `node tools/broadband/psv-qd-locator.js` / `psv-qd-detsub-series.js` | tests/psv-qd.test.js |
+| `tools/data/cs-diagnosis-v2-report.json`(v5 五臂) / `cs-diagnosis-v3-report.json`(v6 交换+去倾斜) | `node tools/broadband/cs-pipeline.js --v5-diag` / `--v6-diag` | tests/cs-diagnosis.test.js |
+| `tools/data/cs-align-retest-report.json`(v7 管线配置×真事件) | `node tools/broadband/cs-align-retest.js`(~160 min,台站 90 s 预算守卫) | tests/cs-diagnosis.test.js |
+| `tools/data/cs-kappa-by-class.json` + `cs-kappa-scenario-report.json`(v8 拟合+判死) | `node tools/broadband/cs-kappa-recal.js` + `cs-pipeline.js --kappa-scenario … --write` | tests/cs-diagnosis.test.js |
 | `tools/data/broadband-scorecard.json` | `node tools/broadband/scorecard.js` | tests/broadband-scorecard.test.js |
 | `tools/data/sh-alias-exposure.json` | `node tools/broadband/sh-alias-exposure.js --write` | tests/sh-alias-exposure.test.js |
 | `tools/data/cs-pipeline-report.json` / `cs-arbiter-report.json` / `cs-diagnosis-report.json` | cs-pipeline.js / cs-arbiter.js / cs-diagnose.js | tests/cs-pipeline / cs-arbiter / cs-diagnosis |

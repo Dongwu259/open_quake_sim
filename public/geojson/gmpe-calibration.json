@@ -57,7 +57,7 @@
   "modelBias": {
     "zhao2006": {
       "minM": 7,
-      "note": "Additive distance-binned intensity correction for zhao2006-routed forecasts, re-fitted 2026-08-17 against the FAITHFUL Zhao et al. (2006) implementation (paper Tables 4/5/6, natural-log form, native Vs30 site classes) from frozen K-NET/KiK-net station residuals (tohoku2011, tokachi2003, fukushima2022, hyuganada2024; 1925 stations) with JMA-catalog prediction hypocenters by tools/scorecard-strong-motion.js --fit-model-bias=zhao2006. The faithful model is unbiased inside 100 km (measured -0.01..-0.03 intensity); the >100 km bins correct the point-source hypocentral-distance convention against mega-ruptures (true Rrup scoring in tools/probe-zhao2006-faithful.js: overall PGA bias +0.11). deltaI = -(measured per-bin bias), hard-capped at +/-1.0; applies only at M>=7 (fitted range M7.1-9.1) and inside the measured hypocentral-distance bins; bins outside the measured range are no-ops. Si-midorikawa-routed crustal events and explicitly user-selected kanno2006 forecasts carry their own modelBias blocks below. See tools/data/strong-motion-report.json.",
+      "note": "Additive distance-binned intensity correction for zhao2006-routed forecasts, re-fitted 2026-08-17 against the FAITHFUL Zhao et al. (2006) implementation (paper Tables 4/5/6, natural-log form, native Vs30 site classes) from frozen K-NET/KiK-net station residuals (tohoku2011, tokachi2003, fukushima2022, hyuganada2024; 1925 stations) with JMA-catalog prediction hypocenters by tools/scorecard-strong-motion.js --fit-model-bias=zhao2006. The faithful model is unbiased inside 100 km (measured -0.01..-0.03 intensity); the >100 km bins correct the point-source hypocentral-distance convention against mega-ruptures (true Rrup scoring in tools/probe-zhao2006-faithful.js: overall PGA bias +0.11). deltaI = -(measured per-bin bias), hard-capped at +/-1.0; applies only at M>=7 (fitted range M7.1-9.1) and inside the measured hypocentral-distance bins; bins outside the measured range are no-ops. Si-midorikawa-routed crustal events and explicitly user-selected kanno2006 forecasts carry their own modelBias blocks below. R0-4/R1 caveat (2026-08-24): leave-one-event-out on the 4-event routing set shows this correction does NOT generalize to unseen events (held-out intensity RMS 0.931 vs uncorrected 0.899, tools/data/model-bias-loeo-report.json) — treat it as an empirical alignment for these four events until more interplate/intraslab events are frozen (fukushima2021 is reserved for the JMA independent blind split and stays out). See tools/data/strong-motion-report.json.",
       "distBins": [
         {
           "minKm": 0,
@@ -98,83 +98,83 @@
     },
     "si-midorikawa": {
       "minM": 7,
-      "note": "Additive distance-binned intensity correction for si-midorikawa-routed forecasts, fitted 2026-08-14 from frozen K-NET/KiK-net station residuals (kumamoto2016, noto2024; 701 stations) with JMA-catalog prediction hypocenters by tools/scorecard-strong-motion.js --fit-model-bias=si-midorikawa. deltaI = -(measured per-bin bias), hard-capped at +/-1.0; applies only at M>=7 (fitted range M7.0-7.5) and inside the measured hypocentral-distance bins; bins outside the measured range are no-ops. Fitted on hypocentral distance, while the app forecast path evaluates si-mid finite faults on Rrup — the bins are a near-field approximation (all |deltaI| <= 0.23 within 400 km). See tools/data/strong-motion-report.json.",
+      "note": "Additive distance-binned intensity correction for si-midorikawa-routed forecasts, re-fitted 2026-08-24 from frozen K-NET/KiK-net station residuals (nine crustal events: kumamoto2016, noto2024, chuetsu2004, iwate2008, fukuoka2005, noto2007, fukushima2011, yamagata2019, iburihigashi2018; 2962 stations) with JMA-catalog prediction hypocenters by tools/scorecard-strong-motion.js --fit-model-bias=si-midorikawa. R1 expansion replaced the 2-event fit (R0-4 LOEO had shown it did not generalize: held-out RMS 0.631->0.780); on the 9-event set leave-one-event-out passes (held-out 0.635 vs uncorrected 0.637, tools/data/model-bias-loeo-report.json). deltaI = -(measured per-bin bias), hard-capped at +/-1.0; applies only at M>=7 and inside the measured hypocentral-distance bins; bins outside the measured range are no-ops. See tools/data/strong-motion-report.json.",
       "distBins": [
         {
           "minKm": 0,
           "maxKm": 50,
-          "deltaI": 0.148,
-          "measuredBias": -0.1477,
-          "stations": 27
+          "measuredBias": -0.1892,
+          "stations": 111,
+          "deltaI": 0.189
         },
         {
           "minKm": 50,
           "maxKm": 100,
-          "deltaI": -0.105,
-          "measuredBias": 0.1052,
-          "stations": 105
+          "measuredBias": 0.0028,
+          "stations": 396,
+          "deltaI": -0.003
         },
         {
           "minKm": 100,
           "maxKm": 200,
-          "deltaI": -0.096,
-          "measuredBias": 0.0957,
-          "stations": 204
+          "measuredBias": 0.0837,
+          "stations": 1118,
+          "deltaI": -0.084
         },
         {
           "minKm": 200,
           "maxKm": 400,
-          "deltaI": 0.23,
-          "measuredBias": -0.2301,
-          "stations": 346
+          "measuredBias": -0.2618,
+          "stations": 1254,
+          "deltaI": 0.262
         },
         {
           "minKm": 400,
           "maxKm": null,
-          "deltaI": 0.515,
-          "measuredBias": -0.5152,
-          "stations": 19
+          "measuredBias": -0.75,
+          "stations": 83,
+          "deltaI": 0.75
         }
       ]
     },
     "kanno2006": {
       "minM": 7,
-      "note": "Additive distance-binned intensity correction for explicitly user-selected kanno2006 forecasts (auto routing never selects kanno2006), fitted 2026-08-14 by forcing the model onto all six frozen events (tohoku2011, kumamoto2016, tokachi2003, fukushima2022, noto2024, hyuganada2024; 2626 stations) with JMA-catalog prediction hypocenters by tools/scorecard-strong-motion.js --fit-model-bias=kanno2006 (forced-model fit). deltaI = -(measured per-bin bias), hard-capped at +/-1.0; applies only at M>=7 (fitted range M7.0-9.1) and inside the measured hypocentral-distance bins; bins outside the measured range are no-ops. Bins with fewer than 15 stations are dropped (none were). See tools/data/strong-motion-report.json.",
+      "note": "Additive distance-binned intensity correction for explicitly user-selected kanno2006 forecasts (auto routing never selects kanno2006), re-fitted 2026-08-24 by forcing the model onto all thirteen frozen events (6-event original set + 7 R1 crustal expansion events; 4887 stations) with JMA-catalog prediction hypocenters by tools/scorecard-strong-motion.js --fit-model-bias=kanno2006 (forced-model fit). Leave-one-event-out passes on the expanded set (held-out intensity RMS 0.772 vs uncorrected 0.807, tools/data/model-bias-loeo-report.json). deltaI = -(measured per-bin bias), hard-capped at +/-1.0; applies only at M>=7 and inside the measured hypocentral-distance bins; bins outside the measured range are no-ops. See tools/data/strong-motion-report.json.",
       "distBins": [
         {
           "minKm": 0,
           "maxKm": 50,
-          "deltaI": -0.01,
-          "measuredBias": 0.0101,
-          "stations": 37
+          "measuredBias": -0.0161,
+          "stations": 121,
+          "deltaI": 0.016
         },
         {
           "minKm": 50,
           "maxKm": 100,
-          "deltaI": -0.154,
-          "measuredBias": 0.1538,
-          "stations": 151
+          "measuredBias": 0.1515,
+          "stations": 442,
+          "deltaI": -0.151
         },
         {
           "minKm": 100,
           "maxKm": 200,
-          "deltaI": 0.043,
-          "measuredBias": -0.0431,
-          "stations": 535
+          "measuredBias": 0.2013,
+          "stations": 1449,
+          "deltaI": -0.201
         },
         {
           "minKm": 200,
           "maxKm": 400,
-          "deltaI": -0.39,
-          "measuredBias": 0.3896,
-          "stations": 1372
+          "measuredBias": 0.4688,
+          "stations": 2280,
+          "deltaI": -0.469
         },
         {
           "minKm": 400,
           "maxKm": null,
-          "deltaI": -0.532,
-          "measuredBias": 0.5318,
-          "stations": 531
+          "measuredBias": 0.5678,
+          "stations": 595,
+          "deltaI": -0.568
         }
       ]
     }

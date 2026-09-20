@@ -4,22 +4,24 @@ public/tiles/
 .DS_Store
 Thumbs.db
 *.bak
+counter.json
+expiry.json
+traffic.json
+daily_visits.json
+admin_password.txt
 __pycache__/
 
-# Runtime state files (created by server.js at runtime)
-traffic.json
-ratelimit.json
-settings.json
-recordings/
-
-# Local secrets and environment
+# Local secrets and runtime state
 .env
 .env.*
 !.env.example
+api_keys.json
+users.json
+ratelimit.json
+settings.json
 
-# Editor / tool local settings
-.claude/
-.agents/
+# Local tool settings
+.claude/settings.local.json
 
 # Generated or recovered local artifacts
 public/app.js.recovered
@@ -29,19 +31,29 @@ coverage/
 dist/
 .browser-test/
 error_log.json
+webhooks.json
+recordings/
+api_keys.json.*
+!api_keys.json.example
+# GeoClaw crosscheck: keep the exported case inputs (topo.xyz/dtopo.txyz/
+# gauges.txt/sim-gauges.csv/meta.json) tracked so the comparison is exactly
+# reproducible; ignore solver run artifacts only.
+tools/geoclaw-crosscheck/case-*/_output/
+tools/geoclaw-crosscheck/case-*/fort.*
+tools/geoclaw-crosscheck/case-*/gauge0000*.txt
+tools/geoclaw-crosscheck/case-*/*.data
 
-# GeoClaw crosscheck fixtures are not shipped; if you regenerate them locally
-# with tools/export-geoclaw-case.js, keep solver artifacts out of git.
-tools/geoclaw-crosscheck/
-
-# GSI regional DEM mosaics and the tile cache are regenerable
-# (tools/fetch-gsi-dem.js + tools/blend-gsi-gebco.js); they are large binary
-# data products and stay out of git.
+# GSI pilot: raw mosaics (33MB, regenerable from tools/fetch-gsi-dem.js) and
+# the tile cache stay local; the blended jp-sanriku-gsi.json IS committed.
 public/geojson/gsi/*.json
 tools/data/gsi-tiles/
 
 # K-NET/KiK-net waveform packages (account-gated NIED downloads; the portal
 # terms prohibit redistribution — regenerable via tools/fetch-kyoshin-waveforms.js)
 public/geojson/strong-motion-waveforms/
-.cache-reshoot-profile/
-.cache-shot-profile/
+
+# First-boot admin password pointer file (server.js writes it once)
+admin-password.txt
+
+# Local agent/session tooling (plans, scratch) — never commit
+.zcode/

@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [22, 24]
+        node-version: [20, 22]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -24,42 +24,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Unit & integration tests + physics/tsunami benchmark validators
-        run: export NODE_OPTIONS=--max-old-space-size=2048; set -o pipefail && npm test 2>&1 | tee test-output.log
-      - name: Report failing tests as annotations
-        if: failure()
-        run: |
-          L=$(wc -l < test-output.log)
-          S=$((L>24 ? L-24 : 1))
-          CHUNK=0
-          BUF=""
-          sed -n "${S},\$p" test-output.log | while IFS= read -r line || [ -n "$line" ]; do
-            BUF="$BUF$line%0A"
-            CHUNK=$((CHUNK+1))
-            if [ $CHUNK -ge 6 ]; then
-              echo "::error title=logchunk::$BUF"
-              CHUNK=0; BUF=""
-            fi
-          done
-          [ -n "$BUF" ] && echo "::error title=logchunk-end::$BUF"
-          echo "::error title=loglines::$L"
+        run: npm test
       - name: Release validation (versioned assets, PWA markers, i18n, a11y, data catalogs)
-        run: set -o pipefail && node tools/validate-release.js 2>&1 | tee vr-output.log
-      - name: Report release-validation failure details
-        if: failure()
-        run: |
-          L=$(wc -l < vr-output.log)
-          S=$((L>24 ? L-24 : 1))
-          CHUNK=0
-          BUF=""
-          sed -n "${S},\$p" vr-output.log | while IFS= read -r line || [ -n "$line" ]; do
-            BUF="$BUF$line%0A"
-            CHUNK=$((CHUNK+1))
-            if [ $CHUNK -ge 6 ]; then
-              echo "::error title=vr-chunk::$BUF"
-              CHUNK=0; BUF=""
-            fi
-          done
-          [ -n "$BUF" ] && echo "::error title=vr-chunk-end::$BUF"
+        run: node tools/validate-release.js
       - name: Cache-busting version gate
         run: node tools/bump-versions.js --check
       - name: Audio asset validation

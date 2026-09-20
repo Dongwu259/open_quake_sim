@@ -114,6 +114,24 @@ test('GET / returns index.html (200, text/html)', async () => {
   assert.ok(body.includes('Earthquake Simulator'), 'should contain app title');
 });
 
+test('GET /api/v1/stations exposes official seafloor station provenance', async () => {
+  const res = await fetch(BASE_URL + '/api/v1/stations?type=seafloor&limit=1');
+  assert.strictEqual(res.status, 200);
+  const payload = await res.json();
+  assert.equal(payload.pagination.total, 237);
+  assert.equal(payload.data.length, 1);
+  assert.equal(payload.data[0].name, payload.data[0].officialCode);
+  assert.match(payload.data[0].officialCode, /^[MN]\.[A-Z0-9]+$/);
+  assert.equal(payload.data[0].sourceUrl, 'https://www.seafloor.bosai.go.jp/st_info/');
+  assert.equal(payload.data[0].sourceRetrieved, '2026-08-01');
+  assert.equal(payload.data[0].catalogStatus, 'listed');
+  assert.equal(payload.data[0].operationalStatus, 'not-provided');
+  const nnetRes = await fetch(BASE_URL + '/api/v1/stations?type=seafloor&network=N-net&limit=50');
+  const nnet = await nnetRes.json();
+  assert.equal(nnet.pagination.total, 36);
+  assert.ok(nnet.data.every(station => station.network === 'N-net'));
+});
+
 test('GET /nonexistent_file_xyz returns 404', async () => {
   const res = await fetch(BASE_URL + '/nonexistent_file_xyz.abc');
   assert.strictEqual(res.status, 404);
@@ -124,6 +142,91 @@ test('Directory traversal (/../) returns 403', async () => {
   assert.notStrictEqual(res.status, 200, 'should not serve file via traversal');
   assert.ok(res.status === 403 || res.status === 404,
     `Expected 403 or 404, got ${res.status}`);
+});
+
+// ================================================================
+//  ADMIN — public endpoints
+// ================================================================
+
+test('GET /api/admin/expiry returns 200 (public)', async () => {
+  const res = await fetch(BASE_URL + '/api/admin/expiry');
+  assert.strictEqual(res.status, 200);
+  const data = await res.json();
+  assert.ok(data.hasOwnProperty('expiresAt'));
+  assert.ok(data.hasOwnProperty('daysLeft'));
+});
+
+// ================================================================
+//  ADMIN — authentication
+// ================================================================
+
+test('POST /api/admin/login — wrong password returns 401', async () => {
+  const res = await fetch(BASE_URL + '/api/admin/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password: 'wrong-password-xyz-123' })
+  });
+  assert.strictEqual(res.status, 401);
+  const data = await res.json();
+  assert.strictEqual(data.ok, false);
+});
+
+test('POST /api/admin/login — missing body handled gracefully', async () => {
+  const res = await fetch(BASE_URL + '/api/admin/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: 'not json {{{'
+  });
+  // Should not crash; may return 400 or 401
+  assert.ok([400, 401].includes(res.status),
+    `Expected 400 or 401, got ${res.status}`);
+});
+
+// ================================================================
+//  ADMIN — protected endpoints require token
+// ================================================================
+
+test('GET /api/admin/stats — no token returns 401', async () => {
+  const res = await fetch(BASE_URL + '/api/admin/stats');
+  assert.strictEqual(res.status, 401);
+});
+
+test('GET /api/admin/system — no token returns 401', async () => {
+  const res = await fetch(BASE_URL + '/api/admin/system');
+  assert.strictEqual(res.status, 401);
+});
+
+test('GET /api/admin/errors — no token returns 401', async () => {
+  const res = await fetch(BASE_URL + '/api/admin/errors');
+  assert.strictEqual(res.status, 401);
+});
+
+test('GET /api/admin/iplogs — no token returns 401', async () => {
+  const res = await fetch(BASE_URL + '/api/admin/iplogs');
+  assert.strictEqual(res.status, 401);
+});
+
+test('GET /api/admin/daily — no token returns 401', async () => {
+  const res = await fetch(BASE_URL + '/api/admin/daily');
+  assert.strictEqual(res.status, 401);
+});
+
+test('GET /api/admin/sources — no token returns 401', async () => {
+  const res = await fetch(BASE_URL + '/api/admin/sources');
+  assert.strictEqual(res.status, 401);
+});
+
+// ================================================================
+//  COUNTER
+// ================================================================
+
+test('GET /api/counter returns visit count and total uptime', async () => {
+  const res = await fetch(BASE_URL + '/api/counter');
+  assert.strictEqual(res.status, 200);
+  const data = await res.json();
+  assert.ok(typeof data.count === 'number');
+  assert.ok(typeof data.totalUptime === 'number');
+  assert.ok(data.totalUptime >= 0);
 });
 
 // ================================================================
@@ -570,7 +673,6 @@ test('POST /api/settings validates and stores the TTS upstream URL', async () =>
   assert.equal(saved2.ttsApiKeyMode, 'bearer');
   fs.unlinkSync(settingsFile);
 });
-
 
 // ================================================================
 //  CLEANUP

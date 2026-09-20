@@ -296,11 +296,27 @@ function checkDocumentation() {
     const notice = context.I18N[language]['formulas.notice_text'] || '';
     check(notice.length > 20, `${language} scientific disclaimer is missing`);
   }
-  check(/v6\.3/.test(json('public/manifest.json').description || ''), 'manifest version is not v6.3');
+  check(/v6\.4/.test(json('public/manifest.json').description || ''), 'manifest version is not v6.4');
   check(json('package.json').version === '6.4.0', 'package version is not the 6.4.0 release');
+  check(json('public/openapi.json').info.version === '6.4.0', 'openapi version is not the 6.4.0 release');
   // v5.2 presenter (live/recording) mode wiring
   check(html.includes('id="presenter-mode"') && html.includes('id="presenter-panel"') && html.includes('id="btn-presenter-exit"'), 'presenter mode markup is missing');
   check(/function enterPresenterMode\(\)[\s\S]{0,300}updatePresenterPanel\(\)/.test(app) && /function exitPresenterMode\(\)/.test(app), 'presenter mode enter/exit is not wired in app.js');
+}
+
+function checkDeploymentProtection() {
+  const client = read('sync-client.py');
+  const block = client.match(/DEFAULT_EXCLUDE\s*=\s*\[([\s\S]*?)\]/);
+  check(Boolean(block), 'sync-client DEFAULT_EXCLUDE is missing');
+  const protectedNames = ['admin_password.txt', 'api_keys.json', 'counter.json', 'daily_visits.json', 'expiry.json', 'ratelimit.json', 'settings.json', 'traffic.json', 'users.json', 'webhooks.json', 'errors.json', 'iplogs.json', '*.log'];
+  for (const name of protectedNames) check(Boolean(block && block[1].includes(`'${name}'`)), `sync-client does not protect server-owned ${name}`);
+  // 2026-08-30 incident gate: a missing .cache exclusion uploaded ~8.8k local
+  // files (incl. two scripts with hardcoded NIED credentials) in one deploy.
+  // .cache must be excluded AND mirror-purgeable (MIRROR_CLEANUP), so the
+  // stray server copy is deleted instead of delete-protected forever.
+  check(Boolean(block && block[1].includes(`'.cache'`)), 'sync-client does not exclude the local .cache/ directory');
+  const cleanup = client.match(/MIRROR_CLEANUP\s*=\s*\[([\s\S]*?)\]/);
+  check(Boolean(cleanup && cleanup[1].includes(`'.cache'`)), 'sync-client MIRROR_CLEANUP must purge .cache from the server');
 }
 
 function checkAccessibility() {
@@ -325,6 +341,7 @@ checkVersionedAssets();
 checkPwa();
 checkResearchData();
 checkDocumentation();
+checkDeploymentProtection();
 checkAccessibility();
 
 if (failures.length) {
@@ -332,5 +349,5 @@ if (failures.length) {
   for (const failure of failures) console.error(`  - ${failure}`);
   process.exitCode = 1;
 } else {
-  console.log(`Release validation passed: ${checks} checks (assets, PWA, research data, i18n, accessibility).`);
+  console.log(`Release validation passed: ${checks} checks (assets, PWA, research data, i18n, accessibility, deployment protection).`);
 }

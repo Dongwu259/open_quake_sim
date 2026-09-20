@@ -1,5 +1,5 @@
 // ================================================================
-//  Earthquake Simulator Pro v5.5 — Tsunami solver worker driver
+//  Earthquake Simulator Pro v5.6 — Tsunami solver worker driver
 //
 //  Moves the nonlinear / nested-AMR NLSWE stepping off the main thread.
 //  The ENGINE is physics.js itself (Physics.createNonlinearTsunamiSolver /

@@ -1,7 +1,7 @@
 {
   "schema": "quake-sim-frozen-drift-report-v1",
-  "generatedAt": "2026-08-26T06:46:00.971Z",
-  "month": "2026-08",
+  "generatedAt": "2026-08-31T16:35:16.086Z",
+  "month": "2026-09",
   "sources": [
     {
       "id": "jma-shindo-db",
@@ -20,7 +20,7 @@
         },
         "countsChanged": false
       },
-      "snapshotWritten": "tools\\data\\frozen\\2026-08\\jma-shindo-db.json"
+      "snapshotWritten": "tools\\data\\frozen\\2026-09\\jma-shindo-db.json"
     },
     {
       "id": "usgs-shakemap",
@@ -43,7 +43,7 @@
         },
         "countsChanged": false
       },
-      "snapshotWritten": "tools\\data\\frozen\\2026-08\\usgs-shakemap.json"
+      "snapshotWritten": "tools\\data\\frozen\\2026-09\\usgs-shakemap.json"
     },
     {
       "id": "ncei-tsunami-observations",
@@ -67,9 +67,9 @@
         },
         "countsChanged": false
       },
-      "snapshotWritten": "tools\\data\\frozen\\2026-08\\ncei-tsunami-observations.json"
+      "snapshotWritten": "tools\\data\\frozen\\2026-09\\ncei-tsunami-observations.json"
     }
   ],
   "note": "reachability probes gate upstream refresh; per-event re-import stays a reviewed manual step (see AGENTS.md R7-1)",
-  "previousGeneratedAt": "2026-08-26T06:02:06.180Z"
+  "previousGeneratedAt": "2026-08-26T06:46:00.971Z"
 }

@@ -82,13 +82,23 @@ check_api_json() { local path="$1" desc="$2"
   if curl -sfI "$BASE$path" | grep -q 'application/json'; then pass "$desc ($path)"
   else fail "$desc ($path)" "not JSON response"; fi
 }
+check_api "/api/counter" "Visit counter"
 check_api "/api/earthquakes" "Earthquakes (merged)"
+check_api "/api/stations?limit=5" "Stations list"
+check_api "/api/presets" "Presets catalog"
+check_api "/api/quake-catalog?limit=3" "Quake catalog"
 check_api_json "/api/live-quakes" "Live quakes proxy"
+check_api_json "/api/live-stats" "Live stats"
+check_api_json "/api/live-sources" "Live sources"
+check_api_json "/api/tts/languages" "TTS languages"
+check_api_json "/api/tts/voices" "TTS voices"
+check_api_json "/api/openapi.json" "OpenAPI spec"
+check_api_json "/api/admin/expiry" "Admin expiry"
 
 # ---- 5. Compression ----
 echo ""
 echo "--- Compression ---"
-GZIP=$(curl -sf -H "Accept-Encoding: gzip" -o /dev/null -D - "$BASE/api/earthquakes" 2>/dev/null || true)
+GZIP=$(curl -sf -H "Accept-Encoding: gzip" -o /dev/null -D - "$BASE/api/stations?limit=100" 2>/dev/null || true)
 if echo "$GZIP" | grep -qi 'content-encoding:.*gzip'; then pass "API gzip compression"
 else fail "API gzip compression" "not detected"; fi
 

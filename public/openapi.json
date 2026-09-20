@@ -1,0 +1,3066 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Earthquake Simulator Pro API",
+    "description": "REST API for earthquake simulation, TTS bulletin generation, station catalog, and real-time seismic data streaming for Japan.",
+    "version": "6.4.0",
+    "contact": {
+      "url": "http://localhost:3000/api-docs"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local development server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Public Data",
+      "description": "Real-time earthquake data, catalog queries, waveform fetching"
+    },
+    {
+      "name": "Realtime & Replay",
+      "description": "Recorded realtime-stream replay, NIED Kmoni proxies, clock/location helpers"
+    },
+    {
+      "name": "Station & Catalog",
+      "description": "Station directory, historical earthquake catalog, presets"
+    },
+    {
+      "name": "TTS Bulletin",
+      "description": "Text-to-speech bulletin fragment playlist construction"
+    },
+    {
+      "name": "Webhooks",
+      "description": "Event subscription for external services"
+    },
+    {
+      "name": "Developer Portal",
+      "description": "Self-service developer accounts and API keys"
+    },
+    {
+      "name": "Utility",
+      "description": "Counter, health, API documentation"
+    },
+    {
+      "name": "Admin",
+      "description": "Server administration (requires admin token)"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "ApiKey": {
+        "type": "apiKey",
+        "in": "query",
+        "name": "key",
+        "description": "API key for protected endpoints. Also accepted as Authorization: Bearer header."
+      },
+      "AdminToken": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Admin session token obtained via POST /api/admin/login."
+      },
+      "DevToken": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Developer session token obtained via POST /api/dev/login (24 h TTL)."
+      }
+    },
+    "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "example": "NOT_FOUND"
+              },
+              "message": {
+                "type": "string",
+                "example": "Endpoint not found"
+              },
+              "details": {
+                "type": "string",
+                "nullable": true
+              }
+            }
+          }
+        }
+      },
+      "Pagination": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "limit": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "integer"
+          },
+          "pages": {
+            "type": "integer"
+          }
+        }
+      },
+      "Station": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "HINOHARA (TOKYO)"
+          },
+          "lat": {
+            "type": "number",
+            "format": "double",
+            "example": 35.7385
+          },
+          "lng": {
+            "type": "number",
+            "format": "double",
+            "example": 139.0732
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "land",
+              "seafloor"
+            ]
+          },
+          "network": {
+            "type": "string",
+            "example": "Hi-net"
+          },
+          "vs30": {
+            "type": "number",
+            "nullable": true,
+            "example": 150
+          },
+          "siteFactor": {
+            "type": "number",
+            "nullable": true,
+            "example": 1.65
+          },
+          "depth": {
+            "type": "number",
+            "nullable": true,
+            "example": null
+          },
+          "officialCode": {
+            "type": "string",
+            "nullable": true,
+            "example": "N.S1N01"
+          },
+          "sourceUrl": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "sourceRetrieved": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "catalogStatus": {
+            "type": "string",
+            "nullable": true,
+            "example": "listed"
+          },
+          "operationalStatus": {
+            "type": "string",
+            "nullable": true,
+            "example": "not-provided",
+            "description": "The official table is not a real-time operating-status feed."
+          }
+        }
+      },
+      "StationListResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Station"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          }
+        }
+      },
+      "Preset": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "tohoku"
+          },
+          "name": {
+            "type": "string"
+          },
+          "mag": {
+            "type": "number",
+            "example": 9.1
+          },
+          "mw": {
+            "type": "number",
+            "example": 9.1
+          },
+          "depth": {
+            "type": "number",
+            "nullable": true
+          },
+          "sourceType": {
+            "type": "string",
+            "enum": [
+              "crustal",
+              "interplate",
+              "intraslab"
+            ]
+          },
+          "dip": {
+            "type": "number"
+          },
+          "rake": {
+            "type": "number"
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "estimated": {
+            "type": "boolean"
+          },
+          "observationCount": {
+            "type": "integer"
+          },
+          "maxObservedShindo": {
+            "type": "number"
+          },
+          "observationCities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Fragment": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "num_14"
+          },
+          "path": {
+            "type": "string",
+            "format": "uri",
+            "example": "http://localhost:3000/sounds/zh/info/female/num_14.wav"
+          },
+          "vol": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "time",
+              "intro",
+              "shindo",
+              "mag",
+              "depth",
+              "tsunami",
+              "affected",
+              "pref",
+              "pref_int"
+            ]
+          },
+          "text": {
+            "type": "string",
+            "nullable": true,
+            "example": "14"
+          }
+        }
+      },
+      "BulletinResponse": {
+        "type": "object",
+        "properties": {
+          "fragments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Fragment"
+            }
+          },
+          "summary": {
+            "type": "object",
+            "properties": {
+              "lang": {
+                "type": "string",
+                "enum": [
+                  "jp",
+                  "en",
+                  "zh"
+                ]
+              },
+              "totalFragments": {
+                "type": "integer"
+              },
+              "urlBase": {
+                "type": "string",
+                "nullable": true
+              }
+            }
+          }
+        }
+      },
+      "BulletinRequest": {
+        "type": "object",
+        "required": [
+          "lang",
+          "mag",
+          "depth",
+          "maxShindo"
+        ],
+        "properties": {
+          "lang": {
+            "type": "string",
+            "enum": [
+              "jp",
+              "en",
+              "zh"
+            ]
+          },
+          "mag": {
+            "type": "number",
+            "minimum": -2,
+            "maximum": 12
+          },
+          "depth": {
+            "type": "number",
+            "minimum": 0
+          },
+          "maxShindo": {
+            "type": "string",
+            "example": "6+"
+          },
+          "tsunamiLevel": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 3,
+            "default": 0
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "affected": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 47
+                },
+                "shindo": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "affectedByShindo": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "WebhookRegistration": {
+        "type": "object",
+        "required": [
+          "url",
+          "events"
+        ],
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "earthquake.detected",
+                "bulletin.published",
+                "source.status_change",
+                "simulation.complete"
+              ]
+            }
+          },
+          "secret": {
+            "type": "string"
+          }
+        }
+      },
+      "Webhook": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "wh_abc123def456"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "hasSecret": {
+            "type": "boolean"
+          },
+          "created": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "pending",
+              "paused",
+              "failed"
+            ]
+          },
+          "lastDelivery": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          }
+        }
+      },
+      "TestEarthquake": {
+        "type": "object",
+        "properties": {
+          "mag": {
+            "type": "number",
+            "minimum": -2,
+            "maximum": 12,
+            "default": 5
+          },
+          "lat": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90,
+            "default": 35
+          },
+          "lng": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180,
+            "default": 140
+          },
+          "depth": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1000,
+            "default": 30
+          },
+          "place": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "shindo": {
+            "type": "string",
+            "maxLength": 20
+          },
+          "code": {
+            "type": "integer"
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "serial": {
+            "type": "integer"
+          }
+        }
+      },
+      "Voice": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "zh-female"
+          },
+          "lang": {
+            "type": "string",
+            "enum": [
+              "jp",
+              "en",
+              "zh"
+            ]
+          },
+          "gender": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "example": "zh-CN-XiaoxiaoNeural"
+          },
+          "engine": {
+            "type": "string",
+            "example": "edge-tts"
+          },
+          "fragmentCount": {
+            "type": "integer"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/v1/earthquakes": {
+      "get": {
+        "tags": [
+          "Public Data"
+        ],
+        "summary": "Multi-source realtime earthquake feed (past day M2.5+)",
+        "description": "Server-side merge of the USGS GeoJSON feed with the local multi-source earthquake API (EMSC, P2PQuake, Wolfx, GEOFON); non-USGS events are injected as GeoJSON Features with properties.source attribution. 30-second in-memory cache; stale cache is served if all upstreams fail.",
+        "responses": {
+          "200": {
+            "description": "USGS FeatureCollection",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "USGS unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/catalog": {
+      "get": {
+        "tags": [
+          "Public Data"
+        ],
+        "summary": "USGS FDSN catalog query (Japan region)",
+        "description": "Proxies the USGS FDSN event query and merges matching events from the local multi-source API. 60-second server-side cache; responses carry Cache-Control: public, max-age=30.",
+        "parameters": [
+          {
+            "name": "starttime",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "endtime",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "minmag",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "GeoJSON FeatureCollection"
+          },
+          "502": {
+            "description": "USGS FDSN unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/waveform": {
+      "get": {
+        "tags": [
+          "Public Data"
+        ],
+        "summary": "Response-corrected FDSN waveform package via ObsPy",
+        "description": "Fetches StationXML response metadata with MiniSEED, removes the instrument response to acceleration in gal, and returns an auditable quake-sim-waveform-v1 package. Research readiness requires complete continuous three-component motion without delivery resampling. Rate-limited: 5 requests per minute per IP (spawns a Python subprocess).",
+        "parameters": [
+          {
+            "name": "station",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "MAJO"
+            }
+          },
+          {
+            "name": "network",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "IU"
+            }
+          },
+          {
+            "name": "channel",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "BHZ"
+            }
+          },
+          {
+            "name": "location",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "*",
+              "maxLength": 2
+            }
+          },
+          {
+            "name": "hours",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1,
+              "maximum": 24
+            }
+          },
+          {
+            "name": "durationSeconds",
+            "in": "query",
+            "description": "Overrides hours; clamped to 60-3600 seconds.",
+            "schema": {
+              "type": "integer",
+              "minimum": 60,
+              "maximum": 3600
+            }
+          },
+          {
+            "name": "endtime",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "components",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "enum": [
+                1,
+                3
+              ],
+              "default": 1
+            }
+          },
+          {
+            "name": "purpose",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "display",
+                "analysis"
+              ],
+              "default": "display"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "quake-sim-waveform-v1 JSON; legacy data[] traces are retained"
+          },
+          "400": {
+            "description": "Invalid parameters"
+          },
+          "429": {
+            "description": "Rate limited (5/min/IP)"
+          },
+          "502": {
+            "description": "Waveform fetch failed"
+          }
+        }
+      }
+    },
+    "/api/v1/p2pquake/stream": {
+      "get": {
+        "tags": [
+          "Public Data"
+        ],
+        "summary": "SSE stream for real-time Japan earthquake data",
+        "description": "Server-Sent Events stream. Sources: P2PQuake, Wolfx JMA EEW, Wolfx EqList, EMSC, JMA Atom Feed. Max 200 concurrent clients. Heartbeat every 30s.",
+        "responses": {
+          "200": {
+            "description": "SSE stream",
+            "content": {
+              "text/event-stream": {}
+            }
+          },
+          "503": {
+            "description": "Too many SSE clients"
+          }
+        }
+      }
+    },
+    "/api/v1/live-quakes": {
+      "get": {
+        "tags": [
+          "Public Data"
+        ],
+        "summary": "Realtime earthquake list from the local multi-source API",
+        "description": "Proxies the local eq-collector (127.0.0.1:7891). 30-second server-side cache; stale cache is served when the upstream is down.",
+        "parameters": [
+          {
+            "name": "minMag",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "default": 3
+            }
+          },
+          {
+            "name": "hours",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 72
+            }
+          },
+          {
+            "name": "region",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "japan",
+              "enum": [
+                "japan",
+                "china",
+                "pacific",
+                "americas",
+                "europe",
+                "other"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Earthquake list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "lat": {
+                            "type": "number"
+                          },
+                          "lng": {
+                            "type": "number"
+                          },
+                          "mag": {
+                            "type": "number"
+                          },
+                          "depth": {
+                            "type": "number"
+                          },
+                          "place": {
+                            "type": "string"
+                          },
+                          "time": {
+                            "type": "integer",
+                            "format": "int64"
+                          },
+                          "region": {
+                            "type": "string"
+                          },
+                          "tsunami": {
+                            "type": "integer"
+                          },
+                          "sources": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "pagination": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Upstream unavailable (no cache)"
+          }
+        }
+      }
+    },
+    "/api/v1/live-stats": {
+      "get": {
+        "tags": [
+          "Public Data"
+        ],
+        "summary": "Earthquake statistics summary (last 7 days)",
+        "description": "Proxies the local multi-source API. 120-second server-side cache; responses carry Cache-Control: public, max-age=60.",
+        "responses": {
+          "200": {
+            "description": "Statistics object (upstream schema)"
+          },
+          "502": {
+            "description": "Upstream unavailable (no cache)"
+          }
+        }
+      }
+    },
+    "/api/v1/live-sources": {
+      "get": {
+        "tags": [
+          "Public Data"
+        ],
+        "summary": "Data source health status",
+        "description": "Proxies the local multi-source API. 300-second server-side cache; responses carry Cache-Control: public, max-age=120.",
+        "responses": {
+          "200": {
+            "description": "Source health list (upstream schema)"
+          },
+          "502": {
+            "description": "Upstream unavailable (no cache)"
+          }
+        }
+      }
+    },
+    "/api/v1/replay/info": {
+      "get": {
+        "tags": [
+          "Realtime & Replay"
+        ],
+        "summary": "Replay recorder status and event timeline index",
+        "description": "Reports the in-memory replay ring (3 h retention, 20,000-frame cap), on-disk recording size, and a timeline index of up to 200 markers (one per EEW EventID plus felt 震度3+ 551 bulletins) scanned from the ring and the daily gzip files under recordings/. Cache-Control: no-cache.",
+        "responses": {
+          "200": {
+            "description": "Replay recorder status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "earliest": {
+                      "type": "integer",
+                      "format": "int64",
+                      "nullable": true,
+                      "description": "Epoch ms of the oldest frame in the ring"
+                    },
+                    "latest": {
+                      "type": "integer",
+                      "format": "int64",
+                      "nullable": true,
+                      "description": "Epoch ms of the newest frame in the ring"
+                    },
+                    "frames": {
+                      "type": "integer",
+                      "description": "Frames currently in the ring"
+                    },
+                    "byType": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "integer"
+                      },
+                      "description": "Live per-type frame counts"
+                    },
+                    "diskBytes": {
+                      "type": "integer",
+                      "description": "Total size of recordings/*.jsonl.gz"
+                    },
+                    "events": {
+                      "type": "array",
+                      "description": "Timeline markers, time-ascending, newest 200 kept",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "t": {
+                            "type": "integer",
+                            "format": "int64"
+                          },
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "eew",
+                              "info"
+                            ]
+                          },
+                          "label": {
+                            "type": "string",
+                            "example": "EEW M5.9 日向灘"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/replay/stream": {
+      "get": {
+        "tags": [
+          "Realtime & Replay"
+        ],
+        "summary": "SSE replay of recorded realtime frames",
+        "description": "Replays frames recorded from the live SSE hub as a per-client Server-Sent Events stream. Each frame is emitted as a named event (`event: <type>`) with data {type, event, replayTs}; the stream ends with `event: replay_end`. Max 20 concurrent replay clients (503 beyond that). Only the in-memory ring (3 h / 20,000 frames) is replayed.",
+        "parameters": [
+          {
+            "name": "speed",
+            "in": "query",
+            "description": "Playback speed multiplier, clamped to 0.25-120",
+            "schema": {
+              "type": "number",
+              "default": 5,
+              "minimum": 0.25,
+              "maximum": 120
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "Epoch ms; frames older than this are skipped. Defaults to the oldest frame in the ring.",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "SSE replay stream",
+            "content": {
+              "text/event-stream": {}
+            }
+          },
+          "503": {
+            "description": "Too many replay clients",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/replay/export": {
+      "get": {
+        "tags": [
+          "Realtime & Replay"
+        ],
+        "summary": "Download recorded frames for a time window (NDJSON)",
+        "description": "Exports recorded frames as newline-delimited JSON (one {\"t\",\"type\",\"event\"} object per line), sourced from the daily gzip files plus the live ring. The window is clamped to the available recording range (daily files are kept 3 days); empty windows answer 204; windows over 6 hours are rejected with 400.",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "description": "Window start, epoch ms",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "description": "Window end, epoch ms (must be >= from; to - from <= 6 hours)",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "NDJSON download (Content-Disposition: attachment; filename=\"quake-replay-<from>-<to>.jsonl\")",
+            "content": {
+              "application/x-ndjson": {
+                "schema": {
+                  "type": "string",
+                  "description": "One JSON object per line: {\"t\": epochMs, \"type\": string, \"event\": object}"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No frames in the requested window"
+          },
+          "400": {
+            "description": "Missing/invalid from or to, or window larger than 6 hours",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/kmoni/sitelist": {
+      "get": {
+        "tags": [
+          "Realtime & Replay"
+        ],
+        "summary": "NIED Kmoni (強震モニタ) station list proxy",
+        "description": "Returns the NIED strong-motion monitor site list (upstream: Yahoo edge mirror of kmoni.bosai.go.jp SiteList/sitelist.json). Upstream response is cached server-side for 1 hour; responses carry Cache-Control: public, max-age=300. A stale cache entry is served when the upstream fetch fails; 502 when nothing is cached.",
+        "responses": {
+          "200": {
+            "description": "Site list (upstream schema)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "siteConfigId": {
+                      "type": "string",
+                      "example": "20260123000000"
+                    },
+                    "items": {
+                      "type": "array",
+                      "description": "[lat, lng] pairs in sitelist order; indexes align with kmoni_rt intensity characters",
+                      "items": {
+                        "type": "array",
+                        "items": {
+                          "type": "number"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Kmoni sitelist unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/kmoni/image": {
+      "get": {
+        "tags": [
+          "Realtime & Replay"
+        ],
+        "summary": "NIED official real-time intensity image proxy",
+        "description": "Pre-rendered 強震モニタ RealTimeImg map frame (GIF/PNG). Candidate sources are probed in order (NIED new site, NIED legacy site, Yahoo mirror); the first working source is reused for 60 s. The image body is cached 5 s. When every source fails the endpoint backs off for 60 s, serving a stale frame when one is cached, otherwise 503 with Retry-After: 60.",
+        "responses": {
+          "200": {
+            "description": "Rendered intensity map frame",
+            "headers": {
+              "X-Kmoni-Image-Time": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Upstream frame timestamp (yyyyMMddHHmmss, JST)"
+              },
+              "X-Kmoni-Image-Source": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "nied-new",
+                    "nied-old",
+                    "yahoo"
+                  ]
+                },
+                "description": "Upstream source that produced this frame"
+              }
+            },
+            "content": {
+              "image/gif": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "All image sources failed (Retry-After: 60)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ntp": {
+      "get": {
+        "tags": [
+          "Realtime & Replay"
+        ],
+        "summary": "Wolfx NTP time proxy (client clock-offset calibration)",
+        "description": "Proxies https://api.wolfx.jp/ntp.json. Cached server-side for 60 s; the stale cache is served on upstream errors, otherwise 502. Cache-Control: no-cache.",
+        "responses": {
+          "200": {
+            "description": "Upstream time payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "JST": {
+                      "type": "object",
+                      "properties": {
+                        "str": {
+                          "type": "string",
+                          "example": "2026-08-14 01:13:55"
+                        },
+                        "int": {
+                          "type": "integer",
+                          "example": 20260814011355
+                        }
+                      }
+                    },
+                    "CST": {
+                      "type": "object",
+                      "properties": {
+                        "str": {
+                          "type": "string"
+                        },
+                        "int": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "timestamp": {
+                      "type": "integer",
+                      "format": "int64",
+                      "description": "Epoch ms"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "NTP source unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/geoip": {
+      "get": {
+        "tags": [
+          "Realtime & Replay"
+        ],
+        "summary": "Wolfx GeoIP proxy (approximate visitor location)",
+        "description": "Proxies https://api.wolfx.jp/geoip.php, forwarding the client IP so the lookup describes the visitor rather than this server (loopback/private IPs use the server-side default). Used as the EEW countdown reference. Cache-Control: private, max-age=300; 502 when the upstream fails.",
+        "responses": {
+          "200": {
+            "description": "Upstream GeoIP payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ip": {
+                      "type": "string"
+                    },
+                    "country_code": {
+                      "type": "string"
+                    },
+                    "country_name": {
+                      "type": "string"
+                    },
+                    "province_name": {
+                      "type": "string"
+                    },
+                    "city": {
+                      "type": "string"
+                    },
+                    "latitude": {
+                      "type": "number",
+                      "nullable": true
+                    },
+                    "longitude": {
+                      "type": "number",
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "GeoIP source unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/waveform/live": {
+      "get": {
+        "tags": [
+          "Realtime & Replay"
+        ],
+        "summary": "Live multi-station seismogram proxy (open GSN data)",
+        "description": "Serves decoded miniSEED STEIM1/2 traces for a frozen whitelist of four open GSN stations ringing Japan (IU MAJO/YSS/INCN/TATO, location 00, BHZ) from the EarthScope NGF FDSN dataselect service (anonymous open data, verified 2026-09-03). Traces are RAW INSTRUMENT COUNTS — no calibration applied. windowSec is quantised to 60 s steps in [60, 1200] (default 600). 30 s per-key LRU cache with stale-if-error up to 10 min; upstream 204 no-data is returned honestly (nodata=true, never a fabricated flat line). Per-IP token bucket 20 req/min. 403 for stations outside the whitelist, 502 when the upstream fails and no fresh-enough cache exists.",
+        "parameters": [
+          {
+            "name": "sta",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["MAJO", "YSS", "INCN", "TATO"]
+            },
+            "description": "Whitelisted GSN station code"
+          },
+          {
+            "name": "windowSec",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 60,
+              "maximum": 1200,
+              "default": 600
+            },
+            "description": "Trace window length in seconds (quantised to 60 s steps)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Decoded trace segments (instrument counts)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "station": { "type": "string" },
+                    "net": { "type": "string" },
+                    "loc": { "type": "string" },
+                    "cha": { "type": "string" },
+                    "lat": { "type": "number" },
+                    "lng": { "type": "number" },
+                    "windowSec": { "type": "integer" },
+                    "fetchedAt": { "type": "string", "format": "date-time" },
+                    "source": { "type": "string" },
+                    "nsamples": { "type": "integer" },
+                    "gaps": { "type": "integer" },
+                    "nodata": { "type": "boolean" },
+                    "droppedRecords": { "type": "integer" },
+                    "xnMismatches": { "type": "integer" },
+                    "segments": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "startMs": { "type": "number", "description": "Segment start epoch milliseconds" },
+                          "sps": { "type": "number", "description": "Samples per second" },
+                          "counts": { "type": "array", "items": { "type": "integer" } }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Station not in the live-waveform whitelist",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many live-waveform requests (20/min per IP)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "502": {
+            "description": "Waveform source unavailable (no fresh-enough cached copy)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/settings": {
+      "get": {
+        "tags": [
+          "Realtime & Replay"
+        ],
+        "summary": "Local settings: effective TTS upstream configuration",
+        "description": "Public read of the effective TTS upstream configuration (no secrets: the settings-page API key is write-only). loopback reports whether this request comes from the local machine; tts.configurable is false when the TTS_UPSTREAM_URL environment variable pins the upstream. Cache-Control: no-cache.",
+        "responses": {
+          "200": {
+            "description": "Effective TTS settings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    },
+                    "loopback": {
+                      "type": "boolean"
+                    },
+                    "tts": {
+                      "type": "object",
+                      "properties": {
+                        "upstream": {
+                          "type": "string"
+                        },
+                        "source": {
+                          "type": "string",
+                          "enum": [
+                            "env",
+                            "settings",
+                            "default"
+                          ]
+                        },
+                        "configurable": {
+                          "type": "boolean"
+                        },
+                        "hasKey": {
+                          "type": "boolean"
+                        },
+                        "keyMode": {
+                          "type": "string",
+                          "enum": [
+                            "query",
+                            "bearer",
+                            "x-api-key"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Realtime & Replay"
+        ],
+        "summary": "Local settings: update the TTS upstream / cloud key (loopback only)",
+        "description": "Loopback-only (403 from remote addresses) so a remote visitor can never repoint the upstream (SSRF guard). Body fields: ttsUpstreamUrl (http(s) URL, or empty string to reset to the default), ttsApiKey (printable ASCII, empty string clears; write-only, never echoed), ttsApiKeyMode (query | bearer | x-api-key). Rate limit 10/min per IP.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ttsUpstreamUrl": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "ttsApiKey": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "ttsApiKeyMode": {
+                    "type": "string",
+                    "enum": [
+                      "query",
+                      "bearer",
+                      "x-api-key"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Saved (echoes the public tts payload)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not from the local machine",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited (10/min)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stations": {
+      "get": {
+        "tags": [
+          "Station & Catalog"
+        ],
+        "summary": "Paginated station catalog",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "maximum": 200
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "land",
+                "seafloor",
+                "all"
+              ],
+              "default": "all"
+            }
+          },
+          {
+            "name": "network",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "Hi-net",
+                "S-net",
+                "DONET1",
+                "DONET2",
+                "N-net"
+              ]
+            },
+            "description": "Exact network filter"
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Case-insensitive substring search"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated station list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StationListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/quake-catalog": {
+      "get": {
+        "tags": [
+          "Station & Catalog"
+        ],
+        "summary": "Historical & preset earthquake catalog",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "minMag",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "default": 0
+            }
+          },
+          {
+            "name": "maxMag",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "default": 10
+            }
+          },
+          {
+            "name": "minDepth",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          },
+          {
+            "name": "maxDepth",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1000
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated earthquake catalog"
+          }
+        }
+      }
+    },
+    "/api/v1/presets": {
+      "get": {
+        "tags": [
+          "Station & Catalog"
+        ],
+        "summary": "Full preset earthquake catalog with metadata",
+        "description": "Returns all 15 preset earthquakes with focal mechanisms, observation city lists, and max observed Shindo.",
+        "responses": {
+          "200": {
+            "description": "Array of presets",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "presets": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Preset"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tts/languages": {
+      "get": {
+        "tags": [
+          "TTS Bulletin"
+        ],
+        "summary": "List available TTS languages",
+        "responses": {
+          "200": {
+            "description": "Languages array",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "languages": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "jp",
+                          "en",
+                          "zh"
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tts/fragments": {
+      "get": {
+        "tags": [
+          "TTS Bulletin"
+        ],
+        "summary": "TTS fragment catalog for discovery",
+        "responses": {
+          "200": {
+            "description": "Fragment metadata catalog"
+          }
+        }
+      }
+    },
+    "/api/v1/tts/voices": {
+      "get": {
+        "tags": [
+          "TTS Bulletin"
+        ],
+        "summary": "Available TTS voice metadata (fragment packs + neural synthesis voices)",
+        "responses": {
+          "200": {
+            "description": "List of voices",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "voices": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Voice"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "voices lists the pre-generated fragment packs; neuralVoices lists the 11 voices accepted by /api/v1/tts/synthesize."
+      }
+    },
+    "/api/v1/tts/synthesize": {
+      "get": {
+        "tags": [
+          "TTS Bulletin"
+        ],
+        "summary": "Synthesize a complete neural TTS announcement",
+        "description": "Returns audio/mpeg. Anonymous traffic is rate-limited to 60 requests per minute per client IP; authenticated API keys (?key= or Bearer) get 240 requests per minute with per-key usage metering. text is limited to 300 characters. Identical voice+text pairs are served from a bounded server-side LRU cache (X-TTS-Cache).",
+        "parameters": [
+          {
+            "name": "text",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 300
+            }
+          },
+          {
+            "name": "voice",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "ja-JP-NanamiNeural"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Synthesized MP3 audio",
+            "headers": {
+              "X-TTS-Cache": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "HIT",
+                    "MISS"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "audio/mpeg": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing text, excessive length, or unsupported voice"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "502": {
+            "description": "TTS synthesis service unavailable"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "TTS Bulletin"
+        ],
+        "summary": "Synthesize a complete neural TTS announcement (JSON body)",
+        "description": "Same as GET but takes parameters as a JSON body — preferred for long non-ASCII texts. Same rate limits and cache apply.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "text"
+                ],
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 300
+                  },
+                  "voice": {
+                    "type": "string",
+                    "default": "ja-JP-NanamiNeural",
+                    "description": "One of /api/v1/tts/voices neuralVoices"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Synthesized MP3 audio",
+            "headers": {
+              "X-TTS-Cache": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "HIT",
+                    "MISS"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "audio/mpeg": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing text, excessive length, unsupported voice, or invalid JSON"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "502": {
+            "description": "TTS synthesis service unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/tts/bulletin": {
+      "post": {
+        "tags": [
+          "TTS Bulletin"
+        ],
+        "summary": "Build TTS fragment playlist from earthquake parameters",
+        "description": "Rate-limited: 10 requests per minute per IP. Use ?text=0 query param to omit the text field from fragments.",
+        "parameters": [
+          {
+            "name": "text",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "enum": [
+                0,
+                1
+              ],
+              "default": 1
+            },
+            "description": "Set to 0 to omit text field from fragments"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulletinRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Fragment playlist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BulletinResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid JSON"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        }
+      }
+    },
+    "/api/v1/counter": {
+      "get": {
+        "tags": [
+          "Utility"
+        ],
+        "summary": "Increment and return visit counter",
+        "description": "Rate-limited: 1 request per second per IP (excess returns current value without increment).",
+        "responses": {
+          "200": {
+            "description": "Current count",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "integer"
+                    },
+                    "totalUptime": {
+                      "type": "integer",
+                      "description": "Cumulative server uptime in seconds"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/test/earthquake": {
+      "post": {
+        "tags": [
+          "Utility"
+        ],
+        "summary": "Inject test earthquake into SSE stream",
+        "description": "Rate-limited: 10 requests per minute per IP; body capped at 64KB.",
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestEarthquake"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Event broadcast"
+          },
+          "401": {
+            "description": "API key required"
+          },
+          "413": {
+            "description": "Payload too large (max 64KB)"
+          },
+          "429": {
+            "description": "Rate limited (10/min/IP)"
+          }
+        }
+      }
+    },
+    "/api/v1/webhooks": {
+      "get": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "List registered webhooks",
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Webhook list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "webhooks": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Webhook"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "Register a new webhook",
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookRegistration"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Webhook registered"
+          },
+          "400": {
+            "description": "Invalid parameters (max 10 hooks, duplicate URL, invalid events)"
+          }
+        }
+      }
+    },
+    "/api/v1/webhooks/{id}": {
+      "delete": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "Delete a webhook",
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          },
+          "404": {
+            "description": "Webhook not found"
+          }
+        }
+      }
+    },
+    "/api/v1/webhooks/{id}/activate": {
+      "patch": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "Reactivate a paused webhook",
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Webhook reactivated"
+          },
+          "401": {
+            "description": "API key required"
+          },
+          "404": {
+            "description": "Webhook not found"
+          },
+          "503": {
+            "description": "Webhooks disabled (WEBHOOKS_ENABLED=false)"
+          }
+        }
+      }
+    },
+    "/api/v1/simulation/complete": {
+      "post": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "Trigger the simulation.complete webhook",
+        "description": "Client-side trigger that fans a simulation.complete event out to all subscribed webhooks.",
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "mag": {
+                    "type": "number"
+                  },
+                  "lat": {
+                    "type": "number"
+                  },
+                  "lng": {
+                    "type": "number"
+                  },
+                  "depth": {
+                    "type": "number"
+                  },
+                  "maxShindo": {
+                    "type": "string"
+                  },
+                  "duration": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Event delivered"
+          },
+          "401": {
+            "description": "API key required"
+          }
+        }
+      }
+    },
+    "/api/v1/test/eew": {
+      "post": {
+        "tags": [
+          "Utility"
+        ],
+        "summary": "Inject a test JMA EEW frame into the SSE stream (debug)",
+        "description": "Broadcasts a raw Wolfx-shaped jma_eew frame (isTraining=true by default) so EEW clients can be exercised without a live warning. Rate-limited: 10 requests per minute per IP; body capped at 64KB. Intended for testing/debugging, like /api/v1/test/earthquake.",
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "eventId": {
+                    "type": "string",
+                    "maxLength": 40
+                  },
+                  "serial": {
+                    "type": "integer"
+                  },
+                  "lat": {
+                    "type": "number",
+                    "minimum": -90,
+                    "maximum": 90,
+                    "default": 34.7
+                  },
+                  "lng": {
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180,
+                    "default": 139.5
+                  },
+                  "mag": {
+                    "type": "number",
+                    "minimum": -2,
+                    "maximum": 12,
+                    "default": 6.5
+                  },
+                  "depth": {
+                    "type": "number",
+                    "default": 20
+                  },
+                  "place": {
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "maxInt": {
+                    "type": "string",
+                    "default": "4"
+                  },
+                  "originTime": {
+                    "type": "string"
+                  },
+                  "warnAreas": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 50
+                  },
+                  "isSea": {
+                    "type": "boolean"
+                  },
+                  "isTraining": {
+                    "type": "boolean",
+                    "default": true
+                  },
+                  "isAssumption": {
+                    "type": "boolean"
+                  },
+                  "isWarn": {
+                    "type": "boolean"
+                  },
+                  "isFinal": {
+                    "type": "boolean"
+                  },
+                  "isCancel": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "EEW broadcast (returns eventId and serial)"
+          },
+          "400": {
+            "description": "Invalid parameters"
+          },
+          "401": {
+            "description": "API key required"
+          },
+          "413": {
+            "description": "Payload too large (max 64KB)"
+          },
+          "429": {
+            "description": "Rate limited (10/min/IP)"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/login": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Admin login (get session token)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "password"
+                ],
+                "properties": {
+                  "password": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "token": {
+                      "type": "string"
+                    },
+                    "expiresIn": {
+                      "type": "integer",
+                      "example": 86400
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid password"
+          },
+          "429": {
+            "description": "Too many attempts (5 per 15min)"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/logout": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Admin logout (invalidate token)",
+        "responses": {
+          "200": {
+            "description": "Logged out"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/expiry": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Get server expiry date (public)",
+        "responses": {
+          "200": {
+            "description": "Expiry info"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Set server expiry date",
+        "security": [
+          {
+            "AdminToken": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Expiry updated"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/stats": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Traffic statistics",
+        "security": [
+          {
+            "AdminToken": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Stats object"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/system": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "System information (uptime, memory, PID)",
+        "security": [
+          {
+            "AdminToken": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "System info"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/daily": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Daily visit trend",
+        "security": [
+          {
+            "AdminToken": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Daily visit counts"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/errors": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Server error log (last 50)",
+        "security": [
+          {
+            "AdminToken": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Error log array"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/iplogs": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "IP access log (last 100)",
+        "security": [
+          {
+            "AdminToken": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "IP log array"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/sources": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Data source health status",
+        "security": [
+          {
+            "AdminToken": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Source health object"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/apikeys": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "List API keys (masked)",
+        "security": [
+          {
+            "AdminToken": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "API key list"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Generate a new API key",
+        "security": [
+          {
+            "AdminToken": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Key created"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/apikeys/{key}": {
+      "delete": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Revoke an API key",
+        "security": [
+          {
+            "AdminToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Key revoked"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/counter": {
+      "patch": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Set the visit counter",
+        "security": [
+          {
+            "AdminToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "count"
+                ],
+                "properties": {
+                  "count": {
+                    "type": "number",
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Counter updated ({ok, count})"
+          },
+          "400": {
+            "description": "Invalid count or JSON"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/requests": {
+      "patch": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Set the request counter",
+        "security": [
+          {
+            "AdminToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "requests"
+                ],
+                "properties": {
+                  "requests": {
+                    "type": "number",
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Counter updated ({ok, requests})"
+          },
+          "400": {
+            "description": "Invalid value or JSON"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/v1/dev/register": {
+      "post": {
+        "tags": [
+          "Developer Portal"
+        ],
+        "summary": "Create a developer account",
+        "description": "Rate-limited: 3 registrations per hour per IP.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "username",
+                  "password"
+                ],
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z0-9_]{3,20}$"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 6
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Account created"
+          },
+          "400": {
+            "description": "Invalid username/password or JSON"
+          },
+          "409": {
+            "description": "Username already taken"
+          },
+          "429": {
+            "description": "Too many registrations (3/hour/IP)"
+          }
+        }
+      }
+    },
+    "/api/v1/dev/login": {
+      "post": {
+        "tags": [
+          "Developer Portal"
+        ],
+        "summary": "Developer login (get session token)",
+        "description": "Rate-limited: 5 failed attempts per 15 minutes per IP. The token is valid for 24 hours.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "username",
+                  "password"
+                ],
+                "properties": {
+                  "username": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "token": {
+                      "type": "string"
+                    },
+                    "username": {
+                      "type": "string"
+                    },
+                    "expiresIn": {
+                      "type": "integer",
+                      "example": 86400
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid username or password"
+          },
+          "429": {
+            "description": "Too many login attempts"
+          }
+        }
+      }
+    },
+    "/api/v1/dev/logout": {
+      "post": {
+        "tags": [
+          "Developer Portal"
+        ],
+        "summary": "Developer logout (invalidate session token)",
+        "security": [
+          {
+            "DevToken": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Logged out ({ok: true})"
+          }
+        }
+      }
+    },
+    "/api/v1/dev/me": {
+      "get": {
+        "tags": [
+          "Developer Portal"
+        ],
+        "summary": "Current developer account info",
+        "security": [
+          {
+            "DevToken": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Account info ({username, created, apiKeyCount})"
+          },
+          "401": {
+            "description": "Login required"
+          }
+        }
+      }
+    },
+    "/api/v1/dev/keys": {
+      "get": {
+        "tags": [
+          "Developer Portal"
+        ],
+        "summary": "List the developer's API keys",
+        "security": [
+          {
+            "DevToken": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Key list ({keys: [{id (prefix), key (masked), label, created, lastUsed, requestCount}]}). Full key material is only returned once, at creation — keys are stored hashed."
+          },
+          "401": {
+            "description": "Login required"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Developer Portal"
+        ],
+        "summary": "Create a new API key",
+        "description": "Maximum 10 API keys per account.",
+        "security": [
+          {
+            "DevToken": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Key created ({ok, key, label})"
+          },
+          "400": {
+            "description": "Maximum 10 keys reached, or invalid JSON"
+          },
+          "401": {
+            "description": "Login required"
+          }
+        }
+      }
+    },
+    "/api/v1/dev/keys/{key}": {
+      "delete": {
+        "tags": [
+          "Developer Portal"
+        ],
+        "summary": "Delete one of the developer's API keys",
+        "description": "The path parameter is the key prefix id (as returned in id by GET /api/v1/dev/keys).",
+        "security": [
+          {
+            "DevToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Key deleted"
+          },
+          "401": {
+            "description": "Login required"
+          },
+          "404": {
+            "description": "Key not found"
+          }
+        }
+      }
+    },
+    "/api/v1/dev/usage": {
+      "get": {
+        "tags": [
+          "Developer Portal"
+        ],
+        "summary": "Usage summary for the developer's keys",
+        "security": [
+          {
+            "DevToken": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usage summary ({username, keyCount, totalRequests, todayRequests, weekRequests}; daily/weekly figures are approximations)"
+          },
+          "401": {
+            "description": "Login required"
+          }
+        }
+      }
+    },
+    "/api/openapi.json": {
+      "get": {
+        "tags": [
+          "Utility"
+        ],
+        "summary": "This OpenAPI specification",
+        "responses": {
+          "200": {
+            "description": "OpenAPI 3.0 JSON document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "Utility"
+        ],
+        "summary": "Server health check (realtime feed state + uptime)",
+        "description": "200 when at least one realtime feed (P2PQuake, Wolfx EEW, Wolfx EqList, EMSC) is connected, 503 when all are down. Cache-Control: no-cache. Note: this endpoint lives at the server root, not under /api/.",
+        "responses": {
+          "200": {
+            "description": "At least one realtime feed is connected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "ok",
+                        "degraded"
+                      ]
+                    },
+                    "p2p": {
+                      "type": "string",
+                      "enum": [
+                        "connected",
+                        "disconnected"
+                      ]
+                    },
+                    "wolfxEew": {
+                      "type": "string",
+                      "enum": [
+                        "connected",
+                        "disconnected"
+                      ]
+                    },
+                    "wolfxEq": {
+                      "type": "string",
+                      "enum": [
+                        "connected",
+                        "disconnected"
+                      ]
+                    },
+                    "emsc": {
+                      "type": "string",
+                      "enum": [
+                        "connected",
+                        "disconnected"
+                      ]
+                    },
+                    "kmoni": {
+                      "type": "string"
+                    },
+                    "uptime": {
+                      "type": "integer",
+                      "description": "Seconds since this process started"
+                    },
+                    "totalUptime": {
+                      "type": "integer",
+                      "description": "Cumulative uptime across restarts, seconds"
+                    },
+                    "sseClients": {
+                      "type": "integer"
+                    },
+                    "replay": {
+                      "type": "object",
+                      "properties": {
+                        "frames": {
+                          "type": "integer"
+                        },
+                        "earliest": {
+                          "type": "integer",
+                          "format": "int64",
+                          "nullable": true
+                        },
+                        "latest": {
+                          "type": "integer",
+                          "format": "int64",
+                          "nullable": true
+                        },
+                        "diskBytes": {
+                          "type": "integer"
+                        },
+                        "clients": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "time": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "All realtime feeds down (same JSON body, status=degraded)"
+          }
+        }
+      }
+    }
+  }
+}

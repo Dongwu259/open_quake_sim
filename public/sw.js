@@ -2,7 +2,7 @@
 //  QuakeSim Service Worker — PWA shell (v5.6, cache-first)
 //  Bump CACHE_VERSION when changing SW behavior to purge old caches.
 // ============================================================
-var CACHE_VERSION = 'qs-cache-v719833';
+var CACHE_VERSION = 'qs-cache-v578102';
 var CORE_CACHE    = CACHE_VERSION + '-core';
 
 // v4.2: Slim precache — app shell + critical JS/CSS only.
@@ -165,7 +165,7 @@ self.addEventListener('fetch', function(e) {
   var url = new URL(req.url);
 
   // Never cache runtime server data
-  var RUNTIME_DATA = ['/traffic.json'];
+  var RUNTIME_DATA = ['/counter.json', '/traffic.json', '/admin_password.txt', '/daily_visits.json'];
   if (RUNTIME_DATA.indexOf(url.pathname) !== -1) return;
 
   // API endpoints: network-first, no caching

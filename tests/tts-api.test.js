@@ -1,7 +1,7 @@
 // ================================================================
 //  Integration tests for the public TTS synthesis API:
-//  POST support, bounded LRU audio cache, and the anonymous per-IP
-//  rate limit. Uses a stub upstream TTS service.
+//  POST support, bounded LRU audio cache, keyed rate-limit tiers,
+//  and the neuralVoices catalog. Uses a stub upstream TTS service.
 //  Run with:  node --test tests/tts-api.test.js
 // ================================================================
 const test = require('node:test');
@@ -15,7 +15,9 @@ http.createServer = function(...args) {
   return _server;
 };
 
+const API_KEY = 'qs-test-tts-api-key';
 process.env.PORT = '0';
+process.env.QUAKE_API_KEY = API_KEY;
 
 let BASE_URL = '';
 let _upstream = null;
@@ -95,7 +97,17 @@ test('POST /api/tts/synthesize validates input', async () => {
   assert.equal((await voice.json()).error.code, 'INVALID_PARAM');
 });
 
-test('anonymous synthesis is capped at 60/min per IP', async () => {
+test('GET /api/tts/voices lists the neural synthesis voices', async () => {
+  const res = await fetch(BASE_URL + '/api/tts/voices', { headers: XFF });
+  const data = await res.json();
+  assert.ok(Array.isArray(data.voices) && data.voices.length === 3, 'fragment packs kept');
+  assert.ok(Array.isArray(data.neuralVoices), 'neuralVoices added');
+  assert.equal(data.neuralVoices.length, 11);
+  assert.ok(data.neuralVoices.some(v => v.name === 'ja-JP-NanamiNeural' && v.lang === 'ja'));
+  assert.ok(data.neuralVoices.some(v => v.name === 'ko-KR-SunHiNeural' && v.lang === 'ko'));
+});
+
+test('anonymous synthesis is capped at 60/min per IP, keyed calls get their own bucket', async () => {
   // Burn the anonymous per-IP bucket (cache HITs still count toward the limit).
   // A dedicated client IP keeps this test isolated from the ones above.
   const XFF_RATE = { 'X-Forwarded-For': '10.250.250.9' };
@@ -110,6 +122,11 @@ test('anonymous synthesis is capped at 60/min per IP', async () => {
   const blocked = await fetch(url, { headers: XFF_RATE });
   assert.equal(blocked.status, 429);
   assert.equal((await blocked.json()).error.code, 'RATE_LIMITED');
+
+  // An API key gets its own 240/min bucket and still works from the same IP.
+  const keyed = await fetch(url + '&key=' + API_KEY, { headers: XFF_RATE });
+  assert.equal(keyed.status, 200);
+  assert.equal(keyed.headers.get('content-type'), 'audio/mpeg');
 });
 
 test('teardown — close servers', { concurrency: false }, async () => {

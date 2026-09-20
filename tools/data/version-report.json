@@ -1,8 +1,8 @@
 {
   "schema": "quake-sim-version-report-v1",
   "appVersion": "6.2.0",
-  "generatedAt": "2026-09-05T01:42:02.100Z",
-  "gitHead": "8202f28992bdfb6b99ecfdec576aea946d5fb4cb",
+  "generatedAt": "2026-09-04T14:55:20.654Z",
+  "gitHead": "a6e056f13fa6a8e80a9269ee1f147274a385866c",
   "reports": {
     "strong-motion-report.json": {
       "present": true,
@@ -97,7 +97,7 @@
     "frozen-drift-report.json": {
       "present": true,
       "schema": "quake-sim-frozen-drift-report-v1",
-      "generatedAt": "2026-08-26T06:46:00.971Z"
+      "generatedAt": "2026-08-31T16:35:16.086Z"
     }
   },
   "tuningReads": [

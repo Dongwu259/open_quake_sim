@@ -1,4 +1,4 @@
-# Earthquake Simulator Pro — Docker Compose deployment
+# Earthquake Simulator Pro v4.2 — Docker Compose deployment
 # Usage: docker-compose up -d
 
 version: '3.8'
@@ -12,19 +12,25 @@ services:
       - "${PORT:-3000}:3000"
     volumes:
       # Persistent data files (survive container recreation)
+      - ./counter.json:/app/counter.json
       - ./traffic.json:/app/traffic.json
+      - ./daily_visits.json:/app/daily_visits.json
       - ./ratelimit.json:/app/ratelimit.json
-      # Realtime SSE recordings for the replay feature (optional)
-      - ./recordings:/app/recordings
+      - ./api_keys.json:/app/api_keys.json
+      - ./users.json:/app/users.json
+      - ./webhooks.json:/app/webhooks.json
+      - ./error_log.json:/app/error_log.json
+      - ./admin_password.txt:/app/admin_password.txt
+      - ./expiry.json:/app/expiry.json
     environment:
       - NODE_ENV=production
       - PORT=3000
-      # Optional: TTS upstream for voice announcements (otherwise TTS is disabled)
-      # - TTS_UPSTREAM_URL=http://127.0.0.1:7896/tts
-      # Optional: multi-source earthquake collector upstream for /api/live-quakes
-      # - LIVE_API_BASE=http://127.0.0.1:7891
+      # Optional: set admin password (otherwise generated on first run)
+      # - ADMIN_PASSWORD=your-secure-password
       # Optional: CORS origins (comma-separated)
       # - CORS_ORIGINS=https://your-domain.com
+      # Optional: disable webhooks
+      # - WEBHOOKS_ENABLED=false
       # Optional: disable rate limit persistence
       # - RATELIMIT_PERSIST=false
     healthcheck:

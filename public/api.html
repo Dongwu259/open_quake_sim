@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>API 文档 — Earthquake Simulator Pro</title>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<style>
+:root{--bg:#1a1a2e;--panel-bg:#16213e;--accent:#e94560;--text:#eee;--text-secondary:#c4c4dc;--border:#2a2a4a;--code-bg:#0f0f23;--green:#2ecc71;--orange:#e67e22;--blue:#3498db;--purple:#9b59b6}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI','Noto Sans JP','Noto Sans SC',monospace;background:var(--bg);color:var(--text);line-height:1.7;padding:24px 32px;max-width:1000px;margin:0 auto}
+h1{font-size:1.8em;color:var(--accent);border-bottom:2px solid var(--accent);padding-bottom:12px;margin-bottom:16px}
+h2{font-size:1.3em;color:var(--accent);margin-top:48px;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:6px}
+h3{font-size:1.05em;margin-top:28px;margin-bottom:8px;color:#f1c40f}
+p{margin-bottom:12px}
+a{color:var(--accent)}
+code,pre{background:var(--code-bg);border:1px solid var(--border);border-radius:4px}
+code{padding:1px 5px;font-size:.9em}
+pre{overflow-x:auto;padding:16px 20px;margin-bottom:16px;font-size:.85em;line-height:1.5}
+pre code{padding:0;border:none;background:none}
+table{width:100%;border-collapse:collapse;margin-bottom:16px;font-size:.9em}
+th,td{border:1px solid var(--border);padding:8px 12px;text-align:left}
+th{background:var(--panel-bg);color:var(--accent)}
+.method{display:inline-block;padding:2px 8px;border-radius:3px;font-weight:700;font-size:.8em;margin-right:6px;min-width:42px;text-align:center}
+.method.get{background:var(--green);color:#000}
+.method.post{background:var(--orange);color:#fff}
+.method.patch{background:var(--purple);color:#fff}
+.method.delete{background:var(--accent);color:#fff}
+.path{font-weight:700;font-family:monospace}
+.endpoint{margin-bottom:20px;padding:12px 16px;background:var(--panel-bg);border-radius:8px;border-left:3px solid var(--accent)}
+.endpoint.nonbreaking{border-left-color:var(--green)}
+.tag{display:inline-block;padding:1px 6px;border-radius:3px;font-size:.75em;margin-right:4px;background:rgba(233,69,96,.15);color:var(--accent)}
+.tag.auth{background:rgba(155,89,182,.15);color:var(--purple)}
+.tag.rate{background:rgba(241,196,15,.12);color:#f1c40f}
+.note{padding:12px 16px;background:rgba(241,196,15,.08);border-left:3px solid #f1c40f;border-radius:4px;margin:16px 0;font-size:.9em}
+.note.info{border-left-color:var(--blue);background:rgba(52,152,219,.08)}
+.back{margin-bottom:24px;display:inline-block}
+.toc{margin:20px 0;padding:16px 20px;background:var(--panel-bg);border-radius:8px}
+.toc ul{list-style:none;padding-left:0}
+.toc li{margin:4px 0}
+.toc a{text-decoration:none}
+.summary-table td:first-child{white-space:nowrap}
+details summary{cursor:pointer;color:var(--accent);margin-top:8px}
+details summary:hover{color:#f1c40f}
+</style>
+</head>
+<body>
+
+<a href="/" class="back">← 返回模拟器</a>
+
+<h1>Earthquake Simulator Pro API</h1>
+
+<p>地震模拟器 REST API。所有端点返回 JSON。基础 URL：<code>http://localhost:3000</code>（部署时替换为实际域名）。</p>
+
+<div style="background:linear-gradient(135deg, #16213e 0%, #1a1a2e 100%);border:2px solid var(--accent);border-radius:12px;padding:20px 24px;margin:20px 0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
+  <div>
+    <div style="font-size:1.15em;font-weight:700;color:#fff;margin-bottom:4px">🔑 Developer Portal</div>
+    <div style="font-size:.85em;color:var(--text-secondary)">注册账号 · 创建 API Key · 查看用量 —— 全部自助，无需管理员</div>
+  </div>
+  <a href="/developer" style="display:inline-block;padding:12px 28px;background:var(--accent);color:#fff;border-radius:8px;font-weight:700;text-decoration:none;font-size:1em;white-space:nowrap;transition:opacity .2s">登录 / 注册 →</a>
+</div>
+
+<div class="note info">
+  <strong>API 版本化：</strong>推荐使用 <code>/api/v1/...</code> 路径前缀。不带版本号的路径（<code>/api/...</code>）继续可用，指向最新版本。
+</div>
+
+<!-- TOC -->
+<div class="toc">
+  <strong>目录</strong>
+  <ul>
+    <li><a href="#quick">快速参考（全部 51 个端点）</a></li>
+    <li><a href="#errors">错误码规范</a></li>
+    <li><a href="#auth">认证与速率限制</a></li>
+    <li><a href="#cors">CORS 跨域</a></li>
+    <li><a href="#public-data">公开数据 API</a></li>
+    <li><a href="#realtime">实时监控与回放 API</a></li>
+    <li><a href="#data-apis">数据查询 API</a></li>
+    <li><a href="#webhooks">Webhook API</a></li>
+    <li><a href="#tts">TTS 速报 API</a></li>
+    <li><a href="#utility">工具 API</a></li>
+    <li><a href="#test">测试 API</a></li>
+    <li><a href="#dev">开发者门户 API</a></li>
+    <li><a href="#admin">管理 API</a></li>
+    <li><a href="#client">客户端示例</a></li>
+    <li><a href="#pref">都道府県编号</a></li>
+    <li><a href="#audio">音频文件结构</a></li>
+  </ul>
+</div>
+
+<!-- ============ QUICK REFERENCE ============ -->
+<h2 id="quick">快速参考</h2>
+
+<table class="summary-table">
+<tr><th>方法</th><th>路径</th><th>认证</th><th>速率限制</th><th>说明</th></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/earthquakes</code></td><td>无</td><td>无</td><td>多源实时地震数据（USGS + EMSC + Wolfx 等，30s 缓存）</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/catalog</code></td><td>无</td><td>无</td><td>USGS FDSN 目录查询（60s 缓存）</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/stations</code></td><td>无</td><td>无</td><td>测站目录查询（分页，支持类型/名称筛选）</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/quake-catalog</code></td><td>无</td><td>无</td><td>历史/预设地震目录（分页，支持震级/深度筛选）</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/presets</code></td><td>无</td><td>无</td><td>15 个预设地震完整元数据</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/waveform</code></td><td>无</td><td>无</td><td>FDSN 波形数据获取</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/p2pquake/stream</code></td><td>无</td><td>最大 200 连接</td><td>SSE 实时地震推送</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/live-quakes</code></td><td>无</td><td>无</td><td>本地多源地震 API（30s 缓存）</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/live-stats</code></td><td>无</td><td>无</td><td>地震统计摘要（120s 缓存）</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/live-sources</code></td><td>无</td><td>无</td><td>数据源健康状态（300s 缓存）</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/replay/info</code></td><td>无</td><td>无</td><td>回放录制状态 + 事件时间线索引</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/replay/stream</code></td><td>无</td><td>最大 20 连接</td><td>SSE 回放已录制的实时帧</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/replay/export</code></td><td>无</td><td>窗口 ≤ 6 小时</td><td>NDJSON 下载录制帧</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/kmoni/sitelist</code></td><td>无</td><td>无</td><td>NIED 強震モニタ 测站列表代理（1h 缓存）</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/kmoni/image</code></td><td>无</td><td>无</td><td>NIED 官方实时震度图代理（5s 缓存）</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/ntp</code></td><td>无</td><td>无</td><td>Wolfx NTP 校时代理（60s 缓存）</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/settings</code></td><td>无</td><td>无</td><td>本机设置：生效 TTS 上游配置（只读）</td></tr>
+<tr><td><span class="method post">POST</span></td><td><code>/api/settings</code></td><td>JSON</td><td>无</td><td>本机设置：更新 TTS 上游/云端 key（仅回环，10/min）</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/geoip</code></td><td>无</td><td>无</td><td>Wolfx GeoIP 代理（访客粗略定位）</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/waveform/live</code></td><td>无</td><td>20次/分钟/IP</td><td>实时多台站波形代理（GSN 白名单 4 站；仪器原始计数；30s 缓存）</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/tts/languages</code></td><td>无</td><td>无</td><td>可用 TTS 语言列表</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/tts/fragments</code></td><td>无</td><td>无</td><td>TTS 片段目录</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/tts/voices</code></td><td>无</td><td>无</td><td>可用 TTS 语音元数据</td></tr>
+<tr><td><span class="method get">GET</span>/<span class="method post">POST</span></td><td><code>/api/v1/tts/synthesize</code></td><td>无（API key 提速）</td><td>60次/分钟/IP，API key 240次/分钟</td><td>实时生成完整 MP3 播报（服务端缓存）</td></tr>
+<tr><td><span class="method post">POST</span></td><td><code>/api/v1/tts/bulletin</code></td><td>无</td><td>10次/分钟/IP</td><td>构造 TTS 速报播单</td></tr>
+<tr><td><span class="method post">POST</span></td><td><code>/api/v1/webhooks</code></td><td>API Key</td><td>无</td><td>注册 webhook 事件订阅</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/webhooks</code></td><td>API Key</td><td>无</td><td>列出已注册的 webhooks</td></tr>
+<tr><td><span class="method delete">DELETE</span></td><td><code>/api/v1/webhooks/:id</code></td><td>API Key</td><td>无</td><td>删除指定 webhook</td></tr>
+<tr><td><span class="method patch">PATCH</span></td><td><code>/api/v1/webhooks/:id/activate</code></td><td>API Key</td><td>无</td><td>重新激活已暂停的 webhook</td></tr>
+<tr><td><span class="method post">POST</span></td><td><code>/api/v1/simulation/complete</code></td><td>API Key</td><td>无</td><td>触发 simulation.complete webhook</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/counter</code></td><td>无</td><td>1次/秒/IP</td><td>访问计数</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/health</code></td><td>无</td><td>无</td><td>健康检查（实时源状态 + 运行时长）</td></tr>
+<tr><td><span class="method post">POST</span></td><td><code>/api/v1/test/earthquake</code></td><td>API Key</td><td>10次/分钟/IP</td><td>注入测试地震事件</td></tr>
+<tr><td><span class="method post">POST</span></td><td><code>/api/v1/test/eew</code></td><td>API Key</td><td>10次/分钟/IP</td><td>注入测试 EEW 帧（调试）</td></tr>
+<tr><td><span class="method post">POST</span></td><td><code>/api/v1/dev/register</code></td><td>无</td><td>3次/小时/IP</td><td>注册开发者账号</td></tr>
+<tr><td><span class="method post">POST</span></td><td><code>/api/v1/dev/login</code></td><td>无</td><td>15 分钟内 5 次失败</td><td>开发者登录（24h token）</td></tr>
+<tr><td><span class="method post">POST</span></td><td><code>/api/v1/dev/logout</code></td><td>Dev Token</td><td>无</td><td>开发者登出</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/dev/me</code></td><td>Dev Token</td><td>无</td><td>当前账号信息</td></tr>
+<tr><td><span class="method get">GET</span>/<span class="method post">POST</span></td><td><code>/api/v1/dev/keys</code></td><td>Dev Token</td><td>最多 10 个 key</td><td>列出 / 创建 API Key</td></tr>
+<tr><td><span class="method delete">DELETE</span></td><td><code>/api/v1/dev/keys/:key</code></td><td>Dev Token</td><td>无</td><td>删除 API Key</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/dev/usage</code></td><td>Dev Token</td><td>无</td><td>Key 用量概览</td></tr>
+<tr><td><span class="method post">POST</span></td><td><code>/api/v1/admin/login</code></td><td>无</td><td>15 分钟内 5 次失败</td><td>管理员登录</td></tr>
+<tr><td><span class="method post">POST</span></td><td><code>/api/v1/admin/logout</code></td><td>Admin Token</td><td>无</td><td>管理员登出</td></tr>
+<tr><td><span class="method get">GET</span>/<span class="method post">POST</span></td><td><code>/api/v1/admin/expiry</code></td><td>GET 公开 / POST 需 Token</td><td>无</td><td>查询 / 设置服务到期时间</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/admin/stats</code></td><td>Admin Token</td><td>无</td><td>流量统计</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/admin/system</code></td><td>Admin Token</td><td>无</td><td>系统状态</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/admin/daily</code></td><td>Admin Token</td><td>无</td><td>每日访问趋势</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/admin/errors</code></td><td>Admin Token</td><td>无</td><td>错误日志（最近 50 条）</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/admin/iplogs</code></td><td>Admin Token</td><td>无</td><td>IP 访问日志（最近 100 条）</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/admin/sources</code></td><td>Admin Token</td><td>无</td><td>数据源健康状态</td></tr>
+<tr><td><span class="method get">GET</span>/<span class="method post">POST</span></td><td><code>/api/v1/admin/apikeys</code></td><td>Admin Token</td><td>无</td><td>列出（脱敏）/ 生成 API Key</td></tr>
+<tr><td><span class="method delete">DELETE</span></td><td><code>/api/v1/admin/apikeys/:key</code></td><td>Admin Token</td><td>无</td><td>吊销 API Key</td></tr>
+<tr><td><span class="method patch">PATCH</span></td><td><code>/api/v1/admin/counter</code></td><td>Admin Token</td><td>无</td><td>设置访问计数</td></tr>
+<tr><td><span class="method patch">PATCH</span></td><td><code>/api/v1/admin/requests</code></td><td>Admin Token</td><td>无</td><td>设置请求计数</td></tr>
+</table>
+
+<!-- ============ ERROR CODES ============ -->
+<h2 id="errors">错误码规范</h2>
+
+<p>所有公开 API 端点返回统一错误格式：</p>
+
+<pre><code>{
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human-readable description",
+    "details": null
+  }
+}</code></pre>
+
+<table>
+<tr><th>HTTP 状态码</th><th>错误码</th><th>说明</th></tr>
+<tr><td>400</td><td><code>INVALID_JSON</code></td><td>JSON 解析失败</td></tr>
+<tr><td>400</td><td><code>INVALID_PARAM</code></td><td>参数校验失败</td></tr>
+<tr><td>400</td><td><code>MISSING_PARAM</code></td><td>缺少必填参数</td></tr>
+<tr><td>401</td><td><code>UNAUTHORIZED</code></td><td>缺少或无效的认证凭据</td></tr>
+<tr><td>401</td><td><code>API_KEY_REQUIRED</code></td><td>需要 API Key</td></tr>
+<tr><td>403</td><td><code>FORBIDDEN</code></td><td>禁止访问（路径遍历等）</td></tr>
+<tr><td>404</td><td><code>NOT_FOUND</code></td><td>端点或资源不存在</td></tr>
+<tr><td>413</td><td><code>PAYLOAD_TOO_LARGE</code></td><td>请求体超过大小限制</td></tr>
+<tr><td>429</td><td><code>RATE_LIMITED</code></td><td>速率限制超限</td></tr>
+<tr><td>500</td><td><code>INTERNAL_ERROR</code></td><td>服务器内部错误</td></tr>
+<tr><td>502</td><td><code>UPSTREAM_ERROR</code></td><td>上游服务不可用（USGS、FDSN 等）</td></tr>
+<tr><td>503</td><td><code>SERVICE_UNAVAILABLE</code></td><td>服务器过载</td></tr>
+</table>
+
+<p><strong>注意：</strong>管理端点（<code>/api/admin/*</code>）使用内部格式 <code>{"ok":false, "error":"message"}</code>，与公开 API 格式略有不同。</p>
+
+<!-- ============ AUTH & RATE LIMIT ============ -->
+<h2 id="auth">认证与速率限制</h2>
+
+<h3>API Key</h3>
+<p>受保护的端点（Webhook、测试地震注入）需要 API Key。支持两种传递方式：</p>
+<ul>
+  <li>查询参数：<code>?key=YOUR_API_KEY</code></li>
+  <li>HTTP 头：<code>Authorization: Bearer YOUR_API_KEY</code></li>
+</ul>
+<p>本地请求（<code>127.0.0.1</code>）自动放行。前往 <a href="/developer">🔑 Developer Portal</a> 注册并获取 Key。</p>
+
+
+<h3>速率限制</h3>
+<table>
+<tr><th>端点</th><th>限制</th><th>超限响应</th></tr>
+<tr><td><code>POST /api/tts/bulletin</code></td><td>每 IP 每分钟 10 次</td><td>429 RATE_LIMITED</td></tr>
+<tr><td><code>GET/POST /api/tts/synthesize</code></td><td>每 IP 每分钟 60 次；API key 认证后每 key 每分钟 240 次</td><td>429 RATE_LIMITED</td></tr>
+<tr><td><code>GET /api/counter</code></td><td>每 IP 每秒 1 次</td><td>200（返回当前值，不递增）</td></tr>
+<tr><td><code>GET /api/waveform</code></td><td>每 IP 每分钟 5 次</td><td>429 RATE_LIMITED</td></tr>
+<tr><td><code>POST /api/test/earthquake</code> / <code>POST /api/test/eew</code></td><td>每 IP 每分钟 10 次</td><td>429 RATE_LIMITED</td></tr>
+<tr><td><code>POST /api/dev/register</code></td><td>每 IP 每小时 3 次</td><td>429 RATE_LIMITED</td></tr>
+<tr><td><code>POST /api/admin/login</code> / <code>POST /api/dev/login</code></td><td>每 IP 15 分钟 5 次失败</td><td>429（自定义消息）</td></tr>
+<tr><td><code>GET /api/p2pquake/stream</code></td><td>最大 200 并发 SSE 连接</td><td>503 SERVICE_UNAVAILABLE</td></tr>
+<tr><td><code>GET /api/replay/stream</code></td><td>最大 20 并发回放连接</td><td>503 SERVICE_UNAVAILABLE</td></tr>
+</table>
+
+<!-- ============ CORS ============ -->
+<h2 id="cors">CORS 跨域</h2>
+
+<p>CORS 默认关闭。启用方式：设置环境变量 <code>CORS_ORIGINS</code>。</p>
+<pre><code># 允许所有来源
+set CORS_ORIGINS=*
+node server.js
+
+# 允许指定来源（逗号分隔）
+set CORS_ORIGINS=https://example.com,https://app.example.com
+node server.js</code></pre>
+<p>启用后，所有 <code>/api/</code> 路径的响应将携带适当的 CORS 头，并支持 OPTIONS 预检请求。</p>
+
+<!-- ============ PUBLIC DATA APIS ============ -->
+<h2 id="public-data">公开数据 API</h2>
+
+<div class="endpoint nonbreaking">
+  <span class="method get">GET</span><span class="path">/api/v1/earthquakes</span>
+  <p>多源实时地震数据。服务器端合并 USGS GeoJSON + 本地多源地震 API（EMSC、P2PQuake、Wolfx、GEOFON 等），非 USGS 事件自动注入为 GeoJSON Feature。30 秒内存缓存。</p>
+
+  <h3>响应 200</h3>
+  <pre><code>// GeoJSON FeatureCollection（合并多源数据）
+{
+  "type": "FeatureCollection",
+  "metadata": { "sources": ["usgs", "emsc", "p2pquake", "wolfx_eq", "geofon"] },
+  "features": [
+    { "type": "Feature", "id": "us7000xxx",
+      "properties": { "mag": 5.2, "place": "...", "source": "USGS", ... },
+      "geometry": { "type": "Point", "coordinates": [lng, lat, depth] }
+    },
+    { "type": "Feature", "id": "live-123",
+      "properties": { "mag": 4.8, "place": "...", "source": "EMSC", "sources": ["emsc", "wolfx_eq"], ... },
+      "geometry": { "type": "Point", "coordinates": [lng, lat, depth] }
+    }
+  ]
+}</code></pre>
+  <p>每个 feature 的 <code>properties.source</code> 标注数据来源，<code>metadata.sources</code> 列出本次响应的所有活跃数据源。</p>
+
+  <h3>错误</h3>
+  <table>
+    <tr><th>状态码</th><th>说明</th></tr>
+    <tr><td>502</td><td>所有上游不可用（有缓存时返回缓存数据）</td></tr>
+  </table>
+</div>
+
+<div class="endpoint nonbreaking">
+  <span class="method get">GET</span><span class="path">/api/v1/live-quakes</span>
+  <p>本地多源地震 API 数据（端口 7891），支持查询参数筛选。30 秒缓存。</p>
+
+  <h3>查询参数</h3>
+  <table>
+    <tr><th>参数</th><th>类型</th><th>默认</th><th>说明</th></tr>
+    <tr><td><code>minMag</code></td><td>float</td><td>3</td><td>最低震级</td></tr>
+    <tr><td><code>hours</code></td><td>int</td><td>72</td><td>最近 N 小时</td></tr>
+    <tr><td><code>region</code></td><td>string</td><td>japan</td><td>区域筛选（japan/china/pacific/americas/europe/other）</td></tr>
+    <tr><td><code>limit</code></td><td>int</td><td>100</td><td>最大条数</td></tr>
+  </table>
+</div>
+
+<div class="endpoint nonbreaking">
+  <span class="method get">GET</span><span class="path">/api/v1/live-stats</span>
+  <p>地震统计摘要（最近 7 天）。120 秒缓存。</p>
+</div>
+
+<div class="endpoint nonbreaking">
+  <span class="method get">GET</span><span class="path">/api/v1/live-sources</span>
+  <p>数据源健康状态列表。300 秒缓存。</p>
+</div>
+
+<div class="endpoint nonbreaking">
+  <span class="method get">GET</span><span class="path">/api/v1/catalog</span>
+  <p>代理 USGS FDSN 地震目录查询（日本区域限定），60 秒缓存。</p>
+
+  <h3>查询参数</h3>
+  <table>
+    <tr><th>参数</th><th>类型</th><th>默认</th><th>说明</th></tr>
+    <tr><td><code>starttime</code></td><td>ISO 8601</td><td>—</td><td>查询起始时间</td></tr>
+    <tr><td><code>endtime</code></td><td>ISO 8601</td><td>—</td><td>查询结束时间</td></tr>
+    <tr><td><code>minmag</code></td><td>number</td><td>—</td><td>最小震级</td></tr>
+  </table>
+
+  <h3>示例</h3>
+  <pre><code>curl "http://localhost:3000/api/v1/catalog?starttime=2024-01-01&minmag=5"</code></pre>
+</div>
+
+<div class="endpoint nonbreaking">
+  <span class="method get">GET</span><span class="path">/api/v1/waveform</span>
+  <p>通过 FDSN 同时获取 MiniSEED 与 StationXML 仪器响应（Python ObsPy，数据源：IRIS / GFZ），去除响应后以加速度 gal 返回。三分量分析请求会校验分量完整性、数据缺口、重采样与来源；不满足条件时明确标记为不可科研认证。兼容字段 <code>data[]</code> 继续保留。</p>
+
+  <h3>查询参数</h3>
+  <table>
+    <tr><th>参数</th><th>类型</th><th>默认</th><th>说明</th></tr>
+    <tr><td><code>station</code></td><td>string</td><td><code>MAJO</code></td><td>台站代码（1-5 位大写字母/数字）</td></tr>
+    <tr><td><code>network</code></td><td>string</td><td><code>IU</code></td><td>台网代码（1-2 位大写字母/数字）</td></tr>
+    <tr><td><code>channel</code></td><td>string</td><td><code>BHZ</code></td><td>通道代码（3 位大写字母/数字）：BHZ=垂直速度，BHN/BHE=水平</td></tr>
+    <tr><td><code>location</code></td><td>string</td><td><code>*</code></td><td>FDSN location code</td></tr>
+    <tr><td><code>hours</code></td><td>number</td><td><code>1</code></td><td>数据时长（1-24 小时）</td></tr>
+    <tr><td><code>durationSeconds</code></td><td>number</td><td>—</td><td>覆盖 hours，限制 60-3600 秒</td></tr>
+    <tr><td><code>components</code></td><td>1 / 3</td><td><code>1</code></td><td>请求单分量或三分量</td></tr>
+    <tr><td><code>purpose</code></td><td>display / analysis</td><td>display</td><td>分析模式保留更多采样点并执行科研输入门禁</td></tr>
+    <tr><td><code>endtime</code></td><td>ISO 8601</td><td>当前时间</td><td>历史波形窗口结束时间</td></tr>
+  </table>
+
+  <h3>响应 200</h3>
+  <pre><code>{
+  "_schema": "quake-sim-waveform-v1",
+  "type": "waveform",
+  "units": "gal",
+  "quality": {"researchReady": true, "responseRemoved": true, "reasons": []},
+  "provenance": {"provider": "IRIS", "sourceUrl": "https://service.iris.edu/fdsnws/"},
+  "components": {"z": {"channel": "BHZ", "samples": [1.23, -4.56], "sha256": "..."}},
+  "data": [{
+    "id": "IU.MAJO.00.BHZ",
+    "network": "IU",
+    "station": "MAJO",
+    "channel": "BHZ",
+    "starttime": "2026-06-30T12:00:00.000000Z",
+    "sampling_rate": 50,
+    "npts": 5000,
+    "max_amplitude": 12.3,
+    "unit": "gal",
+    "samples": [1.23, -4.56, 2.10, ...]
+  }]
+}</code></pre>
+
+  <h3>响应字段</h3>
+  <table>
+    <tr><th>字段</th><th>说明</th></tr>
+    <tr><td><code>components</code></td><td>响应校正后的 Z/N/E 加速度数组与逐分量 SHA-256</td></tr>
+    <tr><td><code>quality</code></td><td>科研就绪状态及缺分量、缺口、重采样等拒绝原因</td></tr>
+    <tr><td><code>provenance</code></td><td>数据中心、来源 URL、获取时间和原始请求</td></tr>
+    <tr><td><code>data</code></td><td>供旧客户端使用的兼容波形数组，单位同样为 gal</td></tr>
+    <tr><td><code>sampling_rate</code></td><td>交付采样率 Hz</td></tr>
+    <tr><td><code>starttime</code></td><td>第一个采样点的 UTC 时间，配合采样率可重建时间轴</td></tr>
+    <tr><td><code>max_amplitude</code></td><td>采样点绝对值的最大值（可用于快速判断信号强度）</td></tr>
+    <tr><td><code>unit</code></td><td><code>gal</code>，即已去除仪器响应的加速度 cm/s²</td></tr>
+  </table>
+
+  <h3>解析示例</h3>
+  <pre><code>// JavaScript — 绘制波形到 Canvas
+const resp = await fetch('/api/v1/waveform?station=MAJO&hours=2');
+const { data } = await resp.json();
+const tr = data[0];
+
+const canvas = document.getElementById('my-canvas');
+const ctx = canvas.getContext('2d');
+const w = canvas.width, h = canvas.height;
+const maxAmp = tr.max_amplitude || 1;
+
+ctx.beginPath();
+for (let i = 0; i &lt; tr.samples.length; i++) {
+  const x = (i / tr.samples.length) * w;
+  const y = (0.5 - tr.samples[i] / (2 * maxAmp)) * h;
+  i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+}
+ctx.stroke();</code></pre>
+
+  <pre><code># Python — matplotlib 绘图
+import requests, matplotlib.pyplot as plt
+
+resp = requests.get("http://localhost:3000/api/v1/waveform?station=MAJO")
+tr = resp.json()["data"][0]
+sr = tr["sampling_rate"]
+t = [i / sr for i in range(len(tr["samples"]))]
+
+plt.plot(t, tr["samples"], linewidth=0.5)
+plt.xlabel(f"Time (s) since {tr['starttime']}")
+plt.ylabel(f"Amplitude ({tr['unit']})")
+plt.title(f"{tr['id']} — {tr['npts']} samples @ {sr}Hz")
+plt.show()</code></pre>
+
+  <h3>错误</h3>
+  <table>
+    <tr><th>状态码</th><th>说明</th></tr>
+    <tr><td>400</td><td>参数格式无效</td></tr>
+    <tr><td>502</td><td>波形获取失败（IRIS/GFZ 无数据或网络不通）</td></tr>
+  </table>
+</div>
+
+<div class="endpoint nonbreaking">
+  <span class="method get">GET</span><span class="path">/api/v1/p2pquake/stream</span>
+  <span class="tag rate">最大 200 连接</span>
+  <p>Server-Sent Events (SSE) 实时推送日本地震数据。数据来源：P2PQuake、Wolfx JMA EEW、Wolfx 地震列表、EMSC、JMA Atom Feed。</p>
+
+  <h3>SSE 事件格式</h3>
+  <pre><code>data: {"type":"p2pquake","event":{"id":"p2pq_...","code":5611,"mag":5.2,"lat":35.6,"lng":139.8,"depth":50,"place":"...","maxShindo":"4","time":"...","serial":1}}</code></pre>
+
+  <p>事件类型：<code>p2pquake</code>（地震）、<code>wolfx_eew</code>（紧急地震速报）、<code>wolfx_eq</code>（地震列表）、<code>emsc</code>（全球地震）、<code>jma_feed</code>（JMA XML）。每 30 秒心跳保持连接。</p>
+
+  <h3>客户端示例</h3>
+  <pre><code>const es = new EventSource('/api/v1/p2pquake/stream');
+es.addEventListener('message', (e) => {
+  const { type, event } = JSON.parse(e.data);
+  console.log(type, event.mag, event.place);
+});</code></pre>
+</div>
+
+<!-- ============ REALTIME & REPLAY ============ -->
+<h2 id="realtime">实时监控与回放 API</h2>
+
+<p>服务器把 SSE 实时帧持续录制到内存环形缓冲（保留 3 小时 / 20,000 帧）并按天追加到 <code>recordings/YYYYMMDD.jsonl.gz</code>（保留 3 天），以下端点用于回放与导出；另含 NIED 強震モニタ 与校时/定位代理。</p>
+
+<div class="endpoint nonbreaking">
+  <span class="method get">GET</span><span class="path">/api/v1/replay/info</span>
+  <p>回放录制器状态 + 事件时间线索引（每个 EEW EventID 一个标记 + 震度3+ 的 551 速报，最多 200 条，新的优先保留）。<code>Cache-Control: no-cache</code>。</p>
+  <pre><code>curl http://localhost:3000/api/v1/replay/info</code></pre>
+  <pre><code>{
+  "ok": true,
+  "earliest": 1786626828027, "latest": 1786637627421, "frames": 16648,
+  "byType": {"kmoni_rt": 10288, "jma_feed": 6258, "wolfx_eq": 100, "p2pquake": 2},
+  "diskBytes": 17736025,
+  "events": [{"t": 1786511589845, "type": "eew", "label": "EEW M5.9 プローブ震源地"}]
+}</code></pre>
+</div>
+
+<div class="endpoint nonbreaking">
+  <span class="method get">GET</span><span class="path">/api/v1/replay/stream</span>
+  <span class="tag rate">最大 20 连接</span>
+  <p>SSE 回放已录制的实时帧（仅内存环形缓冲窗口）。每帧以命名事件 <code>event: &lt;type&gt;</code> 发送，data 为 <code>{"type","event","replayTs"}</code>；结尾发送 <code>event: replay_end</code> 后关闭。</p>
+  <table>
+    <tr><th>参数</th><th>类型</th><th>默认</th><th>说明</th></tr>
+    <tr><td><code>speed</code></td><td>number</td><td><code>5</code></td><td>回放倍速（0.25 ~ 120）</td></tr>
+    <tr><td><code>from</code></td><td>int</td><td>环形缓冲最旧帧</td><td>起始时刻（epoch ms），更早的帧跳过</td></tr>
+  </table>
+  <pre><code>curl -N "http://localhost:3000/api/v1/replay/stream?speed=60"</code></pre>
+</div>
+
+<div class="endpoint nonbreaking">
+  <span class="method get">GET</span><span class="path">/api/v1/replay/export</span>
+  <span class="tag rate">窗口 ≤ 6 小时</span>
+  <p>按时间窗口下载录制帧（NDJSON，每行 <code>{"t","type","event"}</code>）。窗口自动收窄到可用录制范围（日线文件保留 3 天）；窗口内无帧返回 204；超过 6 小时返回 400。</p>
+  <table>
+    <tr><th>参数</th><th>类型</th><th>必填</th><th>说明</th></tr>
+    <tr><td><code>from</code></td><td>int</td><td>是</td><td>窗口起点（epoch ms）</td></tr>
+    <tr><td><code>to</code></td><td>int</td><td>是</td><td>窗口终点（epoch ms，≥ from）</td></tr>
+  </table>
+  <pre><code>curl -OJ "http://localhost:3000/api/v1/replay/export?from=1786637000000&to=1786640000000"
+# → quake-replay-&lt;from&gt;-&lt;to&gt;.jsonl (application/x-ndjson)</code></pre>
+</div>
+
+<div class="endpoint nonbreaking">
+  <span class="method get">GET</span><span class="path">/api/v1/kmoni/sitelist</span>
+  <p>NIED 強震モニタ 测站列表代理（上游为 Yahoo 边缘镜像）。上游响应缓存 1 小时；响应头 <code>Cache-Control: public, max-age=300</code>；上游失败但有缓存时返回旧数据，否则 502。返回 <code>{"siteConfigId", "items": [[lat,lng], ...]}</code>，<code>items</code> 下标与 <code>kmoni_rt</code> 帧的 intensity 字符一一对应。</p>
+  <pre><code>curl http://localhost:3000/api/v1/kmoni/sitelist</code></pre>
+</div>
+
+<div class="endpoint nonbreaking">
+  <span class="method get">GET</span><span class="path">/api/v1/kmoni/image</span>
+  <p>NIED 官方实时震度图（RealTimeImg，GIF/PNG）。候选源按顺序探测（nied-new → nied-old → yahoo），可用源复用 60 秒；图像体缓存 5 秒。全部失败时退避 60 秒：有旧图返回旧图，否则 <code>503 UPSTREAM_ERROR</code> + <code>Retry-After: 60</code>。成功响应带 <code>X-Kmoni-Image-Time</code>（帧时刻）与 <code>X-Kmoni-Image-Source</code>（来源）头。</p>
+  <pre><code>curl -O http://localhost:3000/api/v1/kmoni/image</code></pre>
+</div>
+
+<div class="endpoint nonbreaking">
+  <span class="method get">GET</span><span class="path">/api/v1/ntp</span>
+  <p>Wolfx NTP 校时代理（用于客户端时钟偏移校准）。缓存 60 秒；上游失败时返回旧缓存，否则 502。响应：<code>{"JST":{"str","int"},"CST":{"str","int"},"timestamp":&lt;epoch ms&gt;}</code>。</p>
+  <pre><code>curl http://localhost:3000/api/v1/ntp</code></pre>
+</div>
+
+<div class="endpoint nonbreaking">
+  <span class="method get">GET</span><span class="path">/api/v1/geoip</span>
+  <p>Wolfx GeoIP 代理，转发访客 IP 做粗略定位（EEW 倒数参考点；本地/内网 IP 使用服务器侧默认值）。<code>Cache-Control: private, max-age=300</code>；上游失败返回 502。</p>
+  <pre><code>curl http://localhost:3000/api/v1/geoip</code></pre>
+</div>
+
+<div class="endpoint nonbreaking">
+  <span class="method get">GET</span><span class="path">/api/v1/waveform/live</span>
+  <p>实时多台站波形代理（v6.2 实时监测升级）。冻结白名单 4 个环绕日本的开放 GSN 台站（IU MAJO 松代 / YSS 南萨哈林斯克 / INCN 仁川 / TATO 台湾坪林，location 00 · BHZ），上游为 EarthScope NGF FDSN dataselect（匿名开放数据，2026-09-03 验证），服务端解码 miniSEED STEIM1/2（libmseed 权威语义移植）。<strong>返回值为仪器原始计数（counts），未做任何标定，不构成烈度或物理单位</strong>。<code>windowSec</code> 量化到 60 秒步长（60–1200，默认 600）；30 秒键控 LRU 缓存 + 10 分钟 stale-if-error；上游 204 无数据如实返回 <code>nodata:true</code>（绝不伪造平线）；EEW 跟踪事件时面板叠加 P/S 预计到时刻度。参数：<code>sta</code>（白名单）、<code>windowSec</code>。错误：403 白名单外台站 / 429 超限（20/min/IP）/ 502 上游失败且无新鲜缓存。</p>
+  <pre><code>curl "http://localhost:3000/api/v1/waveform/live?sta=MAJO&windowSec=600"</code></pre>
+</div>
+
+<div class="endpoint nonbreaking">
+  <span class="method get">GET</span><span class="method post">POST</span><span class="path">/api/settings</span>
+  <p>本机设置（v6.0.1）。GET 公开返回生效的 TTS 上游配置（无任何机密——设置页保存的 API key 只写不回显）。<strong>POST 仅允许回环地址</strong>（远程访问 403，SSRF 防护；10 次/分钟）：<code>ttsUpstreamUrl</code>（http(s) URL，空串恢复默认）、<code>ttsApiKey</code>（可打印 ASCII，空串清除）、<code>ttsApiKeyMode</code>（query | bearer | x-api-key）。设置即时生效无需重启；<code>TTS_UPSTREAM_URL</code> 环境变量存在时优先且不可改。</p>
+  <pre><code>curl http://localhost:3000/api/settings
+curl -X POST http://localhost:3000/api/settings -H "Content-Type: application/json" -d '{"ttsUpstreamUrl":"http://127.0.0.1:7896/tts"}'</code></pre>
+</div>
+
+<div class="endpoint nonbreaking">
+  <span class="method get">GET</span><span class="path">/health</span>
+  <p>健康检查（不在 <code>/api/</code> 前缀下）。任一实时源（P2PQuake / Wolfx EEW / Wolfx EqList / EMSC）在线返回 200，全部断开返回 503（body 相同，<code>status</code> 为 <code>degraded</code>）。</p>
+  <pre><code>curl http://localhost:3000/health
+{"status":"ok","p2p":"connected","wolfxEew":"connected","wolfxEq":"connected",
+ "emsc":"connected","kmoni":"connected","uptime":13768,"totalUptime":867251,
+ "sseClients":0,"replay":{"frames":16648,"earliest":...,"latest":...,"diskBytes":...,"clients":0},
+ "time":"2026-08-13T16:13:48.898Z"}</code></pre>
+</div>
+
+<!-- ============ DATA APIS ============ -->
+<h2 id="data-apis">数据查询 API</h2>
+
+<div class="endpoint nonbreaking">
+  <span class="method get">GET</span><span class="path">/api/v1/stations</span>
+  <p>分页查询测站目录。数据来源：NIED Hi-net / F-net 陆地测站（1,289 站）+ NIED 官方 DONET1/2、S-net 与 N-net 海底测站（237 站，官方表快照日期 2026-08-01）。官方测站表不提供实时运行状态。</p>
+
+  <h3>查询参数</h3>
+  <table>
+    <tr><th>参数</th><th>类型</th><th>默认</th><th>说明</th></tr>
+    <tr><td><code>page</code></td><td>number</td><td><code>1</code></td><td>页码</td></tr>
+    <tr><td><code>limit</code></td><td>number</td><td><code>50</code></td><td>每页条数（最大 200）</td></tr>
+    <tr><td><code>type</code></td><td>string</td><td><code>all</code></td><td><code>land</code> / <code>seafloor</code> / <code>all</code></td></tr>
+    <tr><td><code>network</code></td><td>string</td><td>—</td><td><code>Hi-net</code> / <code>S-net</code> / <code>DONET1</code> / <code>DONET2</code> / <code>N-net</code> 精确筛选</td></tr>
+    <tr><td><code>name</code></td><td>string</td><td>—</td><td>按名称模糊搜索（不区分大小写）</td></tr>
+  </table>
+
+  <h3>响应 200</h3>
+  <pre><code>{
+  "data": [
+    { "name":"HINOHARA (TOKYO)", "lat":35.7385, "lng":139.0732,
+      "type":"land", "network":"Hi-net", "vs30":150, "siteFactor":1.65, "depth":null },
+    { "name":"M.KMA01", "lat":33.8048, "lng":136.557,
+      "type":"seafloor", "network":"DONET1", "vs30":null, "siteFactor":null, "depth":2039,
+      "officialCode":"M.KMA01", "sourceUrl":"https://www.seafloor.bosai.go.jp/st_info/",
+      "sourceRetrieved":"2026-08-01", "catalogStatus":"listed",
+      "operationalStatus":"not-provided" }
+  ],
+  "pagination": { "page":1, "limit":50, "total":1526, "pages":31 }
+}</code></pre>
+
+  <h3>示例</h3>
+  <pre><code># 获取前 50 站
+curl "http://localhost:3000/api/v1/stations?limit=50"
+
+# 海底测站
+curl "http://localhost:3000/api/v1/stations?type=seafloor"
+
+# N-net
+curl "http://localhost:3000/api/v1/stations?type=seafloor&network=N-net"
+
+# 搜索东京的测站
+curl "http://localhost:3000/api/v1/stations?name=Tokyo"</code></pre>
+</div>
+
+<div class="endpoint nonbreaking">
+  <span class="method get">GET</span><span class="path">/api/v1/quake-catalog</span>
+  <p>分页查询历史/预设地震目录。数据来源：observed.json（15 个预设地震 + 实测震度数据）。</p>
+
+  <h3>查询参数</h3>
+  <table>
+    <tr><th>参数</th><th>类型</th><th>默认</th><th>说明</th></tr>
+    <tr><td><code>page</code></td><td>number</td><td><code>1</code></td><td>页码</td></tr>
+    <tr><td><code>limit</code></td><td>number</td><td><code>20</code></td><td>每页条数（最大 100）</td></tr>
+    <tr><td><code>minMag</code></td><td>number</td><td><code>0</code></td><td>最低震级</td></tr>
+    <tr><td><code>maxMag</code></td><td>number</td><td><code>10</code></td><td>最高震级</td></tr>
+    <tr><td><code>minDepth</code></td><td>number</td><td><code>0</code></td><td>最小深度 km</td></tr>
+    <tr><td><code>maxDepth</code></td><td>number</td><td><code>1000</code></td><td>最大深度 km</td></tr>
+  </table>
+
+  <h3>响应 200</h3>
+  <pre><code>{
+  "data": [
+    { "id":"tohoku", "name":"tohoku", "mag":9.1, "mw":9.1,
+      "sourceType":"interplate", "dip":10, "rake":88,
+      "time":"2011-03-11T14:46:00+09:00", "estimated":false,
+      "observationCount":9, "category":"preset" }
+  ],
+  "pagination": { "page":1, "limit":20, "total":19, "pages":1 }
+}</code></pre>
+
+  <h3>示例</h3>
+  <pre><code># M7+ 地震
+curl "http://localhost:3000/api/v1/quake-catalog?minMag=7"
+</code></pre>
+</div>
+
+<div class="endpoint nonbreaking">
+  <span class="method get">GET</span><span class="path">/api/v1/presets</span>
+  <p>返回全部 15 个预设地震的完整元数据（无分页）。每个预设包含震源机制参数、观测城市列表及最大观测震度。</p>
+
+  <h3>响应 200</h3>
+  <pre><code>{
+  "presets": [
+    { "id":"tohoku", "name":"tohoku", "mag":9.1, "mw":9.1,
+      "sourceType":"interplate", "dip":10, "rake":88,
+      "time":"2011-03-11T14:46:00+09:00", "estimated":false,
+      "observationCount":9,
+      "maxObservedShindo":6.25,
+      "observationCities":["仙台市","石巻市","水戸市","日立市","宇都宮市","福島市","さいたま市","東京都千代田区","横浜市"]
+    }, ...
+  ]
+}</code></pre>
+
+  <h3>示例</h3>
+  <pre><code>curl "http://localhost:3000/api/v1/presets" | jq '.presets[] | {id, mag, sourceType}'</code></pre>
+</div>
+
+<!-- ============ WEBHOOKS ============ -->
+<h2 id="webhooks">Webhook API</h2>
+
+<p>让外部服务订阅地震模拟器的事件。地震发生时、TTS 速报生成时、数据源状态变化时，服务器会主动 POST 到注册的 URL。</p>
+
+<div class="note">
+  <strong>⚠ 安全提示：</strong>Webhook 功能涉及服务器主动向外部 URL 发送请求。请务必保护好 API Key，避免泄露给不可信的第三方。如果不需要此功能，可通过环境变量 <code>WEBHOOKS_ENABLED=false</code> 完全关闭。所有 webhook 操作均需 API Key 鉴权。
+</div>
+
+<div class="note info">
+  <strong>限制：</strong>每个 API Key 最多 10 个 webhook，URL 必须以 <code>http://</code> 或 <code>https://</code> 开头。注册后服务器会发送验证 ping，接收方须 5 秒内返回 200 且响应体包含 challenge 字符串。
+</div>
+
+<h3>事件类型</h3>
+<table>
+<tr><th>事件</th><th>触发时机</th><th>payload.data 内容</th></tr>
+<tr><td><code>earthquake.detected</code></td><td>P2PQuake/Wolfx/EMSC 实时推送地震</td><td>mag, lat, lng, depth, place, maxShindo, time, source</td></tr>
+<tr><td><code>bulletin.published</code></td><td>TTS 速报播单生成</td><td>mag, maxShindo, depth, tsunamiLevel, fragmentCount, lang</td></tr>
+<tr><td><code>source.status_change</code></td><td>数据源连接/断开</td><td>source, name, previousState, newState</td></tr>
+<tr><td><code>simulation.complete</code></td><td>模拟完成（客户端经 <code>/api/v1/simulation/complete</code> 触发）</td><td>mag, lat, lng, depth, maxShindo, duration, time</td></tr>
+</table>
+
+<div class="endpoint">
+  <span class="method post">POST</span><span class="path">/api/v1/webhooks</span>
+  <span class="tag auth">API Key</span>
+  <p>注册一个新的 webhook 事件订阅。</p>
+
+  <h3>请求</h3>
+  <pre><code>POST /api/v1/webhooks?key=YOUR_API_KEY
+Content-Type: application/json
+
+{
+  "url": "https://mybot.example.com/quake-hook",
+  "events": ["earthquake.detected", "bulletin.published"],
+  "secret": "my_hmac_secret"
+}</code></pre>
+
+  <h3>响应 201</h3>
+  <pre><code>{
+  "ok": true,
+  "hook": {
+    "id": "wh_abc123def456",
+    "url": "https://mybot.example.com/quake-hook",
+    "events": ["earthquake.detected", "bulletin.published"],
+    "hasSecret": true,
+    "created": 1719700000000,
+    "status": "active",
+    "lastDelivery": null
+  }
+}</code></pre>
+</div>
+
+<div class="endpoint nonbreaking">
+  <span class="method get">GET</span><span class="path">/api/v1/webhooks</span>
+  <span class="tag auth">API Key</span>
+  <p>列出所有已注册的 webhooks（secret 脱敏）。</p>
+  <pre><code>{"webhooks": [...]}</code></pre>
+</div>
+
+<div class="endpoint nonbreaking">
+  <span class="method delete">DELETE</span><span class="path">/api/v1/webhooks/:id</span>
+  <span class="tag auth">API Key</span>
+  <p>删除指定 webhook。</p>
+  <pre><code>{"ok": true}</code></pre>
+</div>
+
+<div class="endpoint nonbreaking">
+  <span class="method patch">PATCH</span><span class="path">/api/v1/webhooks/:id/activate</span>
+  <span class="tag auth">API Key</span>
+  <p>重新激活因连续失败被自动暂停的 webhook。</p>
+  <pre><code>curl -X PATCH "http://localhost:3000/api/v1/webhooks/wh_abc123def456/activate?key=YOUR_API_KEY"</code></pre>
+</div>
+
+<div class="endpoint nonbreaking">
+  <span class="method post">POST</span><span class="path">/api/v1/simulation/complete</span>
+  <span class="tag auth">API Key</span>
+  <p>客户端模拟结束后调用，向所有订阅者投递 <code>simulation.complete</code> 事件。</p>
+  <pre><code>curl -X POST "http://localhost:3000/api/v1/simulation/complete?key=YOUR_API_KEY" \
+  -H 'Content-Type: application/json' \
+  -d '{"mag":7.0,"lat":35.6,"lng":139.8,"depth":30,"maxShindo":"6+","duration":60}'</code></pre>
+</div>
+
+<h3>递送格式</h3>
+<p>事件发生时，服务器 POST 到注册的 URL：</p>
+<pre><code>POST https://mybot.example.com/quake-hook
+Content-Type: application/json
+X-QuakeSim-Event: earthquake.detected
+X-QuakeSim-Event-Id: evt_lxr9k2_abc123
+X-QuakeSim-Delivery: 1
+X-QuakeSim-Signature: sha256=3f8a9b...
+
+{
+  "id": "evt_lxr9k2_abc123",
+  "type": "earthquake.detected",
+  "timestamp": "2026-06-30T14:30:00.000Z",
+  "data": {
+    "mag": 6.5,
+    "lat": 35.6,
+    "lng": 139.8,
+    "depth": 50,
+    "place": "Tokyo Bay",
+    "maxShindo": "5+",
+    "source": "p2pquake"
+  }
+}</code></pre>
+
+<h3>HMAC 签名验证</h3>
+<pre><code>// 接收方验证签名（Node.js 示例）
+const crypto = require('crypto');
+const sig = req.headers['x-quakesim-signature'];
+const expected = 'sha256=' + crypto.createHmac('sha256', SECRET).update(rawBody).digest('hex');
+if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) {
+  res.status(401).json({ error: 'Invalid signature' });
+}</code></pre>
+
+<h3>递送特性</h3>
+<table>
+<tr><th>特性</th><th>说明</th></tr>
+<tr><td>超时</td><td>每次递送 5 秒超时</td></tr>
+<tr><td>重试</td><td>最多 3 次，间隔 10s → 60s → 300s</td></tr>
+<tr><td>自动暂停</td><td>连续 10 次失败后自动暂停（需管理员手动重新激活）</td></tr>
+<tr><td>去重</td><td>同一事件 ID 不会向同一 webhook 重复递送</td></tr>
+<tr><td>异步</td><td>递送不阻塞主事件循环</td></tr>
+</table>
+
+<!-- ============ TTS APIS ============ -->
+<h2 id="tts">TTS 速报 API</h2>
+
+<div class="note">
+  <strong>说明：</strong><code>/tts/bulletin</code> 返回预生成 WAV 片段列表；<code>/tts/synthesize</code> 实时生成完整 MP3 音频。
+</div>
+
+<div class="endpoint nonbreaking">
+  <span class="method get">GET</span><span class="method post">POST</span><span class="path">/api/v1/tts/synthesize</span>
+  <span class="tag rate">60次/分钟/IP · API key 240次/分钟</span>
+  <p>实时合成完整播报并返回 <code>audio/mpeg</code>。<code>text</code> 必填且最多 300 字符；<code>voice</code> 默认日语女声 <code>ja-JP-NanamiNeural</code>（全部可用语音见 <code>/tts/voices</code> 的 <code>neuralVoices</code>，日/中/英/韩共 11 个）。相同 voice+text 命中服务端 LRU 缓存，响应头 <code>X-TTS-Cache: HIT|MISS</code> 标识。匿名调用按 IP 限流 60 次/分钟；使用 <code>?key=YOUR_KEY</code> 或 <code>Authorization: Bearer YOUR_KEY</code> 认证后按 key 计 240 次/分钟，并计入开发者门户用量。上游服务不可用时返回 <code>502 UPSTREAM_ERROR</code>。</p>
+  <pre><code>curl -G "http://localhost:3000/api/v1/tts/synthesize" \
+  --data-urlencode "text=地震情報。最大震度6強を観測しました。" \
+  --data-urlencode "voice=ja-JP-NanamiNeural" \
+  -o bulletin.mp3</code></pre>
+  <p>长文本或非 ASCII 文本建议用 POST JSON（避免 URL 编码长度问题）：</p>
+  <pre><code>curl -X POST "http://localhost:3000/api/v1/tts/synthesize" \
+  -H "Content-Type: application/json" \
+  -d '{"text":"津波警報が発表されました。","voice":"ja-JP-NanamiNeural"}' \
+  -o tsunami.mp3</code></pre>
+</div>
+
+<div class="endpoint">
+  <span class="method get">GET</span><span class="path">/api/v1/tts/languages</span>
+  <p>返回可用的 TTS 语言列表。</p>
+  <pre><code>{"languages": ["jp", "en", "zh"]}</code></pre>
+</div>
+
+<div class="endpoint">
+  <span class="method get">GET</span><span class="path">/api/v1/tts/fragments</span>
+  <p>返回所有 audio fragment 的元数据目录（用于调试和文档）。</p>
+  <details>
+    <summary>响应示例</summary>
+    <pre><code>{
+  "numbers": { "count": 100, "pattern": "num_00..num_99" },
+  "prefectures": { "count": 47, "pattern": "pref_01..pref_47" },
+  "fixedPhrases": {
+    "count": 12,
+    "keysJP": ["ph_hour","ph_min","ph_intro1","ph_intro2","ph_mag",
+               "ph_depth","ph_km","ph_decimal","ph_tsu_major",
+               "ph_tsu_warning","ph_tsu_advisory","ph_affected"],
+    "keysEN": ["ph_intro1","ph_intro2","ph_mag","ph_depth","ph_km",
+               "ph_decimal","ph_tsu_major","ph_tsu_warning",
+               "ph_tsu_advisory","ph_affected"],
+    "note": "English lacks ph_hour and ph_min"
+  },
+  "intensityShorts": { "count": 10, "keys": ["int_0".."int_7","int_5m","int_5p","int_6m","int_6p"] },
+  "languages": ["jp","en","zh"],
+  "soundBase": "sounds/{lang}/info/female/"
+}</code></pre>
+  </details>
+</div>
+
+<div class="endpoint nonbreaking">
+  <span class="method get">GET</span><span class="path">/api/v1/tts/voices</span>
+  <p>返回可用的 TTS 语音元数据（语言、引擎、片段数量等）。</p>
+  <pre><code>{
+  "voices": [
+    { "id": "jp-female", "lang": "jp", "gender": "female",
+      "name": "ja-JP-NanamiNeural", "engine": "edge-tts",
+      "fragmentCount": 179, "description": "Japanese female voice (Nanami)" },
+    { "id": "en-female", "lang": "en", "gender": "female",
+      "name": "en-US-JennyNeural", "engine": "edge-tts",
+      "fragmentCount": 177, "description": "English female voice (Jenny)" },
+    { "id": "zh-female", "lang": "zh", "gender": "female",
+      "name": "zh-CN-XiaoxiaoNeural", "engine": "edge-tts",
+      "fragmentCount": 179, "description": "Chinese female voice (Xiaoxiao)" }
+  ],
+  "neuralVoices": [
+    { "name": "ja-JP-NanamiNeural", "lang": "ja", "gender": "female" },
+    { "name": "ja-JP-KeitaNeural",  "lang": "ja", "gender": "male" },
+    { "name": "zh-CN-XiaoxiaoNeural", "lang": "zh", "gender": "female" },
+    { "name": "en-US-JennyNeural",  "lang": "en", "gender": "female" },
+    { "name": "ko-KR-SunHiNeural",  "lang": "ko", "gender": "female" },
+    "... 共 11 个（日3/中3/英3/韩2）"
+  ]
+}</code></pre>
+</div>
+
+<div class="endpoint">
+  <span class="method post">POST</span><span class="path">/api/v1/tts/bulletin</span>
+  <span class="tag rate">10次/分钟/IP</span>
+  <p>核心端点：接收地震参数，返回有序的 TTS fragment 播单。每个 fragment 默认包含 <code>text</code> 字段（对应语言的人类可读文本稿）。传 <code>?text=0</code> 可在查询字符串中省略 text 字段以减少响应体积。</p>
+
+  <h3>请求</h3>
+  <pre><code>POST /api/v1/tts/bulletin
+Content-Type: application/json
+
+{
+  "lang": "zh",
+  "mag": 7.0,
+  "depth": 30,
+  "maxShindo": "6+",
+  "tsunamiLevel": 2,
+  "time": "2026-06-27T14:30:00+09:00",
+  "affected": [
+    { "id": 13, "shindo": "6+" },
+    { "id": 14, "shindo": "5+" }
+  ]
+}</code></pre>
+
+  <h3>请求参数</h3>
+  <table>
+    <tr><th>参数</th><th>类型</th><th>必填</th><th>说明</th></tr>
+    <tr><td><code>lang</code></td><td>string</td><td>是</td><td><code>jp</code> / <code>en</code> / <code>zh</code>（无效值回退到 jp）</td></tr>
+    <tr><td><code>mag</code></td><td>number</td><td>是</td><td>震级 Mw（支持小数）</td></tr>
+    <tr><td><code>depth</code></td><td>number</td><td>是</td><td>震源深度 km（≥100 时逐位播报）</td></tr>
+    <tr><td><code>maxShindo</code></td><td>number/string</td><td>是</td><td>最大震度: <code>0</code>-<code>7</code>, <code>"5-"</code>, <code>"5+"</code>, <code>"6-"</code>, <code>"6+"</code></td></tr>
+    <tr><td><code>tsunamiLevel</code></td><td>number</td><td>否</td><td><code>0</code>=无 <code>1</code>=注意报 <code>2</code>=警报 <code>3</code>=大海啸警报</td></tr>
+    <tr><td><code>time</code></td><td>string</td><td>否</td><td>发震时刻（ISO 8601 或 Date 对象），null=跳过</td></tr>
+    <tr><td><code>affected</code></td><td>array</td><td>否</td><td>受灾都道府県 <code>{"id":N, "shindo":"X"}</code>，按震度降序播报</td></tr>
+    <tr><td><code>affectedByShindo</code></td><td>object</td><td>否</td><td>替代格式: <code>{"13":"6+", "14":"5-"}</code>（仅震度≥3播报）</td></tr>
+  </table>
+
+  <h3>响应 200</h3>
+  <pre><code>{
+  "fragments": [
+    { "name": "num_14",   "path": "http://.../sounds/zh/info/female/num_14.wav",    "vol": 1,    "type": "time" },
+    { "name": "ph_hour",  "path": "http://.../sounds/zh/info/female/ph_hour.wav",   "vol": 1,    "type": "time" },
+    { "name": "num_30",   "path": "http://.../sounds/zh/info/female/num_30.wav",    "vol": 1,    "type": "time" },
+    { "name": "ph_intro1","path": "http://.../sounds/zh/info/female/ph_intro1.wav", "vol": 1,    "type": "intro" },
+    { "name": "int_6p",   "path": "http://.../sounds/zh/info/female/int_6p.wav",    "vol": 1,    "type": "shindo" },
+    { "name": "ph_intro2","path": "http://.../sounds/zh/info/female/ph_intro2.wav", "vol": 1,    "type": "intro" },
+    { "name": "ph_mag",   "path": "http://.../sounds/zh/info/female/ph_mag.wav",    "vol": 1,    "type": "mag" },
+    { "name": "num_07",   "path": "http://.../sounds/zh/info/female/num_07.wav",    "vol": 1,    "type": "mag" },
+    { "name": "ph_depth", "path": "http://.../sounds/zh/info/female/ph_depth.wav",  "vol": 1,    "type": "depth" },
+    { "name": "num_30",   "path": "http://.../sounds/zh/info/female/num_30.wav",    "vol": 1,    "type": "depth" },
+    { "name": "ph_km",    "path": "http://.../sounds/zh/info/female/ph_km.wav",     "vol": 1,    "type": "depth" },
+    { "name": "ph_tsu_warning", "path": "http://.../sounds/zh/info/female/ph_tsu_warning.wav", "vol": 1, "type": "tsunami" },
+    { "name": "ph_affected","path": "http://.../sounds/zh/info/female/ph_affected.wav","vol": 1, "type": "affected" },
+    { "name": "pref_13",  "path": "http://.../sounds/zh/info/female/pref_13.wav",   "vol": 1,    "type": "pref" },
+    { "name": "int_6p",   "path": "http://.../sounds/zh/info/female/int_6p.wav",    "vol": 0.85, "type": "pref_int" },
+    { "name": "pref_14",  "path": "http://.../sounds/zh/info/female/pref_14.wav",   "vol": 1,    "type": "pref" },
+    { "name": "int_5p",   "path": "http://.../sounds/zh/info/female/int_5p.wav",    "vol": 0.85, "type": "pref_int" }
+  ],
+  "summary": { "lang": "zh", "totalFragments": 17, "urlBase": "http://..." }
+}</code></pre>
+
+  <h3>fragment 字段</h3>
+  <table>
+    <tr><th>字段</th><th>类型</th><th>说明</th></tr>
+    <tr><td><code>name</code></td><td>string</td><td>文件名（不含路径和扩展名）</td></tr>
+    <tr><td><code>path</code></td><td>string</td><td>完整音频 URL（如 urlBase 为空则为相对路径）</td></tr>
+    <tr><td><code>vol</code></td><td>number</td><td>建议播放音量 0-1（pref_int 为 0.85）</td></tr>
+    <tr><td><code>type</code></td><td>string</td><td>类型标签: time/intro/shindo/mag/depth/tsunami/affected/pref/pref_int</td></tr>
+    <tr><td><code>text</code></td><td>string|null</td><td>可读文本（默认填充对应语言的文字稿；可传 <code>?text=0</code> 省略以减小响应体）</td></tr>
+  </table>
+
+  <h3>播报顺序</h3>
+  <table>
+    <tr><th>#</th><th>type</th><th>内容</th><th>说明</th></tr>
+    <tr><td>1</td><td><code>time</code></td><td>HH + 时 + MM + 分</td><td>发震时刻（英文无"时/分"后缀）</td></tr>
+    <tr><td>2</td><td><code>intro</code> + <code>shindo</code></td><td>速报开场 + 最大震度 + 结尾</td><td>震度值映射到 <code>int_*</code> fragment</td></tr>
+    <tr><td>3</td><td><code>mag</code></td><td>震级 + 整数 + . + 小数</td><td>小数部分仅在有小数时播报</td></tr>
+    <tr><td>4</td><td><code>depth</code></td><td>深度 + 数值 + km</td><td>≥100km 逐位播报（150→"一,五,零"）</td></tr>
+    <tr><td>5</td><td><code>tsunami</code></td><td>海啸等级</td><td>仅在 tsunamiLevel ≥ 1 时播报</td></tr>
+    <tr><td>6</td><td><code>affected</code> + <code>pref</code> + <code>pref_int</code></td><td>受灾都道府県列表</td><td>仅震度 ≥ 3，按震度降序，vol=0.85</td></tr>
+  </table>
+
+  <h3>错误</h3>
+  <table>
+    <tr><th>状态码</th><th>错误码</th><th>说明</th></tr>
+    <tr><td>400</td><td><code>INVALID_JSON</code></td><td>JSON 格式错误</td></tr>
+    <tr><td>429</td><td><code>RATE_LIMITED</code></td><td>速率限制超限（每 IP 每分钟 10 次）</td></tr>
+  </table>
+</div>
+
+<!-- ============ UTILITY ============ -->
+<h2 id="utility">工具 API</h2>
+
+<div class="endpoint nonbreaking">
+  <span class="method get">GET</span><span class="path">/api/v1/counter</span>
+  <span class="tag rate">1次/秒/IP</span>
+  <p>递增并返回全局访问计数。同一 IP 每秒最多递增一次（超限返回当前值但不递增）。</p>
+  <pre><code>{"count": 12345, "totalUptime": 867251}</code></pre>
+</div>
+
+<!-- ============ TEST ============ -->
+<h2 id="test">测试 API</h2>
+
+<div class="endpoint">
+  <span class="method post">POST</span><span class="path">/api/v1/test/earthquake</span>
+  <span class="tag auth">需要 API Key</span>
+  <p>向 SSE 流注入一个模拟地震事件，用于测试实时推送。</p>
+
+  <h3>请求</h3>
+  <pre><code>POST /api/v1/test/earthquake?key=YOUR_API_KEY
+Content-Type: application/json
+
+{
+  "mag": 6.5,
+  "lat": 35.6,
+  "lng": 139.8,
+  "depth": 50,
+  "place": "Test Earthquake",
+  "shindo": "5+",
+  "code": 5611,
+  "time": "2026-06-27T14:30:00+09:00"
+}</code></pre>
+
+  <h3>请求参数</h3>
+  <table>
+    <tr><th>参数</th><th>类型</th><th>默认</th><th>说明</th></tr>
+    <tr><td><code>mag</code></td><td>number</td><td><code>5.0</code></td><td>震级（-2 ~ 12）</td></tr>
+    <tr><td><code>lat</code></td><td>number</td><td><code>35</code></td><td>纬度（-90 ~ 90）</td></tr>
+    <tr><td><code>lng</code></td><td>number</td><td><code>140</code></td><td>经度（-180 ~ 180）</td></tr>
+    <tr><td><code>depth</code></td><td>number</td><td><code>30</code></td><td>深度 km（0 ~ 1000）</td></tr>
+    <tr><td><code>place</code></td><td>string</td><td><code>"Test"</code></td><td>地名（最长 200 字符）</td></tr>
+    <tr><td><code>shindo</code></td><td>string</td><td><code>"4"</code></td><td>震度（最长 20 字符）</td></tr>
+    <tr><td><code>code</code></td><td>number</td><td><code>5611</code></td><td>事件代码</td></tr>
+    <tr><td><code>time</code></td><td>string</td><td>当前时间</td><td>ISO 8601 时刻</td></tr>
+    <tr><td><code>serial</code></td><td>number</td><td><code>1</code></td><td>序列号</td></tr>
+  </table>
+
+  <h3>响应 200</h3>
+  <pre><code>{"ok": true, "msg": "Event broadcast to 3 clients"}</code></pre>
+
+  <h3>限制</h3>
+  <p>请求体最大 64KB；每 IP 每分钟 10 次。</p>
+</div>
+
+<div class="endpoint">
+  <span class="method post">POST</span><span class="path">/api/v1/test/eew</span>
+  <span class="tag auth">需要 API Key</span>
+  <span class="tag rate">10次/分钟/IP</span>
+  <p>向 SSE 流注入一帧 Wolfx 格式的测试 JMA EEW（<code>jma_eew</code>），默认 <code>isTraining=true</code>，用于无真实速报时调试 EEW 客户端。</p>
+
+  <h3>请求</h3>
+  <pre><code>POST /api/v1/test/eew?key=YOUR_API_KEY
+Content-Type: application/json
+
+{
+  "eventId": "TEST001", "serial": 1,
+  "lat": 34.7, "lng": 139.5, "mag": 6.5, "depth": 20,
+  "place": "テスト震源地", "maxInt": "4",
+  "warnAreas": ["神奈川県", "東京都"], "isWarn": false
+}</code></pre>
+  <p>可选布尔字段：<code>isSea</code> / <code>isTraining</code>（默认 true）/ <code>isAssumption</code> / <code>isWarn</code> / <code>isFinal</code> / <code>isCancel</code>。</p>
+
+  <h3>响应 200</h3>
+  <pre><code>{"ok": true, "msg": "EEW broadcast to 3 clients", "eventId": "TEST001", "serial": 1}</code></pre>
+
+  <h3>限制</h3>
+  <p>请求体最大 64KB；每 IP 每分钟 10 次。</p>
+</div>
+
+<!-- ============ DEVELOPER PORTAL ============ -->
+<h2 id="dev">开发者门户 API</h2>
+
+<p>自助注册开发者账号并管理 API Key（也可直接使用 <a href="/developer">Developer Portal</a> 页面）。登录返回的会话 token 有效期 24 小时，之后用 <code>Authorization: Bearer &lt;token&gt;</code> 调用。</p>
+
+<div class="endpoint nonbreaking">
+  <span class="method post">POST</span><span class="path">/api/v1/dev/register</span>
+  <span class="tag rate">3次/小时/IP</span>
+  <p>注册账号。用户名 3-20 位字母/数字/下划线，密码 ≥ 6 位。</p>
+  <pre><code>curl -X POST http://localhost:3000/api/v1/dev/register \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"myuser","password":"secret123"}'
+# 201 {"ok":true,"username":"myuser","message":"Account created. You can now log in."}</code></pre>
+</div>
+
+<div class="endpoint nonbreaking">
+  <span class="method post">POST</span><span class="path">/api/v1/dev/login</span>
+  <span class="tag rate">15 分钟内 5 次失败</span>
+  <p>登录，返回 24 小时有效的会话 token。</p>
+  <pre><code>curl -X POST http://localhost:3000/api/v1/dev/login \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"myuser","password":"secret123"}'
+# {"ok":true,"token":"...","username":"myuser","expiresIn":86400}</code></pre>
+</div>
+
+<div class="endpoint nonbreaking">
+  <span class="method post">POST</span><span class="path">/api/v1/dev/logout</span>
+  <p>登出并使 token 失效。响应 <code>{"ok":true}</code>。</p>
+</div>
+
+<div class="endpoint nonbreaking">
+  <span class="method get">GET</span><span class="path">/api/v1/dev/me</span>
+  <p>当前账号信息：<code>{"username","created","apiKeyCount"}</code>。</p>
+</div>
+
+<div class="endpoint nonbreaking">
+  <span class="method get">GET</span>/<span class="method post">POST</span><span class="path">/api/v1/dev/keys</span>
+  <p>GET 列出我的 API Key（含脱敏 <code>key</code> 与前缀标识 <code>id</code>、<code>label</code>、<code>created</code>、<code>lastUsed</code>、<code>requestCount</code>；完整 key 仅在创建时返回一次，服务端只存哈希）；POST 创建新 key（每账号最多 10 个）。</p>
+  <pre><code>curl -X POST http://localhost:3000/api/v1/dev/keys \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"label":"my-app"}'
+# 201 {"ok":true,"key":"qs-...","label":"my-app"}</code></pre>
+</div>
+
+<div class="endpoint nonbreaking">
+  <span class="method delete">DELETE</span><span class="path">/api/v1/dev/keys/:key</span>
+  <p>删除自己的某个 API Key（路径参数为完整 key）。</p>
+</div>
+
+<div class="endpoint nonbreaking">
+  <span class="method get">GET</span><span class="path">/api/v1/dev/usage</span>
+  <p>我的 key 用量概览：<code>{"username","keyCount","totalRequests","todayRequests","weekRequests"}</code>（日/周为近似值）。</p>
+</div>
+
+<!-- ============ ADMIN ============ -->
+<h2 id="admin">管理 API</h2>
+
+<p>服务器管理端点。先 <code>POST /api/v1/admin/login</code>（body <code>{"password":"..."}</code>）获取 admin token（24 小时，15 分钟内 5 次失败锁定），之后带 <code>Authorization: Bearer &lt;token&gt;</code>。管理端点使用内部错误格式 <code>{"ok":false,"error":"..."}</code>。</p>
+
+<table>
+<tr><th>方法</th><th>路径</th><th>说明</th></tr>
+<tr><td><span class="method post">POST</span></td><td><code>/api/v1/admin/login</code></td><td>管理员登录，返回 <code>{"ok","token","expiresIn"}</code></td></tr>
+<tr><td><span class="method post">POST</span></td><td><code>/api/v1/admin/logout</code></td><td>登出并使 token 失效</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/admin/expiry</code></td><td>查询服务到期时间（公开，无需 token）：<code>{"expiresAt","daysLeft"}</code></td></tr>
+<tr><td><span class="method post">POST</span></td><td><code>/api/v1/admin/expiry</code></td><td>设置到期时间，body <code>{"expiresAt":"..."}</code></td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/admin/stats</code></td><td>流量统计 <code>{"bytesUp","bytesDown","requests","visits"}</code></td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/admin/system</code></td><td>运行状态（uptime、Node 版本、内存、PID）</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/admin/daily</code></td><td>每日访问趋势</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/admin/errors</code></td><td>错误日志（最近 50 条）</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/admin/iplogs</code></td><td>IP 访问日志（最近 100 条）</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/admin/sources</code></td><td>数据源健康状态</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/v1/admin/apikeys</code></td><td>列出 API Key（脱敏）</td></tr>
+<tr><td><span class="method post">POST</span></td><td><code>/api/v1/admin/apikeys</code></td><td>生成新 API Key，body <code>{"label":"..."}</code></td></tr>
+<tr><td><span class="method delete">DELETE</span></td><td><code>/api/v1/admin/apikeys/:key</code></td><td>吊销 API Key（至少保留一个）</td></tr>
+<tr><td><span class="method patch">PATCH</span></td><td><code>/api/v1/admin/counter</code></td><td>设置访问计数，body <code>{"count":N}</code></td></tr>
+<tr><td><span class="method patch">PATCH</span></td><td><code>/api/v1/admin/requests</code></td><td>设置请求计数，body <code>{"requests":N}</code></td></tr>
+</table>
+
+<!-- ============ CLIENT EXAMPLES ============ -->
+<h2 id="client">客户端示例</h2>
+
+<h3>Web Audio API 播放 TTS 速报</h3>
+<pre><code>async function playBulletin(fragments) {
+  const ctx = new AudioContext();
+  let t = ctx.currentTime + 0.1;
+  for (const frag of fragments) {
+    const resp = await fetch(frag.path);
+    const buf = await ctx.decodeAudioData(await resp.arrayBuffer());
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const gain = ctx.createGain();
+    gain.gain.value = frag.vol;
+    src.connect(gain).connect(ctx.destination);
+    src.start(t);
+    t += buf.duration;
+  }
+}
+
+const resp = await fetch('/api/v1/tts/bulletin', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ lang:'zh', mag:7.0, depth:30, maxShindo:'6+' })
+});
+const { fragments } = await resp.json();
+playBulletin(fragments);</code></pre>
+
+<h3>curl + ffplay 命令行播放</h3>
+<pre><code>curl -s -X POST http://localhost:3000/api/v1/tts/bulletin \
+  -H 'Content-Type: application/json' \
+  -d '{"lang":"jp","mag":7.0,"depth":30,"maxShindo":"6+"}' \
+  | jq -r '.fragments[].path' \
+  | while read url; do ffplay -nodisp -autoexit "$url"; done</code></pre>
+
+<h3>SSE 实时地震监听</h3>
+<pre><code>const es = new EventSource('/api/v1/p2pquake/stream');
+es.addEventListener('message', (e) => {
+  const { type, event } = JSON.parse(e.data);
+  if (type === 'p2pquake') {
+    console.log(`M${event.mag} — ${event.place} (震度${event.maxShindo})`);
+  }
+});
+es.onerror = () => console.log('SSE disconnected, retrying...');</code></pre>
+
+<h3>curl 获取地震目录</h3>
+<pre><code># 查询最近 M5+ 地震
+curl "http://localhost:3000/api/v1/catalog?starttime=2024-01-01&minmag=5"
+
+# 获取波形数据
+curl "http://localhost:3000/api/v1/waveform?station=MAJO&hours=2"</code></pre>
+
+<!-- ============ PREFECTURE TABLE ============ -->
+<h2 id="pref">都道府県编号</h2>
+
+<table>
+<tr><th>ID</th><th>日</th><th>英</th><th>中</th><th>ID</th><th>日</th><th>英</th><th>中</th></tr>
+<tr><td>01</td><td>北海道</td><td>Hokkaido</td><td>北海道</td><td>25</td><td>滋賀県</td><td>Shiga</td><td>滋贺县</td></tr>
+<tr><td>02</td><td>青森県</td><td>Aomori</td><td>青森县</td><td>26</td><td>京都府</td><td>Kyoto</td><td>京都府</td></tr>
+<tr><td>03</td><td>岩手県</td><td>Iwate</td><td>岩手县</td><td>27</td><td>大阪府</td><td>Osaka</td><td>大阪府</td></tr>
+<tr><td>04</td><td>宮城県</td><td>Miyagi</td><td>宫城县</td><td>28</td><td>兵庫県</td><td>Hyogo</td><td>兵库县</td></tr>
+<tr><td>05</td><td>秋田県</td><td>Akita</td><td>秋田县</td><td>29</td><td>奈良県</td><td>Nara</td><td>奈良县</td></tr>
+<tr><td>06</td><td>山形県</td><td>Yamagata</td><td>山形县</td><td>30</td><td>和歌山県</td><td>Wakayama</td><td>和歌山县</td></tr>
+<tr><td>07</td><td>福島県</td><td>Fukushima</td><td>福岛县</td><td>31</td><td>鳥取県</td><td>Tottori</td><td>鸟取县</td></tr>
+<tr><td>08</td><td>茨城県</td><td>Ibaraki</td><td>茨城县</td><td>32</td><td>島根県</td><td>Shimane</td><td>岛根县</td></tr>
+<tr><td>09</td><td>栃木県</td><td>Tochigi</td><td>栃木县</td><td>33</td><td>岡山県</td><td>Okayama</td><td>冈山县</td></tr>
+<tr><td>10</td><td>群馬県</td><td>Gunma</td><td>群马县</td><td>34</td><td>広島県</td><td>Hiroshima</td><td>广岛县</td></tr>
+<tr><td>11</td><td>埼玉県</td><td>Saitama</td><td>埼玉县</td><td>35</td><td>山口県</td><td>Yamaguchi</td><td>山口县</td></tr>
+<tr><td>12</td><td>千葉県</td><td>Chiba</td><td>千叶县</td><td>36</td><td>徳島県</td><td>Tokushima</td><td>德岛县</td></tr>
+<tr><td>13</td><td>東京都</td><td>Tokyo</td><td>东京都</td><td>37</td><td>香川県</td><td>Kagawa</td><td>香川县</td></tr>
+<tr><td>14</td><td>神奈川県</td><td>Kanagawa</td><td>神奈川县</td><td>38</td><td>愛媛県</td><td>Ehime</td><td>爱媛县</td></tr>
+<tr><td>15</td><td>新潟県</td><td>Niigata</td><td>新潟县</td><td>39</td><td>高知県</td><td>Kochi</td><td>高知县</td></tr>
+<tr><td>16</td><td>富山県</td><td>Toyama</td><td>富山县</td><td>40</td><td>福岡県</td><td>Fukuoka</td><td>福冈县</td></tr>
+<tr><td>17</td><td>石川県</td><td>Ishikawa</td><td>石川县</td><td>41</td><td>佐賀県</td><td>Saga</td><td>佐贺县</td></tr>
+<tr><td>18</td><td>福井県</td><td>Fukui</td><td>福井县</td><td>42</td><td>長崎県</td><td>Nagasaki</td><td>长崎县</td></tr>
+<tr><td>19</td><td>山梨県</td><td>Yamanashi</td><td>山梨县</td><td>43</td><td>熊本県</td><td>Kumamoto</td><td>熊本县</td></tr>
+<tr><td>20</td><td>長野県</td><td>Nagano</td><td>长野县</td><td>44</td><td>大分県</td><td>Oita</td><td>大分县</td></tr>
+<tr><td>21</td><td>岐阜県</td><td>Gifu</td><td>岐阜县</td><td>45</td><td>宮崎県</td><td>Miyazaki</td><td>宫崎县</td></tr>
+<tr><td>22</td><td>静岡県</td><td>Shizuoka</td><td>静冈县</td><td>46</td><td>鹿児島県</td><td>Kagoshima</td><td>鹿儿岛县</td></tr>
+<tr><td>23</td><td>愛知県</td><td>Aichi</td><td>爱知县</td><td>47</td><td>沖縄県</td><td>Okinawa</td><td>冲绳县</td></tr>
+<tr><td>24</td><td>三重県</td><td>Mie</td><td>三重县</td><td></td><td></td><td></td><td></td></tr>
+</table>
+
+<!-- ============ AUDIO FILES ============ -->
+<h2 id="audio">音频文件结构</h2>
+<pre><code>sounds/{lang}/info/female/
+├── num_00.wav .. num_99.wav    # 数字 0-99
+├── pref_01.wav .. pref_47.wav  # 都道府県名
+├── ph_hour.wav                  # 「時」(JP/ZH only)
+├── ph_min.wav                   # 「分」(JP/ZH only)
+├── ph_intro1.wav / ph_intro2.wav # 速报开场
+├── ph_mag.wav                   # 「マグニチュード」
+├── ph_depth.wav                 # 「深さ」
+├── ph_km.wav                    # 「キロ」
+├── ph_decimal.wav               # 「点」
+├── ph_tsu_major/warning/advisory.wav
+├── ph_affected.wav
+├── int_0.wav .. int_7.wav       # 震度短縮形
+├── int_5m.wav / int_5p.wav      # 震度5弱/強
+└── int_6m.wav / int_6p.wav      # 震度6弱/強</code></pre>
+
+<p>文件数：日文/中文 179 · 英文 177（缺少 <code>ph_hour</code> 和 <code>ph_min</code>）<br>
+格式：16kHz 单声道 PCM s16le WAV · 语音：edge-tts Microsoft Neural TTS</p>
+
+<!-- ============ INTERACTIVE CONSOLE ============ -->
+<h2 id="console">在线测试</h2>
+
+<div id="api-console" style="background:var(--panel-bg);border-radius:8px;padding:20px;margin-top:16px">
+  <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px">
+    <div style="flex:1;min-width:200px">
+      <label style="display:block;font-size:.8em;color:var(--text-secondary);margin-bottom:4px">端点</label>
+      <select id="console-endpoint" style="width:100%;padding:8px;background:var(--code-bg);color:var(--text);border:1px solid var(--border);border-radius:4px;font-family:monospace;font-size:.85em"></select>
+    </div>
+    <div style="flex:1;min-width:200px">
+      <label style="display:block;font-size:.8em;color:var(--text-secondary);margin-bottom:4px">查询参数 (key=value, 用 & 分隔)</label>
+      <input id="console-params" type="text" placeholder="limit=5&type=land" style="width:100%;padding:8px;background:var(--code-bg);color:var(--text);border:1px solid var(--border);border-radius:4px;font-family:monospace;font-size:.85em">
+    </div>
+    <div>
+      <label style="display:block;font-size:.8em;color:var(--text-secondary);margin-bottom:4px">API Key (可选)</label>
+      <input id="console-key" type="text" placeholder="qs-..." style="width:180px;padding:8px;background:var(--code-bg);color:var(--text);border:1px solid var(--border);border-radius:4px;font-family:monospace;font-size:.85em">
+    </div>
+    <div>
+      <button id="console-send" style="padding:10px 24px;background:var(--accent);color:#fff;border:none;border-radius:4px;font-weight:700;cursor:pointer;font-size:.9em">发送请求</button>
+    </div>
+  </div>
+
+  <div id="console-body-row" style="display:none;margin-bottom:16px">
+    <label style="display:block;font-size:.8em;color:var(--text-secondary);margin-bottom:4px">请求体 (JSON, 仅 POST/PATCH 需要)</label>
+    <textarea id="console-body" rows="6" style="width:100%;padding:8px;background:var(--code-bg);color:var(--text);border:1px solid var(--border);border-radius:4px;font-family:monospace;font-size:.85em;resize:vertical"></textarea>
+  </div>
+
+  <div id="console-response" style="display:none;margin-top:16px">
+    <div style="display:flex;gap:12px;align-items:center;margin-bottom:8px">
+      <span id="console-status" style="padding:4px 12px;border-radius:4px;font-weight:700;font-size:.85em"></span>
+      <span id="console-content-type" style="color:var(--text-secondary);font-size:.8em"></span>
+      <span id="console-size" style="color:var(--text-secondary);font-size:.8em"></span>
+    </div>
+    <pre id="console-output" style="max-height:400px;overflow-y:auto;padding:12px 16px;background:var(--code-bg);border:1px solid var(--border);border-radius:4px;font-size:.85em;line-height:1.4"><code></code></pre>
+  </div>
+</div>
+
+<script>
+(function() {
+  // Endpoint definitions
+  var endpoints = [
+    { path: '/api/v1/earthquakes', method: 'GET', body: false, desc: '多源地震数据（USGS+EMSC+Wolfx等）' },
+    { path: '/api/v1/live-quakes', method: 'GET', body: false, desc: '多源地震API（端口7891）', defaultParams: 'minMag=5' },
+    { path: '/api/v1/live-stats', method: 'GET', body: false, desc: '地震统计摘要' },
+    { path: '/api/v1/live-sources', method: 'GET', body: false, desc: '数据源状态' },
+    { path: '/api/v1/catalog', method: 'GET', body: false, desc: 'USGS FDSN 目录', defaultParams: 'minmag=5' },
+    { path: '/api/v1/stations', method: 'GET', body: false, desc: '测站目录', defaultParams: 'limit=5' },
+    { path: '/api/v1/quake-catalog', method: 'GET', body: false, desc: '历史地震', defaultParams: 'minMag=7' },
+    { path: '/api/v1/presets', method: 'GET', body: false, desc: '预设地震' },
+    { path: '/api/v1/waveform', method: 'GET', body: false, desc: '波形数据' },
+    { path: '/api/v1/tts/languages', method: 'GET', body: false, desc: 'TTS 语言列表' },
+    { path: '/api/v1/tts/fragments', method: 'GET', body: false, desc: 'TTS 片段目录' },
+    { path: '/api/v1/tts/voices', method: 'GET', body: false, desc: 'TTS 语音' },
+    { path: '/api/v1/tts/synthesize?text=地震情報', method: 'GET', body: false, desc: '实时 TTS 合成' },
+    { path: '/api/v1/tts/bulletin', method: 'POST', body: true, desc: 'TTS 速报播单', defaultBody: '{"lang":"zh","mag":7.0,"depth":30,"maxShindo":"6+"}' },
+    { path: '/api/v1/counter', method: 'GET', body: false, desc: '访问计数' },
+    { path: '/api/v1/replay/info', method: 'GET', body: false, desc: '回放录制状态' },
+    { path: '/api/v1/replay/export', method: 'GET', body: false, desc: '回放导出 (NDJSON)' },
+    { path: '/api/v1/kmoni/sitelist', method: 'GET', body: false, desc: 'Kmoni 测站列表' },
+    { path: '/api/v1/ntp', method: 'GET', body: false, desc: 'NTP 校时' },
+    { path: '/api/v1/geoip', method: 'GET', body: false, desc: 'GeoIP 定位' },
+    { path: '/api/v1/waveform/live', method: 'GET', body: false, desc: '实时波形 (GSN)' },
+    { path: '/api/settings', method: 'GET', body: false, desc: '本机设置读取 (TTS 上游)' },
+    { path: '/api/settings', method: 'POST', body: true, desc: '本机设置更新 (仅回环)' },
+    { path: '/health', method: 'GET', body: false, desc: '健康检查' },
+    { path: '/api/v1/webhooks', method: 'GET', body: false, desc: '列出 Webhooks', needsKey: true },
+    { path: '/api/v1/admin/expiry', method: 'GET', body: false, desc: '服务器到期时间' },
+    { path: '/api/v1/admin/system', method: 'GET', body: false, desc: '系统状态', needsKey: true },
+    { path: '/api/openapi.json', method: 'GET', body: false, desc: 'OpenAPI 规范' }
+  ];
+
+  var sel = document.getElementById('console-endpoint');
+  endpoints.forEach(function(ep) {
+    var opt = document.createElement('option');
+    opt.value = JSON.stringify({ path: ep.path, method: ep.method, body: ep.body, needsKey: ep.needsKey, defaultBody: ep.defaultBody || '' });
+    opt.textContent = ep.method + ' ' + ep.path + ' — ' + ep.desc;
+    if (ep.defaultParams && !ep.body) opt.dataset.defaultParams = ep.defaultParams;
+    sel.appendChild(opt);
+  });
+
+  // Update form when endpoint changes
+  sel.addEventListener('change', function() {
+    var val;
+    try { val = JSON.parse(sel.value); } catch(e) { return; }
+    var bodyRow = document.getElementById('console-body-row');
+    var bodyArea = document.getElementById('console-body');
+    var paramsInput = document.getElementById('console-params');
+    var keyInput = document.getElementById('console-key');
+
+    if (val.body) {
+      bodyRow.style.display = 'block';
+      bodyArea.value = val.defaultBody || '';
+      paramsInput.value = '';
+    } else {
+      bodyRow.style.display = 'none';
+      bodyArea.value = '';
+      var selectedOpt = sel.options[sel.selectedIndex];
+      paramsInput.value = selectedOpt.dataset.defaultParams || '';
+    }
+    if (val.needsKey) keyInput.placeholder = '需要 API Key 或 Admin Token';
+    else keyInput.placeholder = 'qs-... (可选)';
+    document.getElementById('console-response').style.display = 'none';
+  });
+
+  // Restore API key from localStorage
+  var savedKey = '';
+  try { savedKey = localStorage.getItem('qs-api-key') || ''; } catch(e) {}
+  if (savedKey) document.getElementById('console-key').value = savedKey;
+
+  // Send button
+  document.getElementById('console-send').addEventListener('click', function() {
+    var val;
+    try { val = JSON.parse(sel.value); } catch(e) { return; }
+    var paramsInput = document.getElementById('console-params').value.trim();
+    var keyInput = document.getElementById('console-key').value.trim();
+    var bodyInput = document.getElementById('console-body').value.trim();
+
+    // Save key
+    if (keyInput) {
+      try { localStorage.setItem('qs-api-key', keyInput); } catch(e) {}
+    }
+
+    // Build URL
+    var url = val.path;
+    if (paramsInput) url += (url.indexOf('?') >= 0 ? '&' : '?') + paramsInput;
+    if (keyInput && val.needsKey) url += (url.indexOf('?') >= 0 ? '&' : '?') + 'key=' + encodeURIComponent(keyInput);
+
+    var fetchOpts = { method: val.method, headers: {} };
+    if (val.body && bodyInput) {
+      fetchOpts.headers['Content-Type'] = 'application/json';
+      fetchOpts.body = bodyInput;
+    }
+    if (keyInput) {
+      fetchOpts.headers['Authorization'] = 'Bearer ' + keyInput;
+    }
+
+    var respDiv = document.getElementById('console-response');
+    var statusEl = document.getElementById('console-status');
+    var ctEl = document.getElementById('console-content-type');
+    var sizeEl = document.getElementById('console-size');
+    var outputEl = document.getElementById('console-output').querySelector('code');
+
+    respDiv.style.display = 'block';
+    statusEl.textContent = '请求中...';
+    statusEl.style.background = '#f1c40f33';
+    statusEl.style.color = '#f1c40f';
+    outputEl.textContent = '';
+
+    var startTime = Date.now();
+    fetch(url, fetchOpts).then(function(res) {
+      var ct = res.headers.get('content-type') || '';
+      return res.text().then(function(body) {
+        var elapsed = Date.now() - startTime;
+        // Format status
+        if (res.ok) {
+          statusEl.style.background = '#2ecc7133'; statusEl.style.color = '#2ecc71';
+        } else if (res.status >= 400 && res.status < 500) {
+          statusEl.style.background = '#e67e2233'; statusEl.style.color = '#e67e22';
+        } else {
+          statusEl.style.background = '#e9456033'; statusEl.style.color = '#e94560';
+        }
+        statusEl.textContent = 'HTTP ' + res.status + ' (' + elapsed + 'ms)';
+        ctEl.textContent = ct.split(';')[0];
+        sizeEl.textContent = (body.length / 1024).toFixed(1) + ' KB';
+
+        // Format JSON
+        try {
+          var parsed = JSON.parse(body);
+          outputEl.textContent = JSON.stringify(parsed, null, 2);
+        } catch(e) {
+          outputEl.textContent = body;
+        }
+      });
+    }).catch(function(err) {
+      statusEl.style.background = '#e9456033'; statusEl.style.color = '#e94560';
+      statusEl.textContent = 'Network Error';
+      outputEl.textContent = err.message;
+    });
+  });
+
+  // Trigger initial selection
+  sel.dispatchEvent(new Event('change'));
+})();
+</script>
+
+<p style="margin-top:40px;color:var(--text-secondary);font-size:.8em">Earthquake Simulator Pro v6.2 · API 文档 · TTS powered by edge-tts (Microsoft Neural TTS)</p>
+
+</body>
+</html>

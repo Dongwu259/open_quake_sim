@@ -1,5 +1,7 @@
 # Zenodo DOI 发布流程（R7-2，用户执行）
 
+> **状态：✅ 已执行（2026-09-18）**。实际发布版本 **v6.3.3**（远端 v6.3.2 tag/release 已存在且定格于 09-11 旧提交 32bf388，按 tag 不可移规则开新号）；**DOI `10.5281/zenodo.22828697`**（概念 DOI `10.5281/zenodo.22828696`，引所有版本）。CITATION.cff / README×2 已回填，镜像 validate-release 的包版本钉同步 6.3.3。后续版本循环：release → Zenodo 自动草稿 → Publish → 回填 CITATION.cff `doi:`+`version:`。以下为原始流程记录。
+
 > Agent 已准备 `CITATION.cff`（仓库根）与 `.zenodo.json`（Zenodo 元数据：标题/
 > 摘要/作者/许可/关键词）。实际发布需要 Zenodo 账号操作——按本项目 Git 政策，
 > 一切对外发布动作由用户手动执行。本文档是操作清单。
