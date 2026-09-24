@@ -51,11 +51,22 @@ test('landuse pack: regional grids stay inside the pack box',()=>{
   // the loader contract (app.js `_landuseManningField`) snaps px/py from the
   // solver grid origin; grid-package.js snaps origins UP to res multiples, so
   // every grid built from a REGIONAL_BATHY bbox fits iff the bbox + one res
-  // margin fits inside the pack envelope
+  // margin fits inside the pack envelope. Entries tagged `region:'<rid>'`
+  // (regional-tsunami batch: cl-megathrust / it-messina) live OUTSIDE the
+  // Japan envelope on purpose — the landuse loader never touches them (scalar
+  // roughness fallback), so only untagged (jp) entries are checked here.
   const m=APP.match(/var REGIONAL_BATHY = \[([\s\S]*?)\];/);
   assert.ok(m,'REGIONAL_BATHY present');
-  const boxes=[...m[1].matchAll(/bbox:\[([-\d.]+),([-\d.]+),([-\d.]+),([-\d.]+)\]/g)].map(r=>r.slice(1,5).map(Number));
-  assert.ok(boxes.length>=5,'5 regional bboxes parsed');
+  const entries=[...m[1].matchAll(/\{[^}]*\}/g)].map(r=>r[0]);
+  assert.ok(entries.length>=7,'REGIONAL_BATHY entries parsed (5 jp + 2 regional-tsunami)');
+  const boxes=[];
+  for(const entry of entries){
+    const b=entry.match(/bbox:\[([-\d.]+),([-\d.]+),([-\d.]+),([-\d.]+)\]/);
+    assert.ok(b,'entry carries bbox: '+entry);
+    if(/region:'/.test(entry)) continue; // non-Japan regional-tsunami grid
+    boxes.push(b.slice(1,5).map(Number));
+  }
+  assert.ok(boxes.length>=5,'5 jp regional bboxes parsed');
   const east=PACK.origin[0]+PACK.nx*PACK.res, north=PACK.origin[1]+PACK.ny*PACK.res;
   for(const [w,s,e,n] of boxes){
     assert.ok(w>=PACK.origin[0]-1e-9&&e+PACK.res<=east+1e-9,'lng inside pack: '+[w,e]);

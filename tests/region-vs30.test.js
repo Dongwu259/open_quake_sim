@@ -110,3 +110,96 @@ test('i18n: region.st_note_vs30 present in all three languages', () => {
     assert.ok(src.indexOf(token, src.indexOf('region.st_note_vs30')) !== -1, 'placeholder ' + token);
   }
 });
+
+// ================================================================
+//  v6.4 regional-tsunami batch — italy/chile packs from the assembled
+//  global hybrid product (Heath et al. 2020, Earthquake Spectra 36(3),
+//  doi 10.1177/8755293020911137 — Crossref-verified). Far-field ocean in
+//  the product is a CONSTANT fill (600.0 m/s exact); only exact-fill cells
+//  confirmed water by a GEBCO mask are zeroed to nodata, so coastal
+//  stations keep legitimate near-shore product values.
+// ================================================================
+const globalPacks = {
+  italy: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-vs30-italy.json'), 'utf8')),
+  chile: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-vs30-chile.json'), 'utf8')),
+};
+const regionStations = {
+  italy: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-stations-italy.json'), 'utf8')),
+  chile: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-stations-chile.json'), 'utf8')),
+};
+
+test('global-hybrid packs: schema + provenance (Heath et al. 2020, Crossref-verified DOI)', () => {
+  for (const rid of ['italy', 'chile']) {
+    const p = globalPacks[rid];
+    assert.equal(p._schema, 'quake-sim-region-vs30-v1');
+    assert.equal(p.region, rid);
+    assert.equal(p.res, 0.025);
+    assert.equal(p.data.length, p.nx * p.ny);
+    const pr = p.provenance;
+    for (const key of ['label', 'source', 'sourceToken', 'doi', 'license', 'url', 'nativeResolution', 'downsample', 'builder']) {
+      assert.ok(pr[key], rid + ' provenance.' + key);
+    }
+    assert.equal(pr.sourceToken, 'usgs-global-heath2020');
+    assert.equal(pr.doi, '10.1177/8755293020911137');
+    assert.match(pr.source, /Heath, D\.C\., Wald, D\.J\./);
+    assert.match(pr.source, /Earthquake Spectra 36\(3\)/);
+    assert.match(pr.note, /constant fill/);
+  }
+});
+
+test('global-hybrid packs: station coverage (italy >=95%, chile >=90%)', () => {
+  for (const rid of ['italy', 'chile']) {
+    const p = globalPacks[rid];
+    const stations = regionStations[rid].stations;
+    let applied = 0;
+    for (const s of stations) {
+      if (Physics.regionVs30Sample(p, s.lat, s.lng) != null) applied++;
+    }
+    const frac = applied / stations.length;
+    // italy 692/697 (99.3%): five small-island/sea-cell FDSN stations miss the
+    // grid or sit on fill-masked cells — they keep the labelled estimate.
+    assert.ok(frac >= (rid === 'italy' ? 0.95 : 0.9), rid + ' coverage ' + (frac * 100).toFixed(1) + '% (' + applied + '/' + stations.length + ')');
+  }
+});
+
+test('global-hybrid packs: physical values + geology anchors', () => {
+  for (const rid of ['italy', 'chile']) {
+    const valid = globalPacks[rid].data.filter(v => v > 0);
+    assert.ok(valid.length > 50000, rid + ' land coverage (' + valid.length + ' cells)');
+    for (const v of valid) {
+      assert.ok(v >= 100 && v <= 2000, 'vs30 ' + v + ' in physical range');
+      assert.ok(Math.abs(v * 10 - Math.round(v * 10)) < 1e-9, 'one-decimal values');
+    }
+  }
+  const it = globalPacks.italy, cl = globalPacks.chile;
+  // Po plain soft alluvium (Milano) vs Alpine stiff (Trento)
+  const milano = Physics.regionVs30Sample(it, 45.46, 9.19);
+  const trento = Physics.regionVs30Sample(it, 46.07, 11.12);
+  assert.ok(milano > 150 && milano < 350, 'Milano Po-plain soft: ' + milano);
+  assert.ok(trento > 550, 'Trento Alpine stiff: ' + trento);
+  assert.ok(trento > milano + 200, 'Alpine/Po contrast');
+  // Santiago basin soft vs coastal Valparaiso stiffer
+  const santiago = Physics.regionVs30Sample(cl, -33.45, -70.67);
+  const valpo = Physics.regionVs30Sample(cl, -33.05, -71.62);
+  assert.ok(santiago > 200 && santiago < 400, 'Santiago basin: ' + santiago);
+  assert.ok(valpo > 450, 'Valparaiso coastal: ' + valpo);
+});
+
+test('fill-fingerprint masking: far-field ocean reads null, no fill leak', () => {
+  const it = globalPacks.italy, cl = globalPacks.chile;
+  // far-field fill cells (600.0 exact, GEBCO water) must be nodata
+  assert.equal(Physics.regionVs30Sample(it, 39.0, 12.0), null, 'Tyrrhenian fill');
+  assert.equal(Physics.regionVs30Sample(cl, -30.0, -74.5), null, 'SE Pacific fill');
+  // Antofagasta's own cell is a product ocean cell (600.0 fill @ -53 m mask)
+  // -> zeroed; the sampler's documented nodata renormalization then blends its
+  // LAND neighbours, so the station reads a real near-shore value instead of
+  // the ocean fill (measured 617.1) — never the raw 600 fingerprint.
+  const antofagasta = Physics.regionVs30Sample(cl, -23.65, -70.4);
+  assert.ok(antofagasta !== null && antofagasta !== 600, 'Antofagasta reads neighbours, not fill: ' + antofagasta);
+  assert.ok(antofagasta > 150 && antofagasta < 800, 'physical range: ' + antofagasta);
+  // coastal land stations keep legitimate near-shore product values
+  const venezia = Physics.regionVs30Sample(it, 45.44, 12.33);
+  assert.ok(venezia > 150 && venezia < 450, 'Venezia lagoon-margin value kept: ' + venezia);
+  const valpo = Physics.regionVs30Sample(cl, -33.05, -71.62);
+  assert.ok(valpo > 450, 'Valparaiso near-shore value kept: ' + valpo);
+});

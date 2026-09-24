@@ -184,7 +184,14 @@ var REGIONAL_BATHY = [
   {id:'jp-nankai',      bbox:[132.0,30.0,139.0,35.0]},
   {id:'jp-sagami',      bbox:[138.5,33.5,141.5,36.0]},
   {id:'jp-noto',        bbox:[135.5,35.5,139.5,38.5]},
-  {id:'jp-hokkaido-sw', bbox:[137.5,40.5,141.5,43.5]}
+  {id:'jp-hokkaido-sw', bbox:[137.5,40.5,141.5,43.5]},
+  // v6.4 regional-tsunami batch: GEBCO grids for non-Japan pilot regions.
+  // The `region` tag gates the _getDepth regional branch to the ACTIVE region
+  // (jp entries have no tag and keep the global-grid path byte-identically).
+  // cl-megathrust is 0.05° (country-scale strip: 3x finer than the global
+  // grid, integer nested ratio 3, solver cost ~= the 0.025° jp patches).
+  {id:'cl-megathrust', region:'chile', bbox:[-76.5,-46.0,-69.0,-17.5]},
+  {id:'it-messina',    region:'italy', bbox:[15.0,37.7,16.3,38.5]}
 ];
 var _regionalBathy = {};         // id -> grid (absent/false = not usable)
 var _regionalBathyLoading = {};  // id -> in-flight promise
@@ -796,6 +803,7 @@ var REGION_BASE_OFFLINE = offlineBasemap;
 function _regionSetSimSafe() { try { resetSimulation(); } catch (e) { /* nothing running */ } }
 function regionActivate(pack) {
   REGION_STATE.pack = pack; REGION_STATE.active = pack.id;
+  _oceanPointCache = {}; // regional grids change depth answers (isOceanPoint)
   // Station swap - same fields as the StationXML import path.
   REGION_STATE.savedStations = rawLandGrid;
   rawLandGrid = pack.stations.map(function (s, i) {
@@ -821,6 +829,10 @@ function regionActivate(pack) {
   // equivalents that drive the live shindo coloring + the area forecast
   // table. Optional - absent/failed package means no coloring (honest).
   _regionLoadAreas(pack);
+  // Regional tsunami terrain grids (GEBCO, e.g. cl-megathrust/it-messina):
+  // warm them during activation so isOceanPoint has real depth data by the
+  // time an epicenter is placed. Optional - failure keeps tsunami off (honest).
+  _regionPrefetchBathy(pack);
   // World basemap: probe sources on first run (async), then finish activation.
   regionEnsureGlobalBase(function () {
     if (REGION_STATE.active !== pack.id) return; // unchecked while probing
@@ -859,6 +871,7 @@ function regionDeactivate() {
   if (REGION_STATE.realStations) _regionUnloadRealStations();
   _regionUnloadAreas();
   REGION_STATE.active = null; REGION_STATE.pack = null;
+  _oceanPointCache = {}; // regional depth answers no longer apply
 }
 
 // -- Region area boundaries (v6.4): county/prefecture-equivalent polygons --
@@ -1474,9 +1487,31 @@ function isOceanPoint(lat, lng) {
 }
 
 // Bathymetry helpers (uses _bathyGrid for depth queries)
+
+// Regional (non-Japan) terrain grid for a point, when its region is ACTIVE
+// and the grid is loaded. Japan entries carry no region tag -> null here, so
+// the global-grid path below keeps byte-identical behavior for Japan.
+function _regionalDepthGridFor(lat, lng) {
+  var R = _regionalBathyRegionFor(lat, lng);
+  if (!R || !R.region) return null;
+  if (!REGION_STATE.active || REGION_STATE.active !== R.region) return null;
+  var g = _regionalBathy[R.id];
+  if (!g || g === true) return null; // false = failed fetch, undefined = still loading
+  return g;
+}
+
 function _getDepth(lat, lng) {
   // Returns water depth in meters (negative = below sea level, positive = land elevation)
   // Returns null if no data available
+  // Active-region GEBCO grid first (regional-tsunami batch): the global 0.15°
+  // grid only covers Japan longitudes, so outside it the regional grid is the
+  // only real data — if it is loaded but the point misses its window, return
+  // null rather than falling through to the Japan-hemisphere box.
+  var rg = _regionalDepthGridFor(lat, lng);
+  if (rg) {
+    var rd = Physics.lookupResearchGrid(rg, lat, lng);
+    return (rd !== null && rd !== undefined && isFinite(rd)) ? rd : null;
+  }
   if (!_bathyGrid) return null;
   var col = (lng - _bathyGrid.origin[0]) / _bathyGrid.res;
   var row = (lat - _bathyGrid.origin[1]) / _bathyGrid.res;
@@ -3331,7 +3366,32 @@ function _prefetchRegionalBathy(lat, lng) {
       if (check.valid) console.log('Regional bathymetry loaded:', R.id, g.nx + 'x' + g.ny);
     })
     .catch(function() { _regionalBathy[R.id] = false; })
-    .finally(function() { delete _regionalBathyLoading[R.id]; });
+    .finally(function() {
+      delete _regionalBathyLoading[R.id];
+      // Depth answers can flip once a regional grid lands (isOceanPoint was
+      // conservative "land" during the fetch) — drop the memo, then re-evaluate
+      // an already-placed epicenter so a preset applied mid-load still gates
+      // the tsunami correctly.
+      _oceanPointCache = {};
+      if (R.region && REGION_STATE.active === R.region && epicenter) {
+        var nowOcean = isOceanPoint(epicenter.lat, epicenter.lng);
+        if (nowOcean !== isOceanEpicenter) {
+          isOceanEpicenter = nowOcean;
+          if (typeof updateEpicenterInfo === 'function') updateEpicenterInfo();
+        }
+      }
+    });
+}
+// v6.4 regional-tsunami batch: warm every REGIONAL_BATHY grid tagged for this
+// region during activation, before the user can place an epicenter.
+function _regionPrefetchBathy(pack) {
+  if (typeof REGIONAL_BATHY === 'undefined' || !REGIONAL_BATHY || !pack) return;
+  for (var i = 0; i < REGIONAL_BATHY.length; i++) {
+    var R = REGIONAL_BATHY[i];
+    if (R.region !== pack.id) continue;
+    // _prefetchRegionalBathy takes (lat, lng) — bbox is [lngW, latS, lngE, latN]
+    _prefetchRegionalBathy((R.bbox[1] + R.bbox[3]) / 2, (R.bbox[0] + R.bbox[2]) / 2);
+  }
 }
 function _tsuGridForEvent(ev) {
   if (ev && typeof isOceanPoint === 'function' && isOceanPoint(ev.lat, ev.lng)) {
@@ -3362,9 +3422,22 @@ function _tsuFieldForEvent(ev) {
   return _tsuTravelFields[key] || null;
 }
 
+// Coarse-grid coverage gate (regional-tsunami batch): two-level nesting only
+// makes sense when the coarse global grid actually CONTAINS the fine one. The
+// chile/italy grids lie entirely outside the Japan-hemisphere global grid, so
+// they run standalone (the fine grid is the whole domain) instead of nesting
+// against an out-of-range coarse grid.
+function _bathyCoarseCovers(fine) {
+  if (!fine || !_bathyGrid) return false;
+  var c = _bathyGrid;
+  var cx1 = c.origin[0] + (c.nx - 1) * c.res, cy1 = c.origin[1] + (c.ny - 1) * c.res;
+  var fx0 = fine.origin[0], fy0 = fine.origin[1];
+  var fx1 = fx0 + (fine.nx - 1) * fine.res, fy1 = fy0 + (fine.ny - 1) * fine.res;
+  return fx0 >= c.origin[0] && fy0 >= c.origin[1] && fx1 <= cx1 && fy1 <= cy1;
+}
+
 function _tsuSolverForEvent(ev) {
-  if (!_bathyGrid || !ev || cfgGet('tsunamiSolver') === 'travelTime') return null;
-  var key=_tsuEventKey(ev);
+  if (!_bathyGrid || !ev || cfgGet('tsunamiSolver') === 'travelTime') return null;  var key=_tsuEventKey(ev);
   if (Object.prototype.hasOwnProperty.call(_tsuWaveSolvers, key)) return _tsuWaveSolvers[key] || null;
   if (!ev.isMainshock && Number(ev.mag) < TSU_SOLVER_MIN_MAG) {
     _tsuWaveSolvers[key] = false;
@@ -3388,14 +3461,16 @@ function _tsuSolverForEvent(ev) {
         manningField:_landuseManningField(grid),
         dtopoTiming:cfgGet('tsunamiDtopoTiming')==='per-patch'?'per-patch':'cumulative'};
       // Regional grid active -> run it as a fine level over the global grid
-      // (two-way AMR) instead of a sealed single-grid box.
+      // (two-way AMR) instead of a sealed single-grid box. Only when the
+      // coarse grid covers it (regional-tsunami batch): chile/italy grids
+      // run standalone, and Japan checkpoint ETAs would be nonsense there.
       // v5.5: stepping runs inside the tsunami worker when available
       // (TsunamiSolverHost, nested-grid cost off the UI thread); the host
       // falls back to the identical in-process engine otherwise.
-      var _coarse=(_tsuNestedAllowed()&&grid&&_bathyGrid&&grid!==_bathyGrid)?_bathyGrid:null;
+      var _coarse=(_tsuNestedAllowed()&&grid&&_bathyGrid&&grid!==_bathyGrid&&_bathyCoarseCovers(grid))?_bathyGrid:null;
       if (typeof TsunamiSolverHost !== 'undefined') {
         _tsuWaveSolvers[key]=TsunamiSolverHost.create({key:key,grid:grid,coarseGrid:_coarse,source:source,
-          options:solverOpts,checkpoints:_tsuCheckPoints||[]});
+          options:solverOpts,checkpoints:_coarse?(_tsuCheckPoints||[]):[]});
       } else {
         var nested=_coarse?Physics.createNestedTsunamiSolver(_bathyGrid,grid,source,solverOpts):null;
         _tsuWaveSolvers[key]=nested||Physics.createNonlinearTsunamiSolver(grid,source,solverOpts);
