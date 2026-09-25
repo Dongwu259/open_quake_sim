@@ -2,6 +2,26 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/) where practical.
 
+## [6.5.0] — 2026-09-25 区域海啸警报上线 × 三试点区域海啸/Vs30 拉平
+
+同步自上游 quake_sim（v6.4 区域海啸+全球Vs30批 → v6.5 区域海啸警报批 → v6.5.0 发布）：
+
+### Added
+- **区域海底地形**：GEBCO 2025 经 CEDA OPeNDAP——智利 megathrust 条带 19-46S（0.05°，cl-megathrust）、墨西拿海峡（0.025°，it-messina）、加州近海条带（0.05°，us-california，卡斯凯迪亚南缘+加州边境地）；isOceanPoint 全球化（`_getDepth` 区域分支），粗格覆盖门 `_bathyCoarseCovers`——区域网格 standalone 求解，不挂日本 checkpoint
+- **区域海啸警报**：区域预报区注册表——活动区域自己的行政区划（智利 16 大区/意大利省/加州 58 县）吸附区域格网湿单元（≤80 控制点/区，区码 rNNN），JMA 三档警报/第一波 ETA 倒计时/警报音/TTS 原样生效；区域切换恢复 JMA 66 区；距离门控 3500km
+- **意大利/智利真实 Vs30**：USGS 全球混合成品（Heath et al. 2020, Earthquake Spectra 36(3), DOI 10.1177/8755293020911137，Crossref 核实）30″→0.025°；远海恒定 600 m/s 填充指纹只在「填充且 GEBCO 判水」格清 nodata，沿岸真值保留
+- region-california tsunami:true（三试点区域拉平）；research manifest 14 资源 sha256 逐项登记
+
+### Fixed
+- **智利海啸跑了但零警报**（用户报告）：①JMA 66 区控制点全在日本+1200km 门控→区域事件 tsunamiCircles 恒空；②tsunami worker samplePeak 峰值缓存只按创建 checkpoints 建，standalone 求解器以空列表创建→物理到达恒 0
+- E2E 实测：智利 Maule M8.8→12 区警报（3 major/5 warn/4 adv）+Tsunami_3+ETA 面板+实测到达 Maule 13.39m@393s/Ñuble 17.85m@142s；日本回归 JMA 66 区
+
+### 诚实边界
+- 区域警报阈值复用 JMA 语义（非 SHOA/CAT/NOAA 运营产品）；1906 旧金山预设震中在近岸水格（-21.6m，0.05° 分辨率产物，记录不调参）；Valdivia/Messina 已发表震中在陆格，海啸如实关闭；数据来源/许可逐资源登记
+
+### Quality
+- node 测试 1206/1206（新增 region-tsunami-alert 8 锚：物理 no-op 锁定+真实数据独立重推导）；validate-release 24,578 项；CI 绿
+
 ## [6.4.0] — 2026-09-20 全球真实台站 × 12 级烈度 × 多区域（加州/意大利/智利）+ 加州实测定标 + 懒加载
 
 同步自上游 quake_sim（v6.4 多区域批）：
