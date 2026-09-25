@@ -19,7 +19,10 @@ test('region pack: schema identity and test flag', () => {
   const [[s, w], [n, e]] = pack.bounds;
   assert.ok(s < n && w < e, 'bounds ordered');
   assert.ok(s > 30 && n < 45 && w > -128 && e < -110, 'bounds inside California region');
-  assert.strictEqual(pack.tsunami, false, 'pilot pack declares tsunami out of scope');
+  // v6.5 California-tsunami batch: the pack carries a GEBCO 2025 strip
+  // (grids/us-california.json) and runs the standalone regional solver with
+  // honest notes (see tests/region-bathy.test.js for the terrain contract).
+  assert.strictEqual(pack.tsunami, true, 'california runs regional tsunami since v6.5');
 });
 
 test('region pack: stations complete, in bounds, unique', () => {

@@ -23,10 +23,12 @@ const APP = fs.readFileSync(path.join(ROOT, 'public', 'app.js'), 'utf8');
 const GRIDS = {
   chile: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'grids', 'cl-megathrust.json'), 'utf8')),
   italy: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'grids', 'it-messina.json'), 'utf8')),
+  california: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'grids', 'us-california.json'), 'utf8')),
 };
 const PACKS = {
   chile: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-chile.json'), 'utf8')),
   italy: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-italy.json'), 'utf8')),
+  california: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-california.json'), 'utf8')),
 };
 
 function regionBathyEntries() {
@@ -36,7 +38,7 @@ function regionBathyEntries() {
 }
 
 test('terrain grids validate + meta contract (data honesty)', () => {
-  for (const rid of ['chile', 'italy']) {
+  for (const rid of ['chile', 'italy', 'california']) {
     const g = GRIDS[rid];
     const check = Physics.validateResearchGrid(g, 'terrain');
     assert.ok(check.valid, rid + ' valid: ' + check.errors.join(','));
@@ -56,7 +58,7 @@ test('terrain grids validate + meta contract (data honesty)', () => {
 
 test('REGIONAL_BATHY entries: region-tagged, bbox matches the grid extent', () => {
   const entries = regionBathyEntries();
-  for (const rid of ['cl-megathrust', 'it-messina']) {
+  for (const rid of ['cl-megathrust', 'it-messina', 'us-california']) {
     const entry = entries.find(e => e.includes("id:'" + rid + "'"));
     assert.ok(entry, rid + ' entry present');
     const region = entry.match(/region:'([a-z]+)'/);
@@ -93,6 +95,23 @@ test('messina box: strait water between Sicily and Calabria', () => {
   assert.ok(ionian < -150, 'Ionian offshore is deep water: ' + ionian);
 });
 
+test('california strip: NE Pacific deep water + Sierra land + Mendocino shelf', () => {
+  const g = GRIDS.california;
+  assert.equal(g.res, 0.05, 'california strip is 0.05° (same country-scale contract as chile)');
+  assert.ok(g.minDepth < -4000, 'NE Pacific deep in grid: ' + g.minDepth);
+  assert.ok(g.maxDepth > 2500, 'Sierra crest in grid: ' + g.maxDepth);
+  assert.ok(g.nx * g.ny > 30000 && g.nx * g.ny < 80000, 'cell count in solver-cost band: ' + g.nx * g.ny);
+  const deep = Physics.lookupResearchGrid(g, 36.5, -124.5);
+  assert.ok(deep < -2000, 'NE Pacific deep water: ' + deep);
+  const shelf = Physics.lookupResearchGrid(g, 40.4, -124.6);
+  assert.ok(shelf < -80 && shelf > -500, 'Cape Mendocino shelf is shallow water: ' + shelf);
+  const sierra = Physics.lookupResearchGrid(g, 37.5, -119.0);
+  assert.ok(sierra > 1000, 'Sierra Nevada land: ' + sierra);
+  // the documented 1906 nearshore artifact must reproduce (pack notes honesty)
+  const e1906 = Physics.lookupResearchGrid(g, 37.75, -122.55);
+  assert.ok(e1906 < 0, '1906 SF preset epicenter sits in a water cell: ' + e1906);
+});
+
 test('region packs flip tsunami:true with honest boundary notes', () => {
   for (const rid of ['chile', 'italy']) {
     assert.equal(PACKS[rid].tsunami, true, rid + ' tsunami enabled');
@@ -105,10 +124,15 @@ test('region packs flip tsunami:true with honest boundary notes', () => {
   // cells at grid resolution — the notes must say so instead of moving them
   assert.match(PACKS.chile.notes, /Valdivia preset\s+sit on a land cell|land cell/);
   assert.match(PACKS.italy.notes, /land cell/);
-  // california keeps its honest off note
-  const cal = JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-california.json'), 'utf8'));
-  assert.equal(cal.tsunami, false, 'california still tsunami-off');
-  assert.match(cal.notes.tsunami, /No regional bathymetry package/);
+  // california joins the regional-tsunami set (v6.5) with the same honesty
+  // contract — its notes are an object {source, scale, tsunami}
+  assert.equal(PACKS.california.tsunami, true, 'california tsunami enabled (v6.5)');
+  const calNote = PACKS.california.notes.tsunami;
+  assert.match(calNote, /GEBCO 2025/, 'names the terrain dataset');
+  assert.match(calNote, /standalone/, 'documents no-coarse-nesting');
+  assert.match(calNote, /JMA thresholds/, 'documents the alert approximation');
+  assert.match(calNote, /-21\.6 m/, 'documents the 1906 nearshore resolution artifact');
+  assert.match(calNote, /not a tuned parameter/, 'honesty: artifact, not calibration');
 });
 
 test('app.js wiring: regional depth branch, coverage gate, checkpoint gate, warm fetch', () => {
@@ -123,8 +147,12 @@ test('app.js wiring: regional depth branch, coverage gate, checkpoint gate, warm
   // nesting only under coarse coverage
   assert.match(APP, /function _bathyCoarseCovers/, 'coverage helper exists');
   assert.match(APP, /grid!==_bathyGrid&&_bathyCoarseCovers\(grid\)/, 'coarse gate wired into solver');
-  // Japan checkpoints ride only with a covering coarse grid
-  assert.match(APP, /checkpoints:_coarse\?\(_tsuCheckPoints\|\|\[\]\):\[\]/, 'checkpoint gate');
+  // Japan checkpoints ride only with a covering coarse grid; the regional
+  // registry rides with the standalone regional grid (v6.5 alert batch —
+  // without it the worker never fills its per-checkpoint peak cache and
+  // samplePeak answers 0 for every control)
+  assert.match(APP, /var _cps=\(_coarse\|\|_tsuAreasRegional\)\?\(_tsuCheckPoints\|\|\[\]\):\[\];/, 'checkpoint gate: nested coarse OR regional registry');
+  assert.match(APP, /options:solverOpts,checkpoints:_cps\}\);/, 'checkpoints passed to the solver host');
   // activation warms the region grids + clears the ocean-point memo
   assert.match(APP, /_regionPrefetchBathy\(pack\);/, 'activation prefetch');
   assert.match(APP, /function regionActivate\(pack\) \{[\s\S]*?_oceanPointCache = \{\};/, 'activate clears memo');

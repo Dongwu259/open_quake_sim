@@ -191,7 +191,12 @@ var REGIONAL_BATHY = [
   // cl-megathrust is 0.05° (country-scale strip: 3x finer than the global
   // grid, integer nested ratio 3, solver cost ~= the 0.025° jp patches).
   {id:'cl-megathrust', region:'chile', bbox:[-76.5,-46.0,-69.0,-17.5]},
-  {id:'it-messina',    region:'italy', bbox:[15.0,37.7,16.3,38.5]}
+  {id:'it-messina',    region:'italy', bbox:[15.0,37.7,16.3,38.5]},
+  // California: the third pilot region's coastal strip — Cascadia's southern
+  // margin and the California borderlands, the only CA tsunami sources. The
+  // Vs30 side was already real here (Yong et al. 2014); this completes the
+  // tri-region parity (v6.5 California-tsunami batch).
+  {id:'us-california', region:'california', bbox:[-127.0,32.0,-116.0,42.5]}
 ];
 var _regionalBathy = {};         // id -> grid (absent/false = not usable)
 var _regionalBathyLoading = {};  // id -> in-flight promise
@@ -803,6 +808,10 @@ var REGION_BASE_OFFLINE = offlineBasemap;
 function _regionSetSimSafe() { try { resetSimulation(); } catch (e) { /* nothing running */ } }
 function regionActivate(pack) {
   REGION_STATE.pack = pack; REGION_STATE.active = pack.id;
+  // Switching regions must not inherit the previous region's registry (its
+  // area codes/names would label this region's events); rebuild from JMA and
+  // let the areas/grid load hooks swap the regional one back in.
+  _restoreJmaTsuAreas();
   _oceanPointCache = {}; // regional grids change depth answers (isOceanPoint)
   // Station swap - same fields as the StationXML import path.
   REGION_STATE.savedStations = rawLandGrid;
@@ -870,6 +879,9 @@ function regionDeactivate() {
   if (row) row.style.display = 'none';
   if (REGION_STATE.realStations) _regionUnloadRealStations();
   _regionUnloadAreas();
+  // Swap the tsunami forecast-area registry back to the JMA 66 areas — the
+  // regional swap must not survive a region switch.
+  _restoreJmaTsuAreas();
   REGION_STATE.active = null; REGION_STATE.pack = null;
   _oceanPointCache = {}; // regional depth answers no longer apply
 }
@@ -900,6 +912,9 @@ function _regionLoadAreas(pack) {
                lat: c.geometry.coordinates[1], lng: c.geometry.coordinates[0] };
     });
     console.log('region areas loaded: ' + pkg.areas.features.length + ' (' + (pkg.unit || 'area') + ')');
+    // Both regional-tsunami-alert inputs may now be in place (the bathy grid
+    // prefetch may have landed first) — try the registry swap.
+    _ensureRegionalTsuAreas();
   }).catch(function (e) {
     console.warn('region areas load failed (no live area coloring):', e.message);
     REGION_STATE.areas = null; _regionAreaCentroids = null;
@@ -3285,11 +3300,134 @@ function buildJmaTsunamiForecastAreas() {
   if (_tsuForecastAreas.length) _tsuCheckPoints = allPoints;
   // Solver proxies created before the coastline finished loading carry an
   // empty checkpoint set — push the fresh one (worker and local alike).
+  _pushCheckPointsToSolvers();
+  console.log('JMA tsunami forecast areas: ' + _tsuForecastAreas.length +
+    ', offshore controls: ' + _tsuCheckPoints.length);
+}
+
+function _pushCheckPointsToSolvers() {
   for (var _cpk in _tsuWaveSolvers) {
     if (_tsuWaveSolvers[_cpk] && typeof _tsuWaveSolvers[_cpk].setCheckpoints === 'function') _tsuWaveSolvers[_cpk].setCheckpoints(_tsuCheckPoints);
   }
-  console.log('JMA tsunami forecast areas: ' + _tsuForecastAreas.length +
-    ', offshore controls: ' + _tsuCheckPoints.length);
+}
+
+// ---- Regional tsunami forecast areas (v6.5) ----
+// The JMA 66-area chain above is Japan-only by construction: every offshore
+// control sits in Japanese waters, so a Chile/Italy/California event is always
+// beyond the 1200 km forecast gate and NO warning can ever fire (observed
+// 2026-09-25: the Chile tsunami ran on the standalone grid with zero alert
+// output). While a region with BOTH an admin-areas package and a loaded
+// regional bathy grid is active, swap the registry to that region's own
+// polygons snapped to its grid — the JMA chain, ETA panel, chimes and speech
+// then run unchanged on regional area codes ('rNNN'). The shared physics is
+// geography-neutral: jmaTsunamiBasinTransmission returns 1 for unknown basins
+// and tsunamiCoastalHeight samples the solver directly.
+var _regionalTsuBuiltFor = null; // region id whose registry currently holds _tsuForecastAreas
+var _tsuAreasRegional = false;   // registry source flag — scales the forecast distance gate
+function buildRegionalTsunamiForecastAreas() {
+  var rid = REGION_STATE.active;
+  if (!rid || !REGION_STATE.areas || !REGION_STATE.areas.features) return false;
+  var grid = null;
+  if (typeof REGIONAL_BATHY !== 'undefined' && REGIONAL_BATHY) {
+    for (var bi = 0; bi < REGIONAL_BATHY.length; bi++) {
+      if (REGIONAL_BATHY[bi].region !== rid) continue;
+      var g = _regionalBathy[REGIONAL_BATHY[bi].id];
+      if (g && g !== true && g.data) grid = g; // false = failed fetch, true/undefined = still loading
+    }
+  }
+  if (!grid) return false;
+  var areas = [], byCode = Object.create(null), allPoints = [];
+  for (var fi = 0; fi < REGION_STATE.areas.features.length; fi++) {
+    var feature = REGION_STATE.areas.features[fi];
+    var props = feature.properties || {}, geometry = feature.geometry || {};
+    var rings = [];
+    if (geometry.type === 'Polygon') rings = geometry.coordinates || [];
+    else if (geometry.type === 'MultiPolygon') {
+      for (var mp = 0; mp < geometry.coordinates.length; mp++) rings = rings.concat(geometry.coordinates[mp]);
+    }
+    if (!rings.length) continue;
+    // Boundary vertices that snap to a wet cell (within 2 cells, like the JMA
+    // builder) are the coastal outline; inland stretches break the polyline so
+    // warning coloring never walks the Andes or the Apennines. The snapped wet
+    // cells double as the numeric offshore controls.
+    var controls = [], lines = [], seenCells = Object.create(null);
+    for (var ri = 0; ri < rings.length; ri++) {
+      var ring = rings[ri], coast = [];
+      for (var vi = 0; vi < ring.length; vi++) {
+        var coord = ring[vi];
+        if (typeof coord[0] !== 'number' || typeof coord[1] !== 'number') continue;
+        var wet = Physics.findNearestWetCell(grid, coord[1], coord[0], 2);
+        if (!wet) { if (coast.length > 1) lines.push(coast); coast = []; continue; }
+        coast.push(coord);
+        if (!seenCells[wet.index]) {
+          seenCells[wet.index] = true;
+          controls.push({ lat: wet.lat, lng: wet.lng, coastLat: coord[1], coastLng: coord[0],
+            waterDepth: wet.depth, gridIndex: wet.index, areaCode: '', areaName: props.name || '', key: '' });
+        }
+      }
+      if (coast.length > 1) lines.push(coast);
+    }
+    if (!controls.length) continue;
+    // Uniform, bounded sample per forecast area — same contract as the JMA 80.
+    if (controls.length > 80) {
+      var reduced = [];
+      for (var rri = 0; rri < 80; rri++) reduced.push(controls[Math.floor(rri * controls.length / 80)]);
+      controls = reduced;
+    }
+    var code = 'r' + String(areas.length + 1).padStart(3, '0');
+    for (var ci2 = 0; ci2 < controls.length; ci2++) {
+      controls[ci2].areaCode = code;
+      controls[ci2].key = code + '|' + controls[ci2].gridIndex;
+      allPoints.push(controls[ci2]);
+    }
+    var area = { code: code, name: props.name || code, nameKana: '', basin: 'unknown',
+      lines: lines, checkPoints: controls };
+    areas.push(area); byCode[code] = area;
+  }
+  if (!areas.length) return false;
+  _tsuForecastAreas = areas;
+  _tsuForecastAreaByCode = byCode;
+  _tsuCheckPoints = allPoints;
+  // Standalone regional solvers were created without checkpoints and the alert
+  // chain samples the solver directly, so no setCheckpoints push here.
+  _regionalTsuBuiltFor = rid;
+  _tsuAreasRegional = true;
+  _tsuSegDirty = true; _tsuWarningRenderSignature = '';
+  console.log('Regional tsunami forecast areas: ' + areas.length + ', offshore controls: ' + allPoints.length + ' (' + rid + ')');
+  return true;
+}
+function _ensureRegionalTsuAreas() {
+  if (!REGION_STATE.active || _regionalTsuBuiltFor === REGION_STATE.active) return;
+  buildRegionalTsunamiForecastAreas();
+}
+function _restoreJmaTsuAreas() {
+  if (!_regionalTsuBuiltFor) return;
+  _regionalTsuBuiltFor = null; _tsuAreasRegional = false;
+  // _jmaTsunamiAreaData/_bathyGrid both load at boot, before any region can
+  // activate — the early-out in buildJmaTsunamiForecastAreas cannot fire here.
+  buildJmaTsunamiForecastAreas();
+  _pushCheckPointsToSolvers();
+  _tsuSegDirty = true; _tsuWarningRenderSignature = '';
+}
+// Regional events get their "source area" from the control nearest the
+// epicentre (display only — basin transmission is identity for these codes);
+// the epicentre is fixed per event, so cache without a signature.
+function _regionalSourceAreaCodeFor(ev) {
+  if (ev._regionalSourceAreaCode) return ev._regionalSourceAreaCode;
+  var bestD = Infinity, best = '';
+  for (var i = 0; i < _tsuCheckPoints.length; i++) {
+    var p = _tsuCheckPoints[i];
+    var d = Physics.haversineDist(ev.lat, ev.lng, p.lat, p.lng);
+    if (d < bestD) { bestD = d; best = p.areaCode; }
+  }
+  ev._regionalSourceAreaCode = best;
+  return best;
+}
+function _sourceAreaCodeForEvent(ev) {
+  if (_tsuAreasRegional) return _regionalSourceAreaCodeFor(ev);
+  var code = ev._jmaSourceAreaCode || _nearestJmaTsunamiAreaCode(ev.lat, ev.lng);
+  ev._jmaSourceAreaCode = code;
+  return code;
 }
 
 function _nearestJmaTsunamiAreaCode(lat,lng) {
@@ -3380,6 +3518,8 @@ function _prefetchRegionalBathy(lat, lng) {
           if (typeof updateEpicenterInfo === 'function') updateEpicenterInfo();
         }
       }
+      // The grid was the missing input for the regional forecast-area registry.
+      if (R.region && REGION_STATE.active === R.region) _ensureRegionalTsuAreas();
     });
 }
 // v6.4 regional-tsunami batch: warm every REGIONAL_BATHY grid tagged for this
@@ -3463,14 +3603,20 @@ function _tsuSolverForEvent(ev) {
       // Regional grid active -> run it as a fine level over the global grid
       // (two-way AMR) instead of a sealed single-grid box. Only when the
       // coarse grid covers it (regional-tsunami batch): chile/italy grids
-      // run standalone, and Japan checkpoint ETAs would be nonsense there.
+      // run standalone. Checkpoints ride with the coarse grid when nested,
+      // and with the regional registry when it is swapped in — the worker
+      // computes its per-checkpoint peak cache from THIS list, so a
+      // standalone regional solver created with none would answer every
+      // samplePeak with 0 and the "arrived" alert path would stay dead
+      // (v6.5 alert batch: observed live in the Chile run).
       // v5.5: stepping runs inside the tsunami worker when available
       // (TsunamiSolverHost, nested-grid cost off the UI thread); the host
       // falls back to the identical in-process engine otherwise.
       var _coarse=(_tsuNestedAllowed()&&grid&&_bathyGrid&&grid!==_bathyGrid&&_bathyCoarseCovers(grid))?_bathyGrid:null;
+      var _cps=(_coarse||_tsuAreasRegional)?(_tsuCheckPoints||[]):[];
       if (typeof TsunamiSolverHost !== 'undefined') {
         _tsuWaveSolvers[key]=TsunamiSolverHost.create({key:key,grid:grid,coarseGrid:_coarse,source:source,
-          options:solverOpts,checkpoints:_coarse?(_tsuCheckPoints||[]):[]});
+          options:solverOpts,checkpoints:_cps});
       } else {
         var nested=_coarse?Physics.createNestedTsunamiSolver(_bathyGrid,grid,source,solverOpts):null;
         _tsuWaveSolvers[key]=nested||Physics.createNonlinearTsunamiSolver(grid,source,solverOpts);
@@ -5835,13 +5981,15 @@ function _forecastJmaAreasForEvent(ev) {
   var source = ev.sourceModel || buildSourceModel({lat:ev.lat,lng:ev.lng,mag:ev.mag,mw:ev.mag,
     depth:ev.depth,strike:ev.strike,dip:ev.dip,rake:ev.rake,mechanismKnown:ev.mechanismKnown,sourceType:ev.sourceType,originTime:ev.originTime});
   var sourceDepth = _waterDepth(ev.lat,ev.lng), byArea = Object.create(null);
-  var sourceAreaCode=ev._jmaSourceAreaCode||_nearestJmaTsunamiAreaCode(ev.lat,ev.lng);
-  ev._jmaSourceAreaCode=sourceAreaCode;
+  var sourceAreaCode=_sourceAreaCodeForEvent(ev);
   for (var i = 0; i < _tsuCheckPoints.length; i++) {
     var point = _tsuCheckPoints[i];
     if (!point.areaCode) continue;
     var directDistance = Physics.haversineDist(ev.lat,ev.lng,point.lat,point.lng);
-    if (directDistance > 1200) continue;
+    // Regional registries span whole countries (Chile is ~3100 km end to end),
+    // so the gate scales with the registry source; the source envelope still
+    // decays physically with distance.
+    if (directDistance > (_tsuAreasRegional ? 3500 : 1200)) continue;
     var meta = field && field.lookupMeta ? field.lookupMeta(point.lat,point.lng) : null;
     if (field && (!meta || !isFinite(meta.travelTime))) continue;
     // The wet-cell eikonal field already encodes land barriers.  Deriving the
@@ -6033,8 +6181,7 @@ function _activateJmaTsunamiWarnings() {
     var ev = activeEvents[ei];
     if (!isOceanPoint(ev.lat,ev.lng)) continue;
     var elapsed = simElapsed - ev.originTime, eventKey = _tsuEventKey(ev);
-    var sourceAreaCode=ev._jmaSourceAreaCode||_nearestJmaTsunamiAreaCode(ev.lat,ev.lng);
-    ev._jmaSourceAreaCode=sourceAreaCode;
+    var sourceAreaCode=_sourceAreaCodeForEvent(ev);
     if (elapsed >= 60) {
       var rapid = _forecastJmaAreasForEvent(ev);
       for (var rw = 0; rw < rapid.length; rw++) provisional.push(rapid[rw]);
@@ -8188,7 +8335,9 @@ if (vs30Checkbox) vs30Checkbox.addEventListener('change', function() { _vs30Show
       // Solvers, travel fields and the grid-snapped forecast control points
       // all derive from the previous terrain; rebuild them on the new grid.
       resetTsunamiSolverRuntime();
-      buildJmaTsunamiForecastAreas();
+      // A regional registry is snapped to the regional grid (not _bathyGrid),
+      // so a terrain swap must not stomp it while a region is active.
+      if (!REGION_STATE.active) buildJmaTsunamiForecastAreas();
     }else _vs30Grid=grid;
     _updateResearchDataCertification();if(typeof Renderer!=='undefined'&&Renderer.invalidateCaches)Renderer.invalidateCaches();
     if(typeof _quake3dPushGeo==='function'&&kind==='terrain')_quake3dPushGeo();
@@ -10017,7 +10166,7 @@ function updateInfoPanel(curMaxPga, curMaxSh) {
     for (var i=0;i<tsunamiActual.length;i++){ var a=tsunamiActual[i]; if(a.height>amax)amax=a.height; if(acnt[a.level]!=null)acnt[a.level]++; }
     html += '<br><div class="info-hdr">' + t('info.tsunami') + '</div>';
     if (tsunamiCircles.length) {
-      html += infoRow(t('info.tsunami_method'),_tsuForecastAreas.length?('JMA AreaTsunami · '+_tsuForecastAreas.length):'coast fallback');
+      html += infoRow(t('info.tsunami_method'),_tsuAreasRegional?(t('info.tsunami_method_regional')+' · '+_tsuForecastAreas.length):(_tsuForecastAreas.length?('JMA AreaTsunami · '+_tsuForecastAreas.length):'coast fallback'));
       var sourceEvent=mainEvent(),sourceArea=sourceEvent&&_tsuForecastAreaByCode[sourceEvent._jmaSourceAreaCode];
       if(sourceArea)html += infoRow(t('info.tsunami_source_area'),escapeHTML(sourceArea.name)+' ('+escapeHTML(t('tsunami.basin.'+sourceArea.basin))+')');
       html += infoRow(t('info.tsunami_predicted'), tmax.toFixed(1)+' m <span style=\"color:var(--text-secondary);font-size:.85em\">(' + t('info.experimental_tsunami') + ', ' + t('info.at_60s') + ')</span>');
@@ -10835,7 +10984,7 @@ var ScenarioManager = (function(){
       if (isFinite(+a.lat) && isFinite(+a.lng)) { e.lat = +a.lat; e.lng = +a.lng; }
       return e;
     });
-    return { schema:Research.SCENARIO_SCHEMA,name:name || tr('scn.untitled'),version:2,appVersion:'v6.4',
+    return { schema:Research.SCENARIO_SCHEMA,name:name || tr('scn.untitled'),version:2,appVersion:'v6.5',
              seed:Research.normalizeSeed(cfgGet('randomSeed')),events:events,flags:flags,config:JSON.parse(JSON.stringify(CFG)),
              faultOpts:FiniteFaultEditor.getState(),manualAftershocks:manAs,display:_researchDisplayState(),dataVersions:versions.data,modelVersions:versions.model,
              experiment:_currentExperiment,created:(function(){try{return new Date().toISOString();}catch(e){return '';}})() };

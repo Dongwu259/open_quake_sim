@@ -3,7 +3,7 @@
   "info": {
     "title": "Earthquake Simulator Pro API",
     "description": "REST API for earthquake simulation, TTS bulletin generation, station catalog, and real-time seismic data streaming for Japan.",
-    "version": "6.4.0",
+    "version": "6.5.0",
     "contact": {
       "url": "http://localhost:3000/api-docs"
     }

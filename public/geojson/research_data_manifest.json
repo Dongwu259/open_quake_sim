@@ -200,6 +200,22 @@
    "resolution": "30 arc-sec native, 0.025 degree pack",
    "sha256": "b9d429b8a0208dcf6ad0e5793ebf00f3fbbc4db08f061492385ba8a50284891b",
    "processing": "assembled global product (apps.usgs.gov global_vs30.grd, slope-based default) block-mean 3x3 valid pixels per 0.025° cell; exact-600 ocean fill cells confirmed water by a GEBCO mask zeroed to nodata"
+  },
+  {
+   "id": "gebco-2025-terrain-california-20260925",
+   "role": "terrain",
+   "state": "ready",
+   "researchReady": true,
+   "dataset": "GEBCO 2025 Grid (California offshore and coastal strip 32N-42.5N, 0.05° water-mean resample)",
+   "path": "geojson/grids/us-california.json",
+   "sourceUrl": "https://www.gebco.net/data_and_products/gridded_bathymetry_data/",
+   "license": "Public domain (attribution requested): GEBCO Compilation Group (2025) GEBCO 2025 Grid (doi:10.5285/37c52e96-24ea-67ce-e063-7086abc05f29)",
+   "releaseDate": "2025-07-01",
+   "crs": "EPSG:4326",
+   "verticalDatum": "Approximate mean sea level",
+   "resolution": "0.05 degree",
+   "sha256": "7a21f0618255bf701ecb3649c8c94e79984bf8d854686b1273e293310a45ec4b",
+   "processing": "GEBCO 2025 (15 arc-second) subset 127-116W/32-42.5N via CEDA OPeNDAP, 3x3 point-sample water-mean per 0.05° cell (Cascadia southern margin + California borderlands strip; standalone regional solver - the 0.15° global grid covers only Japanese longitudes)"
   }
  ]
 }

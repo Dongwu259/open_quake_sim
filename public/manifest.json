@@ -1,7 +1,7 @@
 {
   "name": "Earthquake Simulator Pro 地震模拟器",
   "short_name": "QuakeSim",
-  "description": "Earthquake Simulator Pro v6.4 — offline-capable earthquake and tsunami simulation for Japan, with a global-mode California pilot (test)",
+  "description": "Earthquake Simulator Pro v6.5 — offline-capable earthquake and tsunami simulation for Japan, with a global-mode California pilot (test)",
   "lang": "zh",
   "dir": "ltr",
   "start_url": "./",
