@@ -1,0 +1,168 @@
+{
+  "schema": "quake-sim-comcat-presets-v1",
+  "region": "california",
+  "generatedAt": "2026-09-27T08:36:19.427Z",
+  "provenance": "USGS ComCat fdsnws event API + moment-tensor products (GCMT family preferred by source/preferredWeight); public domain",
+  "presets": [
+    {
+      "id": "cal-1906-sanfrancisco",
+      "label": "1906 San Francisco M7.9 (CA)",
+      "previous": {
+        "lat": 37.75,
+        "lng": -122.55,
+        "mag": 7.9,
+        "depth": 8,
+        "strike": 305,
+        "dip": 85,
+        "rake": 180
+      },
+      "resolved": true,
+      "comcatId": "official19060418131226300_12",
+      "eventUrl": "https://earthquake.usgs.gov/earthquakes/eventpage/official19060418131226300_12",
+      "queryUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=1906-04-17T07:12:00&endtime=1906-04-19T19:12:00&minlatitude=36.550&maxlatitude=38.950&minlongitude=-124.068&maxlongitude=-121.032&minmagnitude=6.4&orderby=time",
+      "detailUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=official19060418131226300_12",
+      "match": {
+        "dtHours": 0.01,
+        "distKm": 0,
+        "dMag": 0
+      },
+      "comcat": {
+        "mag": 7.9,
+        "magType": "mw",
+        "lat": 37.75,
+        "lng": -122.55,
+        "depthKm": 11.7,
+        "originTimeUtc": "1906-04-18T13:12:26.300Z"
+      },
+      "mechanism": null,
+      "mechanismNote": "no ComCat moment-tensor/focal-mechanism product",
+      "keptMechanism": "no ComCat moment tensor — documented pack mechanism kept"
+    },
+    {
+      "id": "cal-1989-lomaprieta",
+      "label": "1989 Loma Prieta M6.9 (CA)",
+      "previous": {
+        "lat": 37.036,
+        "lng": -121.883,
+        "mag": 6.9,
+        "depth": 17,
+        "strike": 128,
+        "dip": 70,
+        "rake": 132
+      },
+      "resolved": true,
+      "comcatId": "nc216859",
+      "eventUrl": "https://earthquake.usgs.gov/earthquakes/eventpage/nc216859",
+      "queryUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=1989-10-16T18:04:00&endtime=1989-10-19T06:04:00&minlatitude=35.836&maxlatitude=38.236&minlongitude=-123.386&maxlongitude=-120.380&minmagnitude=5.4&orderby=time",
+      "detailUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=nc216859",
+      "match": {
+        "dtHours": 0,
+        "distKm": 0.3,
+        "dMag": 0
+      },
+      "comcat": {
+        "mag": 6.9,
+        "magType": "mw",
+        "lat": 37.0362,
+        "lng": -121.8798,
+        "depthKm": 17.21,
+        "originTimeUtc": "1989-10-18T00:04:15.190Z"
+      },
+      "mechanism": {
+        "source": "us/gcmtM101889A",
+        "productType": "focal-mechanism",
+        "strikeDeg": 123,
+        "dipDeg": 71,
+        "rakeDeg": 128,
+        "alternatePlane": {
+          "strikeDeg": 235,
+          "dipDeg": 41,
+          "rakeDeg": 29
+        },
+        "selection": "nearest-current-preset-plane",
+        "derivedMagnitude": null,
+        "derivedDepthKm": null
+      }
+    },
+    {
+      "id": "cal-1994-northridge",
+      "label": "1994 Northridge M6.7 (CA)",
+      "previous": {
+        "lat": 34.213,
+        "lng": -118.537,
+        "mag": 6.7,
+        "depth": 18,
+        "strike": 122,
+        "dip": 40,
+        "rake": 107
+      },
+      "resolved": true,
+      "comcatId": "ci3144585",
+      "eventUrl": "https://earthquake.usgs.gov/earthquakes/eventpage/ci3144585",
+      "queryUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=1994-01-16T06:30:00&endtime=1994-01-18T18:30:00&minlatitude=33.013&maxlatitude=35.413&minlongitude=-119.988&maxlongitude=-117.086&minmagnitude=5.2&orderby=time",
+      "detailUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=ci3144585",
+      "match": {
+        "dtHours": 0.02,
+        "distKm": 0,
+        "dMag": 0
+      },
+      "comcat": {
+        "mag": 6.7,
+        "magType": "mw",
+        "lat": 34.213,
+        "lng": -118.537,
+        "depthKm": 18.2,
+        "originTimeUtc": "1994-01-17T12:30:55.390Z"
+      },
+      "mechanism": {
+        "source": "us/gcmtC011794B",
+        "productType": "focal-mechanism",
+        "strikeDeg": 130,
+        "dipDeg": 53,
+        "rakeDeg": 111,
+        "alternatePlane": {
+          "strikeDeg": 278,
+          "dipDeg": 42,
+          "rakeDeg": 65
+        },
+        "selection": "nearest-current-preset-plane",
+        "derivedMagnitude": null,
+        "derivedDepthKm": null
+      }
+    },
+    {
+      "id": "cal-1971-sanfernando",
+      "label": "1971 San Fernando M6.6 (CA)",
+      "previous": {
+        "lat": 34.416,
+        "lng": -118.39,
+        "mag": 6.6,
+        "depth": 9,
+        "strike": 108,
+        "dip": 45,
+        "rake": 90
+      },
+      "resolved": true,
+      "comcatId": "ci3347678",
+      "eventUrl": "https://earthquake.usgs.gov/earthquakes/eventpage/ci3347678",
+      "queryUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=1971-02-08T08:01:00&endtime=1971-02-10T20:01:00&minlatitude=33.216&maxlatitude=35.616&minlongitude=-119.845&maxlongitude=-116.935&minmagnitude=5.1&orderby=time",
+      "detailUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=ci3347678",
+      "match": {
+        "dtHours": 0.01,
+        "distKm": 1.8,
+        "dMag": 0
+      },
+      "comcat": {
+        "mag": 6.6,
+        "magType": "mw",
+        "lat": 34.416,
+        "lng": -118.37,
+        "depthKm": 8.95,
+        "originTimeUtc": "1971-02-09T14:00:41.920Z"
+      },
+      "mechanism": null,
+      "mechanismNote": "no ComCat moment-tensor/focal-mechanism product",
+      "keptMechanism": "no ComCat moment tensor — documented pack mechanism kept"
+    }
+  ]
+}

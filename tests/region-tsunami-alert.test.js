@@ -61,11 +61,68 @@ test('findNearestWetCell contract: wet snap, radius bound, dry-only null', () =>
   assert.equal(Physics.findNearestWetCell(dry, 0.2, 0.2, 4), null, 'dry-only grid -> null');
 });
 
+// ------------------------------------------------ v6.5.1 inland-water exemption
+// The regional forecast-area snap must not treat enclosed below-sea-level
+// basins as ocean: the Salton Sea reads as water in the GEBCO grid (its bed
+// is below sea level) but no tsunami can reach it. Eligibility = wet AND at
+// least 10 m deep AND connected to a majority-deep grid edge through water at
+// least that deep (the alert chain's own 10 m shoaling contour).
+test('oceanConnectedMask: enclosed deep lake excluded, deep-channel bay kept, edge vote', () => {
+  // 10x8 grid (rows y=0 south .. 7 north): open ocean on the west column
+  // (x=0, -200 m), a deep channel (y=3..4, x=1..5, -50 m) feeding a bay
+  // (x=6..7, y=3..4, -30 m), an enclosed deep "lake" fully interior
+  // (x=7..8, y=1..2, -80 m), everything else land (+5). Only the west edge
+  // is majority-deep.
+  const data = [];
+  for (let y = 0; y < 8; y++) for (let x = 0; x < 10; x++) {
+    let v = 5;
+    if (x === 0) v = -200;                                        // open ocean
+    if (x >= 1 && x <= 5 && (y === 3 || y === 4)) v = -50;        // deep channel
+    if ((x === 6 || x === 7) && (y === 3 || y === 4)) v = -30;    // bay (connected)
+    if ((x === 7 || x === 8) && (y === 0 || y === 1)) v = -80;    // enclosed lake
+    data.push(v);
+  }
+  const grid = { origin: [0, 0], res: 0.1, nx: 10, ny: 8, data };
+  const mask = Physics.oceanConnectedMask(grid);
+  assert.ok(mask instanceof Uint8Array, 'mask built');
+  assert.equal(mask[5 * 10 + 0], 1, 'open ocean eligible');
+  assert.equal(mask[3 * 10 + 3], 1, 'deep channel eligible');
+  assert.equal(mask[4 * 10 + 6], 1, 'bay eligible (deep-connected through the channel)');
+  assert.equal(mask[1 * 10 + 7], 0, 'enclosed deep lake NOT eligible');
+  assert.equal(mask[0 * 10 + 8], 0, 'lake cell on the land-dominated south edge not seeded');
+  // shallow-but-connected cells are not eligible (depth gate): cutting the
+  // channel (both rows) drops the bay behind it
+  const shallow = data.slice(); shallow[3 * 10 + 3] = -5; shallow[4 * 10 + 3] = -5;
+  const mask2 = Physics.oceanConnectedMask({ origin: [0, 0], res: 0.1, nx: 10, ny: 8, data: shallow });
+  assert.equal(mask2[3 * 10 + 3], 0, 'shallow (<10 m) channel cell excluded');
+  assert.equal(mask2[4 * 10 + 6], 0, 'bay beyond the broken deep channel excluded');
+  // no majority-deep edge -> null (caller keeps unmasked behaviour)
+  const landlockedData = [];
+  for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++)
+    landlockedData.push((x >= 1 && x <= 2 && y >= 1 && y <= 2) ? -20 : 1);
+  const landlocked = Physics.oceanConnectedMask({ origin: [0, 0], res: 0.1, nx: 4, ny: 4, data: landlockedData });
+  assert.equal(landlocked, null, 'no deep edge cell -> null');
+});
+
+test('findNearestWetCell honours the optional mask (4-arg calls byte-identical)', () => {
+  const grid = { origin: [0, 0], res: 0.1, nx: 5, ny: 5,
+    data: [1,1,1,1,1, 1,1,-5,1,1, 1,1,-8,1,1, 1,1,-6,1,1, 1,1,1,1,1] };
+  const unmasked = Physics.findNearestWetCell(grid, 0.2, 0.05, 2);
+  assert.ok(unmasked, 'unmasked finds the water');
+  const mask = new Uint8Array(25); // nothing eligible
+  assert.equal(Physics.findNearestWetCell(grid, 0.2, 0.05, 2, mask), null, 'fully masked -> null');
+  const mask2 = new Uint8Array(25); mask2[2 * 5 + 2] = 1;
+  const masked = Physics.findNearestWetCell(grid, 0.2, 0.05, 2, mask2);
+  assert.equal(masked && masked.index, 2 * 5 + 2, 'mask passes the eligible cell through');
+});
+
 // ------------------------------------------- independent re-derivation
 // Same algorithm as buildRegionalTsunamiForecastAreas, re-implemented here so
 // a regression in app.js cannot silently hollow out the registry (the app
 // script itself is browser-only and cannot be required from node).
-function deriveRegionalAreas(areasFC, grid) {
+function deriveRegionalAreas(areasFC, grid, opts) {
+  const useMask = !opts || opts.mask !== false; // mirrors the production builder
+  const mask = useMask ? Physics.oceanConnectedMask(grid) : null;
   const out = [];
   for (const f of areasFC.features) {
     const geom = f.geometry || {};
@@ -77,7 +134,7 @@ function deriveRegionalAreas(areasFC, grid) {
     for (const ring of rings) {
       let coast = 0;
       for (const c of ring) {
-        const wet = Physics.findNearestWetCell(grid, c[1], c[0], 2);
+        const wet = Physics.findNearestWetCell(grid, c[1], c[0], 2, mask);
         if (!wet) { if (coast > 1) lines++; coast = 0; continue; }
         coast++;
         if (!seen.has(wet.index)) { seen.add(wet.index); controls++; }
@@ -117,6 +174,40 @@ test('california registry: coastal counties covered on the new strip', () => {
   }
 });
 
+// v6.5.1 inland-water exemption on the REAL packages (numbers frozen from the
+// production rule measured on the committed grids):
+test('california registry: Salton Sea / inland counties excluded by the ocean mask', () => {
+  const grid = loadGrid('us-california');
+  const mask = Physics.oceanConnectedMask(grid);
+  assert.ok(mask, 'mask built for the CA strip');
+  // Salton Sea west-shore cells are wet but landlocked — ineligible
+  const saltonIdx = Math.round((33.35 - grid.origin[1]) / grid.res) * grid.nx + Math.round((-116.05 - grid.origin[0]) / grid.res);
+  assert.ok(Number(grid.data[saltonIdx]) < 0, 'salton shore cell is wet in the grid');
+  assert.equal(mask[saltonIdx], 0, 'salton shore cell NOT ocean-eligible');
+  // San Francisco Bay IS ocean-connected through the deep Golden Gate channel
+  const sfIdx = Math.round((37.75 - grid.origin[1]) / grid.res) * grid.nx + Math.round((-122.42 - grid.origin[0]) / grid.res);
+  assert.equal(mask[sfIdx], 1, 'SF Bay eligible (deep-connected)');
+  const areas = deriveRegionalAreas(loadAreas('california'), grid);
+  const names = areas.map(a => a.name);
+  assert.equal(areas.length, 17, 'masked CA registry area count: ' + areas.length);
+  for (const inland of ['Imperial', 'Riverside', 'Sacramento', 'San Joaquin', 'Yolo', 'Solano', 'San Benito', 'Napa', 'Santa Clara'])
+    assert.ok(!names.includes(inland), inland + ' (inland/unresolvable water only) dropped from the tsunami registry');
+  const total = areas.reduce((s, a) => s + a.controls, 0);
+  assert.equal(total, 350, 'masked CA control total: ' + total);
+  // the unmasked registry still contains Imperial — the exemption is the mask
+  const unmasked = deriveRegionalAreas(loadAreas('california'), grid, { mask: false });
+  assert.ok(unmasked.some(a => a.name === 'Imperial'), 'pre-mask Imperial had Salton controls (regression anchor)');
+});
+
+test('chile/italy masked registries: near-stable control totals', () => {
+  const cl = deriveRegionalAreas(loadAreas('chile'), loadGrid('cl-megathrust'));
+  assert.equal(cl.length, 14, 'chile areas: ' + cl.length);
+  assert.equal(cl.reduce((s, a) => s + a.controls, 0), 622, 'chile controls');
+  const it = deriveRegionalAreas(loadAreas('italy'), loadGrid('it-messina'));
+  assert.equal(it.length, 3, 'italy areas: ' + it.length);
+  assert.equal(it.reduce((s, a) => s + a.controls, 0), 136, 'italy controls');
+});
+
 // ------------------------------------------------------------- wiring
 test('app.js: regional registry builder + swap/restore lifecycle wired', () => {
   assert.match(APP, /function buildRegionalTsunamiForecastAreas/, 'builder exists');
@@ -151,6 +242,19 @@ test('app.js: regional registry builder + swap/restore lifecycle wired', () => {
   // the source-area display uses the regional namespace for regional events
   assert.match(APP, /function _sourceAreaCodeForEvent/, 'source-area router exists');
   assert.match(APP, /if \(_tsuAreasRegional\) return _regionalSourceAreaCodeFor\(ev\);/, 'routed to the regional nearest control');
+  // v6.5.1 inland-water exemption: the builder masks the snap with the
+  // open-ocean eligibility mask and the JMA builder stays unmasked
+  assert.match(builder, /oceanConnectedMask/, 'builder computes the ocean mask');
+  assert.match(builder, /findNearestWetCell\(grid, coord\[1\], coord\[0\], 2, oceanMask\)/, 'snap passes the mask');
+  const jmaBuilder = APP.match(/function buildJmaTsunamiForecastAreas[\s\S]*?\n\}/)[0];
+  assert.ok(!/oceanConnectedMask/.test(jmaBuilder), 'JMA builder unmasked (Japan path byte-identical)');
+});
+
+test('i18n + panel: regional ETA note wired at 3-language parity', () => {
+  const panel = APP.match(/function _updateTsunamiEtaPanel[\s\S]*?\n\}/)[0];
+  assert.match(panel, /tsunami\.eta\.regional_note/, 'ETA panel renders the note');
+  assert.match(panel, /_tsuAreasRegional/, 'gated on the regional registry');
+  assert.equal((I18N.match(/"tsunami\.eta\.regional_note"/g) || []).length, 3, 'note key x3');
 });
 
 test('i18n: regional method label + unknown basin keys at 3-language parity', () => {

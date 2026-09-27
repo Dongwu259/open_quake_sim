@@ -74,6 +74,7 @@ select{background:var(--input-bg);border:1px solid var(--border);color:var(--tex
 .tsunami-eta-row.eta-arrived .eta-time{color:#ffb74d}
 .tsunami-eta-row .eta-dot{display:inline-block;width:.55em;height:.55em;border-radius:50%;margin-right:.35em;vertical-align:baseline}
 .tsunami-eta-row.lvl-major .eta-dot{background:#d32f2f}.tsunami-eta-row.lvl-warn .eta-dot{background:#f57c00}.tsunami-eta-row.lvl-adv .eta-dot{background:#fbc02d}
+.tsunami-eta-note{font-size:.72em;color:var(--text-secondary);line-height:1.4;padding-top:.35em;margin-top:.2em;border-top:1px dashed var(--border)}
 .tsunami-zone-details{margin-top:.55em;padding-top:.5em;border-top:1px solid var(--border)}
 /* Editable multi-event orchestration list */
 #multi-event-info{max-height:12em;overflow-y:auto}

@@ -1,6 +1,6 @@
 {
  "schema": "quake-sim-experiment-manifest-v1",
- "generated": "2026-09-16T16:31:33.597Z",
+ "generated": "2026-09-27T08:40:02.653Z",
  "identityRule": "qsx1-<sha256[:16] of file bytes>; manifest excluded from its own listing",
  "entries": [
   {
@@ -47,6 +47,33 @@
    "track": null,
    "gate": null,
    "mtime": "2026-09-09T18:53:42.614Z"
+  },
+  {
+   "id": "qsx1-016e9438d84e3464",
+   "name": "comcat-presets-california.json",
+   "bytes": 5740,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-27T08:36:19.434Z"
+  },
+  {
+   "id": "qsx1-35af31072a4e2265",
+   "name": "comcat-presets-chile.json",
+   "bytes": 6037,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-27T08:36:19.443Z"
+  },
+  {
+   "id": "qsx1-d3f0e458cb0f289b",
+   "name": "comcat-presets-italy.json",
+   "bytes": 7651,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-09-27T08:36:19.451Z"
   },
   {
    "id": "qsx1-92995937fd410453",

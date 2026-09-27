@@ -5462,7 +5462,7 @@ Physics.tsunamiCoastalHeight = function(solver, lat, lng, targetDepthM, cap) {
  * side of a narrow island. The deliberately small default radius also avoids
  * jumping tens of kilometres across land on the bundled regional grid.
  */
-Physics.findNearestWetCell = function(grid, lat, lng, maxRadius) {
+Physics.findNearestWetCell = function(grid, lat, lng, maxRadius, wetMask) {
   if(!grid||!grid.data||!grid.nx||!grid.ny||!grid.origin||!(grid.res>0))return null;
   var cx=Math.round((lng-grid.origin[0])/grid.res),cy=Math.round((lat-grid.origin[1])/grid.res);
   if(cx<0||cx>=grid.nx||cy<0||cy>=grid.ny)return null;
@@ -5474,6 +5474,9 @@ Physics.findNearestWetCell = function(grid, lat, lng, maxRadius) {
         if(Math.max(Math.abs(x-cx),Math.abs(y-cy))!==radius)continue;
         var index=y*grid.nx+x,value=Number(grid.data[index]);
         if(!(value<0))continue;
+        // Optional open-ocean mask (Physics.oceanConnectedMask): excludes
+        // enclosed inland basins that read as water in the terrain data.
+        if(wetMask&&!wetMask[index])continue;
         var cellLat=grid.origin[1]+y*grid.res,cellLng=grid.origin[0]+x*grid.res;
         var dx=(cellLng-lng)*cosLat,dy=cellLat-lat,d2=dx*dx+dy*dy;
         if(!best||d2<best.distanceSq){best={index:index,x:x,y:y,lat:cellLat,lng:cellLng,
@@ -5485,6 +5488,50 @@ Physics.findNearestWetCell = function(grid, lat, lng, maxRadius) {
     if(best&&radius>=Math.ceil(best.distanceCells))break;
   }
   return best;
+};
+
+/**
+ * Open-ocean eligibility mask for tsunami forecast-area control points
+ * (regional grids, v6.5.1). A wet cell (data < 0 = water) is eligible only
+ * when it is at least minDepthM deep AND connected to the open ocean through
+ * cells that are all at least minDepthM deep. The open ocean enters through
+ * grid edges whose cells are majority-deep — an edge that is mostly land is
+ * never a seed (the California strip's east edge cuts through the Salton
+ * Sea, so that edge must not "ocean-connect" the lake). Enclosed
+ * below-sea-level basins (Salton Sea, Death Valley) and tidal channels the
+ * grid cannot resolve (Sacramento–San Joaquin Delta at 0.05°) are excluded:
+ * the wave solver cannot reach them either, so a forecast control there
+ * would only ever see noise. minDepthM defaults to 10 — the shoaling
+ * reference contour the alert chain already uses for its Green's-law step.
+ * Returns null when no edge qualifies as open sea (the grid cannot
+ * adjudicate connectivity; callers keep unmasked behavior).
+ */
+Physics.oceanConnectedMask = function(grid, minDepthM) {
+  if(!grid||!grid.data||!grid.nx||!grid.ny||!(grid.res>0))return null;
+  var nx=grid.nx,ny=grid.ny,n=nx*ny;
+  var minDepth=(Number(minDepthM)>0)?Number(minDepthM):10;
+  function isDeep(i){var v=Number(grid.data[i]);return isFinite(v)&&v<=-minDepth;}
+  // Edge vote: an edge seeds only when at least half of its cells are deep
+  // water — a land-dominated edge is not an ocean source.
+  var wDeep=0,eDeep=0,sDeep=0,nDeep=0,x,y,i;
+  for(y=0;y<ny;y++){if(isDeep(y*nx))wDeep++;if(isDeep(y*nx+nx-1))eDeep++;}
+  for(x=0;x<nx;x++){if(isDeep(x))sDeep++;if(isDeep((ny-1)*nx+x))nDeep++;}
+  var seedW=wDeep*2>=ny,seedE=eDeep*2>=ny,seedS=sDeep*2>=nx,seedN=nDeep*2>=nx;
+  var mask=new Uint8Array(n),stack=[];
+  function seed(sx,sy){var si=sy*nx+sx;if(!mask[si]&&isDeep(si)){mask[si]=1;stack.push(si);}}
+  if(seedS)for(x=0;x<nx;x++)seed(x,0);
+  if(seedN)for(x=0;x<nx;x++)seed(x,ny-1);
+  if(seedW)for(y=0;y<ny;y++)seed(0,y);
+  if(seedE)for(y=0;y<ny;y++)seed(nx-1,y);
+  if(!stack.length)return null;
+  while(stack.length){
+    i=stack.pop();var ix=i%nx,iy=(i-ix)/nx;
+    if(ix>0){var l=i-1;if(!mask[l]&&isDeep(l)){mask[l]=1;stack.push(l);}}
+    if(ix<nx-1){var r=i+1;if(!mask[r]&&isDeep(r)){mask[r]=1;stack.push(r);}}
+    if(iy>0){var u=i-nx;if(!mask[u]&&isDeep(u)){mask[u]=1;stack.push(u);}}
+    if(iy<ny-1){var d=i+nx;if(!mask[d]&&isDeep(d)){mask[d]=1;stack.push(d);}}
+  }
+  return mask;
 };
 
 /** Validate the common terrain/Vs30 raster schema and expose data provenance. */

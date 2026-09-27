@@ -2,6 +2,27 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/) where practical.
 
+## [6.6.0] — 2026-09-26 区域历史预设改 USGS ComCat 权威值 × 内陆水体豁免 × 诚实阈值注记
+
+同步自上游 quake_sim（6.5.1 候选批 → 6.6.0 ComCat 预设管线批 → 6.6.0 发布身份批）：
+
+### Added
+- **ComCat 权威预设管线**：加州/智利/意大利 13 个历史事件的预设参数（震中/震级/深度/发震时刻/机制）从手填改为 USGS ComCat 权威值——事件 API 宽窗（±30h）+邻近+震级打分匹配，13/13 全部命中；查询与 ComCat id 冻结入 `tools/data/comcat-presets-*.json`（schema quake-sim-comcat-presets-v1，全 provenance：queryUrl/detailUrl/eventUrl/匹配距离），experiment-manifest 登记——可复现、不可静默改
+- **机制解双产品通道**：同时读 ComCat moment-tensor **与** focal-mechanism 产品（加州事件的 GCMT 解只在后者），GCMT 优先；双节面取贴近现行包值的节面，选择规则与备选节面入快照
+- **13 个 ComCat eventId 冻结为测试锚**（tests/comcat-presets.test.js）：未来重解析无法静默换事件
+
+### Fixed
+- **内陆水体豁免**：区域海啸预报区控制点开海资格掩码 `Physics.oceanConnectedMask`——湿格且 ≥10m 深且经全程 ≥10m 深通道 4-连通到多数深水边（边投票防网格东缘切割误判）；封闭低于海平面盆地（索尔顿湖）与 0.05° 不可分辨潮道豁免——加州 26→17 区、466→350 控制点，Imperial 县不再因湖泊报警；旧金山湾经深水金门通道保留；智利 637→622/意大利 142→136 近稳；JMA 建造器不挂掩码=日本路径字节不变
+
+### 诚实边界
+- 前仪器 4 事件（1906 旧金山/1971 San Fernando/1960 Valdivia/1908 墨西拿）无 ComCat 机制解——文献值诚实保留（快照 mechanism:null+keptMechanism 注记），绝不臆造沙滩球
+- 墨西拿 1908 保留文献陆格震中（ComCat/ISC-GEM 震中落海峡水格；1908 海啸为海底滑坡驱动，点源不适用）——KEEP_EPICENTER 例外面显式冻结
+- 区域海啸 ETA 面板新增注记：警报等级为 JMA 阈值近似，非当地官方标准（非 SHOA/CAT/NOAA 运营产品）
+- 标签随权威值更新：Norcia M6.5→M6.6、Iquique M8.1→M8.2
+
+### Quality
+- node 测试 1216/1216（新增 comcat-presets 5 锚：快照 schema/provenance/包-快照一致性/机制诚实/eventId 锚）；validate-release 24,591 项；日本路径字节不变；CI 绿
+
 ## [6.5.0] — 2026-09-25 区域海啸警报上线 × 三试点区域海啸/Vs30 拉平
 
 同步自上游 quake_sim（v6.4 区域海啸+全球Vs30批 → v6.5 区域海啸警报批 → v6.5.0 发布）：

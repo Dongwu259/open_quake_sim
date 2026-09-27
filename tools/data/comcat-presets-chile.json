@@ -1,0 +1,181 @@
+{
+  "schema": "quake-sim-comcat-presets-v1",
+  "region": "chile",
+  "generatedAt": "2026-09-27T08:36:19.437Z",
+  "provenance": "USGS ComCat fdsnws event API + moment-tensor products (GCMT family preferred by source/preferredWeight); public domain",
+  "presets": [
+    {
+      "id": "cl-1960-valdivia",
+      "label": "1960 Valdivia M9.5 (CL)",
+      "previous": {
+        "lat": -38.143,
+        "lng": -73.407,
+        "mag": 9.5,
+        "depth": 25,
+        "strike": 5,
+        "dip": 14,
+        "rake": 100
+      },
+      "resolved": true,
+      "comcatId": "official19600522191120_30",
+      "eventUrl": "https://earthquake.usgs.gov/earthquakes/eventpage/official19600522191120_30",
+      "queryUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=1960-05-21T09:11:00&endtime=1960-05-23T21:11:00&minlatitude=-39.343&maxlatitude=-36.943&minlongitude=-74.933&maxlongitude=-71.881&minmagnitude=8.0&orderby=time",
+      "detailUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=official19600522191120_30",
+      "match": {
+        "dtHours": 4.01,
+        "distKm": 0,
+        "dMag": 0
+      },
+      "comcat": {
+        "mag": 9.5,
+        "magType": "mw",
+        "lat": -38.143,
+        "lng": -73.407,
+        "depthKm": 25,
+        "originTimeUtc": "1960-05-22T19:11:20.000Z"
+      },
+      "mechanism": null,
+      "mechanismNote": "no ComCat moment-tensor/focal-mechanism product",
+      "keptMechanism": "no ComCat moment tensor — documented pack mechanism kept"
+    },
+    {
+      "id": "cl-2010-maule",
+      "label": "2010 Maule M8.8 (CL)",
+      "previous": {
+        "lat": -36.122,
+        "lng": -72.898,
+        "mag": 8.8,
+        "depth": 22,
+        "strike": 16,
+        "dip": 18,
+        "rake": 112
+      },
+      "resolved": true,
+      "comcatId": "official20100227063411530_30",
+      "eventUrl": "https://earthquake.usgs.gov/earthquakes/eventpage/official20100227063411530_30",
+      "queryUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2010-02-25T21:34:00&endtime=2010-02-28T09:34:00&minlatitude=-37.322&maxlatitude=-34.922&minlongitude=-74.384&maxlongitude=-71.412&minmagnitude=7.3&orderby=time",
+      "detailUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=official20100227063411530_30",
+      "match": {
+        "dtHours": 3,
+        "distKm": 0,
+        "dMag": 0
+      },
+      "comcat": {
+        "mag": 8.8,
+        "magType": "mww",
+        "lat": -36.122,
+        "lng": -72.898,
+        "depthKm": 22.9,
+        "originTimeUtc": "2010-02-27T06:34:11.530Z"
+      },
+      "mechanism": {
+        "source": "us/pde20100227063411530_22_C_GCMT",
+        "productType": "moment-tensor",
+        "strikeDeg": 19,
+        "dipDeg": 18,
+        "rakeDeg": 116,
+        "alternatePlane": {
+          "strikeDeg": 172,
+          "dipDeg": 74,
+          "rakeDeg": 82
+        },
+        "selection": "nearest-current-preset-plane",
+        "derivedMagnitude": null,
+        "derivedDepthKm": 23.2
+      }
+    },
+    {
+      "id": "cl-2015-illapel",
+      "label": "2015 Illapel M8.3 (CL)",
+      "previous": {
+        "lat": -31.571,
+        "lng": -71.658,
+        "mag": 8.3,
+        "depth": 25,
+        "strike": 5,
+        "dip": 23,
+        "rake": 101
+      },
+      "resolved": true,
+      "comcatId": "us20003k7a",
+      "eventUrl": "https://earthquake.usgs.gov/earthquakes/eventpage/us20003k7a",
+      "queryUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2015-09-15T16:54:00&endtime=2015-09-18T04:54:00&minlatitude=-32.771&maxlatitude=-30.371&minlongitude=-73.066&maxlongitude=-70.250&minmagnitude=6.8&orderby=time",
+      "detailUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us20003k7a",
+      "match": {
+        "dtHours": 0.01,
+        "distKm": 1.6,
+        "dMag": 0
+      },
+      "comcat": {
+        "mag": 8.3,
+        "magType": "mww",
+        "lat": -31.5729,
+        "lng": -71.6744,
+        "depthKm": 22.44,
+        "originTimeUtc": "2015-09-16T22:54:32.860Z"
+      },
+      "mechanism": {
+        "source": "us/us_20003k7a_mwc_gcmt",
+        "productType": "moment-tensor",
+        "strikeDeg": 5,
+        "dipDeg": 22,
+        "rakeDeg": 106,
+        "alternatePlane": {
+          "strikeDeg": 169,
+          "dipDeg": 69,
+          "rakeDeg": 84
+        },
+        "selection": "nearest-current-preset-plane",
+        "derivedMagnitude": 8.2,
+        "derivedDepthKm": 17.8
+      }
+    },
+    {
+      "id": "cl-2014-iquique",
+      "label": "2014 Iquique M8.1 (CL)",
+      "previous": {
+        "lat": -19.61,
+        "lng": -70.769,
+        "mag": 8.1,
+        "depth": 25,
+        "strike": -8,
+        "dip": 13,
+        "rake": 105
+      },
+      "resolved": true,
+      "comcatId": "usc000nzvd",
+      "eventUrl": "https://earthquake.usgs.gov/earthquakes/eventpage/usc000nzvd",
+      "queryUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2014-03-31T17:46:00&endtime=2014-04-03T05:46:00&minlatitude=-20.810&maxlatitude=-18.410&minlongitude=-72.043&maxlongitude=-69.495&minmagnitude=6.6&orderby=time",
+      "detailUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=usc000nzvd",
+      "match": {
+        "dtHours": 0.01,
+        "distKm": 0,
+        "dMag": 0.1
+      },
+      "comcat": {
+        "mag": 8.2,
+        "magType": "mww",
+        "lat": -19.6097,
+        "lng": -70.7691,
+        "depthKm": 25,
+        "originTimeUtc": "2014-04-01T23:46:47.260Z"
+      },
+      "mechanism": {
+        "source": "us/us_c000nzvd_mwc_gcmt",
+        "productType": "moment-tensor",
+        "strikeDeg": 357,
+        "dipDeg": 18,
+        "rakeDeg": 109,
+        "alternatePlane": {
+          "strikeDeg": 157,
+          "dipDeg": 73,
+          "rakeDeg": 84
+        },
+        "selection": "nearest-current-preset-plane",
+        "derivedMagnitude": 8.1,
+        "derivedDepthKm": 21.9
+      },
+      "labelUpdated": true
+    }
+  ]
+}

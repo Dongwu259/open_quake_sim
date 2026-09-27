@@ -3336,6 +3336,16 @@ function buildRegionalTsunamiForecastAreas() {
     }
   }
   if (!grid) return false;
+  // Inland-water exemption (v6.5.1): exclude wet cells that are not open
+  // ocean — enclosed below-sea-level basins (the Salton Sea on the CA strip)
+  // and tidal channels unresolved at the grid resolution. Japan's registry
+  // keeps the unmasked path; this runs in the regional builder only.
+  var oceanMask = Physics.oceanConnectedMask ? Physics.oceanConnectedMask(grid) : null;
+  var excludedWet = 0;
+  if (oceanMask) {
+    for (var mi = 0; mi < grid.data.length; mi++)
+      if (Number(grid.data[mi]) < 0 && !oceanMask[mi]) excludedWet++;
+  }
   var areas = [], byCode = Object.create(null), allPoints = [];
   for (var fi = 0; fi < REGION_STATE.areas.features.length; fi++) {
     var feature = REGION_STATE.areas.features[fi];
@@ -3356,7 +3366,7 @@ function buildRegionalTsunamiForecastAreas() {
       for (var vi = 0; vi < ring.length; vi++) {
         var coord = ring[vi];
         if (typeof coord[0] !== 'number' || typeof coord[1] !== 'number') continue;
-        var wet = Physics.findNearestWetCell(grid, coord[1], coord[0], 2);
+        var wet = Physics.findNearestWetCell(grid, coord[1], coord[0], 2, oceanMask);
         if (!wet) { if (coast.length > 1) lines.push(coast); coast = []; continue; }
         coast.push(coord);
         if (!seenCells[wet.index]) {
@@ -3393,7 +3403,8 @@ function buildRegionalTsunamiForecastAreas() {
   _regionalTsuBuiltFor = rid;
   _tsuAreasRegional = true;
   _tsuSegDirty = true; _tsuWarningRenderSignature = '';
-  console.log('Regional tsunami forecast areas: ' + areas.length + ', offshore controls: ' + allPoints.length + ' (' + rid + ')');
+  console.log('Regional tsunami forecast areas: ' + areas.length + ', offshore controls: ' + allPoints.length + ' (' + rid + ')' +
+    (oceanMask ? ', inland-water cells excluded: ' + excludedWet : ''));
   return true;
 }
 function _ensureRegionalTsuAreas() {
@@ -6170,6 +6181,7 @@ function _updateTsunamiEtaPanel() {
       '<span class="eta-area"><span class="eta-dot"></span>' + escapeHTML(row.name) + '</span>' +
       '<span class="eta-time">' + timeText + '</span></div>';
   }
+  if (_tsuAreasRegional) html += '<div class="tsunami-eta-note">' + escapeHTML(t('tsunami.eta.regional_note')) + '</div>';
   _tsuEtaList.innerHTML = html;
   _tsuEtaBlock.hidden = false;
 }
@@ -10984,7 +10996,7 @@ var ScenarioManager = (function(){
       if (isFinite(+a.lat) && isFinite(+a.lng)) { e.lat = +a.lat; e.lng = +a.lng; }
       return e;
     });
-    return { schema:Research.SCENARIO_SCHEMA,name:name || tr('scn.untitled'),version:2,appVersion:'v6.5',
+    return { schema:Research.SCENARIO_SCHEMA,name:name || tr('scn.untitled'),version:2,appVersion:'v6.6',
              seed:Research.normalizeSeed(cfgGet('randomSeed')),events:events,flags:flags,config:JSON.parse(JSON.stringify(CFG)),
              faultOpts:FiniteFaultEditor.getState(),manualAftershocks:manAs,display:_researchDisplayState(),dataVersions:versions.data,modelVersions:versions.model,
              experiment:_currentExperiment,created:(function(){try{return new Date().toISOString();}catch(e){return '';}})() };

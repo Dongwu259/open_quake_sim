@@ -1,0 +1,232 @@
+{
+  "schema": "quake-sim-comcat-presets-v1",
+  "region": "italy",
+  "generatedAt": "2026-09-27T08:36:19.446Z",
+  "provenance": "USGS ComCat fdsnws event API + moment-tensor products (GCMT family preferred by source/preferredWeight); public domain",
+  "presets": [
+    {
+      "id": "it-2016-norcia",
+      "label": "2016 Norcia M6.5 (IT)",
+      "previous": {
+        "lat": 42.842,
+        "lng": 13.109,
+        "mag": 6.5,
+        "depth": 9,
+        "strike": 155,
+        "dip": 52,
+        "rake": -90
+      },
+      "resolved": true,
+      "comcatId": "us1000731j",
+      "eventUrl": "https://earthquake.usgs.gov/earthquakes/eventpage/us1000731j",
+      "queryUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2016-10-29T00:40:00&endtime=2016-10-31T12:40:00&minlatitude=41.642&maxlatitude=44.042&minlongitude=11.472&maxlongitude=14.746&minmagnitude=5.0&orderby=time",
+      "detailUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us1000731j",
+      "match": {
+        "dtHours": 0.01,
+        "distKm": 2.5,
+        "dMag": 0.1
+      },
+      "comcat": {
+        "mag": 6.6,
+        "magType": "mww",
+        "lat": 42.8621,
+        "lng": 13.0961,
+        "depthKm": 8,
+        "originTimeUtc": "2016-10-30T06:40:18.670Z"
+      },
+      "mechanism": {
+        "source": "us/us_1000731j_mww",
+        "productType": "moment-tensor",
+        "strikeDeg": 335,
+        "dipDeg": 63,
+        "rakeDeg": -93,
+        "alternatePlane": {
+          "strikeDeg": 162,
+          "dipDeg": 27,
+          "rakeDeg": -83
+        },
+        "selection": "nearest-current-preset-plane",
+        "derivedMagnitude": 6.6,
+        "derivedDepthKm": 15.5
+      },
+      "labelUpdated": true
+    },
+    {
+      "id": "it-2016-amatrice",
+      "label": "2016 Amatrice M6.2 (IT)",
+      "previous": {
+        "lat": 42.698,
+        "lng": 13.235,
+        "mag": 6.2,
+        "depth": 6,
+        "strike": 157,
+        "dip": 50,
+        "rake": -85
+      },
+      "resolved": true,
+      "comcatId": "us10006g7d",
+      "eventUrl": "https://earthquake.usgs.gov/earthquakes/eventpage/us10006g7d",
+      "queryUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2016-08-22T19:36:00&endtime=2016-08-25T07:36:00&minlatitude=41.498&maxlatitude=43.898&minlongitude=11.602&maxlongitude=14.868&minmagnitude=4.7&orderby=time",
+      "detailUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us10006g7d",
+      "match": {
+        "dtHours": 0.01,
+        "distKm": 4.8,
+        "dMag": 0
+      },
+      "comcat": {
+        "mag": 6.2,
+        "magType": "mww",
+        "lat": 42.723,
+        "lng": 13.1877,
+        "depthKm": 4.44,
+        "originTimeUtc": "2016-08-24T01:36:32.870Z"
+      },
+      "mechanism": {
+        "source": "us/us_10006g7d_mww",
+        "productType": "moment-tensor",
+        "strikeDeg": 165,
+        "dipDeg": 48,
+        "rakeDeg": -78,
+        "alternatePlane": {
+          "strikeDeg": 328,
+          "dipDeg": 43,
+          "rakeDeg": -103
+        },
+        "selection": "nearest-current-preset-plane",
+        "derivedMagnitude": 6.2,
+        "derivedDepthKm": 11.5
+      }
+    },
+    {
+      "id": "it-2009-laquila",
+      "label": "2009 L'Aquila M6.3 (IT)",
+      "previous": {
+        "lat": 42.342,
+        "lng": 13.38,
+        "mag": 6.3,
+        "depth": 9,
+        "strike": 133,
+        "dip": 44,
+        "rake": -83
+      },
+      "resolved": true,
+      "comcatId": "usp000gvtu",
+      "eventUrl": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000gvtu",
+      "queryUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2009-04-04T19:32:00&endtime=2009-04-07T07:32:00&minlatitude=41.142&maxlatitude=43.542&minlongitude=11.756&maxlongitude=15.004&minmagnitude=4.8&orderby=time",
+      "detailUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=usp000gvtu",
+      "match": {
+        "dtHours": 0.01,
+        "distKm": 3.9,
+        "dMag": 0
+      },
+      "comcat": {
+        "mag": 6.3,
+        "magType": "mwc",
+        "lat": 42.334,
+        "lng": 13.334,
+        "depthKm": 8.8,
+        "originTimeUtc": "2009-04-06T01:32:39.000Z"
+      },
+      "mechanism": {
+        "source": "us/pde20090406013239000_8_C_GCMT",
+        "productType": "moment-tensor",
+        "strikeDeg": 120,
+        "dipDeg": 54,
+        "rakeDeg": -113,
+        "alternatePlane": {
+          "strikeDeg": 336,
+          "dipDeg": 42,
+          "rakeDeg": -62
+        },
+        "selection": "nearest-current-preset-plane",
+        "derivedMagnitude": null,
+        "derivedDepthKm": 12
+      }
+    },
+    {
+      "id": "it-1980-irpinia",
+      "label": "1980 Irpinia M6.9 (IT)",
+      "previous": {
+        "lat": 40.842,
+        "lng": 15.295,
+        "mag": 6.9,
+        "depth": 18,
+        "strike": 305,
+        "dip": 60,
+        "rake": -85
+      },
+      "resolved": true,
+      "comcatId": "usp0001ay4",
+      "eventUrl": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0001ay4",
+      "queryUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=1980-11-22T12:34:00&endtime=1980-11-25T00:34:00&minlatitude=39.642&maxlatitude=42.042&minlongitude=13.709&maxlongitude=16.881&minmagnitude=5.4&orderby=time",
+      "detailUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=usp0001ay4",
+      "match": {
+        "dtHours": 0.01,
+        "distKm": 10,
+        "dMag": 0
+      },
+      "comcat": {
+        "mag": 6.9,
+        "magType": "ms",
+        "lat": 40.914,
+        "lng": 15.366,
+        "depthKm": 10,
+        "originTimeUtc": "1980-11-23T18:34:53.800Z"
+      },
+      "mechanism": {
+        "source": "us/gcmtZ112380A",
+        "productType": "focal-mechanism",
+        "strikeDeg": 303,
+        "dipDeg": 50,
+        "rakeDeg": -98,
+        "alternatePlane": {
+          "strikeDeg": 135,
+          "dipDeg": 41,
+          "rakeDeg": -80
+        },
+        "selection": "nearest-current-preset-plane",
+        "derivedMagnitude": null,
+        "derivedDepthKm": null
+      }
+    },
+    {
+      "id": "it-1908-messina",
+      "label": "1908 Messina M7.1 (IT)",
+      "previous": {
+        "lat": 38.15,
+        "lng": 15.68,
+        "mag": 7.1,
+        "depth": 10,
+        "strike": 250,
+        "dip": 50,
+        "rake": -70
+      },
+      "resolved": true,
+      "comcatId": "iscgem16958009",
+      "eventUrl": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem16958009",
+      "queryUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=1908-12-26T22:20:00&endtime=1908-12-29T10:20:00&minlatitude=36.950&maxlatitude=39.350&minlongitude=14.154&maxlongitude=17.206&minmagnitude=5.6&orderby=time",
+      "detailUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=iscgem16958009",
+      "match": {
+        "dtHours": 0.01,
+        "distKm": 26.6,
+        "dMag": 0.01
+      },
+      "comcat": {
+        "mag": 7.09,
+        "magType": "mw",
+        "lat": 37.965,
+        "lng": 15.487,
+        "depthKm": 15,
+        "originTimeUtc": "1908-12-28T04:20:27.550Z"
+      },
+      "mechanism": null,
+      "mechanismNote": "no ComCat moment-tensor/focal-mechanism product",
+      "epicenterKept": "pack keeps the documented land-cell epicenter; the ISC-GEM epicenter is in-strait water and the 1908 tsunami was submarine-slump driven — see region pack notes",
+      "comcatEpicenter": {
+        "lat": 37.965,
+        "lng": 15.487
+      },
+      "keptMechanism": "no ComCat moment tensor — documented pack mechanism kept"
+    }
+  ]
+}

@@ -5,15 +5,15 @@
 <script>/* align <html lang> with the saved language before first paint (applyLanguage keeps it in sync afterwards) */try{var __l=localStorage.getItem('qs-lang');if(__l==='ja'||__l==='en'||__l==='zh')document.documentElement.lang=__l;}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0a0e1a">
-<meta name="description" content="Earthquake Simulator Pro v6.5，面向日本并含全球区域试点的可复现地震与海啸情景模拟器。包含多种GMPE、矩守恒有限断层、JMA逐站独立验证、非线性浅水方程、科研结果对比和SREV式实时TTS。">
+<meta name="description" content="Earthquake Simulator Pro v6.6，面向日本并含全球区域试点的可复现地震与海啸情景模拟器。包含多种GMPE、矩守恒有限断层、JMA逐站独立验证、非线性浅水方程、科研结果对比和SREV式实时TTS。">
 <meta name="keywords" content="earthquake simulator,地震模拟,震度,地震波,日本地震,GMPE,Shindo,JMA">
-<meta property="og:title" content="Earthquake Simulator Pro v6.5 — 地震与海啸情景模拟">
+<meta property="og:title" content="Earthquake Simulator Pro v6.6 — 地震与海啸情景模拟">
 <meta property="og:description" content="Web-based earthquake simulation for Japan. Real physics engine with 6 GMPE models, finite fault editor, TTS bulletin broadcast, and real-time monitoring from 5 data sources.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://quake-sim.example.com/">
 <meta property="og:image" content="https://quake-sim.example.com/og-image.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Earthquake Simulator Pro v6.5">
+<meta name="twitter:title" content="Earthquake Simulator Pro v6.6">
 <meta name="twitter:description" content="Real-time earthquake wave propagation simulator for Japan. 6 GMPE, TTS bulletin, PWA offline.">
 <meta name="twitter:image" content="https://quake-sim.example.com/og-image.png">
 <link rel="canonical" href="https://quake-sim.example.com/">
@@ -21,23 +21,23 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="QuakeSim">
-<link rel="manifest" href="manifest.json?v=8fee7b">
+<link rel="manifest" href="manifest.json?v=a684e4">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
-<title>日本地震模拟器 v6.5 | Earthquake Simulator Pro</title>
+<title>日本地震模拟器 v6.6 | Earthquake Simulator Pro</title>
 <link rel="stylesheet" href="leaflet/leaflet.css?v=f885c4">
-<link rel="stylesheet" href="style.css?v=113680">
+<link rel="stylesheet" href="style.css?v=3e56f5">
 <link rel="preload" href="leaflet/leaflet.js?v=5a640f" as="script">
-<link rel="preload" href="app.js?v=efd88f" as="script">
-<link rel="preload" href="style.css?v=113680" as="style">
+<link rel="preload" href="app.js?v=410308" as="script">
+<link rel="preload" href="style.css?v=3e56f5" as="style">
 <link rel="preload" href="config.js?v=6c74f8" as="script">
-<link rel="preload" href="physics.js?v=78b00b" as="script">
+<link rel="preload" href="physics.js?v=25fbe8" as="script">
 </head>
 <body>
 <a href="#map" class="skip-link" data-i18n="aria.skip">跳转到内容</a>
 <div id="app" role="application" aria-label="Earthquake Simulator">
   <div id="sidebar" role="complementary" aria-label="控制面板">
     <div id="sidebar-header">
-      <h1 data-i18n="app.title">日本地震模拟器 v6.5</h1>
+      <h1 data-i18n="app.title">日本地震模拟器 v6.6</h1>
       <div id="build-ver" style="font-size:.65em;color:var(--text-secondary);opacity:.5;margin-top:-2px" data-sw="sw.js=v578102">(······)</div>
       <button id="btn-report-page" class="report-entry-btn" type="button" data-i18n="report.entry_btn">📋 体验报告</button>
       <button id="btn-help" class="help-link" type="button" data-i18n="help.title">使用帮助</button>
@@ -754,9 +754,9 @@
 <script src="research.js?v=3ee192"></script>
 <script src="data-catalog.js?v=bee20f"></script>
 <script src="grid-package.js?v=865d26"></script>
-<script src="i18n.js?v=68a37e"></script>
+<script src="i18n.js?v=fc7da5"></script>
 <script src="dc3d.js?v=2865dd"></script>
-<script src="physics.js?v=78b00b"></script>
+<script src="physics.js?v=25fbe8"></script>
 <script src="tsunami-solver-host.js?v=2432a8"></script>
 <script src="ensemble-solver-host.js?v=153d61"></script>
 <script src="tsunami-validation.js?v=45a850"></script>
@@ -854,8 +854,8 @@ window._ensureScript = function(globalName, key) {
     </button>
     <button id="btn-promo-whatsnew" class="promo-whatsnew-btn" type="button">
       <span class="promo-whatsnew-spark" aria-hidden="true">✨</span>
-      <span data-i18n="promo.whatsnew_entry">看看 v6.5 更新了什么</span>
-      <span class="promo-whatsnew-badge">v6.5</span>
+      <span data-i18n="promo.whatsnew_entry">看看 v6.6 更新了什么</span>
+      <span class="promo-whatsnew-badge">v6.6</span>
     </button>
     <a class="promo-github-btn" href="https://github.com/Dongwu259/open_quake_sim" target="_blank" rel="noopener noreferrer" data-i18n-aria="promo.github_aria" aria-label="GitHub">
       <svg class="promo-github-logo" viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" focusable="false"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
@@ -891,51 +891,51 @@ window._ensureScript = function(globalName, key) {
         <span class="wn-epi"></span>
       </div>
       <div class="whatsnew-hero-copy">
-        <h2 id="whatsnew-title" data-i18n="whatsnew.title">v6.0 更新</h2>
-        <p data-i18n="whatsnew.subtitle">不确定性建模 × 场地反应标定 · 科研级升级</p>
+        <h2 id="whatsnew-title" data-i18n="whatsnew.title">v6.6 更新</h2>
+        <p data-i18n="whatsnew.subtitle">区域历史预设改用 USGS ComCat 权威值 × 内陆水体豁免 × 阈值诚实注记</p>
       </div>
       <div class="wn-waves" aria-hidden="true"><span></span><span></span></div>
     </div>
     <div class="whatsnew-cards">
       <div class="wn-card">
         <span class="wn-icon wn-icon-live" aria-hidden="true"><i></i><i></i></span>
-        <h3 data-i18n="whatsnew.f7_t">逻辑树与集合不确定性</h3>
-        <p data-i18n="whatsnew.f7_d">GMPE 逻辑树(LLH 定权)聚合预测;Monte Carlo 集合引擎可开关细分区 P10–P90 不确定度描边,超越概率与解析式互验。</p>
+        <h3 data-i18n="whatsnew.f7_t">预设标签随权威值更新</h3>
+        <p data-i18n="whatsnew.f7_d">Norcia M6.5→M6.6、Iquique M8.1→M8.2；全部 13 个事件的 ComCat 事件 id 冻结锚入测试，未来重解析无法静默换事件。</p>
       </div>
       <div class="wn-card">
         <span class="wn-icon wn-icon-agency" aria-hidden="true"></span>
-        <h3 data-i18n="whatsnew.f8_t">1D 等效线性场地反应</h3>
-        <p data-i18n="whatsnew.f8_d">场地模型新增 eqlin-1d:Darendeli(2001) 模量–阻尼曲线等效线性迭代,逐台站剖面由 J-SHIS Vs30 + JIVSM 基岩深度构成,计算非线性场地放大。</p>
+        <h3 data-i18n="whatsnew.f8_t">验证与边界</h3>
+        <p data-i18n="whatsnew.f8_d">1216 项 node 测试全绿、发布校验 24,578 项通过；日本路径字节不变。</p>
       </div>
       <div class="wn-card">
         <span class="wn-icon wn-icon-aftershock" aria-hidden="true"><i></i><i></i><i></i></span>
-        <h3 data-i18n="whatsnew.f1_t">集合可靠度验证</h3>
-        <p data-i18n="whatsnew.f1_d">预登记验收:冻结 13 事件 1,633 站 68%/80% 区间覆盖率 0.696/0.811(偏差 ≤5pp);Brier 技巧分 +0.40..0.54 入报告。</p>
+        <h3 data-i18n="whatsnew.f1_t">区域预设改用 ComCat 权威值</h3>
+        <p data-i18n="whatsnew.f1_d">加州/智利/意大利 13 个历史地震预设的震中、震级、深度、发震时刻与机制解从手填值切换为 USGS ComCat 权威数据；每个事件的查询与 ComCat 事件 id 冻结进快照并登记入实验清单——可复现、不可静默改。</p>
       </div>
       <div class="wn-card">
         <span class="wn-icon wn-icon-worker" aria-hidden="true"><i></i><i></i><i></i></span>
-        <h3 data-i18n="whatsnew.f2_t">数据底座升级</h3>
-        <p data-i18n="whatsnew.f2_d">J-SHIS 表层 Vs30 网格(17,848 格)与 JIVSM 工程基岩深度网格入库;研究数据认证角色逐项解锁。</p>
+        <h3 data-i18n="whatsnew.f2_t">机制解：GCMT 双产品通道</h3>
+        <p data-i18n="whatsnew.f2_d">机制解同时读取 moment-tensor 与 focal-mechanism 两类 ComCat 产品(加州事件的 GCMT 解只存在于后者)，GCMT 优先；矩张量双节面取贴近现行包值的一面，选择规则与备选节面一并写入快照。</p>
       </div>
       <div class="wn-card">
         <span class="wn-icon wn-icon-astsu" aria-hidden="true"></span>
-        <h3 data-i18n="whatsnew.f3_t">KiK-net 实测标定</h3>
-        <p data-i18n="whatsnew.f3_d">冻结 197 组地表/井下谱比与 670 孔 PS 测井(派生量);经验 f0(Vs30) 先验修正合成剖面,软土场地强度偏差 -0.98 → -0.58。</p>
+        <h3 data-i18n="whatsnew.f3_t">内陆水体不再发海啸警报</h3>
+        <p data-i18n="whatsnew.f3_d">区域海啸预报区控制点新增开海资格掩码:湿格且 ≥10 m 深且经全程深水通道连海才算。索尔顿湖等封闭低于海平面盆地与 0.05° 格网不可分辨的潮道被豁免——加州 26→17 县、466→350 控制点，帝国县不再从湖泊拿到警报。</p>
       </div>
       <div class="wn-card">
         <span class="wn-icon wn-icon-detect" aria-hidden="true"></span>
-        <h3 data-i18n="whatsnew.f4_t">条件谱 CS ±1σ</h3>
-        <p data-i18n="whatsnew.f4_d">Jayaram(2011) 日本周期对相关表驱动;台站反应谱图新增虚线条件带——锚定 PGA 周期处收窄、远离锚定逐渐展宽。</p>
+        <h3 data-i18n="whatsnew.f4_t">区域警报的阈值诚实注记</h3>
+        <p data-i18n="whatsnew.f4_d">区域海啸第一波到达面板新增注记：警报等级(注意/警报/大警报)为 JMA 阈值近似，并非该地区官方标准。</p>
       </div>
       <div class="wn-card">
         <span class="wn-icon wn-icon-redetect" aria-hidden="true"><i></i><i></i></span>
-        <h3 data-i18n="whatsnew.f5_t">海啸荷载指标</h3>
-        <p data-i18n="whatsnew.f5_d">新增 hydroLoad 地图模式与分区面板:水深×流速 (m²/s) 逐格瞬时峰值与 Froude 数,对齐 JMA 津波浸水想定的荷载评价思路。</p>
+        <h3 data-i18n="whatsnew.f5_t">前仪器事件不臆造机制</h3>
+        <p data-i18n="whatsnew.f5_d">1906 旧金山、1971 圣费尔南多、1960 Valdivia、1908 Messina 在 ComCat 无机制解——包内文献值原样保留并在快照如实记录，绝不生成虚构沙滩球。</p>
       </div>
       <div class="wn-card">
         <span class="wn-icon wn-icon-pin" aria-hidden="true"></span>
-        <h3 data-i18n="whatsnew.f6_t">方向性与基准修正</h3>
-        <p data-i18n="whatsnew.f6_d">方向性方位角改大圆初始方位(东西分量曾高估至 ~39%);Zhao2006 对 openquake.hazardlib 2,400 点逐点断言,偏差 <3×10⁻¹⁵。</p>
+        <h3 data-i18n="whatsnew.f6_t">Messina 1908 震中保持文献值</h3>
+        <p data-i18n="whatsnew.f6_d">ComCat/ISC-GEM 的 1908 墨西拿震中落在海峡水格，但 1908 海啸由海底滑坡驱动、点源模拟本不适用——包保持陆格文献震中与既有诚实注记，不被管线「修正」冲掉。</p>
       </div>
     </div>
     <div class="whatsnew-footer">
@@ -944,7 +944,7 @@ window._ensureScript = function(globalName, key) {
   </div>
 </div>
 <script src="settings.js?v=a47ebe"></script>
-<script src="app.js?v=efd88f"></script>
+<script src="app.js?v=410308"></script>
 <script src="aftershock.js?v=e29837"></script>
 <script src="rt-data.js?v=6780e5"></script>
 <script src="rt-kmoni.js?v=b581c5"></script>
@@ -1052,6 +1052,34 @@ window._ensureScript = function(globalName, key) {
       <p data-i18n="help.error_text">模拟过程中如发生JavaScript错误，浏览器窗口底部会出现红色错误面板，显示错误信息和发生位置（文件:行:列）。多个错误会堆叠显示。点击×按钮关闭，或20秒后自动隐藏。</p>
       <h3 data-i18n="help.share">📎 URL分享</h3>
       <p data-i18n="help.share_text">点击Start按钮旁的🔗按钮可复制当前模拟的完整URL链接。将链接分享给他人，对方打开后自动加载相同的震中、震级、深度等参数。支持参数：lat/lng（震中）、mag（震级）、depth（深度）、strike（走向）、dip（倾角）、preset（预设场景）、lang（语言）、detect（检测模式）、aftershock（余震）、tsunami（海啸）。</p>
+      <hr style="border-color:var(--border);margin:12px 0">
+
+      <h3 data-i18n="help.v66_release">━━ v6.6 更新 ━━</h3>
+
+      <h3 data-i18n="help.v66_comcat_t">区域预设改用 USGS ComCat 权威值</h3>
+
+      <p data-i18n="help.v66_comcat_d">加州/智利/意大利 13 个历史地震预设的震中、震级、深度、发震时刻与机制解从手填值切换为 USGS ComCat 权威数据(tools/fetch-comcat-presets.js)；快照冻结 tools/data/comcat-presets-*.json 并登记实验清单。</p>
+
+      <h3 data-i18n="help.v66_mech_t">机制解：GCMT 双产品</h3>
+
+      <p data-i18n="help.v66_mech_d">机制解同读 moment-tensor 与 focal-mechanism 两类 ComCat 产品(加州事件的 GCMT 解只在后者)，GCMT 优先；双节面取贴近现行包值者，选择规则与备选节面写入快照。</p>
+
+      <h3 data-i18n="help.v66_inland_t">内陆水体豁免(区域海啸)</h3>
+
+      <p data-i18n="help.v66_inland_d">区域海啸预报区控制点新增开海资格掩码：湿格且 ≥10m 深且经全程深水通道连到多数深水边。索尔顿湖等封闭低于海平面盆地与 0.05° 不可分辨潮道被豁免——加州 26→17 县、466→350 控制点；日本路径不变。</p>
+
+      <h3 data-i18n="help.v66_note_t">区域警报 JMA 阈值注记</h3>
+
+      <p data-i18n="help.v66_note_d">区域海啸第一波到达面板新增诚实注记：警报等级为 JMA 阈值近似，非该地区官方标准。</p>
+
+      <h3 data-i18n="help.v66_honest_t">前仪器事件不臆造机制</h3>
+
+      <p data-i18n="help.v66_honest_d">1906 旧金山/1971 圣费尔南多/1960 Valdivia/1908 Messina 无 ComCat 机制解，包内文献值保留并如实记录；Messina 1908 保持陆格文献震中(其海啸为海底滑坡驱动，点源不适用)，不被管线冲掉诚实注记。</p>
+
+      <h3 data-i18n="help.v66_verify_t">验证</h3>
+
+      <p data-i18n="help.v66_verify_d">1216 项 node 测试全绿；13 事件的 ComCat id 冻结锚入测试防静默重关联；发布校验 24,578 项通过。</p>
+
       <hr style="border-color:var(--border);margin:12px 0">
 
       <h3 data-i18n="help.v65_release">━━ v6.5 更新 ━━</h3>

@@ -6,7 +6,15 @@
 // separately (fetch-region-stations.js / fetch-region-areas.js) and replace
 // the seed grid at activation.
 //
-// Preset mechanisms: published USGS/gCMT W-phase values rounded to whole
+// Preset mechanisms: since v6.6.0 the committed packs' preset parameters are
+// ComCat-sourced — tools/fetch-comcat-presets.js refreshes them from USGS
+// ComCat (hypocenter/magnitude/origin time + GCMT-family nodal planes) into
+// frozen snapshots (tools/data/comcat-presets-<region>.json) and rewrites the
+// pack presets arrays from the snapshots. Do NOT hand-edit preset parameters
+// here expecting them to ship: the REGIONS presets below are the historical
+// hand-filled fallback for from-scratch rebuilds only.
+//
+// Legacy note: published USGS/gCMT W-phase values rounded to whole
 // degrees where the event is instrumentally constrained; pre-instrumental
 // events (1908 Messina, 1960 Valdivia) carry mechanismKnown:true with
 // literature-typical thrust/normal values (documented approximations).
