@@ -122,14 +122,19 @@ test('i18n: region.st_note_vs30 present in all three languages', () => {
 const globalPacks = {
   italy: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-vs30-italy.json'), 'utf8')),
   chile: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-vs30-chile.json'), 'utf8')),
+  taiwan: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-vs30-taiwan.json'), 'utf8')),
+  newzealand: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-vs30-newzealand.json'), 'utf8')),
 };
 const regionStations = {
   italy: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-stations-italy.json'), 'utf8')),
   chile: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-stations-chile.json'), 'utf8')),
+  taiwan: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-stations-taiwan.json'), 'utf8')),
+  newzealand: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-stations-newzealand.json'), 'utf8')),
 };
+const GLOBAL_RIDS = ['italy', 'chile', 'taiwan', 'newzealand'];
 
 test('global-hybrid packs: schema + provenance (Heath et al. 2020, Crossref-verified DOI)', () => {
-  for (const rid of ['italy', 'chile']) {
+  for (const rid of GLOBAL_RIDS) {
     const p = globalPacks[rid];
     assert.equal(p._schema, 'quake-sim-region-vs30-v1');
     assert.equal(p.region, rid);
@@ -147,8 +152,8 @@ test('global-hybrid packs: schema + provenance (Heath et al. 2020, Crossref-veri
   }
 });
 
-test('global-hybrid packs: station coverage (italy >=95%, chile >=90%)', () => {
-  for (const rid of ['italy', 'chile']) {
+test('global-hybrid packs: station coverage (italy >=95%, chile >=90%, taiwan/newzealand >=90%)', () => {
+  for (const rid of GLOBAL_RIDS) {
     const p = globalPacks[rid];
     const stations = regionStations[rid].stations;
     let applied = 0;
@@ -158,14 +163,20 @@ test('global-hybrid packs: station coverage (italy >=95%, chile >=90%)', () => {
     const frac = applied / stations.length;
     // italy 692/697 (99.3%): five small-island/sea-cell FDSN stations miss the
     // grid or sit on fill-masked cells — they keep the labelled estimate.
-    assert.ok(frac >= (rid === 'italy' ? 0.95 : 0.9), rid + ' coverage ' + (frac * 100).toFixed(1) + '% (' + applied + '/' + stations.length + ')');
+    // v6.7: taiwan 16/16 = 100%, newzealand 560/563 = 99.5% (3 misses are
+    // offshore-island sites outside the grid window — honest fallback).
+    const floor = rid === 'italy' ? 0.95 : 0.9;
+    assert.ok(frac >= floor, rid + ' coverage ' + (frac * 100).toFixed(1) + '% (' + applied + '/' + stations.length + ')');
   }
 });
 
 test('global-hybrid packs: physical values + geology anchors', () => {
-  for (const rid of ['italy', 'chile']) {
+  for (const rid of GLOBAL_RIDS) {
     const valid = globalPacks[rid].data.filter(v => v > 0);
-    assert.ok(valid.length > 50000, rid + ' land coverage (' + valid.length + ' cells)');
+    // taiwan is a small island in its window (6,164 land cells), newzealand
+    // 48,252 — italy/chile keep their original >=50,000 floor untouched
+    const floor = { italy: 50000, chile: 50000, taiwan: 5000, newzealand: 40000 }[rid];
+    assert.ok(valid.length > floor, rid + ' land coverage (' + valid.length + ' cells)');
     for (const v of valid) {
       assert.ok(v >= 100 && v <= 2000, 'vs30 ' + v + ' in physical range');
       assert.ok(Math.abs(v * 10 - Math.round(v * 10)) < 1e-9, 'one-decimal values');
@@ -183,6 +194,20 @@ test('global-hybrid packs: physical values + geology anchors', () => {
   const valpo = Physics.regionVs30Sample(cl, -33.05, -71.62);
   assert.ok(santiago > 200 && santiago < 400, 'Santiago basin: ' + santiago);
   assert.ok(valpo > 450, 'Valparaiso coastal: ' + valpo);
+  // v6.7 taiwan: western alluvial plain (Chiayi 315) vs Central Range (547)
+  const tw = globalPacks.taiwan, nzPk = globalPacks.newzealand;
+  const chiayi = Physics.regionVs30Sample(tw, 23.48, 120.45);
+  const centralRange = Physics.regionVs30Sample(tw, 23.91, 121.30);
+  assert.ok(chiayi > 200 && chiayi < 400, 'Chiayi plain soft: ' + chiayi);
+  assert.ok(centralRange > chiayi + 150, 'Central Range stiffer than plain: ' + centralRange);
+  const taipei = Physics.regionVs30Sample(tw, 25.03, 121.57);
+  assert.ok(taipei > 200 && taipei < 450, 'Taipei basin: ' + taipei);
+  // v6.7 newzealand: Christchurch Canterbury-plain soft (222) vs Southern
+  // Alps (832) — the strongest contrast of the four regions
+  const chch = Physics.regionVs30Sample(nzPk, -43.53, 172.64);
+  const alps = Physics.regionVs30Sample(nzPk, -43.0, 171.0);
+  assert.ok(chch > 150 && chch < 350, 'Christchurch plain soft: ' + chch);
+  assert.ok(alps > 700, 'Southern Alps stiff: ' + alps);
 });
 
 test('fill-fingerprint masking: far-field ocean reads null, no fill leak', () => {
@@ -202,4 +227,10 @@ test('fill-fingerprint masking: far-field ocean reads null, no fill leak', () =>
   assert.ok(venezia > 150 && venezia < 450, 'Venezia lagoon-margin value kept: ' + venezia);
   const valpo = Physics.regionVs30Sample(cl, -33.05, -71.62);
   assert.ok(valpo > 450, 'Valparaiso near-shore value kept: ' + valpo);
+  // v6.7 packs: Taiwan Strait / east Pacific / Tasman Sea / NZ Pacific all
+  // read null (fill-fingerprint cells confirmed water by the GEBCO masks)
+  assert.equal(Physics.regionVs30Sample(globalPacks.taiwan, 24.5, 119.5), null, 'Taiwan Strait fill');
+  assert.equal(Physics.regionVs30Sample(globalPacks.taiwan, 23.5, 122.4), null, 'Taiwan east Pacific fill');
+  assert.equal(Physics.regionVs30Sample(globalPacks.newzealand, -40.0, 167.0), null, 'Tasman Sea fill');
+  assert.equal(Physics.regionVs30Sample(globalPacks.newzealand, -42.0, 179.5), null, 'NZ Pacific fill');
 });

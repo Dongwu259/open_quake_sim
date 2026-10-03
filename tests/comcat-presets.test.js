@@ -23,7 +23,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const ROOT = path.join(__dirname, '..');
-const REGIONS = ['california', 'chile', 'italy'];
+const REGIONS = ['california', 'chile', 'italy', 'taiwan', 'newzealand'];
 
 function loadSnap(rid) {
   return JSON.parse(fs.readFileSync(path.join(ROOT, 'tools', 'data', 'comcat-presets-' + rid + '.json'), 'utf8'));
@@ -88,7 +88,9 @@ test('pack values equal the rounded snapshot values (keep-list explicit)', () =>
 test('mechanism honesty: pre-instrumental events carry mechanism:null, never invented', () => {
   const noMechanism = ['cal-1906-sanfrancisco', 'cal-1971-sanfernando', 'cl-1960-valdivia', 'it-1908-messina'];
   const withMechanism = ['cal-1989-lomaprieta', 'cal-1994-northridge', 'cl-2010-maule', 'cl-2015-illapel', 'cl-2014-iquique',
-    'it-2016-norcia', 'it-2016-amatrice', 'it-2009-laquila', 'it-1980-irpinia'];
+    'it-2016-norcia', 'it-2016-amatrice', 'it-2009-laquila', 'it-1980-irpinia',
+    'tw-1999-chichi', 'tw-2024-hualien', 'tw-2016-meinong', 'tw-2018-hualien',
+    'nz-2010-darfield', 'nz-2011-christchurch', 'nz-2016-kaikoura', 'nz-2009-dusky'];
   for (const rid of REGIONS) {
     for (const p of loadSnap(rid).presets) {
       if (noMechanism.includes(p.id)) {
@@ -124,7 +126,16 @@ test('frozen ComCat event-id anchors (no silent re-association)', () => {
     'it-2016-amatrice': 'us10006g7d',
     'it-2009-laquila': 'usp000gvtu',
     'it-1980-irpinia': 'usp0001ay4',
-    'it-1908-messina': 'iscgem16958009'
+    'it-1908-messina': 'iscgem16958009',
+    // v6.7 regions (Taiwan BATS / New Zealand GeoNet packs)
+    'tw-1999-chichi': 'usp0009eq0',
+    'tw-2024-hualien': 'us7000m9g4',
+    'tw-2016-meinong': 'us20004y6h',
+    'tw-2018-hualien': 'us1000chhc',
+    'nz-2010-darfield': 'usp000hk46',
+    'nz-2011-christchurch': 'usp000huvq',
+    'nz-2016-kaikoura': 'us1000778i',
+    'nz-2009-dusky': 'usp000gz8j'
   };
   for (const rid of REGIONS) {
     for (const p of loadSnap(rid).presets) {

@@ -30,33 +30,70 @@
 //   public/geojson/psha-source-model.json  (schema quake-sim-psha-source-v1)
 //   tools/data/psha-source-model-report.json
 //
-// Usage: node tools/build-psha-source-model.js
+// Usage: node tools/build-psha-source-model.js [--region=<id>]
+//   default builds the Japan model exactly as before
+//   (public/geojson/psha-source-model.json).
+//   --region=<california|italy|chile|taiwan|newzealand> builds that region's
+//   model (v6.7 D): same classification/decluster/completeness/smoothing
+//   pipeline, region bbox + regional Mmax + the region's registered
+//   subduction lines (Physics.REGIONAL_SUBDUCTION_LINES; absent = no
+//   interplate class), NO scenario sources (no published characteristic
+//   recurrence rates curated for the regional packs — honest absent), and a
+//   regional GMPE tree (crustal BSSA14 single branch — si-mid/kanno are
+//   Japan-calibrated; interplate/intraslab zhao2006, same convention as the
+//   v6.7 regional strong-motion scorecard; SA periods still collapse to
+//   zhao2006 — the only bundled GMPE with spectral rows).
+//   Outputs public/geojson/psha-source-model-<id>.json +
+//   tools/data/psha-source-model-report-<id>.json.
 // =====================================================================
 const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
-const CATALOG = path.join(ROOT, 'tools/data/psha/comcat-japan.json');
+
+// --- region selection ----------------------------------------------------
+const REGION = (process.argv.find(a => a.startsWith('--region=')) || '').slice('--region='.length) || 'japan';
+// Regional Mmax conventions (project-frozen, coarse public-record values —
+// NOT official regional source models): CA crustal 1906-class ~8, southern
+// Cascadia edge 8.5; Italy crustal 1915/1908-class 7.2 (no interplate class —
+// no registered subduction front); Chile interplate keeps the 1960 M9.5 tail,
+// slab 1939 Chillán-class 8.3; Taiwan Chi-Chi-class crustal 7.6, Ryukyu/
+// Manila fronts 8.0; NZ crustal Kaikōura-class 7.8, Hikurangi 9.0.
+const REGION_CONFIGS = {
+  california: { bbox: { minLat: 30, maxLat: 44, minLng: -128, maxLng: -112 }, trenchRegion: 'california', mmax: { crustal: 8.0, interplate: 8.5, intraslab: 7.5 }, fallbackMinCount: 200 },
+  italy:      { bbox: { minLat: 34, maxLat: 49, minLng: 4, maxLng: 21 },      trenchRegion: null,         mmax: { crustal: 7.2, intraslab: 7.5 },                              fallbackMinCount: 150 },
+  chile:      { bbox: { minLat: -57, maxLat: -16, minLng: -78, maxLng: -64 }, trenchRegion: 'chile',      mmax: { crustal: 7.8, interplate: 9.5, intraslab: 8.3 },           fallbackMinCount: 300 },
+  taiwan:     { bbox: { minLat: 20, maxLat: 27.5, minLng: 117, maxLng: 125 }, trenchRegion: 'taiwan',     mmax: { crustal: 7.6, interplate: 8.0, intraslab: 7.8 },           fallbackMinCount: 150 },
+  newzealand: { bbox: { minLat: -50, maxLat: -32, minLng: 160, maxLng: 180 }, trenchRegion: 'newzealand', mmax: { crustal: 7.8, interplate: 9.0, intraslab: 7.8 },           fallbackMinCount: 200 }
+};
+const IS_JAPAN = REGION === 'japan';
+if (!IS_JAPAN && !REGION_CONFIGS[REGION]) {
+  console.error('unknown --region=' + REGION + ' (known: japan, ' + Object.keys(REGION_CONFIGS).join(', ') + ')');
+  process.exit(1);
+}
+const RCFG = IS_JAPAN ? null : REGION_CONFIGS[REGION];
+
+const CATALOG = path.join(ROOT, 'tools/data/psha/comcat-' + REGION + '.json');
 const PLATES = path.join(ROOT, 'public/geojson/plates.json');
-const OUT_MODEL = path.join(ROOT, 'public/geojson/psha-source-model.json');
-const OUT_REPORT = path.join(ROOT, 'tools/data/psha-source-model-report.json');
+const OUT_MODEL = path.join(ROOT, IS_JAPAN ? 'public/geojson/psha-source-model.json' : 'public/geojson/psha-source-model-' + REGION + '.json');
+const OUT_REPORT = path.join(ROOT, IS_JAPAN ? 'tools/data/psha-source-model-report.json' : 'tools/data/psha-source-model-report-' + REGION + '.json');
 
 // --- frozen parameters -------------------------------------------------
 const GRID_DEG = 0.25;
-const BBOX = { minLat: 24, maxLat: 46, minLng: 125, maxLng: 150 };
+const BBOX = IS_JAPAN ? { minLat: 24, maxLat: 46, minLng: 125, maxLng: 150 } : RCFG.bbox;
 const INTERPLATE_TRENCH_DIST_KM = 150;
 const INTERPLATE_MAX_DEPTH_KM = 60;
 const CRUSTAL_MAX_DEPTH_KM = 32;
 const SMOOTH_RADII_KM = [25, 50, 100];
 const SMOOTH_MIN_EVENTS = 10;
 const MMIN = 5.0;
-const MMAX_BY_CLASS = { crustal: 7.2, interplate: 7.8, intraslab: 7.8 };
+const MMAX_BY_CLASS = IS_JAPAN ? { crustal: 7.2, interplate: 7.8, intraslab: 7.8 } : RCFG.mmax;
 // Pre-registered completeness rule (frozen 2026-09-01, before applying):
 //   among candidates with decade-rate CV <= 0.25 pick the largest in-window
 //   declustered count; if none passes, pick the smallest CV among candidates
-//   with count >= 500.
+//   with count >= 500 (regional floors: REGION_CONFIGS.fallbackMinCount).
 const COMPLETENESS_CV_MAX = 0.25;
-const COMPLETENESS_FALLBACK_MIN_COUNT = 500;
+const COMPLETENESS_FALLBACK_MIN_COUNT = IS_JAPAN ? 500 : RCFG.fallbackMinCount;
 const DEG_KM = 111.195; // matches Physics haversine R=6371
 
 function haversineKm(lat1, lng1, lat2, lng2) {
@@ -67,13 +104,13 @@ function haversineKm(lat1, lng1, lat2, lng2) {
 }
 
 // Point to trench-polyline distance (km), flat-spherical segment approx.
-function trenchDistanceKm(lat, lng, plateFeatures) {
+// `lines` is a list of polylines, each a list of [lat, lng] points.
+function trenchDistanceKm(lat, lng, lines) {
   const toR = Math.PI / 180;
   let best = Infinity;
-  for (const f of plateFeatures) {
-    const line = f.geometry.coordinates;
+  for (const line of lines) {
     for (let i = 0; i < line.length - 1; i++) {
-      const [lngA, latA] = line[i], [lngB, latB] = line[i + 1];
+      const [latA, lngA] = line[i], [latB, lngB] = line[i + 1];
       const x1 = lngA * toR, y1 = latA * toR, x2 = lngB * toR, y2 = latB * toR;
       const x0 = lng * toR, y0 = lat * toR;
       const dx = x2 - x1, dy = y2 - y1;
@@ -83,6 +120,23 @@ function trenchDistanceKm(lat, lng, plateFeatures) {
     }
   }
   return best;
+}
+
+// Trench line sets. Japan: the six subduction lines in plates.json. Regions:
+// the registered Physics.REGIONAL_SUBDUCTION_LINES entry (v6.7 source-
+// classification batch — same geometry the app's tectonic prior uses; a
+// region may carry one polyline or several). Absent entry -> empty list ->
+// the interplate class simply never fires (italy: no subduction front).
+function japanTrenchLines() {
+  const plates = JSON.parse(fs.readFileSync(PLATES, 'utf8'));
+  return plates.features.map(f => f.geometry.coordinates.map(c => [c[1], c[0]]));
+}
+function regionalTrenchLines(trenchRegion) {
+  if (!trenchRegion) return [];
+  const Physics = require('../public/physics.js');
+  const entry = (Physics.REGIONAL_SUBDUCTION_LINES || {})[trenchRegion];
+  if (!entry || !entry.length) return [];
+  return (typeof entry[0][0] === 'number') ? [entry] : entry;
 }
 
 function classifyEvent(e, trenchDistKm) {
@@ -160,12 +214,12 @@ function akiB(mags, mc) {
 
 function main() {
   const catalog = JSON.parse(fs.readFileSync(CATALOG, 'utf8'));
-  const plates = JSON.parse(fs.readFileSync(PLATES, 'utf8'));
+  const trenchLines = IS_JAPAN ? japanTrenchLines() : regionalTrenchLines(RCFG.trenchRegion);
   const events = catalog.events;
   const generatedAt = new Date().toISOString();
 
   // 1. classify
-  for (const e of events) e.srcType = classifyEvent(e, trenchDistanceKm(e.lat, e.lng, plates.features));
+  for (const e of events) e.srcType = classifyEvent(e, trenchDistanceKm(e.lat, e.lng, trenchLines));
   const classCounts = {};
   for (const e of events) classCounts[e.srcType] = (classCounts[e.srcType] || 0) + 1;
 
@@ -226,7 +280,13 @@ function main() {
     }
   }
 
-  // 5. scenario sources — v2 (2026-09-04): SEGMENTED Nankai rupture modes.
+  // 5. scenario sources — Japan only (v2, 2026-09-04: SEGMENTED Nankai
+  // rupture modes). Regional models ship scenarios: [] — no published
+  // characteristic recurrence rates are curated for the regional packs
+  // (honest absent, listed in the model limitations).
+  let scenarios = [];
+  let scenarioSegments = null;
+  if (IS_JAPAN) {
   // v1 carried a single full-trough M9 at lambda=0.0462/yr, taking the ERC
   // TIME-DEPENDENT 30-yr probability as a Poisson rate. The attribution study
   // (tools/data/psha-attribution-report.json, frozen 2026-09-04) measured
@@ -318,7 +378,7 @@ function main() {
       }
     };
   }
-  const scenarios = [
+  const scenariosJapan = [
     nankaiMode('nankaiFullM89', 8.9, 4 / 6, ['tokai', 'tonankai', 'nankai', 'hyuga'],
       'Hoei-type: 1361, 1605, 1707, 1854 counted as one 32-h episode'),
     nankaiMode('nankaiEastM82', 8.2, 1 / 6, ['tokai', 'tonankai'],
@@ -337,7 +397,9 @@ function main() {
       }
     }
   ];
-  const scenarioSegments = { polylineTotalKm: +totalKm.toFixed(1), patchCountsBySegment: segCounts };
+  scenarios = scenariosJapan;
+  scenarioSegments = { polylineTotalKm: +totalKm.toFixed(1), patchCountsBySegment: segCounts };
+  } // IS_JAPAN scenario block
 
   // rate conservation diagnostics + per-class mass renormalisation.
   // Multi-scale adaptive top-hat smoothing is NOT mass-conserving (a dense
@@ -376,30 +438,59 @@ function main() {
 
   const model = {
     schema: 'quake-sim-psha-source-v2',
+    region: REGION,
     generatedAt,
     mMin: MMIN, mc, windowStartYear: start, windowYears: +Tyears.toPrecision(5),
     bValues: Object.assign({}, bValues, { method: 'Aki (1965) MLE on declustered in-window mainshocks', global: bGlobal }),
     mMaxByClass: MMAX_BY_CLASS,
     grid: { deg: GRID_DEG, bbox: BBOX, smoothing: { radiiKm: SMOOTH_RADII_KM, minEvents: SMOOTH_MIN_EVENTS, kernel: 'adaptive top-hat', massRenormalisation: 'per-class global rescale so sum(rateMc) equals the declustered in-window catalog rate exactly (pre-correction ratios in the report)' } },
-    classification: { interplate: `trenchDist<${INTERPLATE_TRENCH_DIST_KM}km & depth<=${INTERPLATE_MAX_DEPTH_KM}km`, crustal: `depth<${CRUSTAL_MAX_DEPTH_KM}km`, intraslab: 'rest', trenchGeometry: 'public/geojson/plates.json (6 subduction lines)' },
+    classification: {
+      interplate: `trenchDist<${INTERPLATE_TRENCH_DIST_KM}km & depth<=${INTERPLATE_MAX_DEPTH_KM}km`,
+      crustal: `depth<${CRUSTAL_MAX_DEPTH_KM}km`, intraslab: 'rest',
+      trenchGeometry: IS_JAPAN
+        ? 'public/geojson/plates.json (6 subduction lines)'
+        : (trenchLines.length ? 'Physics.REGIONAL_SUBDUCTION_LINES.' + RCFG.trenchRegion + ' (' + trenchLines.length + ' front line(s))' : 'none — no interplate class for this region')
+    },
     decluster: { method: 'project-defined magnitude-scaled windows (NOT a published algorithm)', windowDays: 'min(720, 60*10^(0.5*(M-5)))', radiusKm: 'min(150, 20+25*(M-5))', chaining: false },
     provenance: {
-      catalog: 'tools/data/psha/comcat-japan.json (USGS ComCat, public domain)',
-      limitations: [
+      catalog: 'tools/data/psha/comcat-' + REGION + '.json (USGS ComCat, public domain)',
+      limitations: IS_JAPAN ? [
         'simplified self-computed model — NOT the official J-SHIS/ERC source model (external comparison frozen in tools/data/jshis-comparison-report.json + psha-attribution-report.json)',
         'v2 Nankai scenarios use POISSON long-run rates (ERC plain-interval BPT set, 1/117 yr total, 4/1/1 mode split) — the ERC time-dependent 60-90%+/30yr view is intentionally not Poisson-converted; Japan-trench M9-class recurrence still carried by no scenario (Sanriku long-RP hazard underestimated)',
         'gridded GR truncated at class Mmax without renormalisation',
         'class-level rake simplification (interplate reverse 90, others neutral); gridded Rrup via equal-area circular patch at hypocentre depth',
         'GMPE modelBias deliberately NOT applied (LOEO evidence: it does not generalise held-out)',
         'adaptive top-hat smoothing assumes seismogenic area fills the circle near coasts/bbox edges (edge effects uncorrected)'
+      ] : [
+        'simplified self-computed REGIONAL model — NOT an official regional hazard model (no USGS NSHM/SHARE/EQAFE/NZ NSHM/T-REA comparison performed; no external gate exists for the regional packs)',
+        'NO scenario/characteristic sources — grid-only GR; published regional fault-source recurrence rates (e.g. UCERF3, NSHM2022) are not curated into the pack, so long-RP hazard near known major faults is underestimated',
+        'crustal class uses the BSSA14 single branch (NGA-West2; si-midorikawa/kanno2006 are Japan-calibrated and never validated in this region) — no epistemic branch spread on crustal contributions; interplate/intraslab use zhao2006 (Japan subduction calibration — no NGA-Sub model is bundled; the v6.7 regional scorecard measured a -0.55 log10 PGA bias on Chile interplate predictions, so Chile megathrust hazard levels are biased LOW)',
+        'SA/UHS periods still collapse to the zhao2006 single model (the only bundled GMPE with spectral rows) — regional spectral shapes are uncalibrated',
+        'gridded GR truncated at class Mmax without renormalisation; regional Mmax values are coarse public-record conventions (see REGION_CONFIGS in tools/build-psha-source-model.js), not official maxima',
+        'class-level rake simplification (interplate reverse 90, others neutral); gridded Rrup via equal-area circular patch at hypocentre depth; BSSA14 Rrup is read as Rjb (horizontal proxy)',
+        'GMPE modelBias deliberately NOT applied; adaptive top-hat smoothing edge effects uncorrected'
       ]
     },
     cells, scenarios
   };
+  if (!IS_JAPAN) {
+    // Regional GMPE tree consumed by Physics._pshaBranchesFor (v6.7 D):
+    // crustal single-branch BSSA14 with the paper's regional anelastic
+    // variant frozen in (italy -> lowQ, everything else -> base); the
+    // subduction classes stay on zhao2006 (same convention as the regional
+    // strong-motion scorecard). SA periods bypass this tree (zhao single).
+    model.gmpeTree = {
+      crustal: [{ model: 'bssa14', weight: 1, variant: REGION === 'italy' ? 'lowQ' : 'base' }],
+      interplate: [{ model: 'zhao2006', weight: 1 }],
+      intraslab: [{ model: 'zhao2006', weight: 1 }],
+      note: 'regional single-branch tree (v6.7 D): si-mid/kanno are Japan-calibrated; no NGA-Sub bundled; SA periods collapse to zhao2006 in the engine regardless'
+    };
+  }
   fs.writeFileSync(OUT_MODEL, JSON.stringify(model));
 
   const report = {
     schema: 'quake-sim-psha-source-model-report-v1',
+    region: REGION,
     generatedAt,
     catalogCount: events.length,
     classCounts,
@@ -409,9 +500,9 @@ function main() {
     cells: { total: cells.length, byClass: cells.reduce((a, c) => { a[c.srcType] = (a[c.srcType] || 0) + 1; return a; }, {}) },
     rateConservation: conservation,
     scenarios: scenarios.map(s => ({ id: s.id, mw: s.mw, ratePerYear: s.ratePerYear, patches: s.patches ? s.patches.length : 0 })),
-    scenarioSegments,
-    preRegisteredB2
+    scenarioSegments
   };
+  if (IS_JAPAN) report.preRegisteredB2 = preRegisteredB2;
   fs.writeFileSync(OUT_REPORT, JSON.stringify(report, null, 2));
 
   console.log(`model: ${cells.length} cells (${Object.values(report.cells.byClass).join('/')})`);

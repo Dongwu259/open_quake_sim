@@ -208,6 +208,30 @@ test('chile/italy masked registries: near-stable control totals', () => {
   assert.equal(it.reduce((s, a) => s + a.controls, 0), 136, 'italy controls');
 });
 
+// v6.7 regions: the same registry derivation frozen on the real packages
+test('taiwan/newzealand masked registries: coastal units + bounded controls', () => {
+  const tw = deriveRegionalAreas(loadAreas('taiwan'), loadGrid('tw-taiwan'));
+  assert.equal(tw.length, 18, 'taiwan coastal counties: ' + tw.length);
+  assert.equal(tw.reduce((s, a) => s + a.controls, 0), 203, 'taiwan controls');
+  const twNames = tw.map(a => a.name);
+  // Nantou is Taiwan's only landlocked county, Chiayi City an inland enclave,
+  // Kinmen sits west of the grid window (118.4°E < 118.5°E) — all three
+  // correctly absent
+  for (const absent of ['Nantou', 'Chiayi City', 'Kinmen'])
+    assert.ok(!twNames.includes(absent), absent + ' correctly control-less');
+  assert.ok(tw.some(a => a.name === 'Hualien' && a.controls >= 20), 'Hualien east-coast control mass: ' + (tw.find(a => a.name === 'Hualien') || {}).controls);
+
+  const nz = deriveRegionalAreas(loadAreas('newzealand'), loadGrid('nz-aotearoa'));
+  assert.equal(nz.length, 18, 'newzealand coastal regions: ' + nz.length);
+  assert.equal(nz.reduce((s, a) => s + a.controls, 0), 921, 'newzealand controls');
+  const nzNames = nz.map(a => a.name);
+  assert.ok(!nzNames.includes('Chatham Islands Territory'), 'Chatham outside the grid window, correctly absent');
+  for (const a of nz) {
+    assert.ok(a.controls > 0 && a.controls <= 80, a.name + ' bounded controls: ' + a.controls);
+    assert.ok(a.lines > 0, a.name + ' has drawable coastal lines');
+  }
+});
+
 // ------------------------------------------------------------- wiring
 test('app.js: regional registry builder + swap/restore lifecycle wired', () => {
   assert.match(APP, /function buildRegionalTsunamiForecastAreas/, 'builder exists');

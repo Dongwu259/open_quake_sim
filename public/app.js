@@ -196,7 +196,12 @@ var REGIONAL_BATHY = [
   // margin and the California borderlands, the only CA tsunami sources. The
   // Vs30 side was already real here (Yong et al. 2014); this completes the
   // tri-region parity (v6.5 California-tsunami batch).
-  {id:'us-california', region:'california', bbox:[-127.0,32.0,-116.0,42.5]}
+  {id:'us-california', region:'california', bbox:[-127.0,32.0,-116.0,42.5]},
+  // v6.7 regions: Taiwan (east-coast Ryukyu/Huadong offshore sources) and
+  // New Zealand (Hikurangi margin + Fiordland — Kaikōura 2016 had a measured
+  // tsunami). Both 0.05° GEBCO 2025 strips like the other regions.
+  {id:'tw-taiwan',   region:'taiwan', bbox:[118.5,21.0,124.0,26.0]},
+  {id:'nz-aotearoa', region:'newzealand', bbox:[164.5,-48.0,179.8,-33.8]}
 ];
 var _regionalBathy = {};         // id -> grid (absent/false = not usable)
 var _regionalBathyLoading = {};  // id -> in-flight promise
@@ -691,25 +696,41 @@ function _globalTileTryNext(after) {
   });
 }
 var GLOBAL_VECTOR_LAYER = null;
-var GLOBAL_LAND_POLYS = [];
+var GLOBAL_LAND_POLYS = [];  // coastline stroke lines: {pts, w, s, e, n}
+var GLOBAL_LAND_FILL = [];   // land fill rings (flat): {pts, w, s, e, n}
+// Palette mirrors the Japan offline basemaps: light = oceanBg #d8e8f0 / land
+// #e8e0d5 / coast #7a8a99; dark = darkOceanBg #0a1628 / land #1a1a2e / coast
+// #2d4060. Theme = the root .light class (default is dark) — the old
+// body.dark-mode check was dead legacy, nothing ever sets that class.
+function _globalBaseColors() {
+  var light = true;
+  try { light = document.documentElement.classList.contains('light'); } catch (e) { /* default dark */ }
+  return light
+    ? { ocean: '#d8e8f0', land: '#e8e0d5', line: '#7a8a99' }
+    : { ocean: '#0a1628', land: '#1a1a2e', line: '#2d4060' };
+}
+// Theme toggle repaints: GridLayer.redraw() re-invokes createTile, which reads
+// the palette per tile — no layer rebuild needed.
+function _globalVectorReskin() {
+  if (GLOBAL_VECTOR_LAYER) GLOBAL_VECTOR_LAYER.redraw();
+}
 function _globalTileLat(y, z) {
   // north-edge latitude of tile row y at zoom z (standard slippy formula -
   // independent of the bundled Leaflet's CRS helpers)
   var n = Math.PI - 2 * Math.PI * y / Math.pow(2, z);
   return 180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)));
 }
-function _globalVectorBuild(geo) {
-  var dark = false;
-  try { dark = document.body.classList.contains('dark-mode'); } catch (e) { /* default light */ }
+function _globalVectorBuild(geo, land) {
   // Self-drawn world tiles ("make our own, consistent with the Japan map"):
-  // L.GridLayer renders local Natural Earth land polygons onto per-tile canvas.
-  // Fully offline - the bundled Leaflet's SVG vector renderer is broken for
-  // custom panes (paths collapse to "M0 0"), so no L.geoJSON here.
+  // L.GridLayer renders local Natural Earth data onto per-tile canvas —
+  // opaque ocean + land FILL (world-land-10m.json) + coastline strokes
+  // (world-coastline-10m.json). Fully offline - the bundled Leaflet's SVG
+  // vector renderer is broken for custom panes (paths collapse to "M0 0"),
+  // so no L.geoJSON here.
   if (!map.getPane('globalBase')) {
     map.createPane('globalBase');
     map.getPane('globalBase').style.zIndex = 150; // beneath online tiles (200)
   }
-  var lineColor = dark ? '#3a5a75' : '#6f93a6';
   GLOBAL_LAND_POLYS = [];
   (geo.features || []).forEach(function (f) {
     var g = f.geometry;
@@ -732,6 +753,32 @@ function _globalVectorBuild(geo) {
       GLOBAL_LAND_POLYS.push({ pts: poly, w: w, s: s, e: e, n: n });
     });
   });
+  // Land fill rings, flattened. The tile pass draws every ring whose bbox
+  // intersects the tile into ONE path and fills 'evenodd': parity per pixel is
+  // the global enclosing-ring count, so lakes punch out with no hole-to-parent
+  // bookkeeping, and a ring enclosing the whole tile (bbox contains it, hence
+  // "intersects") still fills it solid. Rings are pre-cut at the antimeridian
+  // by tools/build-world-land.py, so no runtime unwrap is needed.
+  GLOBAL_LAND_FILL = [];
+  ((land && land.features) || []).forEach(function (f) {
+    var g = f.geometry;
+    if (!g) return;
+    var polys = g.type === 'Polygon' ? [g.coordinates]
+      : g.type === 'MultiPolygon' ? g.coordinates : null;
+    if (!polys) return;
+    polys.forEach(function (poly) {
+      poly.forEach(function (ring) {
+        if (!Array.isArray(ring) || ring.length < 3) return;
+        var w = 180, s = 90, e = -180, n = -90;
+        ring.forEach(function (pt) {
+          if (!Array.isArray(pt)) return;
+          if (pt[0] < w) w = pt[0]; if (pt[0] > e) e = pt[0];
+          if (pt[1] < s) s = pt[1]; if (pt[1] > n) n = pt[1];
+        });
+        GLOBAL_LAND_FILL.push({ pts: ring, w: w, s: s, e: e, n: n });
+      });
+    });
+  });
   GLOBAL_VECTOR_LAYER = L.gridLayer({
     pane: 'globalBase', tileSize: 256, minZoom: 1, maxZoom: 12, updateWhenIdle: true
   });
@@ -739,6 +786,11 @@ function _globalVectorBuild(geo) {
     var canvas = document.createElement('canvas');
     canvas.width = 256; canvas.height = 256;
     var ctx = canvas.getContext('2d');
+    var colors = _globalBaseColors();
+    // Opaque ocean base first — the tiles themselves carry the basemap colors,
+    // so land is never the transparent CSS void this layer used to leave.
+    ctx.fillStyle = colors.ocean;
+    ctx.fillRect(0, 0, 256, 256);
     var nTiles = Math.pow(2, coords.z);
     var west = coords.x / nTiles * 360 - 180;
     var east = (coords.x + 1) / nTiles * 360 - 180;
@@ -746,15 +798,32 @@ function _globalVectorBuild(geo) {
     var south = _globalTileLat(coords.y + 1, coords.z);
     if (east - west > 360) return canvas;
     var dLng = east - west, dLat = north - south;
-    // coastline strokes only (Natural Earth 10m lines) - atlas-outline style
-    ctx.strokeStyle = lineColor;
+    // Land fill (evenodd over every ring touching the tile — see above)
+    var pi, ii, line;
+    if (GLOBAL_LAND_FILL.length) {
+      ctx.fillStyle = colors.land;
+      ctx.beginPath();
+      for (pi = 0; pi < GLOBAL_LAND_FILL.length; pi++) {
+        line = GLOBAL_LAND_FILL[pi];
+        if (line.e < west || line.w > east || line.n < south || line.s > north) continue;
+        for (ii = 0; ii < line.pts.length; ii++) {
+          var fx = (line.pts[ii][0] - west) / dLng * 256;
+          var fy = (north - line.pts[ii][1]) / dLat * 256;
+          if (ii === 0) ctx.moveTo(fx, fy); else ctx.lineTo(fx, fy);
+        }
+        ctx.closePath();
+      }
+      ctx.fill('evenodd');
+    }
+    // coastline strokes on top (Natural Earth 10m lines)
+    ctx.strokeStyle = colors.line;
     ctx.lineWidth = 0.8;
     ctx.lineJoin = 'round';
-    for (var pi = 0; pi < GLOBAL_LAND_POLYS.length; pi++) {
-      var line = GLOBAL_LAND_POLYS[pi];
+    for (pi = 0; pi < GLOBAL_LAND_POLYS.length; pi++) {
+      line = GLOBAL_LAND_POLYS[pi];
       if (line.e < west || line.w > east || line.n < south || line.s > north) continue;
       ctx.beginPath();
-      for (var ii = 0; ii < line.pts.length; ii++) {
+      for (ii = 0; ii < line.pts.length; ii++) {
         var px = (line.pts[ii][0] - west) / dLng * 256;
         var py = (north - line.pts[ii][1]) / dLat * 256;
         if (ii === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
@@ -778,8 +847,16 @@ function regionEnsureGlobalBase(after) {
     });
   };
   if (GLOBAL_VECTOR_LAYER) { finish(); upgradeTiles(); return; }
-  fetch('/geojson/world-coastline-10m.json').then(function (r) { return r.json(); }).then(function (geo) {
-    _globalVectorBuild(geo);
+  // Coastline strokes + land fill in parallel. The land pack failing degrades
+  // to the legacy strokes-only look (console-flagged, never a silent void);
+  // the coastline failing keeps the old whole-load failure path.
+  Promise.all([
+    fetch('/geojson/world-coastline-10m.json').then(function (r) { return r.json(); }),
+    fetch('/geojson/world-land-10m.json').then(function (r) { return r.ok ? r.json() : null; })
+      .catch(function () { return null; })
+  ]).then(function (rs) {
+    if (!rs[1]) console.warn('world land pack unavailable — coastline-only global basemap');
+    _globalVectorBuild(rs[0], rs[1]);
     finish();
     upgradeTiles();
   }).catch(function (e) {
@@ -808,6 +885,18 @@ var REGION_BASE_OFFLINE = offlineBasemap;
 function _regionSetSimSafe() { try { resetSimulation(); } catch (e) { /* nothing running */ } }
 function regionActivate(pack) {
   REGION_STATE.pack = pack; REGION_STATE.active = pack.id;
+  // v6.7 source-classification batch: swap the subduction-front tectonic
+  // prior to the region's registered lines (absent entry -> null -> the
+  // resolveSourceTypeAt offshore->interplate boost simply never fires).
+  if (window.Physics && Physics.setActiveSubductionLines) {
+    Physics.setActiveSubductionLines((Physics.REGIONAL_SUBDUCTION_LINES || {})[pack.id] || null);
+  }
+  // v6.7 NGA-West2 batch: auto GMPE routing swaps shallow-crustal events to
+  // BSSA14 (si-midorikawa is Japan-calibrated and was never validated offshore).
+  if (window.Physics && Physics.setActiveGmpRegion) Physics.setActiveGmpRegion(pack.id);
+  // The PSHA card is Japan-only: drop any cached Japan-site curves and let
+  // its draw functions paint the honest region-mode note (v6.7 batch).
+  try { _pshaClearForRegionSwitch(); _redrawInfoCharts(); } catch (e) { /* charts optional */ }
   // Switching regions must not inherit the previous region's registry (its
   // area codes/names would label this region's events); rebuild from JMA and
   // let the areas/grid load hooks swap the regional one back in.
@@ -883,6 +972,11 @@ function regionDeactivate() {
   // regional swap must not survive a region switch.
   _restoreJmaTsuAreas();
   REGION_STATE.active = null; REGION_STATE.pack = null;
+  // Restore the Japan subduction-front prior (v6.7 source-classification).
+  if (window.Physics && Physics.setActiveSubductionLines) Physics.setActiveSubductionLines(null);
+  // Restore the Japan auto GMPE route (v6.7 NGA-West2 batch).
+  if (window.Physics && Physics.setActiveGmpRegion) Physics.setActiveGmpRegion(null);
+  try { _pshaClearForRegionSwitch(); _redrawInfoCharts(); } catch (e) { /* charts optional */ }
   _oceanPointCache = {}; // regional depth answers no longer apply
 }
 
@@ -929,7 +1023,7 @@ var globalModeEl = document.getElementById('global-mode');
 // v6.4 multi-region: pilot regions available in the region select. Each id
 // must have a region-<id>.json pack, an i18n key region.<id> (x3) and the
 // optional region-stations-/region-areas-/region-vs30-<id>.json companions.
-var REGION_CATALOG = ['california', 'italy', 'chile'];
+var REGION_CATALOG = ['california', 'italy', 'chile', 'taiwan', 'newzealand'];
 function _regionActivateSelected() {
   var rid = (regionSelEl && regionSelEl.value) || 'california';
   _regionProgressShow(8, 'Loading region package · 加载区域数据包');
@@ -3915,10 +4009,15 @@ function _predictPrefectureShindosFor(lat, lng, mag, depthKm, strDeg, dipDeg, sr
   for (var i = 0; i < cents.length; i++) {
     var pc = cents[i];
     var dist;
+    var surfDist = Physics.haversineDist(lat, lng, pc.lat, pc.lng);
     if (faultParams && (_gmpResolved === 'si-midorikawa' || _gmpResolved === 'log-ff')) {
       dist = Physics.rrupDistance(pc.lat, pc.lng, faultParams);
+    } else if (_gmpResolved === 'bssa14') {
+      // BSSA14's native metric is Rjb: whole-fault surface projection when a
+      // finite fault exists, else the epicentral (horizontal) distance —
+      // hypocentral depth enters only through the model's h pseudo-depth.
+      dist = faultParams ? Physics.rjbDistance(pc.lat, pc.lng, faultParams) : surfDist;
     } else {
-      var surfDist = Physics.haversineDist(lat, lng, pc.lat, pc.lng);
       dist = Math.sqrt(surfDist * surfDist + depthKm * depthKm);
     }
     if (dist < 0.5) dist = 0.5;
@@ -3927,7 +4026,8 @@ function _predictPrefectureShindosFor(lat, lng, mag, depthKm, strDeg, dipDeg, sr
     // Zhao/Kanno carry native Vs30 site terms: feed the real Vs30 instead of
     // rock-reference output + external power-law amp (the old mix double-
     // counted Zhao's site class and referenced the amp to the wrong base).
-    var nativeSite = predVs > 0 && (_gmpResolved === 'zhao2006' || _gmpResolved === 'kanno2006');
+    // BSSA14 is likewise native (linear + nonlinear site terms inside the GMPE).
+    var nativeSite = predVs > 0 && (_gmpResolved === 'zhao2006' || _gmpResolved === 'kanno2006' || _gmpResolved === 'bssa14');
     var refVs = nativeSite ? predVs : (_gmpResolved === 'zhao2006' ? 1200 : (_gmpResolved === 'kanno2006' ? 800 : 760));
     var pga = calcPGAFor(mag, dist, depthKm, predSrc, refVs, eventMwOverride, sliderMwOverride);
     var pgv = calcPGVFor(mag, dist, depthKm, predSrc, refVs, eventMwOverride, sliderMwOverride);
@@ -8112,7 +8212,7 @@ function applyPresetSelection(value){
     return;
   }
   setEpicenter(p.lat, p.lng);
-  epicenterSrc = (OBSERVED && OBSERVED[value] && OBSERVED[value].src) || p.src || null;
+  epicenterSrc = (OBSERVED && OBSERVED[value] && OBSERVED[value].src) || p.src || p.sourceType || null;
   eventMw = (OBSERVED && OBSERVED[value] && OBSERVED[value].mw != null) ? OBSERVED[value].mw : null;
   // Read dip/rake from observed.json if available
   if (OBSERVED && OBSERVED[value]) {
@@ -9402,7 +9502,7 @@ var ADV_RECOMMENDED = {
 };
 var ADV_OPTION_LABELS = {
   auto:'adv.opt.auto',crustal:'adv.opt.crustal',interplate:'adv.opt.interplate',intraslab:'adv.opt.intraslab',
-  log:'adv.opt.log','si-midorikawa':'adv.opt.si','log-ff':'adv.opt.logff',kanno2006:'adv.opt.kanno',zhao2006:'adv.opt.zhao',
+  log:'adv.opt.log','si-midorikawa':'adv.opt.si','log-ff':'adv.opt.logff',kanno2006:'adv.opt.kanno',zhao2006:'adv.opt.zhao',bssa14:'adv.opt.bssa14',
   vs30:'adv.opt.vs30',geo:'adv.opt.geo',none:'adv.opt.none',off:'adv.opt.off',on:'adv.opt.on',ss14:'adv.opt.ss14','eqlin-1d':'adv.opt.eqlin',
   somerville1997:'adv.opt.somerville',pgaOnly:'adv.opt.pga',pgaPgv:'adv.opt.pgagv',exceedance:'adv.opt.exceedance',
   shindo:'intensity.shindo',mmi:'intensity.mmi',ems98:'intensity.ems98',csis:'intensity.csis',bilateral:'ff.bilateral',unilateral:'ff.unilateral',
@@ -10286,23 +10386,31 @@ function updateInfoPanel(curMaxPga, curMaxSh) {
 
   // --- Computation ---
   html += '<br><div class="info-hdr">' + t('info.computation') + '</div>';
+  var resolvedModel = Physics.resolveGmpModel(cfgGet('gmpModel'), activeSrcType(), eventMw != null ? eventMw : _liveMag);
+  var _gmpeNameMap = { 'si-midorikawa': 'Si &amp; Midorikawa (1999)', 'zhao2006': 'Zhao et al. (2006)',
+    'bssa14': 'Boore et al. (2014) NGA-West2', 'kanno2006': 'Kanno et al. (2006)' };
   if (cfgGet('gmpModel') === 'auto') {
-    html += infoRow(t('info.gmpe'), 'Auto -> Si &amp; Midorikawa (1999), ' + activeSrcType());
+    // Show the model the auto-route actually resolved to (region-aware: BSSA14
+    // for shallow-crustal events outside Japan).
+    html += infoRow(t('info.gmpe'), 'Auto -> ' + (_gmpeNameMap[resolvedModel] || resolvedModel) + ', ' + activeSrcType());
   } else if (cfgGet('gmpModel') === 'si-midorikawa')
     html += infoRow(t('info.gmpe'), 'Si &amp; Midorikawa (1999), '+activeSrcType());
   else if (cfgGet('gmpModel') === 'kanno2006')
     html += infoRow(t('info.gmpe'), 'Kanno et al. (2006), Vs30');
   else if (cfgGet('gmpModel') === 'zhao2006')
     html += infoRow(t('info.gmpe'), 'Zhao et al. (2006), '+activeSrcType());
+  else if (cfgGet('gmpModel') === 'bssa14')
+    html += infoRow(t('info.gmpe'), 'Boore et al. (2014) NGA-West2, Rjb, Vs30');
+  else if (cfgGet('gmpModel') === 'logic-tree')
+    html += infoRow(t('info.gmpe'), 'Logic tree (3-branch LLH), '+activeSrcType());
   else if (cfgGet('gmpModel') === 'log-ff')
     html += infoRow(t('info.gmpe'), 'log-FF (Rrup+src+M[w]) ='+cfgGet('attA').toFixed(2)+'M-'+cfgGet('attB').toFixed(2)+'logR+'+cfgGet('attC').toFixed(2));
   else
     html += infoRow(t('info.gmpe'), 'log(PGA)='+cfgGet('attA').toFixed(2)+'M-'+cfgGet('attB').toFixed(2)+'logR+'+cfgGet('attC').toFixed(2));
-  var resolvedModel = Physics.resolveGmpModel(cfgGet('gmpModel'), activeSrcType(), eventMw != null ? eventMw : _liveMag);
   var sigmaInfo = Physics.getGmpSigmaComponents(cfgGet('gmpModel'), activeSrcType(), 'pga', eventMw != null ? eventMw : _liveMag);
   if (cfgGet('sigmaOverride') > 0) sigmaInfo.sigmaT = cfgGet('sigmaOverride');
   html += infoRow(t('info.source_type'), activeSrcType() + (cfgGet('sourceTypeOverride') !== 'auto' ? ' (override)' : ''));
-  html += infoRow(t('info.distance_metric'), resolvedModel === 'log-ff' || resolvedModel === 'si-midorikawa' ? 'Rrup (finite fault when available)' : 'Rhypo');
+  html += infoRow(t('info.distance_metric'), resolvedModel === 'log-ff' || resolvedModel === 'si-midorikawa' ? 'Rrup (finite fault when available)' : (resolvedModel === 'bssa14' ? 'Rjb' : 'Rhypo'));
   html += infoRow(t('info.sigma'), sigmaInfo.sigmaT.toFixed(3));
   html += infoRow(t('info.intensity_formula'), 'I=max(PGA, PGV empirical) · ' + t('info.empirical_jma_note'));
   html += infoRow(t('info.stations'), rawLandGrid.length.toLocaleString());
@@ -11067,7 +11175,7 @@ var ScenarioManager = (function(){
     _syncAsManualPanel();
     if(scn.display&&scn.display.layers)for(var layerId in scn.display.layers){var layerEl=document.getElementById(layerId);if(layerEl&&layerEl.checked!==!!scn.display.layers[layerId]){layerEl.checked=!!scn.display.layers[layerId];layerEl.dispatchEvent(new Event('change'));}}
     if(scn.display&&isFinite(Number(scn.display.speed)))simSpeedEl.value=Number(scn.display.speed);
-    if(scn.display&&(scn.display.theme==='light'||scn.display.theme==='dark')){document.documentElement.classList.toggle('light',scn.display.theme==='light');localStorage.setItem('qs-theme',scn.display.theme);}
+    if(scn.display&&(scn.display.theme==='light'||scn.display.theme==='dark')){document.documentElement.classList.toggle('light',scn.display.theme==='light');localStorage.setItem('qs-theme',scn.display.theme);_globalVectorReskin();}
     if(scn.display&&isFinite(Number(scn.display.uiScale))){var scale=Math.max(80,Math.min(140,Number(scn.display.uiScale)));document.documentElement.style.fontSize=(scale/100*19.2)+'px';localStorage.setItem('qs-ui-scale',scale);var scaleSlider=document.getElementById('ui-scale-slider'),scaleVal=document.getElementById('ui-scale-val');if(scaleSlider)scaleSlider.value=scale;if(scaleVal)scaleVal.textContent=scale+'%';}
     if(scn.display&&scn.display.map&&isFinite(Number(scn.display.map.lat))&&isFinite(Number(scn.display.map.lng)))map.setView([Number(scn.display.map.lat),Number(scn.display.map.lng)],Number(scn.display.map.zoom)||7);
     else map.setView([e0.lat, e0.lng], 7);
@@ -11319,6 +11427,7 @@ FiniteFaultEditor.init();
 function toggleTheme() {
   document.documentElement.classList.toggle('light');
   localStorage.setItem('qs-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark');
+  _globalVectorReskin(); // global-mode vector basemap palette follows the theme
 }
 (function(){
   var btn = document.getElementById('btn-theme');
@@ -11559,20 +11668,57 @@ function drawResponseSpectrum() {
 // Site hazard from the bundled self-computed source model
 // (geojson/psha-source-model.json, schema quake-sim-psha-source-v2, built by
 // tools/build-psha-source-model.js from the frozen USGS ComCat catalog).
-// The model loads lazily (landuse-pack precedent); an absent pack leaves the
-// canvases in their waiting state instead of failing the charts view.
+// v6.7 D: in region mode the card loads that region's own pack
+// (geojson/psha-source-model-<rid>.json — same v2 schema plus region/gmpeTree
+// fields; regional packs are grid-only GR with a regional single-branch GMPE
+// tree and NO scenario sources). The model loads lazily (landuse-pack
+// precedent); an absent pack leaves the canvases in their waiting state —
+// or, for a region whose pack failed, the honest absent note.
 // Absolute hazard LEVELS are pending the J-SHIS external comparison gate
-// (ROADMAP v6.1 R8) — the card note says so.
+// (ROADMAP v6.1 R8) — the card note says so; regional levels carry no
+// external gate at all (pack limitations are frozen in the model file).
 
 var _pshaSourceModel = null;   // null=not attempted, false=missing/unloaded, doc=ready
 var _pshaResultCache = null;   // {key, hazard, uhs, rp} keyed by site+rp+vs30
+
+// v6.7 D regional PSHA source models: in region mode the card loads that
+// region's own pack (geojson/psha-source-model-<rid>.json, schema v2 with
+// region + gmpeTree fields) and computes normally; the honest absent note is
+// reserved for a region whose pack failed to load. The Japan model is loaded
+// when no region is active.
+function _pshaRegionActive() {
+  return (typeof REGION_STATE !== 'undefined' && REGION_STATE.active) ? REGION_STATE.active : null;
+}
+function _pshaRegionGated() {
+  // gated (honest absent) only when a region is active but its pack is
+  // confirmed missing — a null (still loading) model draws the waiting state.
+  return !!_pshaRegionActive() && _pshaSourceModel === false;
+}
+function _pshaClearForRegionSwitch() {
+  _pshaResultCache = null;
+  _pshaSourceModel = null; // force a reload of the newly-active scope's pack
+  if (_pshaComputeTimer) { clearTimeout(_pshaComputeTimer); _pshaComputeTimer = null; }
+  // TD (BPT) is Japan-scoped (Nankai renewal sources only): in region mode the
+  // toggle is a no-op — disable it so the switch visibly does not apply.
+  try {
+    var pt = document.getElementById('psha-timed-toggle');
+    if (pt) pt.disabled = !!_pshaRegionActive();
+  } catch (e) { /* DOM optional */ }
+}
 var _lastUhsExport = null;
 
 function _loadPshaSourceModel() {
   if (_pshaSourceModel !== null) return;
   _pshaSourceModel = false;
-  fetch('geojson/psha-source-model.json').then(function(r){ return r.ok ? r.json() : null; }).then(function(doc){
-    if (!doc || doc.schema !== 'quake-sim-psha-source-v1' || !Array.isArray(doc.cells)) return;
+  var rid = _pshaRegionActive();
+  fetch(rid ? 'geojson/psha-source-model-' + rid + '.json' : 'geojson/psha-source-model.json').then(function(r){ return r.ok ? r.json() : null; }).then(function(doc){
+    // schema check accepts v1|v2 — the loader pinned v1 while the bundled
+    // Japan model moved to v2 in the 2026-09-04 segmented-Nankai batch, which
+    // silently parked the card in its waiting state from v6.2 until this fix.
+    if (!doc || (doc.schema !== 'quake-sim-psha-source-v1' && doc.schema !== 'quake-sim-psha-source-v2') || !Array.isArray(doc.cells)) return;
+    // drop a stale fetch that resolves after a region switch (compare against
+    // the CURRENT scope, not the one captured at fetch time)
+    if ((doc.region || 'japan') !== (_pshaRegionActive() || 'japan')) { _pshaSourceModel = null; return; }
     _pshaSourceModel = doc;
     _redrawInfoCharts();
   }).catch(function(){ /* pack optional — charts stay in waiting state */ });
@@ -11595,10 +11741,14 @@ var _pshaComputeTimer = null;
 
 function _pshaCompute() {
   var site = _pshaSite();
+  if (_pshaRegionGated()) return null;
   if (!site || !_pshaSourceModel) return null;
   var rp = cfgGet('pshaReturnPeriod') || 475;
-  var td = !!cfgGet('pshaTimeDependent');
-  var key = site.lat.toFixed(3) + '|' + site.lng.toFixed(3) + '|' + rp + '|' + site.vs30 + (td ? '|td' : '');
+  // TD is Japan-scoped: regional packs carry no BPT renewal sources, so the
+  // time-dependent engine would silently equal the Poisson one — force the
+  // Poisson path (the toggle itself is disabled on region switches).
+  var td = !!cfgGet('pshaTimeDependent') && !_pshaRegionActive();
+  var key = (_pshaRegionActive() || 'jp') + '|' + site.lat.toFixed(3) + '|' + site.lng.toFixed(3) + '|' + rp + '|' + site.vs30 + (td ? '|td' : '');
   if (_pshaResultCache && _pshaResultCache.key === key) return _pshaResultCache;
   // time-dependent mode (v6.2 BPT UI batch): BPT renewal scenarios over the
   // Poisson background; both engines return a 50-year-annualized rate curve,
@@ -11632,11 +11782,12 @@ function _pshaCompute() {
  *  Cache hits draw immediately; misses draw the waiting state and schedule
  *  one deferred computation (latest-site wins). */
 function _pshaScheduleCompute() {
+  if (_pshaRegionGated()) return null; // region active but its pack missing: honest absent
   var site = _pshaSite();
   if (!site || !_pshaSourceModel) return null;
   var rp = cfgGet('pshaReturnPeriod') || 475;
-  var tdKey = cfgGet('pshaTimeDependent') ? '|td' : '';
-  var key = site.lat.toFixed(3) + '|' + site.lng.toFixed(3) + '|' + rp + '|' + site.vs30 + tdKey;
+  var tdKey = (cfgGet('pshaTimeDependent') && !_pshaRegionActive()) ? '|td' : '';
+  var key = (_pshaRegionActive() || 'jp') + '|' + site.lat.toFixed(3) + '|' + site.lng.toFixed(3) + '|' + rp + '|' + site.vs30 + tdKey;
   if (_pshaResultCache && _pshaResultCache.key === key) return _pshaResultCache;
   if (_pshaComputeTimer) clearTimeout(_pshaComputeTimer);
   _pshaComputeTimer = setTimeout(function() {
@@ -11660,6 +11811,7 @@ function drawPshaHazard() {
   if (!ctx) return;
   var W = canvas.width, H = canvas.height;
   ctx.clearRect(0, 0, W, H);
+  if (_pshaRegionGated()) { _pshaWaiting(ctx, W, H, t('info.psha_region_note')); return; }
   var res = _pshaScheduleCompute();
   if (!res) { _pshaWaiting(ctx, W, H); return; }
   var hz = res.hazard;
@@ -11730,6 +11882,7 @@ function drawPshaUhs() {
   if (!ctx) return;
   var W = canvas.width, H = canvas.height;
   ctx.clearRect(0, 0, W, H);
+  if (_pshaRegionGated()) { _pshaWaiting(ctx, W, H, t('info.psha_region_note')); return; }
   var res = _pshaScheduleCompute();
   if (!res) { _pshaWaiting(ctx, W, H); return; }
   var rpKey = String(res.rp);
@@ -11783,6 +11936,7 @@ function drawPshaDeagg() {
   var table = document.getElementById('psha-deagg-table');
   var W = canvas.width, H = canvas.height;
   ctx.clearRect(0, 0, W, H);
+  if (_pshaRegionGated()) { _pshaWaiting(ctx, W, H, t('info.psha_region_note')); if (table) table.innerHTML = ''; return; }
   var res = _pshaScheduleCompute();
   if (!res) { _pshaWaiting(ctx, W, H); if (table) table.innerHTML = ''; return; }
   var dg = res.deagg;

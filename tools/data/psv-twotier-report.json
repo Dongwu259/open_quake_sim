@@ -1,0 +1,36 @@
+{
+  "schema": "quake-sim-psv-twotier-v1",
+  "generatedAt": "2026-09-28T00:00:00.000Z",
+  "batch": "params.twoTierQd two-tier precision router (2026-09-28) — double Schur base + per-sample 1-ulp chaos probe + QD bigfloat only where the probe fires inside the relevance envelope",
+  "design": {
+    "router": "psv.js psvTwoTierChaos: relative movement of the C entries under 1-ulp and 7-ulp k shifts (the v13 discriminator re-aimed as the tier router — a true resonance moves ~(u/gamma)^2 ~ 0, the chain's cancellation floor moves O(1)); escalation re-runs the compliance triple on params.qdCompliance with a cache-free params clone",
+    "relevanceGate": "kRel = omega/vsHalfspace + ln(1/relFloor)/zSourceKm (relFloor 1e-6): chaos beyond it is the dead e^{-k*zs} tail (magnitudes <=1e-25, 15+ orders under the weight band) and is SKIPPED, not escalated — the corrupted dip samples read corrupted-small on the double chain (1e-13 where QD carries 1e-9), so the gate never trusts the probed magnitude",
+    "deflake": "two ulp offsets (u, 7u) — a single-offset probe measured one chaotic-zone sample (HALF@f1.2 k=1.78/km) probing stable once at 0.9 double-vs-QD divergence",
+    "honesty": "QD failure keeps the double ent (never nulls a solvable double sample); broken (null) double triples get the QD retry and count as escalations; absent param = byte-compatible (tests/psv-twotier.test.js locks it)"
+  },
+  "halffSmokeScan": {
+    "config": "HALF (vs 3.5 / vp 6.0 / rho 2.7) @ f1.2 zs33, complianceAt |C00| double-vs-QD over k 1.0-3.0/km (0.02 step)",
+    "measured": "double chain departs QD from k~1.56/km (8e-6) growing to ~1.0 across 1.8-2.3/km (the detM dip band: S branch 2.154/km + Rayleigh 2.34/km family — the P1 6000x mechanism), one double null at 2.30/km; beyond k~2.5/km the magnitudes sit <=1e-25 with mild 1e-4 floor jitter (both chains agree to ~1e-5 there — dead weight)",
+    "tierMap": "escalate 1.48-2.56/km, relevance-skip >=2.60/km (kRel = 2.154+13.8/33 = 2.572/km) — the map lands exactly on the measured divergence band"
+  },
+  "p1Anchor": {
+    "driver": "tools/broadband/psv-horizontal-anchor.js (three arms: qdCompliance / twoTierQd+schur / schur double vs the injected closed-form halfspace BVP; gate <=1e-2 pre-registered 2026-09-13)",
+    "cases": [
+      { "case": "strike-slip@f0.5zs33", "qd": 5.72e-16, "twoTier": 5.50e-9, "double": 5.37e-9, "escalated": "102/3825", "wallTwoTierMs": 4734, "wallQdMs": 86937 },
+      { "case": "thrust-DC@f0.5zs33", "qd": 1.79e-13, "twoTier": 4.25e-6, "double": 3.77e-6, "escalated": "102/3825", "wallTwoTierMs": 4589, "wallQdMs": 87511 },
+      { "case": "strike-slip@f1.2zs33", "qd": 1.10e-15, "twoTier": 5.87e-10, "double": 3.48e-2, "escalated": "1426/5271", "wallTwoTierMs": 39075, "wallQdMs": 121186 },
+      { "case": "thrust-DC@f1.2zs33", "qd": 2.06e-13, "twoTier": 1.92e-7, "double": 8.34, "escalated": "1426/5271", "wallTwoTierMs": 37159, "wallQdMs": 130479 }
+    ],
+    "verdict": "twoTier worst 4.25e-6 <= 1e-2 PASS (2400x margin) where the double arm fails 8.34; total wall 85.6s vs full-QD 426.1s = 20.1% (5.0x cut; f0.5 cases 5%, f1.2 28-32%)"
+  },
+  "layeredEndToEnd": {
+    "driver": ".cache/psv-twotier-layered.js (probe, not committed) — tokyo JIVSM column (zs 73 km, r 198.5 km, dcMomentTensor(185,55,90,Mw7.7)), psvMomentSpectrumAtFrequency dk 0.05/km kMax 2/km, poleWindows:false",
+    "f0.5": { "twoTierVsQdUr": 6.59e-4, "twoTierVsQdUt": 3.31e-6, "doubleVsQdUr": 874.9, "doubleVsQdUt": 41.7, "escalated": "779/1389", "tailSkipped": 102, "wallTwoTierMs": 186044, "wallQdMs": 366789, "wallDoubleMs": 3047 },
+    "f1.2": { "twoTierVsQdUr": 1.07e-7, "twoTierVsQdUt": 8.35e-9, "doubleVsQdUr": 88.3, "doubleVsQdUt": 6.18, "escalated": "1118/2145", "tailSkipped": 0, "wallTwoTierMs": 237852, "wallQdMs": 565145, "wallDoubleMs": 6684 },
+    "verdict": "on the production stack family the double chain is 88-875x off while twoTier reproduces QD to 1e-7 (f1.2) / 6.6e-4 (f0.5) at 42-51% of the QD wall; the layered chaos band is wide (52-56% of samples escalated — the v13 0.70-0.82/km cluster), so the QD cut here is ~2x, not the HALF 5x"
+  },
+  "costAccount": "QD cut vs full-QD: 5.0x on the P1 HALF set, ~2x on the tokyo layered set (wide chaos band); vs the pre-twoTier NOT-EXECUTABLE verdict the anchor-class measurement is now minutes, not days. The probe overhead on non-escalated samples is ~2 extra double compliance evals per k (measured: f0.5 twoTier 4.6-4.7s vs plain double 1.2-1.6s on the P1 lattice)",
+  "scope": "research infrastructure ONLY — changes no frozen CS verdict: the v4 psv arm already ran on the exact QD chain (refutation stands, psv-scale-diagnosis / cs-pipeline PRE_REG_V4 untouched in substance). opts.psv production enablement stays BLOCKED on its own registered gates; twoTierQd merely makes any FUTURE f>=1Hz P-SV measurement affordable",
+  "tests": "tests/psv-twotier.test.js (6 anchors: byte-compat absent / smooth no-escalation / dip lands QD exactly / null rescue / tail skip accounted / layered crest escalation+QD equality)",
+  "provenance": "measured 2026-09-28 on this machine (node v24, win32); drivers: tools/broadband/psv-horizontal-anchor.js (committed) + .cache probes (not committed, design and numbers frozen here)"
+}

@@ -7,11 +7,11 @@
 //            (CC-BY 4.0, ISTAT-derived). raw.githubusercontent unreachable
 //            from this network: download via api.github.com blob API with the
 //            pinned-IP + explicit-Host workaround.
-//   chile  — Natural Earth 10m admin-1 regions filtered to Chile (public
-//            domain, nvkelso/natural-earth-vector), bbox-clipped to the
-//            region pack bounds.
+//   chile / taiwan / newzealand — Natural Earth 10m admin-1 (public domain,
+//            nvkelso/natural-earth-vector), admin=<country> filtered and
+//            bbox-clipped to the region pack bounds.
 //
-// Usage: node tools/fetch-region-areas.js [--region italy|chile]
+// Usage: node tools/fetch-region-areas.js [--region italy|chile|taiwan|newzealand]
 'use strict';
 const fs = require('fs');
 const path = require('path');
@@ -39,6 +39,7 @@ const REGIONS = {
   },
   chile: {
     unit: 'region',
+    admin: 'Chile',
     bbox: { minlat: -56.0, maxlat: -17.0, minlon: -76.0, maxlon: -66.0 },
     blob: { sha: '4a8438f98ac7dfec7dc1739b1eaf91398ad33f22', size: 40726851, repoApi: '/repos/nvkelso/natural-earth-vector', repo: 'nvkelso/natural-earth-vector (NE 10m admin-1, public domain)' },
     nameOf: (p) => p.name,
@@ -46,6 +47,36 @@ const REGIONS = {
     provenance: {
       label: 'Natural Earth 10m admin-1 (Chile regions)',
       source: 'Natural Earth 10m admin-1 states/provinces, admin = Chile',
+      license: 'public domain (Natural Earth)',
+      url: 'https://github.com/nvkelso/natural-earth-vector',
+      builder: 'tools/fetch-region-areas.js',
+    },
+  },
+  taiwan: {
+    unit: 'county',
+    admin: 'Taiwan',
+    bbox: { minlat: 21.5, maxlat: 25.6, minlon: 118.8, maxlon: 122.6 },
+    blob: { sha: '4a8438f98ac7dfec7dc1739b1eaf91398ad33f22', size: 40726851, repoApi: '/repos/nvkelso/natural-earth-vector', repo: 'nvkelso/natural-earth-vector (NE 10m admin-1, public domain)' },
+    nameOf: (p) => p.name,
+    extraProps: (p) => ({ iso: p.iso_3166_2 || '' }),
+    provenance: {
+      label: 'Natural Earth 10m admin-1 (Taiwan counties)',
+      source: 'Natural Earth 10m admin-1 states/provinces, admin = Taiwan',
+      license: 'public domain (Natural Earth)',
+      url: 'https://github.com/nvkelso/natural-earth-vector',
+      builder: 'tools/fetch-region-areas.js',
+    },
+  },
+  newzealand: {
+    unit: 'region',
+    admin: 'New Zealand',
+    bbox: { minlat: -48.0, maxlat: -33.5, minlon: 165.0, maxlon: 180.0 },
+    blob: { sha: '4a8438f98ac7dfec7dc1739b1eaf91398ad33f22', size: 40726851, repoApi: '/repos/nvkelso/natural-earth-vector', repo: 'nvkelso/natural-earth-vector (NE 10m admin-1, public domain)' },
+    nameOf: (p) => p.name,
+    extraProps: (p) => ({ iso: p.iso_3166_2 || '' }),
+    provenance: {
+      label: 'Natural Earth 10m admin-1 (New Zealand regions)',
+      source: 'Natural Earth 10m admin-1 states/provinces, admin = New Zealand',
       license: 'public domain (Natural Earth)',
       url: 'https://github.com/nvkelso/natural-earth-vector',
       builder: 'tools/fetch-region-areas.js',
@@ -74,7 +105,7 @@ function get(apiPath) {
 async function main() {
   const REGION = (process.argv[process.argv.indexOf('--region') + 1] || '');
   const DEF = REGIONS[REGION];
-  if (!DEF) { console.error('usage: node tools/fetch-region-areas.js --region italy|chile'); process.exit(1); }
+  if (!DEF) { console.error('usage: node tools/fetch-region-areas.js --region italy|chile|taiwan|newzealand'); process.exit(1); }
   const OUT = path.join(ROOT, 'public', 'geojson', 'region-areas-' + REGION + '.json');
 
   process.stdout.write('downloading ' + DEF.blob.repo + ' … ');
@@ -96,10 +127,10 @@ async function main() {
     geometry: f.geometry,
   })).filter((f) => f.properties.name);
 
-  if (REGION === 'chile') {
-    // country filter + bbox clip: NE admin-1 is a worldwide layer, and Chile's
-    // Magallanes region carries far-south claimed territory
-    features = features.filter((f) => f.properties.name && f._admin === 'Chile').map((f) => ({ type: 'Feature', properties: f.properties, geometry: f.geometry }));
+  if (DEF.admin) {
+    // country filter + bbox clip: NE admin-1 is a worldwide layer (Chile's
+    // Magallanes region carries far-south claimed territory)
+    features = features.filter((f) => f.properties.name && f._admin === DEF.admin).map((f) => ({ type: 'Feature', properties: f.properties, geometry: f.geometry }));
     features = features.filter((f) => {
       let y0 = 90, y1 = -90;
       const walk = (c) => {

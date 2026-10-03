@@ -18,8 +18,8 @@ const indexSrc = fs.readFileSync(path.join(ROOT, 'public', 'index.html'), 'utf8'
 const CATALOG = (appSrc.match(/var REGION_CATALOG = \[([^\]]*)\]/) || [])[1];
 const ids = (CATALOG || '').match(/'([a-z]+)'/g).map((s) => s.replace(/'/g, ''));
 
-test('catalog declares california, italy, chile in app.js', () => {
-  assert.deepEqual(ids, ['california', 'italy', 'chile']);
+test('catalog declares california, italy, chile, taiwan, newzealand in app.js', () => {
+  assert.deepEqual(ids, ['california', 'italy', 'chile', 'taiwan', 'newzealand']);
 });
 
 test('every catalog region has: pack file + i18n key x3', () => {
@@ -81,6 +81,50 @@ test('italy/chile area packages: provinces and regions', () => {
   assert.ok(uniqueCl.size >= 14 && uniqueCl.size <= 16, 'chile regions 14-16, got ' + uniqueCl.size);
   for (const expected of ['Valparaíso', 'Antofagasta', 'Región Metropolitana de Santiago']) {
     assert.ok(uniqueCl.has(expected), 'contains ' + expected);
+  }
+});
+
+test('v6.7 taiwan/newzealand packages: stations + NE admin-1 areas', () => {
+  // taiwan: BATS broadband backbone only (the dense CWA/TSMIP nets are not
+  // open-FDSN) — sparse but real; every station is a TW/backbone broadband
+  const tw = JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-stations-taiwan.json'), 'utf8'));
+  assert.equal(tw.schema, 'quake-sim-region-stations-v1');
+  assert.equal(tw.region, 'taiwan');
+  assert.ok(tw.stations.length >= 15, 'taiwan BATS stations >= 15 (' + tw.stations.length + ')');
+  assert.ok(tw.sources.some((s) => /BATS/.test(s.name)), 'BATS source present');
+  assert.ok(!tw.stations.some((s) => s.net === 'SY'), 'synthetic SY duplicates excluded');
+  const twKept = tw.sources.reduce((a, s) => a + s.dedupedKept, 0);
+  assert.equal(twKept, tw.count, 'taiwan provenance conservation');
+
+  // newzealand: GeoNet national network (broadband + strong motion)
+  const nz = JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-stations-newzealand.json'), 'utf8'));
+  assert.equal(nz.schema, 'quake-sim-region-stations-v1');
+  assert.equal(nz.region, 'newzealand');
+  assert.ok(nz.stations.length >= 500, 'newzealand GeoNet stations >= 500 (' + nz.stations.length + ')');
+  assert.ok(nz.sources.some((s) => /GeoNet/.test(s.name)), 'GeoNet source present');
+  const nzKept = nz.sources.reduce((a, s) => a + s.dedupedKept, 0);
+  assert.equal(nzKept, nz.count, 'newzealand provenance conservation');
+  for (const st of nz.stations) {
+    assert.ok(st.lat >= nz.bbox[0] - 0.01 && st.lat <= nz.bbox[2] + 0.01, 'nz lat in bbox');
+    assert.ok(st.lng >= nz.bbox[1] - 0.01 && st.lng <= nz.bbox[3] + 0.01, 'nz lng in bbox');
+  }
+
+  // areas: NE 10m admin-1, public domain, name-unique
+  const twA = JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-areas-taiwan.json'), 'utf8'));
+  assert.equal(twA._schema, 'quake-sim-region-areas-v1');
+  assert.equal(twA.unit, 'county');
+  const uniqueTw = new Set(twA.areas.features.map((f) => f.properties.name));
+  assert.ok(uniqueTw.size >= 20 && uniqueTw.size <= 22, 'taiwan counties 20-22, got ' + uniqueTw.size);
+  for (const expected of ['Taipei City', 'Kaohsiung City', 'Hualien', 'Taichung City']) {
+    assert.ok(uniqueTw.has(expected), 'contains ' + expected);
+  }
+  const nzA = JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-areas-newzealand.json'), 'utf8'));
+  assert.equal(nzA._schema, 'quake-sim-region-areas-v1');
+  assert.equal(nzA.unit, 'region');
+  const uniqueNz = new Set(nzA.areas.features.map((f) => f.properties.name));
+  assert.ok(uniqueNz.size >= 16 && uniqueNz.size <= 20, 'newzealand regions 16-20, got ' + uniqueNz.size);
+  for (const expected of ['Auckland', 'Canterbury', 'Wellington']) {
+    assert.ok(uniqueNz.has(expected), 'contains ' + expected);
   }
 });
 

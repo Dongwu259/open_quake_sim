@@ -24,11 +24,15 @@ const GRIDS = {
   chile: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'grids', 'cl-megathrust.json'), 'utf8')),
   italy: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'grids', 'it-messina.json'), 'utf8')),
   california: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'grids', 'us-california.json'), 'utf8')),
+  taiwan: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'grids', 'tw-taiwan.json'), 'utf8')),
+  newzealand: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'grids', 'nz-aotearoa.json'), 'utf8')),
 };
 const PACKS = {
   chile: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-chile.json'), 'utf8')),
   italy: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-italy.json'), 'utf8')),
   california: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-california.json'), 'utf8')),
+  taiwan: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-taiwan.json'), 'utf8')),
+  newzealand: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-newzealand.json'), 'utf8')),
 };
 
 function regionBathyEntries() {
@@ -38,7 +42,7 @@ function regionBathyEntries() {
 }
 
 test('terrain grids validate + meta contract (data honesty)', () => {
-  for (const rid of ['chile', 'italy', 'california']) {
+  for (const rid of ['chile', 'italy', 'california', 'taiwan', 'newzealand']) {
     const g = GRIDS[rid];
     const check = Physics.validateResearchGrid(g, 'terrain');
     assert.ok(check.valid, rid + ' valid: ' + check.errors.join(','));
@@ -58,7 +62,7 @@ test('terrain grids validate + meta contract (data honesty)', () => {
 
 test('REGIONAL_BATHY entries: region-tagged, bbox matches the grid extent', () => {
   const entries = regionBathyEntries();
-  for (const rid of ['cl-megathrust', 'it-messina', 'us-california']) {
+  for (const rid of ['cl-megathrust', 'it-messina', 'us-california', 'tw-taiwan', 'nz-aotearoa']) {
     const entry = entries.find(e => e.includes("id:'" + rid + "'"));
     assert.ok(entry, rid + ' entry present');
     const region = entry.match(/region:'([a-z]+)'/);
@@ -112,8 +116,40 @@ test('california strip: NE Pacific deep water + Sierra land + Mendocino shelf', 
   assert.ok(e1906 < 0, '1906 SF preset epicenter sits in a water cell: ' + e1906);
 });
 
+test('taiwan strip: Ryukyu trench deep east + shallow strait + Central Range', () => {
+  const g = GRIDS.taiwan;
+  assert.equal(g.res, 0.05, 'taiwan strip is 0.05° (country-scale contract)');
+  assert.ok(g.minDepth < -6000, 'Ryukyu trench in grid: ' + g.minDepth);
+  assert.ok(g.maxDepth > 3000, 'Central Range crest in grid: ' + g.maxDepth);
+  const east = Physics.lookupResearchGrid(g, 23.5, 122.3);
+  assert.ok(east < -3000, 'east-coast Pacific deep water: ' + east);
+  const strait = Physics.lookupResearchGrid(g, 24.0, 119.8);
+  assert.ok(strait < 0 && strait > -120, 'Taiwan Strait shallow shelf: ' + strait);
+  const range = Physics.lookupResearchGrid(g, 23.7, 121.3);
+  assert.ok(range > 1000, 'Central Range land: ' + range);
+  // 2024 Hualien preset epicenter (ComCat 23.836,121.598) sits on land — the
+  // tsunami-relevant offshore hypocenters are further east; sample the near
+  // offshore so the strip has runnable water inside the preset neighborhood
+  const offshore = Physics.lookupResearchGrid(g, 23.8, 121.9);
+  assert.ok(offshore < -100, 'Hualien near-offshore water: ' + offshore);
+});
+
+test('newzealand strip: Hikurangi margin trench + Southern Alps + Kaikoura coast', () => {
+  const g = GRIDS.newzealand;
+  assert.equal(g.res, 0.05, 'newzealand strip is 0.05° (country-scale contract)');
+  assert.ok(g.minDepth < -5000, 'Hikurangi/Kermadec trench in grid: ' + g.minDepth);
+  assert.ok(g.maxDepth > 2000, 'Southern Alps crest in grid: ' + g.maxDepth);
+  const hikurangi = Physics.lookupResearchGrid(g, -40.0, 178.5);
+  assert.ok(hikurangi < -2000, 'Hikurangi margin deep water: ' + hikurangi);
+  // Kaikoura 2016 tsunami source coast: canyon-indented margin, water < -1000
+  const kaikoura = Physics.lookupResearchGrid(g, -42.5, 174.2);
+  assert.ok(kaikoura < -1000, 'Kaikoura coast deep water: ' + kaikoura);
+  const alps = Physics.lookupResearchGrid(g, -43.0, 171.0);
+  assert.ok(alps > 300, 'Southern Alps foothills land: ' + alps);
+});
+
 test('region packs flip tsunami:true with honest boundary notes', () => {
-  for (const rid of ['chile', 'italy']) {
+  for (const rid of ['chile', 'italy', 'taiwan', 'newzealand']) {
     assert.equal(PACKS[rid].tsunami, true, rid + ' tsunami enabled');
     const notes = PACKS[rid].notes;
     assert.match(notes, /GEBCO 2025/, rid + ' names the terrain dataset');
@@ -164,7 +200,7 @@ test('app.js wiring: regional depth branch, coverage gate, checkpoint gate, warm
 });
 
 test('vs30 + terrain provenance cross-agree on source tokens', () => {
-  for (const rid of ['italy', 'chile']) {
+  for (const rid of ['italy', 'chile', 'taiwan', 'newzealand']) {
     const vs30 = JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-vs30-' + rid + '.json'), 'utf8'));
     assert.equal(vs30.provenance.sourceToken, 'usgs-global-heath2020');
     assert.match(GRIDS[rid].meta.source, /GEBCO Compilation Group/);

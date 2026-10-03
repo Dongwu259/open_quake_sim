@@ -1,0 +1,196 @@
+{
+  "schema": "quake-sim-comcat-presets-v1",
+  "region": "taiwan",
+  "generatedAt": "2026-10-02T12:26:01.949Z",
+  "provenance": "USGS ComCat fdsnws event API + moment-tensor products (GCMT family preferred by source/preferredWeight); public domain",
+  "presets": [
+    {
+      "id": "tw-1999-chichi",
+      "label": "1999 Chi-Chi M7.7 (TW)",
+      "sourceType": "crustal",
+      "previous": {
+        "lat": 23.772,
+        "lng": 120.982,
+        "mag": 7.7,
+        "depth": 33,
+        "strike": 37,
+        "dip": 25,
+        "rake": 96
+      },
+      "resolved": true,
+      "comcatId": "usp0009eq0",
+      "eventUrl": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0009eq0",
+      "queryUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=1999-09-19T11:47:00&endtime=1999-09-21T23:47:00&minlatitude=22.572&maxlatitude=24.972&minlongitude=119.671&maxlongitude=122.293&minmagnitude=6.2&orderby=time",
+      "detailUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=usp0009eq0",
+      "match": {
+        "dtHours": 0.01,
+        "distKm": 0,
+        "dMag": 0
+      },
+      "comcat": {
+        "mag": 7.7,
+        "magType": "mwc",
+        "lat": 23.772,
+        "lng": 120.982,
+        "depthKm": 33,
+        "originTimeUtc": "1999-09-20T17:47:18.490Z"
+      },
+      "mechanism": {
+        "source": "us/gcmtC092099D",
+        "productType": "focal-mechanism",
+        "strikeDeg": 37,
+        "dipDeg": 25,
+        "rakeDeg": 96,
+        "alternatePlane": {
+          "strikeDeg": 211,
+          "dipDeg": 65,
+          "rakeDeg": 87
+        },
+        "selection": "nearest-current-preset-plane",
+        "derivedMagnitude": null,
+        "derivedDepthKm": null
+      }
+    },
+    {
+      "id": "tw-2024-hualien",
+      "label": "2024 Hualien M7.4 (TW)",
+      "sourceType": "interplate",
+      "previous": {
+        "lat": 23.836,
+        "lng": 121.598,
+        "mag": 7.4,
+        "depth": 40,
+        "strike": 227,
+        "dip": 39.6,
+        "rake": 111.9
+      },
+      "resolved": true,
+      "comcatId": "us7000m9g4",
+      "eventUrl": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000m9g4",
+      "queryUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2024-04-01T17:58:00&endtime=2024-04-04T05:58:00&minlatitude=22.636&maxlatitude=25.036&minlongitude=120.286&maxlongitude=122.910&minmagnitude=5.9&orderby=time",
+      "detailUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us7000m9g4",
+      "match": {
+        "dtHours": 0,
+        "distKm": 0.1,
+        "dMag": 0
+      },
+      "comcat": {
+        "mag": 7.4,
+        "magType": "mww",
+        "lat": 23.8356,
+        "lng": 121.5976,
+        "depthKm": 40,
+        "originTimeUtc": "2024-04-02T23:58:12.173Z"
+      },
+      "mechanism": {
+        "source": "us/us_7000m9g4_mww",
+        "productType": "moment-tensor",
+        "strikeDeg": 227,
+        "dipDeg": 39.6,
+        "rakeDeg": 111.9,
+        "alternatePlane": {
+          "strikeDeg": 19.4,
+          "dipDeg": 53.8,
+          "rakeDeg": 72.8
+        },
+        "selection": "nearest-current-preset-plane",
+        "derivedMagnitude": 7.4,
+        "derivedDepthKm": 35.5
+      }
+    },
+    {
+      "id": "tw-2016-meinong",
+      "label": "2016 Meinong M6.4 (TW)",
+      "sourceType": "crustal",
+      "previous": {
+        "lat": 22.938,
+        "lng": 120.601,
+        "mag": 6.4,
+        "depth": 23,
+        "strike": 281,
+        "dip": 24,
+        "rake": 24
+      },
+      "resolved": true,
+      "comcatId": "us20004y6h",
+      "eventUrl": "https://earthquake.usgs.gov/earthquakes/eventpage/us20004y6h",
+      "queryUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2016-02-04T13:57:00&endtime=2016-02-07T01:57:00&minlatitude=21.738&maxlatitude=24.138&minlongitude=119.298&maxlongitude=121.904&minmagnitude=4.9&orderby=time",
+      "detailUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us20004y6h",
+      "match": {
+        "dtHours": 0.01,
+        "distKm": 0.1,
+        "dMag": 0
+      },
+      "comcat": {
+        "mag": 6.4,
+        "magType": "mww",
+        "lat": 22.9375,
+        "lng": 120.6014,
+        "depthKm": 23,
+        "originTimeUtc": "2016-02-05T19:57:27.380Z"
+      },
+      "mechanism": {
+        "source": "us/us_20004y6h_mwc_gcmt",
+        "productType": "moment-tensor",
+        "strikeDeg": 281,
+        "dipDeg": 24,
+        "rakeDeg": 24,
+        "alternatePlane": {
+          "strikeDeg": 169,
+          "dipDeg": 80,
+          "rakeDeg": 112
+        },
+        "selection": "nearest-current-preset-plane",
+        "derivedMagnitude": 6.4,
+        "derivedDepthKm": 18.2
+      }
+    },
+    {
+      "id": "tw-2018-hualien",
+      "label": "2018 Hualien M6.4 (TW)",
+      "sourceType": "crustal",
+      "previous": {
+        "lat": 24.134,
+        "lng": 121.659,
+        "mag": 6.4,
+        "depth": 17,
+        "strike": 209.3,
+        "dip": 72.6,
+        "rake": 22.5
+      },
+      "resolved": true,
+      "comcatId": "us1000chhc",
+      "eventUrl": "https://earthquake.usgs.gov/earthquakes/eventpage/us1000chhc",
+      "queryUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2018-02-05T09:50:00&endtime=2018-02-07T21:50:00&minlatitude=22.934&maxlatitude=25.334&minlongitude=120.344&maxlongitude=122.974&minmagnitude=4.9&orderby=time",
+      "detailUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us1000chhc",
+      "match": {
+        "dtHours": 0.01,
+        "distKm": 0,
+        "dMag": 0
+      },
+      "comcat": {
+        "mag": 6.4,
+        "magType": "mww",
+        "lat": 24.1338,
+        "lng": 121.6586,
+        "depthKm": 17,
+        "originTimeUtc": "2018-02-06T15:50:43.320Z"
+      },
+      "mechanism": {
+        "source": "us/us_1000chhc_mww",
+        "productType": "moment-tensor",
+        "strikeDeg": 209.3,
+        "dipDeg": 72.6,
+        "rakeDeg": 22.5,
+        "alternatePlane": {
+          "strikeDeg": 112.2,
+          "dipDeg": 68.6,
+          "rakeDeg": 161.3
+        },
+        "selection": "nearest-current-preset-plane",
+        "derivedMagnitude": 6.4,
+        "derivedDepthKm": 19.5
+      }
+    }
+  ]
+}

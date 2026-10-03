@@ -17,7 +17,7 @@ var CFG_DEFAULTS = {
   randomSeed:   { v:20260725, min:0, max:4294967295, step:1, fmt:'%.0f', cat:'source' },
 
   // Attenuation
-  gmpModel:     { v:'auto', opts:['auto','logic-tree','log','si-midorikawa','log-ff','kanno2006','zhao2006'], cat:'atten' },
+  gmpModel:     { v:'auto', opts:['auto','logic-tree','log','si-midorikawa','log-ff','kanno2006','zhao2006','bssa14'], cat:'atten' },
   // Subdivision uncertainty overlay: dashed outline whose width scales with
   // the Monte Carlo ensemble spread (P10-P90)/2 — runs ensembleIntensityField
   // on every forecast change while enabled (~0.5 s for 97 centroids x 40 members).

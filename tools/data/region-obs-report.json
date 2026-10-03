@@ -1,0 +1,2146 @@
+{
+ "schema": "quake-sim-region-obs-report-v1",
+ "hypoNote": "prediction side: region-pack preset for events with presetId (app behavior); frozen ComCat prediction block otherwise. USGS event metadata stays as frozen for provenance.",
+ "siteNote": "station Vs30 = shakemap stationlist value, else the region Vs30 pack bilinear sample (Physics.regionVs30Sample), else dropped (counted in droppedNoVs30). Native-Vs30 models (bssa14/zhao2006) take it inside the GMPE; no external amplification is stacked on top.",
+ "calibrationNote": "NO gmpe-calibration.json correction is applied: the modelBias table is Japan-fitted and bssa14 carries no block — residuals are the raw regional physics.",
+ "overall": {
+  "pga": {
+   "n": 2491,
+   "bias": -0.1692,
+   "rms": 0.4001
+  },
+  "pgv": {
+   "n": 2491,
+   "bias": -0.2116,
+   "rms": 0.4138
+  },
+  "intensity": {
+   "n": 2491,
+   "bias": -0.4348,
+   "rms": 0.7847
+  }
+ },
+ "byRegion": {
+  "california": {
+   "pga": {
+    "n": 991,
+    "bias": -0.2028,
+    "rms": 0.3377
+   },
+   "pgv": {
+    "n": 991,
+    "bias": -0.2683,
+    "rms": 0.3784
+   },
+   "intensity": {
+    "n": 991,
+    "bias": -0.536,
+    "rms": 0.7323
+   }
+  },
+  "italy": {
+   "pga": {
+    "n": 302,
+    "bias": -0.1354,
+    "rms": 0.3959
+   },
+   "pgv": {
+    "n": 302,
+    "bias": 0.0041,
+    "rms": 0.3095
+   },
+   "intensity": {
+    "n": 302,
+    "bias": -0.2876,
+    "rms": 0.6128
+   }
+  },
+  "chile": {
+   "pga": {
+    "n": 80,
+    "bias": -0.5509,
+    "rms": 0.8685
+   },
+   "pgv": {
+    "n": 80,
+    "bias": -0.1424,
+    "rms": 0.4635
+   },
+   "intensity": {
+    "n": 80,
+    "bias": -0.7801,
+    "rms": 1.1767
+   }
+  },
+  "taiwan": {
+   "pga": {
+    "n": 764,
+    "bias": -0.0599,
+    "rms": 0.309
+   },
+   "pgv": {
+    "n": 764,
+    "bias": -0.2028,
+    "rms": 0.4306
+   },
+   "intensity": {
+    "n": 764,
+    "bias": -0.2888,
+    "rms": 0.7187
+   }
+  },
+  "newzealand": {
+   "pga": {
+    "n": 354,
+    "bias": -0.2538,
+    "rms": 0.5448
+   },
+   "pgv": {
+    "n": 354,
+    "bias": -0.2713,
+    "rms": 0.5232
+   },
+   "intensity": {
+    "n": 354,
+    "bias": -0.5144,
+    "rms": 1.041
+   }
+  }
+ },
+ "byModel": {
+  "bssa14": {
+   "pga": {
+    "n": 2061,
+    "bias": -0.189,
+    "rms": 0.3884
+   },
+   "pgv": {
+    "n": 2061,
+    "bias": -0.2505,
+    "rms": 0.4248
+   },
+   "intensity": {
+    "n": 2061,
+    "bias": -0.4942,
+    "rms": 0.797
+   }
+  },
+  "zhao2006": {
+   "pga": {
+    "n": 430,
+    "bias": -0.0745,
+    "rms": 0.4518
+   },
+   "pgv": {
+    "n": 430,
+    "bias": -0.025,
+    "rms": 0.3564
+   },
+   "intensity": {
+    "n": 430,
+    "bias": -0.1503,
+    "rms": 0.7229
+   }
+  }
+ },
+ "distanceBins": [
+  {
+   "rangeKm": "<50",
+   "pga": {
+    "n": 689,
+    "bias": -0.1541,
+    "rms": 0.3453
+   },
+   "pgv": {
+    "n": 689,
+    "bias": -0.2315,
+    "rms": 0.4025
+   },
+   "intensity": {
+    "n": 689,
+    "bias": -0.4048,
+    "rms": 0.771
+   }
+  },
+  {
+   "rangeKm": "50-100",
+   "pga": {
+    "n": 507,
+    "bias": -0.1452,
+    "rms": 0.3477
+   },
+   "pgv": {
+    "n": 507,
+    "bias": -0.2081,
+    "rms": 0.4283
+   },
+   "intensity": {
+    "n": 507,
+    "bias": -0.4575,
+    "rms": 0.7993
+   }
+  },
+  {
+   "rangeKm": "100-200",
+   "pga": {
+    "n": 849,
+    "bias": -0.11,
+    "rms": 0.3711
+   },
+   "pgv": {
+    "n": 849,
+    "bias": -0.1618,
+    "rms": 0.3846
+   },
+   "intensity": {
+    "n": 849,
+    "bias": -0.3676,
+    "rms": 0.7509
+   }
+  },
+  {
+   "rangeKm": "200-400",
+   "pga": {
+    "n": 408,
+    "bias": -0.2799,
+    "rms": 0.4577
+   },
+   "pgv": {
+    "n": 408,
+    "bias": -0.2581,
+    "rms": 0.4441
+   },
+   "intensity": {
+    "n": 408,
+    "bias": -0.5488,
+    "rms": 0.81
+   }
+  },
+  {
+   "rangeKm": ">=400",
+   "pga": {
+    "n": 38,
+    "bias": -0.901,
+    "rms": 1.18
+   },
+   "pgv": {
+    "n": 38,
+    "bias": -0.5073,
+    "rms": 0.6462
+   },
+   "intensity": {
+    "n": 38,
+    "bias": -0.9548,
+    "rms": 1.1899
+   }
+  }
+ ],
+ "events": [
+  {
+   "eventId": "northridge1994",
+   "region": "california",
+   "usgsId": "ci3144585",
+   "mw": 6.7,
+   "depthKm": 18.2,
+   "sourceType": "crustal",
+   "model": "bssa14",
+   "bssa2014Variant": "base",
+   "geometry": "finite-fault",
+   "predictionSource": {
+    "mode": "pack-preset",
+    "ref": "region pack california preset cal-1994-northridge"
+   },
+   "stations": 185,
+   "droppedNoVs30": 0,
+   "gridVs30": 0,
+   "maxPredPgaGal": 393.95,
+   "maxObsPgaGal": 924.25,
+   "pga": {
+    "n": 185,
+    "bias": -0.2967,
+    "rms": 0.3563
+   },
+   "pgv": {
+    "n": 185,
+    "bias": -0.2522,
+    "rms": 0.3345
+   },
+   "intensity": {
+    "n": 185,
+    "bias": -0.6649,
+    "rms": 0.7973
+   },
+   "distanceBins": [
+    {
+     "rangeKm": "<50",
+     "pga": {
+      "n": 142,
+      "bias": -0.2812,
+      "rms": 0.3448
+     },
+     "pgv": {
+      "n": 142,
+      "bias": -0.2483,
+      "rms": 0.3368
+     },
+     "intensity": {
+      "n": 142,
+      "bias": -0.6272,
+      "rms": 0.7689
+     }
+    },
+    {
+     "rangeKm": "50-100",
+     "pga": {
+      "n": 38,
+      "bias": -0.3043,
+      "rms": 0.3341
+     },
+     "pgv": {
+      "n": 38,
+      "bias": -0.2304,
+      "rms": 0.2876
+     },
+     "intensity": {
+      "n": 38,
+      "bias": -0.6965,
+      "rms": 0.7648
+     }
+    },
+    {
+     "rangeKm": "100-200",
+     "pga": {
+      "n": 5,
+      "bias": -0.6794,
+      "rms": 0.6875
+     },
+     "pgv": {
+      "n": 5,
+      "bias": -0.5294,
+      "rms": 0.5387
+     },
+     "intensity": {
+      "n": 5,
+      "bias": -1.4948,
+      "rms": 1.511
+     }
+    },
+    {
+     "rangeKm": "200-400",
+     "pga": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     },
+     "pgv": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     },
+     "intensity": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     }
+    },
+    {
+     "rangeKm": ">=400",
+     "pga": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     },
+     "pgv": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     },
+     "intensity": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     }
+    }
+   ]
+  },
+  {
+   "eventId": "lomaprieta1989",
+   "region": "california",
+   "usgsId": "nc216859",
+   "mw": 6.9,
+   "depthKm": 17.2,
+   "sourceType": "crustal",
+   "model": "bssa14",
+   "bssa2014Variant": "base",
+   "geometry": "finite-fault",
+   "predictionSource": {
+    "mode": "pack-preset",
+    "ref": "region pack california preset cal-1989-lomaprieta"
+   },
+   "stations": 106,
+   "droppedNoVs30": 0,
+   "gridVs30": 0,
+   "maxPredPgaGal": 319.93,
+   "maxObsPgaGal": 980.18,
+   "pga": {
+    "n": 106,
+    "bias": -0.3981,
+    "rms": 0.4557
+   },
+   "pgv": {
+    "n": 106,
+    "bias": -0.5005,
+    "rms": 0.5632
+   },
+   "intensity": {
+    "n": 106,
+    "bias": -0.9014,
+    "rms": 1.0238
+   },
+   "distanceBins": [
+    {
+     "rangeKm": "<50",
+     "pga": {
+      "n": 58,
+      "bias": -0.3458,
+      "rms": 0.3936
+     },
+     "pgv": {
+      "n": 58,
+      "bias": -0.439,
+      "rms": 0.4958
+     },
+     "intensity": {
+      "n": 58,
+      "bias": -0.7766,
+      "rms": 0.881
+     }
+    },
+    {
+     "rangeKm": "50-100",
+     "pga": {
+      "n": 47,
+      "bias": -0.4515,
+      "rms": 0.5091
+     },
+     "pgv": {
+      "n": 47,
+      "bias": -0.5674,
+      "rms": 0.6277
+     },
+     "intensity": {
+      "n": 47,
+      "bias": -1.031,
+      "rms": 1.1477
+     }
+    },
+    {
+     "rangeKm": "100-200",
+     "pga": {
+      "n": 1,
+      "bias": -0.917,
+      "rms": 0.917
+     },
+     "pgv": {
+      "n": 1,
+      "bias": -0.9237,
+      "rms": 0.9237
+     },
+     "intensity": {
+      "n": 1,
+      "bias": -2.0448,
+      "rms": 2.0448
+     }
+    },
+    {
+     "rangeKm": "200-400",
+     "pga": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     },
+     "pgv": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     },
+     "intensity": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     }
+    },
+    {
+     "rangeKm": ">=400",
+     "pga": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     },
+     "pgv": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     },
+     "intensity": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     }
+    }
+   ]
+  },
+  {
+   "eventId": "ridgecrest2019",
+   "region": "california",
+   "usgsId": "ci38457511",
+   "mw": 7.1,
+   "depthKm": 8,
+   "sourceType": "crustal",
+   "model": "bssa14",
+   "bssa2014Variant": "base",
+   "geometry": "finite-fault",
+   "predictionSource": {
+    "mode": "comcat-frozen",
+    "ref": "frozen ComCat prediction block (region-obs.json)"
+   },
+   "stations": 563,
+   "droppedNoVs30": 0,
+   "gridVs30": 0,
+   "maxPredPgaGal": 242.45,
+   "maxObsPgaGal": 558.08,
+   "pga": {
+    "n": 563,
+    "bias": -0.162,
+    "rms": 0.3114
+   },
+   "pgv": {
+    "n": 563,
+    "bias": -0.2649,
+    "rms": 0.363
+   },
+   "intensity": {
+    "n": 563,
+    "bias": -0.4928,
+    "rms": 0.656
+   },
+   "distanceBins": [
+    {
+     "rangeKm": "<50",
+     "pga": {
+      "n": 12,
+      "bias": -0.0542,
+      "rms": 0.249
+     },
+     "pgv": {
+      "n": 12,
+      "bias": -0.0663,
+      "rms": 0.3022
+     },
+     "intensity": {
+      "n": 12,
+      "bias": -0.131,
+      "rms": 0.5463
+     }
+    },
+    {
+     "rangeKm": "50-100",
+     "pga": {
+      "n": 26,
+      "bias": -0.0817,
+      "rms": 0.2148
+     },
+     "pgv": {
+      "n": 26,
+      "bias": -0.0842,
+      "rms": 0.2075
+     },
+     "intensity": {
+      "n": 26,
+      "bias": -0.2084,
+      "rms": 0.4734
+     }
+    },
+    {
+     "rangeKm": "100-200",
+     "pga": {
+      "n": 275,
+      "bias": -0.1266,
+      "rms": 0.2858
+     },
+     "pgv": {
+      "n": 275,
+      "bias": -0.2205,
+      "rms": 0.315
+     },
+     "intensity": {
+      "n": 275,
+      "bias": -0.44,
+      "rms": 0.5971
+     }
+    },
+    {
+     "rangeKm": "200-400",
+     "pga": {
+      "n": 230,
+      "bias": -0.1833,
+      "rms": 0.3144
+     },
+     "pgv": {
+      "n": 230,
+      "bias": -0.3238,
+      "rms": 0.4036
+     },
+     "intensity": {
+      "n": 230,
+      "bias": -0.5664,
+      "rms": 0.7019
+     }
+    },
+    {
+     "rangeKm": ">=400",
+     "pga": {
+      "n": 20,
+      "bias": -0.574,
+      "rms": 0.6102
+     },
+     "pgv": {
+      "n": 20,
+      "bias": -0.5526,
+      "rms": 0.6007
+     },
+     "intensity": {
+      "n": 20,
+      "bias": -0.9578,
+      "rms": 1.0372
+     }
+    }
+   ]
+  },
+  {
+   "eventId": "parkfield2004",
+   "region": "california",
+   "usgsId": "nc30228270",
+   "mw": 5.97,
+   "depthKm": 8.1,
+   "sourceType": "crustal",
+   "model": "bssa14",
+   "bssa2014Variant": "base",
+   "geometry": "point-source",
+   "predictionSource": {
+    "mode": "comcat-frozen",
+    "ref": "frozen ComCat prediction block (region-obs.json)"
+   },
+   "stations": 137,
+   "droppedNoVs30": 0,
+   "gridVs30": 0,
+   "maxPredPgaGal": 469.63,
+   "maxObsPgaGal": 1287.03,
+   "pga": {
+    "n": 137,
+    "bias": -0.0926,
+    "rms": 0.3075
+   },
+   "pgv": {
+    "n": 137,
+    "bias": -0.1242,
+    "rms": 0.3125
+   },
+   "intensity": {
+    "n": 137,
+    "bias": -0.2567,
+    "rms": 0.664
+   },
+   "distanceBins": [
+    {
+     "rangeKm": "<50",
+     "pga": {
+      "n": 84,
+      "bias": -0.1973,
+      "rms": 0.3232
+     },
+     "pgv": {
+      "n": 84,
+      "bias": -0.1956,
+      "rms": 0.3389
+     },
+     "intensity": {
+      "n": 84,
+      "bias": -0.4399,
+      "rms": 0.7207
+     }
+    },
+    {
+     "rangeKm": "50-100",
+     "pga": {
+      "n": 14,
+      "bias": 0.0829,
+      "rms": 0.3125
+     },
+     "pgv": {
+      "n": 14,
+      "bias": 0.0562,
+      "rms": 0.2572
+     },
+     "intensity": {
+      "n": 14,
+      "bias": 0.1631,
+      "rms": 0.6808
+     }
+    },
+    {
+     "rangeKm": "100-200",
+     "pga": {
+      "n": 27,
+      "bias": 0.1228,
+      "rms": 0.3127
+     },
+     "pgv": {
+      "n": 27,
+      "bias": -0.0127,
+      "rms": 0.2756
+     },
+     "intensity": {
+      "n": 27,
+      "bias": 0.0486,
+      "rms": 0.5468
+     }
+    },
+    {
+     "rangeKm": "200-400",
+     "pga": {
+      "n": 12,
+      "bias": -0.0491,
+      "rms": 0.1212
+     },
+     "pgv": {
+      "n": 12,
+      "bias": -0.0853,
+      "rms": 0.251
+     },
+     "intensity": {
+      "n": 12,
+      "bias": -0.1512,
+      "rms": 0.4287
+     }
+    },
+    {
+     "rangeKm": ">=400",
+     "pga": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     },
+     "pgv": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     },
+     "intensity": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     }
+    }
+   ]
+  },
+  {
+   "eventId": "laquila2009",
+   "region": "italy",
+   "usgsId": "usp000gvtu",
+   "mw": 6.3,
+   "depthKm": 8.8,
+   "sourceType": "crustal",
+   "model": "bssa14",
+   "bssa2014Variant": "lowQ",
+   "geometry": "point-source",
+   "predictionSource": {
+    "mode": "pack-preset",
+    "ref": "region pack italy preset it-2009-laquila"
+   },
+   "stations": 66,
+   "droppedNoVs30": 0,
+   "gridVs30": 0,
+   "maxPredPgaGal": 297.7,
+   "maxObsPgaGal": 612.34,
+   "pga": {
+    "n": 66,
+    "bias": 0.0678,
+    "rms": 0.2969
+   },
+   "pgv": {
+    "n": 66,
+    "bias": 0.1382,
+    "rms": 0.278
+   },
+   "intensity": {
+    "n": 66,
+    "bias": 0.0484,
+    "rms": 0.5322
+   },
+   "distanceBins": [
+    {
+     "rangeKm": "<50",
+     "pga": {
+      "n": 11,
+      "bias": 0.068,
+      "rms": 0.3617
+     },
+     "pgv": {
+      "n": 11,
+      "bias": 0.0189,
+      "rms": 0.3111
+     },
+     "intensity": {
+      "n": 11,
+      "bias": 0.1441,
+      "rms": 0.7956
+     }
+    },
+    {
+     "rangeKm": "50-100",
+     "pga": {
+      "n": 25,
+      "bias": 0.0515,
+      "rms": 0.2906
+     },
+     "pgv": {
+      "n": 25,
+      "bias": 0.2829,
+      "rms": 0.3388
+     },
+     "intensity": {
+      "n": 25,
+      "bias": 0.039,
+      "rms": 0.5661
+     }
+    },
+    {
+     "rangeKm": "100-200",
+     "pga": {
+      "n": 27,
+      "bias": 0.1258,
+      "rms": 0.2666
+     },
+     "pgv": {
+      "n": 27,
+      "bias": 0.0834,
+      "rms": 0.201
+     },
+     "intensity": {
+      "n": 27,
+      "bias": 0.0499,
+      "rms": 0.3598
+     }
+    },
+    {
+     "rangeKm": "200-400",
+     "pga": {
+      "n": 3,
+      "bias": -0.3185,
+      "rms": 0.3403
+     },
+     "pgv": {
+      "n": 3,
+      "bias": -0.1375,
+      "rms": 0.1587
+     },
+     "intensity": {
+      "n": 3,
+      "bias": -0.2364,
+      "rms": 0.273
+     }
+    },
+    {
+     "rangeKm": ">=400",
+     "pga": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     },
+     "pgv": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     },
+     "intensity": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     }
+    }
+   ]
+  },
+  {
+   "eventId": "amatrice2016",
+   "region": "italy",
+   "usgsId": "us10006g7d",
+   "mw": 6.2,
+   "depthKm": 4.4,
+   "sourceType": "crustal",
+   "model": "bssa14",
+   "bssa2014Variant": "lowQ",
+   "geometry": "point-source",
+   "predictionSource": {
+    "mode": "pack-preset",
+    "ref": "region pack italy preset it-2016-amatrice"
+   },
+   "stations": 135,
+   "droppedNoVs30": 0,
+   "gridVs30": 0,
+   "maxPredPgaGal": 157.61,
+   "maxObsPgaGal": 449.17,
+   "pga": {
+    "n": 135,
+    "bias": -0.1005,
+    "rms": 0.3296
+   },
+   "pgv": {
+    "n": 135,
+    "bias": -0.0863,
+    "rms": 0.3094
+   },
+   "intensity": {
+    "n": 135,
+    "bias": -0.3469,
+    "rms": 0.6329
+   },
+   "distanceBins": [
+    {
+     "rangeKm": "<50",
+     "pga": {
+      "n": 16,
+      "bias": -0.099,
+      "rms": 0.3037
+     },
+     "pgv": {
+      "n": 16,
+      "bias": -0.001,
+      "rms": 0.2779
+     },
+     "intensity": {
+      "n": 16,
+      "bias": -0.2325,
+      "rms": 0.6722
+     }
+    },
+    {
+     "rangeKm": "50-100",
+     "pga": {
+      "n": 53,
+      "bias": -0.0768,
+      "rms": 0.2909
+     },
+     "pgv": {
+      "n": 53,
+      "bias": -0.0421,
+      "rms": 0.308
+     },
+     "intensity": {
+      "n": 53,
+      "bias": -0.2837,
+      "rms": 0.6278
+     }
+    },
+    {
+     "rangeKm": "100-200",
+     "pga": {
+      "n": 55,
+      "bias": -0.0374,
+      "rms": 0.3019
+     },
+     "pgv": {
+      "n": 55,
+      "bias": -0.1208,
+      "rms": 0.2721
+     },
+     "intensity": {
+      "n": 55,
+      "bias": -0.3655,
+      "rms": 0.5792
+     }
+    },
+    {
+     "rangeKm": "200-400",
+     "pga": {
+      "n": 11,
+      "bias": -0.5326,
+      "rms": 0.5797
+     },
+     "pgv": {
+      "n": 11,
+      "bias": -0.251,
+      "rms": 0.4854
+     },
+     "intensity": {
+      "n": 11,
+      "bias": -0.725,
+      "rms": 0.8261
+     }
+    },
+    {
+     "rangeKm": ">=400",
+     "pga": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     },
+     "pgv": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     },
+     "intensity": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     }
+    }
+   ]
+  },
+  {
+   "eventId": "norcia2016",
+   "region": "italy",
+   "usgsId": "us1000731j",
+   "mw": 6.6,
+   "depthKm": 8,
+   "sourceType": "crustal",
+   "model": "bssa14",
+   "bssa2014Variant": "lowQ",
+   "geometry": "finite-fault",
+   "predictionSource": {
+    "mode": "pack-preset",
+    "ref": "region pack italy preset it-2016-norcia"
+   },
+   "stations": 101,
+   "droppedNoVs30": 0,
+   "gridVs30": 0,
+   "maxPredPgaGal": 186.78,
+   "maxObsPgaGal": 460.44,
+   "pga": {
+    "n": 101,
+    "bias": -0.315,
+    "rms": 0.5155
+   },
+   "pgv": {
+    "n": 101,
+    "bias": 0.0373,
+    "rms": 0.3284
+   },
+   "intensity": {
+    "n": 101,
+    "bias": -0.428,
+    "rms": 0.6344
+   },
+   "distanceBins": [
+    {
+     "rangeKm": "<50",
+     "pga": {
+      "n": 18,
+      "bias": -0.2086,
+      "rms": 0.2988
+     },
+     "pgv": {
+      "n": 18,
+      "bias": -0.0806,
+      "rms": 0.2891
+     },
+     "intensity": {
+      "n": 18,
+      "bias": -0.4652,
+      "rms": 0.6664
+     }
+    },
+    {
+     "rangeKm": "50-100",
+     "pga": {
+      "n": 23,
+      "bias": -0.0922,
+      "rms": 0.283
+     },
+     "pgv": {
+      "n": 23,
+      "bias": 0.1444,
+      "rms": 0.3476
+     },
+     "intensity": {
+      "n": 23,
+      "bias": -0.3659,
+      "rms": 0.5351
+     }
+    },
+    {
+     "rangeKm": "100-200",
+     "pga": {
+      "n": 35,
+      "bias": -0.2045,
+      "rms": 0.3981
+     },
+     "pgv": {
+      "n": 35,
+      "bias": -0.0779,
+      "rms": 0.2831
+     },
+     "intensity": {
+      "n": 35,
+      "bias": -0.4894,
+      "rms": 0.6919
+     }
+    },
+    {
+     "rangeKm": "200-400",
+     "pga": {
+      "n": 24,
+      "bias": -0.7315,
+      "rms": 0.8254
+     },
+     "pgv": {
+      "n": 24,
+      "bias": 0.1845,
+      "rms": 0.3961
+     },
+     "intensity": {
+      "n": 24,
+      "bias": -0.3779,
+      "rms": 0.621
+     }
+    },
+    {
+     "rangeKm": ">=400",
+     "pga": {
+      "n": 1,
+      "bias": -1.2222,
+      "rms": 1.2222
+     },
+     "pgv": {
+      "n": 1,
+      "bias": 0.201,
+      "rms": 0.201
+     },
+     "intensity": {
+      "n": 1,
+      "bias": -0.2418,
+      "rms": 0.2418
+     }
+    }
+   ]
+  },
+  {
+   "eventId": "maule2010",
+   "region": "chile",
+   "usgsId": "official20100227063411530_30",
+   "mw": 8.8,
+   "depthKm": 22.9,
+   "sourceType": "interplate",
+   "model": "zhao2006",
+   "bssa2014Variant": null,
+   "geometry": "finite-fault",
+   "predictionSource": {
+    "mode": "pack-preset",
+    "ref": "region pack chile preset cl-2010-maule"
+   },
+   "stations": 28,
+   "droppedNoVs30": 0,
+   "gridVs30": 28,
+   "maxPredPgaGal": 297.06,
+   "maxObsPgaGal": 910.06,
+   "pga": {
+    "n": 28,
+    "bias": -0.8588,
+    "rms": 1.1103
+   },
+   "pgv": {
+    "n": 28,
+    "bias": -0.466,
+    "rms": 0.5852
+   },
+   "intensity": {
+    "n": 28,
+    "bias": -1.4428,
+    "rms": 1.5475
+   },
+   "distanceBins": [
+    {
+     "rangeKm": "<50",
+     "pga": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     },
+     "pgv": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     },
+     "intensity": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     }
+    },
+    {
+     "rangeKm": "50-100",
+     "pga": {
+      "n": 2,
+      "bias": -0.2546,
+      "rms": 0.2664
+     },
+     "pgv": {
+      "n": 2,
+      "bias": -0.1154,
+      "rms": 0.1771
+     },
+     "intensity": {
+      "n": 2,
+      "bias": -0.5678,
+      "rms": 0.594
+     }
+    },
+    {
+     "rangeKm": "100-200",
+     "pga": {
+      "n": 5,
+      "bias": -0.4791,
+      "rms": 0.4962
+     },
+     "pgv": {
+      "n": 5,
+      "bias": -0.129,
+      "rms": 0.1636
+     },
+     "intensity": {
+      "n": 5,
+      "bias": -1.0684,
+      "rms": 1.1065
+     }
+    },
+    {
+     "rangeKm": "200-400",
+     "pga": {
+      "n": 16,
+      "bias": -0.7698,
+      "rms": 0.7852
+     },
+     "pgv": {
+      "n": 16,
+      "bias": -0.4981,
+      "rms": 0.5474
+     },
+     "intensity": {
+      "n": 16,
+      "bias": -1.5619,
+      "rms": 1.594
+     }
+    },
+    {
+     "rangeKm": ">=400",
+     "pga": {
+      "n": 5,
+      "bias": -1.7653,
+      "rms": 2.1579
+     },
+     "pgv": {
+      "n": 5,
+      "bias": -0.8403,
+      "rms": 0.9588
+     },
+     "intensity": {
+      "n": 5,
+      "bias": -1.7861,
+      "rms": 1.9785
+     }
+    }
+   ]
+  },
+  {
+   "eventId": "illapel2015",
+   "region": "chile",
+   "usgsId": "us20003k7a",
+   "mw": 8.3,
+   "depthKm": 22.4,
+   "sourceType": "interplate",
+   "model": "zhao2006",
+   "bssa2014Variant": null,
+   "geometry": "finite-fault",
+   "predictionSource": {
+    "mode": "pack-preset",
+    "ref": "region pack chile preset cl-2015-illapel"
+   },
+   "stations": 29,
+   "droppedNoVs30": 0,
+   "gridVs30": 0,
+   "maxPredPgaGal": 165.61,
+   "maxObsPgaGal": 814.05,
+   "pga": {
+    "n": 29,
+    "bias": -0.4287,
+    "rms": 0.8519
+   },
+   "pgv": {
+    "n": 29,
+    "bias": 0.0753,
+    "rms": 0.4816
+   },
+   "intensity": {
+    "n": 29,
+    "bias": -0.2637,
+    "rms": 0.9151
+   },
+   "distanceBins": [
+    {
+     "rangeKm": "<50",
+     "pga": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     },
+     "pgv": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     },
+     "intensity": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     }
+    },
+    {
+     "rangeKm": "50-100",
+     "pga": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     },
+     "pgv": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     },
+     "intensity": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     }
+    },
+    {
+     "rangeKm": "100-200",
+     "pga": {
+      "n": 10,
+      "bias": -0.1702,
+      "rms": 0.4071
+     },
+     "pgv": {
+      "n": 10,
+      "bias": 0.182,
+      "rms": 0.3964
+     },
+     "intensity": {
+      "n": 10,
+      "bias": -0.3795,
+      "rms": 0.9078
+     }
+    },
+    {
+     "rangeKm": "200-400",
+     "pga": {
+      "n": 12,
+      "bias": -0.1031,
+      "rms": 0.3667
+     },
+     "pgv": {
+      "n": 12,
+      "bias": 0.2528,
+      "rms": 0.4127
+     },
+     "intensity": {
+      "n": 12,
+      "bias": 0.0754,
+      "rms": 0.7519
+     }
+    },
+    {
+     "rangeKm": ">=400",
+     "pga": {
+      "n": 7,
+      "bias": -1.3563,
+      "rms": 1.5936
+     },
+     "pgv": {
+      "n": 7,
+      "bias": -0.3816,
+      "rms": 0.6667
+     },
+     "intensity": {
+      "n": 7,
+      "bias": -0.6793,
+      "rms": 1.1502
+     }
+    }
+   ]
+  },
+  {
+   "eventId": "iquique2014",
+   "region": "chile",
+   "usgsId": "usc000nzvd",
+   "mw": 8.2,
+   "depthKm": 25,
+   "sourceType": "interplate",
+   "model": "zhao2006",
+   "bssa2014Variant": null,
+   "geometry": "finite-fault",
+   "predictionSource": {
+    "mode": "pack-preset",
+    "ref": "region pack chile preset cl-2014-iquique"
+   },
+   "stations": 23,
+   "droppedNoVs30": 0,
+   "gridVs30": 0,
+   "maxPredPgaGal": 161.7,
+   "maxObsPgaGal": 720.34,
+   "pga": {
+    "n": 23,
+    "bias": -0.3302,
+    "rms": 0.4559
+   },
+   "pgv": {
+    "n": 23,
+    "bias": -0.0231,
+    "rms": 0.1946
+   },
+   "intensity": {
+    "n": 23,
+    "bias": -0.6245,
+    "rms": 0.9191
+   },
+   "distanceBins": [
+    {
+     "rangeKm": "<50",
+     "pga": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     },
+     "pgv": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     },
+     "intensity": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     }
+    },
+    {
+     "rangeKm": "50-100",
+     "pga": {
+      "n": 4,
+      "bias": -0.3292,
+      "rms": 0.386
+     },
+     "pgv": {
+      "n": 4,
+      "bias": -0.0506,
+      "rms": 0.1958
+     },
+     "intensity": {
+      "n": 4,
+      "bias": -0.734,
+      "rms": 0.8607
+     }
+    },
+    {
+     "rangeKm": "100-200",
+     "pga": {
+      "n": 9,
+      "bias": -0.3971,
+      "rms": 0.54
+     },
+     "pgv": {
+      "n": 9,
+      "bias": -0.0032,
+      "rms": 0.1678
+     },
+     "intensity": {
+      "n": 9,
+      "bias": -0.8928,
+      "rms": 1.1962
+     }
+    },
+    {
+     "rangeKm": "200-400",
+     "pga": {
+      "n": 8,
+      "bias": -0.239,
+      "rms": 0.3038
+     },
+     "pgv": {
+      "n": 8,
+      "bias": 0.0131,
+      "rms": 0.2178
+     },
+     "intensity": {
+      "n": 8,
+      "bias": -0.2706,
+      "rms": 0.5714
+     }
+    },
+    {
+     "rangeKm": ">=400",
+     "pga": {
+      "n": 2,
+      "bias": -0.3957,
+      "rms": 0.6406
+     },
+     "pgv": {
+      "n": 2,
+      "bias": -0.2027,
+      "rms": 0.2064
+     },
+     "intensity": {
+      "n": 2,
+      "bias": -0.6138,
+      "rms": 0.6977
+     }
+    }
+   ]
+  },
+  {
+   "eventId": "chichi1999",
+   "region": "taiwan",
+   "usgsId": "usp0009eq0",
+   "mw": 7.7,
+   "depthKm": 33,
+   "sourceType": "crustal",
+   "model": "bssa14",
+   "bssa2014Variant": "base",
+   "geometry": "finite-fault",
+   "predictionSource": {
+    "mode": "pack-preset",
+    "ref": "region pack taiwan preset tw-1999-chichi"
+   },
+   "stations": 414,
+   "droppedNoVs30": 0,
+   "gridVs30": 0,
+   "maxPredPgaGal": 181.04,
+   "maxObsPgaGal": 1134.63,
+   "pga": {
+    "n": 414,
+    "bias": -0.1397,
+    "rms": 0.3317
+   },
+   "pgv": {
+    "n": 414,
+    "bias": -0.3758,
+    "rms": 0.5017
+   },
+   "intensity": {
+    "n": 414,
+    "bias": -0.5276,
+    "rms": 0.8234
+   },
+   "distanceBins": [
+    {
+     "rangeKm": "<50",
+     "pga": {
+      "n": 223,
+      "bias": -0.1063,
+      "rms": 0.3439
+     },
+     "pgv": {
+      "n": 223,
+      "bias": -0.3305,
+      "rms": 0.4873
+     },
+     "intensity": {
+      "n": 223,
+      "bias": -0.3912,
+      "rms": 0.8021
+     }
+    },
+    {
+     "rangeKm": "50-100",
+     "pga": {
+      "n": 158,
+      "bias": -0.1673,
+      "rms": 0.2998
+     },
+     "pgv": {
+      "n": 158,
+      "bias": -0.4231,
+      "rms": 0.5172
+     },
+     "intensity": {
+      "n": 158,
+      "bias": -0.6593,
+      "rms": 0.8238
+     }
+    },
+    {
+     "rangeKm": "100-200",
+     "pga": {
+      "n": 33,
+      "bias": -0.2324,
+      "rms": 0.3882
+     },
+     "pgv": {
+      "n": 33,
+      "bias": -0.4551,
+      "rms": 0.5212
+     },
+     "intensity": {
+      "n": 33,
+      "bias": -0.818,
+      "rms": 0.9532
+     }
+    },
+    {
+     "rangeKm": "200-400",
+     "pga": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     },
+     "pgv": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     },
+     "intensity": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     }
+    },
+    {
+     "rangeKm": ">=400",
+     "pga": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     },
+     "pgv": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     },
+     "intensity": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     }
+    }
+   ]
+  },
+  {
+   "eventId": "hualien2024",
+   "region": "taiwan",
+   "usgsId": "us7000m9g4",
+   "mw": 7.4,
+   "depthKm": 40,
+   "sourceType": "interplate",
+   "model": "zhao2006",
+   "bssa2014Variant": null,
+   "geometry": "finite-fault",
+   "predictionSource": {
+    "mode": "pack-preset",
+    "ref": "region pack taiwan preset tw-2024-hualien"
+   },
+   "stations": 350,
+   "droppedNoVs30": 0,
+   "gridVs30": 0,
+   "maxPredPgaGal": 212.92,
+   "maxObsPgaGal": 1478.6,
+   "pga": {
+    "n": 350,
+    "bias": 0.0344,
+    "rms": 0.2799
+   },
+   "pgv": {
+    "n": 350,
+    "bias": 0.0018,
+    "rms": 0.3271
+   },
+   "intensity": {
+    "n": 350,
+    "bias": -0.0064,
+    "rms": 0.5706
+   },
+   "distanceBins": [
+    {
+     "rangeKm": "<50",
+     "pga": {
+      "n": 14,
+      "bias": -0.1958,
+      "rms": 0.2769
+     },
+     "pgv": {
+      "n": 14,
+      "bias": -0.2122,
+      "rms": 0.3213
+     },
+     "intensity": {
+      "n": 14,
+      "bias": -0.4366,
+      "rms": 0.6175
+     }
+    },
+    {
+     "rangeKm": "50-100",
+     "pga": {
+      "n": 61,
+      "bias": -0.0075,
+      "rms": 0.3229
+     },
+     "pgv": {
+      "n": 61,
+      "bias": -0.0083,
+      "rms": 0.3414
+     },
+     "intensity": {
+      "n": 61,
+      "bias": -0.0372,
+      "rms": 0.699
+     }
+    },
+    {
+     "rangeKm": "100-200",
+     "pga": {
+      "n": 260,
+      "bias": 0.0412,
+      "rms": 0.2595
+     },
+     "pgv": {
+      "n": 260,
+      "bias": -0.0017,
+      "rms": 0.3206
+     },
+     "intensity": {
+      "n": 260,
+      "bias": -0.0022,
+      "rms": 0.5293
+     }
+    },
+    {
+     "rangeKm": "200-400",
+     "pga": {
+      "n": 15,
+      "bias": 0.3015,
+      "rms": 0.406
+     },
+     "pgv": {
+      "n": 15,
+      "bias": 0.3034,
+      "rms": 0.3791
+     },
+     "intensity": {
+      "n": 15,
+      "bias": 0.448,
+      "rms": 0.6322
+     }
+    },
+    {
+     "rangeKm": ">=400",
+     "pga": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     },
+     "pgv": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     },
+     "intensity": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     }
+    }
+   ]
+  },
+  {
+   "eventId": "darfield2010",
+   "region": "newzealand",
+   "usgsId": "usp000hk46",
+   "mw": 7,
+   "depthKm": 12,
+   "sourceType": "crustal",
+   "model": "bssa14",
+   "bssa2014Variant": "base",
+   "geometry": "finite-fault",
+   "predictionSource": {
+    "mode": "pack-preset",
+    "ref": "region pack newzealand preset nz-2010-darfield"
+   },
+   "stations": 78,
+   "droppedNoVs30": 0,
+   "gridVs30": 0,
+   "maxPredPgaGal": 368.32,
+   "maxObsPgaGal": 737.48,
+   "pga": {
+    "n": 78,
+    "bias": -0.214,
+    "rms": 0.3336
+   },
+   "pgv": {
+    "n": 78,
+    "bias": -0.163,
+    "rms": 0.319
+   },
+   "intensity": {
+    "n": 78,
+    "bias": -0.3178,
+    "rms": 0.5917
+   },
+   "distanceBins": [
+    {
+     "rangeKm": "<50",
+     "pga": {
+      "n": 25,
+      "bias": -0.2138,
+      "rms": 0.3519
+     },
+     "pgv": {
+      "n": 25,
+      "bias": -0.2548,
+      "rms": 0.4222
+     },
+     "intensity": {
+      "n": 25,
+      "bias": -0.4847,
+      "rms": 0.7943
+     }
+    },
+    {
+     "rangeKm": "50-100",
+     "pga": {
+      "n": 11,
+      "bias": -0.1358,
+      "rms": 0.2681
+     },
+     "pgv": {
+      "n": 11,
+      "bias": -0.2212,
+      "rms": 0.2897
+     },
+     "intensity": {
+      "n": 11,
+      "bias": -0.385,
+      "rms": 0.5653
+     }
+    },
+    {
+     "rangeKm": "100-200",
+     "pga": {
+      "n": 14,
+      "bias": -0.052,
+      "rms": 0.202
+     },
+     "pgv": {
+      "n": 14,
+      "bias": -0.1301,
+      "rms": 0.2557
+     },
+     "intensity": {
+      "n": 14,
+      "bias": -0.254,
+      "rms": 0.4507
+     }
+    },
+    {
+     "rangeKm": "200-400",
+     "pga": {
+      "n": 26,
+      "bias": -0.3001,
+      "rms": 0.3586
+     },
+     "pgv": {
+      "n": 26,
+      "bias": -0.0593,
+      "rms": 0.213
+     },
+     "intensity": {
+      "n": 26,
+      "bias": -0.1514,
+      "rms": 0.3827
+     }
+    },
+    {
+     "rangeKm": ">=400",
+     "pga": {
+      "n": 2,
+      "bias": -0.6628,
+      "rms": 0.6636
+     },
+     "pgv": {
+      "n": 2,
+      "bias": -0.2748,
+      "rms": 0.4803
+     },
+     "intensity": {
+      "n": 2,
+      "bias": -0.4727,
+      "rms": 0.8261
+     }
+    }
+   ]
+  },
+  {
+   "eventId": "christchurch2011",
+   "region": "newzealand",
+   "usgsId": "usp000huvq",
+   "mw": 6.1,
+   "depthKm": 5.9,
+   "sourceType": "crustal",
+   "model": "bssa14",
+   "bssa2014Variant": "base",
+   "geometry": "point-source",
+   "predictionSource": {
+    "mode": "pack-preset",
+    "ref": "region pack newzealand preset nz-2011-christchurch"
+   },
+   "stations": 84,
+   "droppedNoVs30": 0,
+   "gridVs30": 0,
+   "maxPredPgaGal": 402.77,
+   "maxObsPgaGal": 1597.41,
+   "pga": {
+    "n": 84,
+    "bias": -0.1816,
+    "rms": 0.3054
+   },
+   "pgv": {
+    "n": 84,
+    "bias": -0.2208,
+    "rms": 0.3221
+   },
+   "intensity": {
+    "n": 84,
+    "bias": -0.4255,
+    "rms": 0.6485
+   },
+   "distanceBins": [
+    {
+     "rangeKm": "<50",
+     "pga": {
+      "n": 27,
+      "bias": -0.1469,
+      "rms": 0.2576
+     },
+     "pgv": {
+      "n": 27,
+      "bias": -0.1748,
+      "rms": 0.268
+     },
+     "intensity": {
+      "n": 27,
+      "bias": -0.3276,
+      "rms": 0.5744
+     }
+    },
+    {
+     "rangeKm": "50-100",
+     "pga": {
+      "n": 17,
+      "bias": -0.2187,
+      "rms": 0.3128
+     },
+     "pgv": {
+      "n": 17,
+      "bias": -0.209,
+      "rms": 0.2792
+     },
+     "intensity": {
+      "n": 17,
+      "bias": -0.4936,
+      "rms": 0.6961
+     }
+    },
+    {
+     "rangeKm": "100-200",
+     "pga": {
+      "n": 19,
+      "bias": -0.055,
+      "rms": 0.2559
+     },
+     "pgv": {
+      "n": 19,
+      "bias": -0.103,
+      "rms": 0.2401
+     },
+     "intensity": {
+      "n": 19,
+      "bias": -0.2114,
+      "rms": 0.5146
+     }
+    },
+    {
+     "rangeKm": "200-400",
+     "pga": {
+      "n": 21,
+      "bias": -0.3106,
+      "rms": 0.3865
+     },
+     "pgv": {
+      "n": 21,
+      "bias": -0.3962,
+      "rms": 0.4554
+     },
+     "intensity": {
+      "n": 21,
+      "bias": -0.6898,
+      "rms": 0.7912
+     }
+    },
+    {
+     "rangeKm": ">=400",
+     "pga": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     },
+     "pgv": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     },
+     "intensity": {
+      "n": 0,
+      "bias": null,
+      "rms": null
+     }
+    }
+   ]
+  },
+  {
+   "eventId": "kaikoura2016",
+   "region": "newzealand",
+   "usgsId": "us1000778i",
+   "mw": 7.8,
+   "depthKm": 15.1,
+   "sourceType": "crustal",
+   "model": "bssa14",
+   "bssa2014Variant": "base",
+   "geometry": "finite-fault",
+   "predictionSource": {
+    "mode": "pack-preset",
+    "ref": "region pack newzealand preset nz-2016-kaikoura"
+   },
+   "stations": 192,
+   "droppedNoVs30": 0,
+   "gridVs30": 0,
+   "maxPredPgaGal": 271.57,
+   "maxObsPgaGal": 1253.75,
+   "pga": {
+    "n": 192,
+    "bias": -0.3015,
+    "rms": 0.6791
+   },
+   "pgv": {
+    "n": 192,
+    "bias": -0.3374,
+    "rms": 0.6465
+   },
+   "intensity": {
+    "n": 192,
+    "bias": -0.6333,
+    "rms": 1.293
+   },
+   "distanceBins": [
+    {
+     "rangeKm": "<50",
+     "pga": {
+      "n": 59,
+      "bias": 0.1934,
+      "rms": 0.4096
+     },
+     "pgv": {
+      "n": 59,
+      "bias": 0.1265,
+      "rms": 0.3167
+     },
+     "intensity": {
+      "n": 59,
+      "bias": 0.314,
+      "rms": 0.7998
+     }
+    },
+    {
+     "rangeKm": "50-100",
+     "pga": {
+      "n": 28,
+      "bias": -0.0361,
+      "rms": 0.601
+     },
+     "pgv": {
+      "n": 28,
+      "bias": -0.1104,
+      "rms": 0.4919
+     },
+     "intensity": {
+      "n": 28,
+      "bias": -0.2964,
+      "rms": 1.1888
+     }
+    },
+    {
+     "rangeKm": "100-200",
+     "pga": {
+      "n": 74,
+      "bias": -0.613,
+      "rms": 0.7912
+     },
+     "pgv": {
+      "n": 74,
+      "bias": -0.6436,
+      "rms": 0.791
+     },
+     "intensity": {
+      "n": 74,
+      "bias": -1.2793,
+      "rms": 1.5614
+     }
+    },
+    {
+     "rangeKm": "200-400",
+     "pga": {
+      "n": 30,
+      "bias": -0.7277,
+      "rms": 0.8366
+     },
+     "pgv": {
+      "n": 30,
+      "bias": -0.6977,
+      "rms": 0.8347
+     },
+     "intensity": {
+      "n": 30,
+      "bias": -1.2041,
+      "rms": 1.4399
+     }
+    },
+    {
+     "rangeKm": ">=400",
+     "pga": {
+      "n": 1,
+      "bias": -1.0995,
+      "rms": 1.0995
+     },
+     "pgv": {
+      "n": 1,
+      "bias": -0.5968,
+      "rms": 0.5968
+     },
+     "intensity": {
+      "n": 1,
+      "bias": -1.0265,
+      "rms": 1.0265
+     }
+    }
+   ]
+  }
+ ],
+ "generatedAt": "2026-10-03T02:48:29.003Z"
+}

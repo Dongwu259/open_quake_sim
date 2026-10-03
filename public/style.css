@@ -1201,6 +1201,7 @@ body.presenter-mode .autofocus-label{left:290px;bottom:44px}
 #region-row { display: flex; align-items: center; gap: 6px; }
 #region-row .rt-select { flex: 0 1 auto; min-width: 0; }
 
-/* offline vector world basemap (global mode) - CSS restyles Leaflet paths per theme */
-.global-land-vector { fill: #f2efe6; fill-opacity: 1; stroke: #b8b2a6; stroke-opacity: 1; stroke-width: 0.6px; }
-body.dark-mode .global-land-vector { fill: #16213a; stroke: #2a3550; }
+/* offline vector world basemap (global mode): tiles are canvas-painted by
+   _globalVectorBuild (opaque ocean + land fill + coastline, theme-aware per
+   tile) — no SVG paths exist for CSS to reach; the old .global-land-vector
+   rules are retired. */

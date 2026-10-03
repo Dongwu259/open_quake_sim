@@ -52,13 +52,14 @@ test('landuse pack: regional grids stay inside the pack box',()=>{
   // solver grid origin; grid-package.js snaps origins UP to res multiples, so
   // every grid built from a REGIONAL_BATHY bbox fits iff the bbox + one res
   // margin fits inside the pack envelope. Entries tagged `region:'<rid>'`
-  // (regional-tsunami batch: cl-megathrust / it-messina) live OUTSIDE the
+  // (regional-tsunami batch: cl-megathrust / it-messina; v6.5 us-california;
+  // v6.7 tw-taiwan / nz-aotearoa) live OUTSIDE the
   // Japan envelope on purpose — the landuse loader never touches them (scalar
   // roughness fallback), so only untagged (jp) entries are checked here.
   const m=APP.match(/var REGIONAL_BATHY = \[([\s\S]*?)\];/);
   assert.ok(m,'REGIONAL_BATHY present');
   const entries=[...m[1].matchAll(/\{[^}]*\}/g)].map(r=>r[0]);
-  assert.ok(entries.length>=7,'REGIONAL_BATHY entries parsed (5 jp + 2 regional-tsunami)');
+  assert.ok(entries.length>=9,'REGIONAL_BATHY entries parsed (5 jp + 4 regional-tsunami)');
   const boxes=[];
   for(const entry of entries){
     const b=entry.match(/bbox:\[([-\d.]+),([-\d.]+),([-\d.]+),([-\d.]+)\]/);

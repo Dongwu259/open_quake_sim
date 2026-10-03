@@ -1,0 +1,72 @@
+{
+  "schema": "quake-sim-tsunami-validation-report-v1",
+  "createdAt": "2026-10-03T03:08:39.236Z",
+  "datasetResearchReady": false,
+  "confusionMatrix": {
+    "labels": [
+      "none",
+      "advisory",
+      "warning",
+      "major"
+    ],
+    "matrix": [
+      [
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  "classification": {
+    "total": 0,
+    "hits": 0,
+    "misses": 0,
+    "falseAlarms": 0,
+    "hitRate": null,
+    "falseAlarmRate": null
+  },
+  "heightByType": {
+    "runup": {
+      "count": 10,
+      "bias": -1.087370696994347,
+      "rms": 6.307503439152277,
+      "mae": 5.898005656848771
+    },
+    "tide-gauge": {
+      "count": 7,
+      "bias": -0.6601101055725141,
+      "rms": 2.2444123120867205,
+      "mae": 1.6210502727215041
+    }
+  },
+  "arrivalMinutes": {
+    "count": 0,
+    "bias": null,
+    "rms": null,
+    "mae": null
+  },
+  "missingEvents": [],
+  "missingObservations": 0,
+  "missingObservationsByEvent": {},
+  "horizonNote": "per-event horizons: {\"maule2010\":5400,\"illapel2015\":5400,\"kaikoura2016\":7200}; Kaikōura Sumner gauge observed maximum arrived ~4 h after origin (outside the 7200 s horizon) — the scorecard may under-sample that latest maximum.",
+  "note": "regional standalone single-grid runs (no AMR nesting — the regional grids sit outside the Japan global grid; mirrors the app _bathyCoarseCovers gate). No forecast-area classification: regional warning areas are an app-side registry, not a frozen observation set."
+}

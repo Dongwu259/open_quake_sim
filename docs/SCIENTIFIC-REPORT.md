@@ -13,7 +13,7 @@
 | 支柱 | 内容 | 状态 |
 |---|---|---|
 | **强震动验证基线** | 19 个冻结事件、6,917 个 K-NET/KiK-net 台站观测峰值;GMPE 预报路径对照 | 逐事件记分卡冻结;modelBias 留一(LOEO)结论经 19 事件扩容后**公开反转** |
-| **GMPE 交叉实现** | Zhao2006 对 openquake.hazardlib 官方实现逐位对拍(2,400 点,max\|ΔlnA\| = 2.7e-15) | 锁死 |
+| **GMPE 交叉实现** | Zhao2006 对 openquake.hazardlib 官方实现逐位对拍(2,400 点,max\|ΔlnA\| = 2.7e-15);BSSA14/NGA-West2 同法对拍(5,880 点+490 σ 点,max\|Δln\| = 1.8e-15) | 锁死 |
 | **PSHA 引擎** | Poisson 年超越率积分、10,441 格 GR 震源模型 + 分段南海 BPT 情景源、UHS、危险分解 | 自验闭合;对 J-SHIS 外部对照**如实报告高估 1.83×** 并完成归因 |
 | **宽频带管线** | SH 离散波数内核 + Brune/Boore 混合 + 条件谱(CS)管线 + 短周期仲裁者 | 长周期改善 PASS(+0.143);形状门 FAIL 已收口为「合成-vs-GMPE 一致性监视器」(CS_GATE_ROLE:短带=种群+类别结构化配置性质,长带=源种群性质,四条全局治愈全否证);仲裁 INCONCLUSIVE |
 | **P-SV 研究内核** | 离散波数全空间/分层 Green 函数,十二轮迭代到终局(§6) | 全空间锚定(残差 ≤0.08);QD 算术五点门 1e-13 级;series 收敛(1.0012);带内无极点实测;**CS v4 门执行完毕,P-SV 水平块对形状门 MEASURED-NO-CURE(生产保持 SH-only)** |
@@ -48,6 +48,7 @@
 
 - `GMPE_LOGIC_TREE`:crustal→Si-Midoriwara,interplate/intraslab→Zhao2006,三族 LLH 权重;`gmpModel 'logic-tree'` 输出加权几何均值 + 认知 σ。
 - **Zhao2006 忠实实现**(论文 Eq.1/5 自然对数形,c·exp(dM) 伪深度饱和、15 km 门控深度项、FR 逆断层项、Table-2 场地分类、PGV 经 SA(1s) 换算):对 hazardlib 官方 `zhao_2006.py`(jsDelivr 拉取,sha256 锁)生成 2,400 点夹具,**max |ΔlnA| = 2.7e-15**(tests/gmpe-benchmarks.test.js)。
+- **BSSA14 (NGA-West2) 忠实实现**(v6.7 区域 GMPE 批,Boore/Stewart/Seyhan/Atkinson 2014 Eq.2-8+13-17:Mh 铰接量级项+断层类型 e0-e3、Rjb 路径项+区域 Δc3、Vs30 线性+非线性场地(岩石 PGA 参照)、τ/φ 随量级/距离/场地):对 hazardlib 官方 `boore_2014.py`(sha256 c12315ff…)生成 5,880 点+490 σ 点夹具,**max |Δln| = 1.8e-15**(tests/gmpe-bssa14.test.js);hazardlib vs30=v1 边界双减 quirk 如实复制并锁定。区域模式 auto 路由:地壳内→BSSA14(日本外;日/意取 LowQ Δc3,其余 base),板间/板内仍→Zhao2006(无区域 NGA-Sub 模型打包,诚实登记);**盆地项关闭(各区域包无 z1.0 数据)、深度只经 h 准深度进入、区域首轮回观测标定已落地(v6.7 批 C**:`public/geojson/region-obs.json` 15 事件 2,491 仪器台站(USGS Shakemap stationlists,宏震伪台站排除;`tools/fetch-region-obs.js`)+`tools/scorecard-region-obs.js`:BSSA14 crustal PGA bias 加州 −0.203/意大利 −0.135/台湾 −0.060/新西兰 −0.254 log10(总体 −0.169/rms 0.400,原生未校正残差);智利板缘 zhao2006 −0.551=无区域 NGA-Sub 的量化代价(如实登记不外推校正);近场峰值因合成断层光滑化系统性偏低 2-4×。区域海啸观测记分卡(`region_tsunami_observations.json` 3 事件 17 点+`tools/scorecard-tsunami-regional.js`):Maule/Illapel/Kaikōura——gauge/runup 分型残差(Valparaíso 1.30 vs 1.5 m 吻合;Kaikōura 合成单平面源对多断层事件欠驱动至 30×,如实记录)。**区域 PSHA 源模型(v6.7 批 D)**:日本 PSHA 管线参数化到五区域(`build-psha-source-model.js --region=<id>`,ComCat 区域窗 1923- M≥5 冻结 931/758/4,616/1,556/1,011 事件)——区域 bbox+区域 Mmax 约定+`Physics.REGIONAL_SUBDUCTION_LINES` trench 分类(与 app 构造先验同几何;意大利无俯冲线=无板缘类);**纯网格 GR 无情景源**(UCERF3/NSHM 等区域特征断层复发率未策展,大断层附近长重现期危险低估,如实入包 limitations);区域 GMPE 树冻入包 `gmpeTree`(crustal=BSSA14 单分支 italy→lowQ 余→base,板缘/板内=zhao2006;SA 周期仍塌缩 zhao2006=区域谱形未标定),引擎 `_pshaBranchesFor/_pshaBranchMotion` 消费透传(日本三分支树字节兼容)。五区域城市锚 RP475:LA 304/罗马 96/圣地亚哥 775/台北 593/惠灵顿 537 gal——**无任何官方区域危险模型对照=不做等价声明**;附带修复 loader 只认 v1 schema 的真 bug(bundled v2 日本模型自 2026-09-04 起生产 waiting 27 天)。
 - **modelBias 距离分箱校正**:2,626 台站拟合,zhao2006 强度 bias +0.685 → +0.086,RMS 1.19 → 0.80。
 - **LOEO 反转(科研化方法论的标准案例)**:v5.8 R0-4 留一检验(13 事件)得出"modelBias 不泛化"并冻结;v6.2 扩容到 19 事件后三族 held-out RMS 全部**低于**未校正(zhao 0.840→0.804 / si-mid 0.637→0.634 / kanno 0.772→0.743)——旧结论是小样本伪象,公开更正并写入 tripwire(tests/scientific-tripwires.test.js)。
 - 大震饱和:Zhao 有效震级压缩 + tanh 软顶(3200 gal / 250 cm/s),对齐 2011 观测极大值(M9@30 km 从不可能的 12,718 gal 压到 ~3,100)。

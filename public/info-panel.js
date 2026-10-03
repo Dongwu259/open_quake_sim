@@ -223,7 +223,7 @@ var InfoPanel = (function() {
 
     var activeKey = (typeof cfgGet === 'function') ? cfgGet('gmpModel') : 'log';
     if (activeKey === 'auto' && typeof Physics !== 'undefined') activeKey = Physics.resolveGmpModel(activeKey, simSrc, mag);
-    var activeChartName = activeKey === 'si-midorikawa' ? 'Si-Mid' : activeKey === 'kanno2006' ? 'Kanno' : activeKey === 'zhao2006' ? 'Zhao' : 'log';
+    var activeChartName = activeKey === 'si-midorikawa' ? 'Si-Mid' : activeKey === 'kanno2006' ? 'Kanno' : activeKey === 'zhao2006' ? 'Zhao' : activeKey === 'bssa14' ? 'BSSA14' : 'log';
     for (var mi = 0; mi < models.length; mi++) {
       ctx.strokeStyle = models[mi].color;
       ctx.lineWidth = 1.5;

@@ -1,6 +1,7 @@
 {
   "schema": "quake-sim-psha-source-model-report-v1",
-  "generatedAt": "2026-09-03T16:57:57.363Z",
+  "region": "japan",
+  "generatedAt": "2026-10-03T04:20:38.551Z",
   "catalogCount": 8883,
   "classCounts": {
     "interplate": 4815,

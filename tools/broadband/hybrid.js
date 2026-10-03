@@ -347,9 +347,15 @@ function hybridSynthesis(opts) {
         // column at f >= ~1 Hz). fdChannels follows psvHorizontalOnly (the
         // dipole tensor entries are exact zeros there, so the depth-FD
         // triple arms are dead weight — the 3x cut that makes the QD arm
-        // affordable). All opt-in; absent = the frozen research defaults.
-        schurCompliance: opts.psvQd ? undefined : (opts.psvSchur ? 1 : undefined),
+        // affordable). opts.psvTwoTierQd (2026-09-28) routes the Schur chain
+        // through the two-tier precision gate instead: double by default,
+        // bigfloat only at 1-ulp-chaotic samples inside the relevance
+        // envelope (the P1-measured cure: <=2.3e-7 vs the closed-form BVP at
+        // ~31% of full-QD wall on HALF@f1.2 — see psv-horizontal-anchor.js).
+        // All opt-in; absent = the frozen research defaults.
+        schurCompliance: opts.psvQd ? undefined : ((opts.psvSchur || opts.psvTwoTierQd) ? 1 : undefined),
         qdCompliance: opts.psvQd ? 1 : undefined,
+        twoTierQd: (opts.psvTwoTierQd && !opts.psvQd) ? 1 : undefined,
         fdChannels: (opts.psvHorizontalOnly && !opts.psvFdChannels) ? false : undefined,
         poleWindows: opts.psvNoPoleWindows ? false : undefined
       });

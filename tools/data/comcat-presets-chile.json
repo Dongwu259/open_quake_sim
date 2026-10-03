@@ -1,12 +1,13 @@
 {
   "schema": "quake-sim-comcat-presets-v1",
   "region": "chile",
-  "generatedAt": "2026-09-27T08:36:19.437Z",
+  "generatedAt": "2026-10-02T12:26:01.921Z",
   "provenance": "USGS ComCat fdsnws event API + moment-tensor products (GCMT family preferred by source/preferredWeight); public domain",
   "presets": [
     {
       "id": "cl-1960-valdivia",
       "label": "1960 Valdivia M9.5 (CL)",
+      "sourceType": "interplate",
       "previous": {
         "lat": -38.143,
         "lng": -73.407,
@@ -41,14 +42,15 @@
     {
       "id": "cl-2010-maule",
       "label": "2010 Maule M8.8 (CL)",
+      "sourceType": "interplate",
       "previous": {
         "lat": -36.122,
         "lng": -72.898,
         "mag": 8.8,
-        "depth": 22,
-        "strike": 16,
+        "depth": 22.9,
+        "strike": 19,
         "dip": 18,
-        "rake": 112
+        "rake": 116
       },
       "resolved": true,
       "comcatId": "official20100227063411530_30",
@@ -87,23 +89,24 @@
     {
       "id": "cl-2015-illapel",
       "label": "2015 Illapel M8.3 (CL)",
+      "sourceType": "interplate",
       "previous": {
-        "lat": -31.571,
-        "lng": -71.658,
+        "lat": -31.573,
+        "lng": -71.674,
         "mag": 8.3,
-        "depth": 25,
+        "depth": 22.4,
         "strike": 5,
-        "dip": 23,
-        "rake": 101
+        "dip": 22,
+        "rake": 106
       },
       "resolved": true,
       "comcatId": "us20003k7a",
       "eventUrl": "https://earthquake.usgs.gov/earthquakes/eventpage/us20003k7a",
-      "queryUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2015-09-15T16:54:00&endtime=2015-09-18T04:54:00&minlatitude=-32.771&maxlatitude=-30.371&minlongitude=-73.066&maxlongitude=-70.250&minmagnitude=6.8&orderby=time",
+      "queryUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2015-09-15T16:54:00&endtime=2015-09-18T04:54:00&minlatitude=-32.773&maxlatitude=-30.373&minlongitude=-73.082&maxlongitude=-70.266&minmagnitude=6.8&orderby=time",
       "detailUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us20003k7a",
       "match": {
         "dtHours": 0.01,
-        "distKm": 1.6,
+        "distKm": 0,
         "dMag": 0
       },
       "comcat": {
@@ -132,25 +135,26 @@
     },
     {
       "id": "cl-2014-iquique",
-      "label": "2014 Iquique M8.1 (CL)",
+      "label": "2014 Iquique M8.2 (CL)",
+      "sourceType": "interplate",
       "previous": {
         "lat": -19.61,
         "lng": -70.769,
-        "mag": 8.1,
+        "mag": 8.2,
         "depth": 25,
-        "strike": -8,
-        "dip": 13,
-        "rake": 105
+        "strike": 357,
+        "dip": 18,
+        "rake": 109
       },
       "resolved": true,
       "comcatId": "usc000nzvd",
       "eventUrl": "https://earthquake.usgs.gov/earthquakes/eventpage/usc000nzvd",
-      "queryUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2014-03-31T17:46:00&endtime=2014-04-03T05:46:00&minlatitude=-20.810&maxlatitude=-18.410&minlongitude=-72.043&maxlongitude=-69.495&minmagnitude=6.6&orderby=time",
+      "queryUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2014-03-31T17:46:00&endtime=2014-04-03T05:46:00&minlatitude=-20.810&maxlatitude=-18.410&minlongitude=-72.043&maxlongitude=-69.495&minmagnitude=6.7&orderby=time",
       "detailUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=usc000nzvd",
       "match": {
         "dtHours": 0.01,
         "distKm": 0,
-        "dMag": 0.1
+        "dMag": 0
       },
       "comcat": {
         "mag": 8.2,
@@ -174,8 +178,7 @@
         "selection": "nearest-current-preset-plane",
         "derivedMagnitude": 8.1,
         "derivedDepthKm": 21.9
-      },
-      "labelUpdated": true
+      }
     }
   ]
 }

@@ -67,7 +67,11 @@ function runArm(caseDef, complianceParams) {
   const base = { rKm: 30, zSourceKm: caseDef.zs, dkInvKm: 0.0025, kMaxInvKm: 6, qShear: 50,
     mxx: caseDef.t.mxx, myy: caseDef.t.myy, mzz: caseDef.t.mzz, mxy: caseDef.t.mxy,
     mxz: caseDef.t.mxz, myz: caseDef.t.myz, poleWindows: false };
-  return psv.psvMomentSpectrumAtFrequency(HALF, omega, Object.assign(base, complianceParams));
+  const t0 = Date.now();
+  const out = psv.psvMomentSpectrumAtFrequency(HALF, omega, Object.assign(base, complianceParams));
+  out._wallMs = Date.now() - t0;
+  if (complianceParams._twoTierStats) out._stats = complianceParams._twoTierStats;
+  return out;
 }
 
 function main() {
@@ -77,15 +81,26 @@ function main() {
   for (const c of list) {
     const aQd = runArm(c, { qdCompliance: 1 });
     const aD = runArm(c, { schurCompliance: 1 });
+    // two-tier arm (2026-09-28): double Schur base + 1-ulp chaos probe, QD
+    // only where the probe fires — the registered CS-v4 feasibility cure.
+    const tStats = { probed: 0, escalated: 0, skippedTail: 0 };
+    const a2 = runArm(c, { schurCompliance: 1, twoTierQd: 1, _twoTierStats: tStats });
     const b = runArm(c, { closedFormHalfspace: 1 });
     const row = { case: c.name,
       qd: { ur: relOf(mag(aQd.ur), mag(b.ur)), ut: relOf(mag(aQd.ut), mag(b.ut)) },
       dbl: { ur: relOf(mag(aD.ur), mag(b.ur)), ut: relOf(mag(aD.ut), mag(b.ut)) },
+      twoTier: { ur: relOf(mag(a2.ur), mag(b.ur)), ut: relOf(mag(a2.ut), mag(b.ut)),
+        stats: { probed: tStats.probed, escalated: tStats.escalated, skippedTail: tStats.skippedTail || 0 },
+        wallMs: a2._wallMs, qdWallMs: aQd._wallMs, dblWallMs: aD._wallMs },
       urBvp: +mag(b.ur).toExponential(6), utBvp: +mag(b.ut).toExponential(6) };
     out.push(row);
     console.log(c.name.padEnd(22),
       'QD ur', row.qd.ur == null ? 'null' : row.qd.ur.toExponential(2),
       'ut', row.qd.ut == null ? 'null' : row.qd.ut.toExponential(2),
+      '| 2t ur', row.twoTier.ur == null ? 'null' : row.twoTier.ur.toExponential(2),
+      'ut', row.twoTier.ut == null ? 'null' : row.twoTier.ut.toExponential(2),
+      'esc', tStats.escalated + '/' + tStats.probed,
+      ((100 * a2._wallMs) / Math.max(1, aQd._wallMs)).toFixed(0) + '%qdWall',
       '| dbl ur', row.dbl.ur == null ? 'null' : row.dbl.ur.toExponential(2),
       'ut', row.dbl.ut == null ? 'null' : row.dbl.ut.toExponential(2),
       '| |ur|BVP', row.urBvp.toExponential(3));
@@ -93,10 +108,18 @@ function main() {
   if (worker) { console.log('JSON:' + JSON.stringify(out[0])); return; }
   const worstQd = Math.max(...out.map((r) => Math.max(r.qd.ur || 0, r.qd.ut || 0)));
   const worstD = Math.max(...out.map((r) => Math.max(r.dbl.ur || 0, r.dbl.ut || 0)));
+  const worst2t = Math.max(...out.map((r) => Math.max(r.twoTier.ur || 0, r.twoTier.ut || 0)));
+  const totEsc = out.reduce((s, r) => s + r.twoTier.stats.escalated, 0);
+  const totProb = out.reduce((s, r) => s + r.twoTier.stats.probed, 0);
+  const wall2t = out.reduce((s, r) => s + r.twoTier.wallMs, 0);
+  const wallQd = out.reduce((s, r) => s + r.twoTier.qdWallMs, 0);
   console.log('P1 gate <= 1e-2 on the QD arm: worst', worstQd.toExponential(3), '->', worstQd <= 1e-2 ? 'PASS' : 'FAIL',
-    '| double arm worst', worstD.toExponential(3), '(reported, not gated)');
-  console.log('JSON:' + JSON.stringify({ worstRelQd: worstQd, worstRelDouble: worstD, rows: out,
-    gate: worstQd <= 1e-2 ? 'PASS' : 'FAIL' }));
+    '| double arm worst', worstD.toExponential(3), '(reported, not gated)',
+    '| twoTier worst', worst2t.toExponential(3), worst2t <= 1e-2 ? 'PASS' : 'FAIL',
+    '| esc', totEsc + '/' + totProb, '| wall 2t/qd', (100 * wall2t / Math.max(1, wallQd)).toFixed(1) + '%');
+  console.log('JSON:' + JSON.stringify({ worstRelQd: worstQd, worstRelDouble: worstD, worstRelTwoTier: worst2t,
+    escalated: totEsc, probed: totProb, wallMsTwoTier: wall2t, wallMsQd: wallQd, rows: out,
+    gate: worstQd <= 1e-2 ? 'PASS' : 'FAIL', twoTierGate: worst2t <= 1e-2 ? 'PASS' : 'FAIL' }));
 }
 // P1_CASE=<i> runs one case (the batch ran 8 workers in parallel);
 // bare invocation runs all cases serially.

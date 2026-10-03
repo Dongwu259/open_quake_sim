@@ -1,30 +1,31 @@
 {
   "schema": "quake-sim-comcat-presets-v1",
   "region": "italy",
-  "generatedAt": "2026-09-27T08:36:19.446Z",
+  "generatedAt": "2026-10-02T12:26:01.935Z",
   "provenance": "USGS ComCat fdsnws event API + moment-tensor products (GCMT family preferred by source/preferredWeight); public domain",
   "presets": [
     {
       "id": "it-2016-norcia",
-      "label": "2016 Norcia M6.5 (IT)",
+      "label": "2016 Norcia M6.6 (IT)",
+      "sourceType": "crustal",
       "previous": {
-        "lat": 42.842,
-        "lng": 13.109,
-        "mag": 6.5,
-        "depth": 9,
-        "strike": 155,
-        "dip": 52,
-        "rake": -90
+        "lat": 42.862,
+        "lng": 13.096,
+        "mag": 6.6,
+        "depth": 8,
+        "strike": 335,
+        "dip": 63,
+        "rake": -93
       },
       "resolved": true,
       "comcatId": "us1000731j",
       "eventUrl": "https://earthquake.usgs.gov/earthquakes/eventpage/us1000731j",
-      "queryUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2016-10-29T00:40:00&endtime=2016-10-31T12:40:00&minlatitude=41.642&maxlatitude=44.042&minlongitude=11.472&maxlongitude=14.746&minmagnitude=5.0&orderby=time",
+      "queryUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2016-10-29T00:40:00&endtime=2016-10-31T12:40:00&minlatitude=41.662&maxlatitude=44.062&minlongitude=11.459&maxlongitude=14.733&minmagnitude=5.1&orderby=time",
       "detailUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us1000731j",
       "match": {
         "dtHours": 0.01,
-        "distKm": 2.5,
-        "dMag": 0.1
+        "distKm": 0,
+        "dMag": 0
       },
       "comcat": {
         "mag": 6.6,
@@ -48,29 +49,29 @@
         "selection": "nearest-current-preset-plane",
         "derivedMagnitude": 6.6,
         "derivedDepthKm": 15.5
-      },
-      "labelUpdated": true
+      }
     },
     {
       "id": "it-2016-amatrice",
       "label": "2016 Amatrice M6.2 (IT)",
+      "sourceType": "crustal",
       "previous": {
-        "lat": 42.698,
-        "lng": 13.235,
+        "lat": 42.723,
+        "lng": 13.188,
         "mag": 6.2,
-        "depth": 6,
-        "strike": 157,
-        "dip": 50,
-        "rake": -85
+        "depth": 4.4,
+        "strike": 165,
+        "dip": 48,
+        "rake": -78
       },
       "resolved": true,
       "comcatId": "us10006g7d",
       "eventUrl": "https://earthquake.usgs.gov/earthquakes/eventpage/us10006g7d",
-      "queryUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2016-08-22T19:36:00&endtime=2016-08-25T07:36:00&minlatitude=41.498&maxlatitude=43.898&minlongitude=11.602&maxlongitude=14.868&minmagnitude=4.7&orderby=time",
+      "queryUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2016-08-22T19:36:00&endtime=2016-08-25T07:36:00&minlatitude=41.523&maxlatitude=43.923&minlongitude=11.555&maxlongitude=14.821&minmagnitude=4.7&orderby=time",
       "detailUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us10006g7d",
       "match": {
         "dtHours": 0.01,
-        "distKm": 4.8,
+        "distKm": 0,
         "dMag": 0
       },
       "comcat": {
@@ -100,23 +101,24 @@
     {
       "id": "it-2009-laquila",
       "label": "2009 L'Aquila M6.3 (IT)",
+      "sourceType": "crustal",
       "previous": {
-        "lat": 42.342,
-        "lng": 13.38,
+        "lat": 42.334,
+        "lng": 13.334,
         "mag": 6.3,
-        "depth": 9,
-        "strike": 133,
-        "dip": 44,
-        "rake": -83
+        "depth": 8.8,
+        "strike": 120,
+        "dip": 54,
+        "rake": -113
       },
       "resolved": true,
       "comcatId": "usp000gvtu",
       "eventUrl": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000gvtu",
-      "queryUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2009-04-04T19:32:00&endtime=2009-04-07T07:32:00&minlatitude=41.142&maxlatitude=43.542&minlongitude=11.756&maxlongitude=15.004&minmagnitude=4.8&orderby=time",
+      "queryUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2009-04-04T19:32:00&endtime=2009-04-07T07:32:00&minlatitude=41.134&maxlatitude=43.534&minlongitude=11.711&maxlongitude=14.957&minmagnitude=4.8&orderby=time",
       "detailUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=usp000gvtu",
       "match": {
         "dtHours": 0.01,
-        "distKm": 3.9,
+        "distKm": 0,
         "dMag": 0
       },
       "comcat": {
@@ -146,23 +148,24 @@
     {
       "id": "it-1980-irpinia",
       "label": "1980 Irpinia M6.9 (IT)",
+      "sourceType": "crustal",
       "previous": {
-        "lat": 40.842,
-        "lng": 15.295,
+        "lat": 40.914,
+        "lng": 15.366,
         "mag": 6.9,
-        "depth": 18,
-        "strike": 305,
-        "dip": 60,
-        "rake": -85
+        "depth": 10,
+        "strike": 303,
+        "dip": 50,
+        "rake": -98
       },
       "resolved": true,
       "comcatId": "usp0001ay4",
       "eventUrl": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0001ay4",
-      "queryUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=1980-11-22T12:34:00&endtime=1980-11-25T00:34:00&minlatitude=39.642&maxlatitude=42.042&minlongitude=13.709&maxlongitude=16.881&minmagnitude=5.4&orderby=time",
+      "queryUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=1980-11-22T12:34:00&endtime=1980-11-25T00:34:00&minlatitude=39.714&maxlatitude=42.114&minlongitude=13.778&maxlongitude=16.954&minmagnitude=5.4&orderby=time",
       "detailUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=usp0001ay4",
       "match": {
         "dtHours": 0.01,
-        "distKm": 10,
+        "distKm": 0,
         "dMag": 0
       },
       "comcat": {
@@ -192,11 +195,12 @@
     {
       "id": "it-1908-messina",
       "label": "1908 Messina M7.1 (IT)",
+      "sourceType": "crustal",
       "previous": {
         "lat": 38.15,
         "lng": 15.68,
         "mag": 7.1,
-        "depth": 10,
+        "depth": 15,
         "strike": 250,
         "dip": 50,
         "rake": -70

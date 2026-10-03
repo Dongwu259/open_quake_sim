@@ -43,6 +43,8 @@ python validate_accuracy.py    # 基线:auto RMS 1.276 / log 参考 3.17,不得�
 | 声明 | 命令 | 冻结工件 |
 |---|---|---|
 | GMPE 强震动记分卡 | `npm test`(strong-motion 链) | strong-motion-report.json |
+| 区域观测验证(GMPE+海啸,v6.7) | `node tools/scorecard-region-obs.js` / `node tools/scorecard-tsunami-regional.js` | region-obs-report.json / region-tsunami-scorecard-report.json |
+| 区域 PSHA 源模型(五区域,v6.7 D) | `node tools/fetch-comcat-japan.js --region=<id>`(需网络)+ `node tools/build-psha-source-model.js --region=<id>` | psha-source-model-<id>.json / psha-source-model-report-<id>.json / comcat-<id>.json |
 | 海啸嵌套/频散/记分卡 | `npm test` + `node tools/validate-nlswe-benchmarks.js` | nlswe-benchmarks / tsunami-scorecard-report |
 | 场地反应/集合不确定性 | `npm test`(site-response / ensemble 链) | site-response / ensemble-reliability 报告 |
 | 动力学破裂解析锚 | `node --test tests/dynamic-rupture.test.js` | — |

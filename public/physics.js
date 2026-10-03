@@ -189,12 +189,45 @@ var _JAPAN_SUBDUCTION_LINES = [
     [[34.5,140.8],[34.8,140],[35,139.5],[35.2,139]]
   ];
 
-Physics.nearestJapanSubduction = function(lat, lng) {
+// v6.7 source-classification batch: regional subduction-front polylines for
+// the global-mode pilot regions — the same tectonic prior role as the Japan
+// lines above (offshore + within 140 km -> interplate in resolveSourceTypeAt,
+// strike prior in selectFaultPlane). Approximate trench/deformation-front
+// axes from published plate-boundary geometry (USGS/Bird/slab2 family);
+// priors only — preset sourceType fields and explicit overrides win.
+// italy intentionally carries NO front: its catalog is Apennine shallow-
+// crustal and the Calabrian slab resolves via the depth>=60 rule.
+Physics.REGIONAL_SUBDUCTION_LINES = {
+  // Peru-Chile trench (megathrust: Valdivia/Maule/Illapel/Iquique class)
+  chile: [[-18.0,-71.5],[-20.5,-71.0],[-23.0,-71.2],[-25.5,-71.4],[-28.0,-71.7],[-30.5,-72.0],[-33.0,-72.3],[-35.5,-73.0],[-38.0,-73.9],[-40.5,-74.4],[-43.0,-74.6],[-45.5,-74.9]],
+  // Ryukyu trench (east of Hualien) + Manila trench (south of the island)
+  taiwan: [[[23.2,122.4],[23.9,122.9],[24.6,123.5],[25.3,124.3]],[[20.3,119.3],[21.0,119.9],[21.7,120.5],[22.3,121.0]]],
+  // Hikurangi trough (east of North Island) + Puysegur-Fiordland (SW)
+  newzealand: [[[-36.8,178.7],[-38.0,179.0],[-39.3,178.5],[-40.5,177.3],[-41.5,175.6],[-42.3,174.6]],[[-45.2,166.7],[-46.3,165.6],[-47.4,164.6],[-48.4,163.8]]],
+  // Cascadia deformation front, southern segment off Cape Mendocino; the
+  // San Andreas system itself is crustal strike-slip and gets no front.
+  california: [[40.3,-124.9],[41.3,-124.9],[42.4,-125.1]]
+};
+var _activeSubductionLines = null; // null -> Japan lines (legacy byte-identical)
+/** Region activation hook: swap the subduction-front prior set. Pass null (or
+ *  nothing) to restore the Japan default. Values from REGIONAL_SUBDUCTION_LINES. */
+Physics.setActiveSubductionLines = function(lines) {
+  _activeSubductionLines = (lines && lines.length) ? lines : null;
+};
+// Registry shape: a region may carry one polyline or several (taiwan and
+// newzealand carry two fronts each) — normalize to a list of polylines.
+function _frontLineSet(entry) {
+  if (!entry || !entry.length) return null;
+  return (typeof entry[0][0] === 'number') ? [entry] : entry;
+}
+
+function _nearestFrontOnLines(lines, lat, lng) {
   var cosLat = Math.max(0.2, Math.cos(Number(lat) * Math.PI / 180));
   var best = {distanceKm:Infinity, strikeDeg:null, lineIndex:-1, segmentIndex:-1};
-  for (var li = 0; li < _JAPAN_SUBDUCTION_LINES.length; li++) {
-    for (var i = 1; i < _JAPAN_SUBDUCTION_LINES[li].length; i++) {
-      var a = _JAPAN_SUBDUCTION_LINES[li][i - 1], b = _JAPAN_SUBDUCTION_LINES[li][i];
+  if (!lines) return best;
+  for (var li = 0; li < lines.length; li++) {
+    for (var i = 1; i < lines[li].length; i++) {
+      var a = lines[li][i - 1], b = lines[li][i];
       var ax = (a[1] - lng) * 111.32 * cosLat, ay = (a[0] - lat) * 111.32;
       var bx = (b[1] - lng) * 111.32 * cosLat, by = (b[0] - lat) * 111.32;
       var dx = bx - ax, dy = by - ay, denom = dx * dx + dy * dy;
@@ -209,6 +242,17 @@ Physics.nearestJapanSubduction = function(lat, lng) {
     }
   }
   return best;
+}
+
+Physics.nearestJapanSubduction = function(lat, lng) {
+  return _nearestFrontOnLines(_JAPAN_SUBDUCTION_LINES, lat, lng);
+};
+
+/** Nearest ACTIVE subduction front: the active region's registered lines,
+ *  else the Japan lines (identical loop, identical numbers on the legacy
+ *  path). */
+Physics.nearestSubductionFront = function(lat, lng) {
+  return _nearestFrontOnLines(_frontLineSet(_activeSubductionLines) || _JAPAN_SUBDUCTION_LINES, lat, lng);
 };
 
 // Approximate distance to the subduction front. This is only a prior for
@@ -221,7 +265,7 @@ Physics.resolveSourceTypeAt = function(lat, lng, depthKm, eventSource, override,
   var explicit = Physics.resolveSourceType(depthKm, eventSource, override);
   if ((override && override !== 'auto') || eventSource) return explicit;
   if (depthKm >= 60) return 'intraslab';
-  if (offshore && isFinite(lat) && isFinite(lng) && Physics.distanceToJapanSubductionKm(lat, lng) <= 140) {
+  if (offshore && isFinite(lat) && isFinite(lng) && Physics.nearestSubductionFront(lat, lng).distanceKm <= 140) {
     return 'interplate';
   }
   return explicit;
@@ -265,7 +309,9 @@ Physics.selectFaultPlane = function(mechanism, context) {
     refDip = Physics.recommendedFaultDip(sourceType);
     refRake = sourceType === 'interplate' ? 90 : null;
     if (sourceType === 'interplate' && isFinite(Number(context.lat)) && isFinite(Number(context.lng))) {
-      prior = Physics.nearestJapanSubduction(Number(context.lat), Number(context.lng));
+      // Active-region aware (v6.7): regional fronts while a region is active,
+      // Japan lines otherwise — same numbers on the legacy path.
+      prior = Physics.nearestSubductionFront(Number(context.lat), Number(context.lng));
       if (prior.distanceKm <= 180) { refStrike = prior.strikeDeg; method = 'subduction-front-prior'; }
     }
   }
@@ -751,6 +797,22 @@ Physics.pgvSiMid = function(mag, Rkm, depthKm, src) {
 //  GMPE ROUTING — dispatches to the active model
 // ================================================================
 
+// v6.7 NGA-West2 batch: active-region hook for the auto GMPE route. null ->
+// Japan (legacy byte-identical). A non-Japan region id re-routes shallow
+// CRUSTAL events from si-midorikawa (Japan-calibrated) to BSSA14 (NGA-West2,
+// the active-shallow-crust model); interplate/intraslab stay on zhao2006
+// (subduction physics — no regional NGA-Sub model is bundled).
+var _activeGmpRegion = null;
+Physics.setActiveGmpRegion = function(regionId) { _activeGmpRegion = regionId || null; };
+Physics.activeGmpRegion = function() { return _activeGmpRegion; };
+// BSSA14 regional anelastic variant for the active region: the paper only
+// publishes regional Dc3 adjustments for Japan/Italy (LowQ) and China/Turkey
+// (HighQ); every other bundled region keeps the base (global) path term.
+Physics.activeBssa2014Variant = function() {
+  if (!_activeGmpRegion || _activeGmpRegion === 'japan' || _activeGmpRegion === 'italy') return 'lowQ';
+  return 'base';
+};
+
 /**
  * Compute PGA with GMPE routing and source-type boost. @param {number} mag @param {number} Rkm @param {number} depthKm @param {string} [epicenterSrc] @param {number} [vs30] @returns {number} PGA in gal
  */
@@ -763,6 +825,9 @@ Physics.resolveGmpModel = function(gmpModel, src, mw) {
   // Global RMS improves 1.278 -> ~0.95. The legacy log models remain
   // available explicitly for reproducibility.
   if (src === 'interplate' || src === 'intraslab') return 'zhao2006';
+  // v6.7: outside Japan, crustal events route to BSSA14 (NGA-West2) — the
+  // si-midorikawa model is Japan-calibrated and was never validated offshore.
+  if (_activeGmpRegion && _activeGmpRegion !== 'japan') return 'bssa14';
   return 'si-midorikawa';
 };
 
@@ -772,6 +837,10 @@ Physics.calcPGA = function(mag, Rkm, gmpModel, depthKm, eventMw, sliderMw, epice
   var src = epicenterSrc || Physics.sourceType(depthKm);
   gmpModel = Physics.resolveGmpModel(gmpModel, src, mw);
   if (gmpModel === 'kanno2006') return Physics.pgaKanno(mw, Rkm, depthKm, vs30 || 400);
+  // BSSA14 (NGA-West2): Rkm is interpreted as Rjb (callers pass the
+  // horizontal distance; see the model block for the metric note). Depth is
+  // not a predictor — the h pseudo-depth carries it.
+  if (gmpModel === 'bssa14') return Physics.pgaBssa2014(mw, Rkm, vs30 || 400, rake, Physics.activeBssa2014Variant());
   // rake feeds the Zhao-2006 crustal reverse-fault FR term — without it the
   // term was dead code on every routing path (reverse events under-predicted).
   if (gmpModel === 'zhao2006') return Physics.pgaZhao2006(mw, Rkm, depthKm, src, vs30, rake);
@@ -792,6 +861,7 @@ Physics.calcPGV = function(mag, Rkm, gmpModel, depthKm, eventMw, sliderMw, epice
   var src = epicenterSrc || Physics.sourceType(depthKm);
   gmpModel = Physics.resolveGmpModel(gmpModel, src, mw);
   if (gmpModel === 'kanno2006') return Physics.pgvKanno(mw, Rkm, depthKm, vs30 || 400);
+  if (gmpModel === 'bssa14') return Physics.pgvBssa2014(mw, Rkm, vs30 || 400, rake, Physics.activeBssa2014Variant());
   if (gmpModel === 'zhao2006') return Physics.pgvZhao2006(mw, Rkm, depthKm, src, vs30, rake);
   if (gmpModel === 'si-midorikawa' || gmpModel === 'log-ff') {
     if (gmpModel === 'si-midorikawa') return Physics.pgvSiMid(mw, Rkm, depthKm, src);
@@ -1935,6 +2005,156 @@ Physics.shindoUncertaintyRange = function(intensity) {
 };
 
 // ================================================================
+//  GMPE — Boore, Stewart, Seyhan & Atkinson (2014) "BSSA14" (NGA-West2)
+// ================================================================
+//  Faithful transcription of the OFFICIAL openquake.hazardlib
+//  implementation (gem/oq-engine openquake/hazardlib/gsim/boore_2014.py,
+//  sha256 c12315ff4c3d7c84ef39433348285ead4999032ec3ada0b4ccd09238cf3b4422,
+//  verified identical at fetch time 2026-10-01) — the same
+//  cross-implementation discipline as zhao2006:
+//  tools/gen-gmpe-fixtures-bssa14.py is an INDEPENDENT scalar transcription
+//  and tests/gmpe-bssa14.test.js asserts both against each other
+//  point-wise (max |Δln| < 1e-12 over the frozen grid).
+//
+//  Paper: Boore, Stewart, Seyhan & Atkinson (2014), Earthquake Spectra
+//  30(3) 1057-1085 — Eq.(2) event term with style-of-faulting e0-e3 and
+//  Mh hinge, Eq.(3)-(4) path with R = sqrt(Rjb^2 + h^2) and regional Dc3,
+//  Eq.(5)-(8) linear + nonlinear Vs30 site (rock PGA reference),
+//  Eq.(13)-(17) magnitude/distance/site-dependent tau and phi.
+//  Scope honesty (all documented, none hidden):
+//  - Shallow CRUSTAL events in active tectonic regions only (the model's
+//    calibration domain). Hypocentral depth is NOT a predictor — depth
+//    enters only through the per-IMT h pseudo-depth.
+//  - Distance metric is Rjb. Point-source callers pass the epicentral
+//    (horizontal) distance; the finite-fault composite passes the
+//    horizontal distance to each patch centroid (its surface projection) —
+//    the Rjb analog of the zhao per-patch Rrup treatment.
+//  - Basin term OFF (hazardlib region='nobasin'): no z1.0 site data are
+//    available in any region pack, so the term returns 0 identically.
+//  - Regional anelastic Dc3: the hazardlib HighQ (China/Turkey) and LowQ
+//    (Italy/Japan) subclasses differ from the base table ONLY in the Dc3
+//    column; Physics.activeBssa2014Variant picks the variant from the
+//    active region (italy/japan -> lowQ, everything else -> base; taiwan,
+//    newzealand and chile have no published regional adjustment).
+//  - Units follow hazardlib: ln(PGA) in g, ln(PGV) in cm/s. The
+//    pgaBssa2014/pgvBssa2014 wrappers convert with standard gravity
+//    (980.665 gal/g) and apply the same display soft caps as zhao2006.
+// ================================================================
+Physics.BSSA2014_CONSTS = { mref: 4.5, rref: 1.0, vref: 760.0, f1: 0.0, f3: 0.1, v1: 225.0, v2: 300.0 };
+// Coefficient rows (hazardlib COEFFS base table, verbatim). phi1/phi2 are the
+// table columns named f1/f2 (phi magnitude ramp) — renamed here so they can
+// never be confused with the IMT-independent CONSTS.f1/f3 of the nonlinear
+// site term. f6/f7 (basin) are transcribed for completeness but unused with
+// the basin term off.
+Physics.BSSA2014_PAPER = {
+  'pga': {
+    e0: 0.4473, e1: 0.4856, e2: 0.2459, e3: 0.4539, e4: 1.431, e5: 0.05053, e6: -0.1662, mh: 5.5,
+    c1: -1.134, c2: 0.1917, c3: -0.008088, h: 4.5, dc3: 0.0,
+    c: -0.6, vc: 1500.0, f4: -0.15, f5: -0.00701, f6: -9.9, f7: -9.9,
+    r1: 110.0, r2: 270.0, dfr: 0.1, dfv: 0.07, phi1: 0.695, phi2: 0.495, tau1: 0.398, tau2: 0.348
+  },
+  'pgv': {
+    e0: 5.037, e1: 5.078, e2: 4.849, e3: 5.033, e4: 1.073, e5: -0.1536, e6: 0.2252, mh: 6.2,
+    c1: -1.243, c2: 0.1489, c3: -0.00344, h: 5.3, dc3: 0.0,
+    c: -0.84, vc: 1300.0, f4: -0.1, f5: -0.00844, f6: -9.9, f7: -9.9,
+    r1: 105.0, r2: 272.0, dfr: 0.082, dfv: 0.08, phi1: 0.644, phi2: 0.552, tau1: 0.401, tau2: 0.346
+  }
+};
+// Regional anelastic-path adjustments (the only column that differs between
+// the hazardlib base / LowQ / HighQ tables).
+Physics.BSSA2014_DC3 = {
+  base:  { pga: 0.0,      pgv: 0.0 },
+  lowQ:  { pga: -0.00255, pgv: -0.00033 },  // Italy / Japan
+  highQ: { pga: 0.002858, pgv: 0.004345 }   // China / Turkey
+};
+
+// Style-of-faulting term (hazardlib _get_style_of_faulting_term): default
+// normal (e2); |rake|<=30 or 180-|rake|<=30 -> strike-slip (e1);
+// 30 < rake < 150 (signed) -> reverse (e3). rake == null -> unspecified e0
+// (the hazardlib NoSOF alias).
+function _bssa14StyleTerm(C, rake) {
+  if (rake == null || !isFinite(Number(rake))) return C.e0;
+  var r = Number(rake), a = Math.abs(r);
+  if (a <= 30 || (180 - a) <= 30) return C.e1;
+  if (r > 30 && r < 150) return C.e3;
+  return C.e2;
+}
+// Eq.(2) magnitude ramp around the Mh hinge.
+function _bssa14MagTerm(C, mw) {
+  var d = mw - C.mh;
+  return mw <= C.mh ? C.e4 * d + C.e5 * d * d : C.e6 * d;
+}
+// Eq.(3)-(4) path term with the regional Dc3 anelastic adjustment.
+function _bssa14PathTerm(C, mw, rjbKm, dc3) {
+  var K = Physics.BSSA2014_CONSTS;
+  var R = Math.sqrt(rjbKm * rjbKm + C.h * C.h);
+  return (C.c1 + C.c2 * (mw - K.mref)) * Math.log(R / K.rref) + (C.c3 + dc3) * (R - K.rref);
+}
+// Eq.(5) site term = Eq.(6) linear + Eq.(7)-(8) nonlinear (basin off).
+// pgaRockG is the median PGA on rock (g) from the PGA row, per hazardlib.
+function _bssa14SiteTerm(C, vs30, pgaRockG) {
+  var K = Physics.BSSA2014_CONSTS;
+  var flin = C.c * Math.log(Math.min(vs30, C.vc) / K.vref);
+  var vs = Math.min(vs30, K.vref);
+  var f2 = C.f4 * (Math.exp(C.f5 * (vs - 360.0)) - Math.exp(C.f5 * 400.0));
+  var fnl = K.f1 + f2 * Math.log((pgaRockG + K.f3) / K.f3);
+  return flin + fnl;
+}
+// Median rock PGA (g), PGA row only — drives the nonlinear site term.
+Physics.bssa2014PgaRockG = function(mw, rjbKm, rake, variant) {
+  var C = Physics.BSSA2014_PAPER.pga;
+  var v = Physics.BSSA2014_DC3[variant] || Physics.BSSA2014_DC3.base;
+  var rjb = Math.max(0, Number(rjbKm) || 0);
+  return Math.exp(_bssa14StyleTerm(C, rake) + _bssa14MagTerm(C, mw) +
+                  _bssa14PathTerm(C, mw, rjb, v.pga));
+};
+/**
+ * BSSA14 ln(median) in hazardlib native units: 'pga' -> ln g, 'pgv' ->
+ * ln cm/s. variant: 'base' | 'lowQ' | 'highQ' (Dc3 adjustment).
+ */
+Physics.bssa2014Ln = function(imt, mw, rjbKm, vs30, rake, variant) {
+  var C = Physics.BSSA2014_PAPER[imt] || Physics.BSSA2014_PAPER.pga;
+  var v = Physics.BSSA2014_DC3[variant] || Physics.BSSA2014_DC3.base;
+  var dc3 = (imt === 'pgv') ? v.pgv : v.pga;
+  var rjb = Math.max(0, Number(rjbKm) || 0);
+  var v30 = Number(vs30) || 400;
+  var pgaRock = Physics.bssa2014PgaRockG(mw, rjb, rake, variant);
+  return _bssa14StyleTerm(C, rake) + _bssa14MagTerm(C, mw) +
+         _bssa14PathTerm(C, mw, rjb, dc3) + _bssa14SiteTerm(C, v30, pgaRock);
+};
+// Eq.(13)-(17) aleatory variability in ln units. Faithful to hazardlib —
+// including its boundary quirk at vs30 == v1 exactly, where BOTH the vs30<=v1
+// branch (-DfV) and the v1<=vs30<=v2 taper branch (-DfV * 1) fire (the
+// fixture grid pins 225.0 m/s so the quirk is locked, not hidden).
+Physics.bssa2014SigmaLn = function(imt, mw, rjbKm, vs30) {
+  var C = Physics.BSSA2014_PAPER[imt] || Physics.BSSA2014_PAPER.pga;
+  var K = Physics.BSSA2014_CONSTS;
+  var m = Number(mw) || 0;
+  var tau = m <= 4.5 ? C.tau1 : (m >= 5.5 ? C.tau2 : C.tau1 + (C.tau2 - C.tau1) * (m - 4.5));
+  var phi = m <= 4.5 ? C.phi1 : (m >= 5.5 ? C.phi2 : C.phi1 + (C.phi2 - C.phi1) * (m - 4.5));
+  var r = Math.max(0, Number(rjbKm) || 0);
+  if (r > C.r2) phi += C.dfr;
+  else if (r > C.r1) phi += C.dfr * (Math.log(r / C.r1) / Math.log(C.r2 / C.r1));
+  var v = Number(vs30) || 400;
+  if (v <= K.v1) phi -= C.dfv;
+  if (v >= K.v1 && v <= K.v2) phi -= C.dfv * (Math.log(K.v2 / v) / Math.log(K.v2 / K.v1));
+  return { tau: tau, phi: phi, sigmaT: Math.sqrt(tau * tau + phi * phi) };
+};
+Physics.bssa2014Sigma = function(imt, mw, rjbKm, vs30) {
+  var s = Physics.bssa2014SigmaLn(imt, mw, rjbKm, vs30);
+  return { tau: s.tau / _LN10, phi: s.phi / _LN10, sigmaT: s.sigmaT / _LN10 };
+};
+Physics.BSSA2014_G_TO_GAL = 980.665;
+Physics.pgaBssa2014 = function(mw, rjbKm, vs30, rake, variant) {
+  var pgaGal = Math.exp(Physics.bssa2014Ln('pga', mw, rjbKm, vs30, rake, variant)) * Physics.BSSA2014_G_TO_GAL;
+  return Physics.GMPE_PGA_SOFT_CAP * Math.tanh(pgaGal / Physics.GMPE_PGA_SOFT_CAP);
+};
+Physics.pgvBssa2014 = function(mw, rjbKm, vs30, rake, variant) {
+  var pgv = Math.exp(Physics.bssa2014Ln('pgv', mw, rjbKm, vs30, rake, variant));
+  return Physics.GMPE_PGV_SOFT_CAP * Math.tanh(pgv / Physics.GMPE_PGV_SOFT_CAP);
+};
+
+// ================================================================
 //  GMPE CALIBRATION (magnitude-binned additive intensity correction)
 //  Fitted offline by tools/calibrate-gmpe.js against recorded kmoni peaks
 //  with catalog-truth parameters. Forecast paths apply it to the predicted
@@ -2481,7 +2701,7 @@ Physics.zhao2006Sigma = function(imt, srcType) {
  *  kanno2006 publish no spectral rows, so SA periods collapse to the zhao2006
  *  single model (documented UHS limitation: no logic-tree epistemic spread
  *  in periods). */
-Physics._pshaBranchMotion = function(modelName, imt, srcType, mw, rRupKm, depthKm, vs30, rake) {
+Physics._pshaBranchMotion = function(modelName, imt, srcType, mw, rRupKm, depthKm, vs30, rake, variant) {
   if (imt.slice(0, 3) === 'sa:') {
     if (modelName !== 'zhao2006') return null;
     var key = imt.slice(3);
@@ -2489,6 +2709,19 @@ Physics._pshaBranchMotion = function(modelName, imt, srcType, mw, rRupKm, depthK
       median: Physics.GMPE_PGA_SOFT_CAP * Math.tanh(Math.exp(Physics.zhao2006LnA(key, srcType, mw, rRupKm, depthKm, vs30, rake)) / Physics.GMPE_PGA_SOFT_CAP),
       sigmaLog10: Physics.zhao2006Sigma(key, srcType).sigmaT
     };
+  }
+  if (modelName === 'bssa14') {
+    // v6.7 D: NGA-West2 branch for regional crustal sources. rRupKm is read
+    // as Rjb (the hazard engine's equal-area point proxy is horizontal-first —
+    // documented convention, same as the regional scorecard). variant is the
+    // paper's regional anelastic Dc3 adjustment frozen into the pack's
+    // gmpeTree; absent it, fall back to the active-region default (Japan
+    // callers never reach this branch — bssa14 is not in the Japan tree).
+    var bv = variant || Physics.activeBssa2014Variant();
+    if (imt === 'pga') {
+      return { median: Physics.pgaBssa2014(mw, rRupKm, vs30, rake, bv), sigmaLog10: Physics.bssa2014Sigma('pga', mw, rRupKm, vs30).sigmaT };
+    }
+    return { median: Physics.pgvBssa2014(mw, rRupKm, vs30, rake, bv), sigmaLog10: Physics.bssa2014Sigma('pgv', mw, rRupKm, vs30).sigmaT };
   }
   if (modelName === 'zhao2006') {
     var sig = Physics.zhao2006Sigma(imt === 'pgv' ? '1.00' : imt, srcType);
@@ -2509,9 +2742,20 @@ Physics._pshaBranchMotion = function(modelName, imt, srcType, mw, rRupKm, depthK
 };
 
 /** Logic-tree branches for an imt: spectral periods collapse to the zhao2006
- *  single model at weight 1 (si-mid/kanno publish no SA rows). */
-Physics._pshaBranchesFor = function(srcType, imt) {
+ *  single model at weight 1 (si-mid/kanno publish no SA rows). v6.7 D: a
+ *  source model may carry its own `gmpeTree` (regional packs — crustal
+ *  single-branch BSSA14 with a frozen regional variant, subduction classes
+ *  single-branch zhao2006); absent the field the Japan three-branch logic
+ *  tree applies (legacy byte-identical). Branch entries may carry a
+ *  `variant` (e.g. BSSA14 'lowQ'/'base') forwarded to the branch motion. */
+Physics._pshaBranchesFor = function(srcType, imt, sourceModel) {
   if (imt.slice(0, 3) === 'sa:') return [{ model: 'zhao2006', weight: 1 }];
+  var lt = sourceModel && sourceModel.gmpeTree;
+  if (lt && lt[srcType] && lt[srcType].length) {
+    var wsum = 0;
+    for (var i = 0; i < lt[srcType].length; i++) wsum += lt[srcType][i].weight;
+    return lt[srcType].map(function(b) { return { model: b.model, weight: b.weight / wsum, variant: b.variant }; });
+  }
   return Physics.logicTreeBranches(srcType);
 };
 
@@ -2558,10 +2802,10 @@ Physics.hazardCurve = function(sourceModel, site, imt, options) {
   var nCells = 0, nBins = 0;
 
   function accumulate(srcType, mag, rRupKm, depthKm, rate) {
-    var branches = Physics._pshaBranchesFor(srcType, imtKey);
+    var branches = Physics._pshaBranchesFor(srcType, imtKey, sourceModel);
     var rake = Physics.PSHA_CLASS_RAKE[srcType] || 0;
     for (var bi = 0; bi < branches.length; bi++) {
-      var motion = Physics._pshaBranchMotion(branches[bi].model, imtKey, srcType, mag, rRupKm, depthKm, vs30, rake);
+      var motion = Physics._pshaBranchMotion(branches[bi].model, imtKey, srcType, mag, rRupKm, depthKm, vs30, rake, branches[bi].variant);
       if (!motion || !(motion.median > 0)) continue;
       var medLog = Math.log10(motion.median);
       var sig = motion.sigmaLog10;
@@ -2641,7 +2885,7 @@ Physics.hazardCurve = function(sourceModel, site, imt, options) {
       mStep: mStep, maxDistKm: maxDistKm, vs30: vs30,
       singleModel: isSa,
       branchSets: ['crustal', 'interplate', 'intraslab'].map(function(cls) {
-        return Physics._pshaBranchesFor(cls, imtKey).map(function(b) { return b.model; });
+        return Physics._pshaBranchesFor(cls, imtKey, sourceModel).map(function(b) { return b.model; });
       })
     }
   };
@@ -2694,10 +2938,10 @@ Physics.hazardCurveTimeDependent = function(sourceModel, site, imt, options) {
   var nCells = 0, nBins = 0;
 
   function accumulate(srcType, mag, rRupKm, depthKm, rate) {
-    var branches = Physics._pshaBranchesFor(srcType, imtKey);
+    var branches = Physics._pshaBranchesFor(srcType, imtKey, sourceModel);
     var rake = Physics.PSHA_CLASS_RAKE[srcType] || 0;
     for (var bi = 0; bi < branches.length; bi++) {
-      var motion = Physics._pshaBranchMotion(branches[bi].model, imtKey, srcType, mag, rRupKm, depthKm, vs30, rake);
+      var motion = Physics._pshaBranchMotion(branches[bi].model, imtKey, srcType, mag, rRupKm, depthKm, vs30, rake, branches[bi].variant);
       if (!motion || !(motion.median > 0)) continue;
       var medLog = Math.log10(motion.median);
       var sig = motion.sigmaLog10;
@@ -2714,11 +2958,11 @@ Physics.hazardCurveTimeDependent = function(sourceModel, site, imt, options) {
   }
   /** Branch-mixture exceedance given ONE event (no rate): P(IM > x | rupture). */
   function exceedGivenEvent(srcType, mag, rRupKm, depthKm) {
-    var branches = Physics._pshaBranchesFor(srcType, imtKey);
+    var branches = Physics._pshaBranchesFor(srcType, imtKey, sourceModel);
     var rake = Physics.PSHA_CLASS_RAKE[srcType] || 0;
     var out = new Array(nIm).fill(0);
     for (var bi = 0; bi < branches.length; bi++) {
-      var motion = Physics._pshaBranchMotion(branches[bi].model, imtKey, srcType, mag, rRupKm, depthKm, vs30, rake);
+      var motion = Physics._pshaBranchMotion(branches[bi].model, imtKey, srcType, mag, rRupKm, depthKm, vs30, rake, branches[bi].variant);
       if (!motion || !(motion.median > 0)) continue;
       var medLog = Math.log10(motion.median);
       var sig = motion.sigmaLog10;
@@ -2961,10 +3205,10 @@ Physics.deaggregate = function(sourceModel, site, imt, options) {
   }
 
   function accumulate(srcType, mag, rRupKm, depthKm, rate, lat, lng) {
-    var branches = Physics._pshaBranchesFor(srcType, imtKey);
+    var branches = Physics._pshaBranchesFor(srcType, imtKey, sourceModel);
     var rake = Physics.PSHA_CLASS_RAKE[srcType] || 0;
     for (var bi = 0; bi < branches.length; bi++) {
-      var motion = Physics._pshaBranchMotion(branches[bi].model, imtKey, srcType, mag, rRupKm, depthKm, vs30, rake);
+      var motion = Physics._pshaBranchMotion(branches[bi].model, imtKey, srcType, mag, rRupKm, depthKm, vs30, rake, branches[bi].variant);
       if (!motion || !(motion.median > 0)) continue;
       var medLog = Math.log10(motion.median);
       var sig = motion.sigmaLog10;
@@ -3368,6 +3612,13 @@ Physics.getGmpSigma = function(gmpModel, srcType, imt, mw) {
     var s = Physics.ZHAO2006_SIGMA[srcType] || Physics.ZHAO2006_SIGMA['crustal'];
     return s.sigmaT;
   }
+  if (model === 'bssa14') {
+    // BSSA14 phi is magnitude/distance/site dependent (Eqs. 13-17); the
+    // single-value display sigma is evaluated at the documented
+    // representative condition (Rjb 60 km, Vs30 400 m/s) and the caller's
+    // magnitude. Station-aware sigma needs Physics.bssa2014Sigma directly.
+    return Physics.bssa2014Sigma(imt === 'pgv' ? 'pgv' : 'pga', mw == null ? 7.0 : mw, 60, 400).sigmaT;
+  }
   if (model === 'kanno2006') return Physics.KANNO2006_SIGMA.sigmaT;
   if (model === 'si-midorikawa') return Physics.SIMID_SIGMA.sigmaT;
   // log, log-ff, and fallback
@@ -3379,6 +3630,11 @@ Physics.getGmpSigmaComponents = function(gmpModel, srcType, imt, mw) {
   if (model === 'zhao2006') {
     var z = Physics.ZHAO2006_SIGMA[srcType] || Physics.ZHAO2006_SIGMA.crustal;
     return { model:model, tau:z.tau, phi:z.phi, sigmaT:z.sigmaT, unit:'log10' };
+  }
+  if (model === 'bssa14') {
+    // Representative condition (Rjb 60 km, Vs30 400 m/s) — see getGmpSigma.
+    var b = Physics.bssa2014Sigma(imt === 'pgv' ? 'pgv' : 'pga', mw == null ? 7.0 : mw, 60, 400);
+    return { model:model, tau:b.tau, phi:b.phi, sigmaT:b.sigmaT, unit:'log10' };
   }
   var fitted = Physics.GMPE_SIGMA_COMPONENTS[model];
   if (fitted) return { model:model, tau:fitted.tau, phi:fitted.phi, sigmaT:fitted.sigmaT, unit:'log10' };
@@ -3897,6 +4153,72 @@ Physics.rrupDistance = function(staLat, staLng, faultParams) {
   var dy = sStar * Math.cos(dipRad) - y_s;
   var dz = fp.depth + sStar * Math.sin(dipRad);
   return Math.sqrt(dx * dx + dy * dy + dz * dz);
+};
+
+// ================================================================
+//  Rjb (JOYNER-BOORE) DISTANCE — v6.7 NGA-West2 batch
+// ================================================================
+// Horizontal distance to the rupture's SURFACE PROJECTION (0 when the
+// station sits inside it). BSSA14's native metric; the planar branch mirrors
+// the rrupDistance fault frame (x along strike, y along dip, top/bottom
+// down-dip offsets times cos(dip) become the projected strip), and the
+// imported-finite-fault branch takes the min over patch surface-projection
+// quads in a station-local equirectangular km frame.
+function _rjbLocalKm(refLat, refLng, lat, lng) {
+  var cosLat = Math.max(0.2, Math.cos(refLat * Math.PI / 180));
+  return [(lng - refLng) * 111.32 * cosLat, (lat - refLat) * 111.32];
+}
+function _rjbPointSegSq(px, py, ax, ay, bx, by) {
+  var dx = bx - ax, dy = by - ay, den = dx * dx + dy * dy;
+  var t = den > 0 ? Math.max(0, Math.min(1, -((ax - px) * dx + (ay - py) * dy) / den)) : 0;
+  var cx = ax + t * dx - px, cy = ay + t * dy - py;
+  return cx * cx + cy * cy;
+}
+Physics.rjbDistance = function(staLat, staLng, faultParams) {
+  var fp = faultParams || {};
+  if (fp.kind === 'imported-finite-fault' && fp.subs && fp.subs.length) {
+    var bestSq = Infinity;
+    for (var i = 0; i < fp.subs.length; i++) {
+      var corners = fp.subs[i].corners;
+      if (!corners || corners.length < 4) continue;
+      // station-local km frame; each patch quad projected to the surface
+      var pts = [];
+      for (var k = 0; k < 4; k++) pts.push(_rjbLocalKm(staLat, staLng, corners[k].lat, corners[k].lng));
+      var pos = 0, neg = 0;
+      for (var e = 0; e < 4; e++) {
+        var a = pts[e], b = pts[(e + 1) % 4];
+        var cross = (b[0] - a[0]) * -a[1] - (b[1] - a[1]) * -a[0];
+        if (cross > 0) pos++; else if (cross < 0) neg++;
+      }
+      if (pos === 0 || neg === 0) return 0; // inside this patch's projection
+      for (var e2 = 0; e2 < 4; e2++) {
+        bestSq = Math.min(bestSq, _rjbPointSegSq(0, 0, pts[e2][0], pts[e2][1], pts[(e2 + 1) % 4][0], pts[(e2 + 1) % 4][1]));
+      }
+    }
+    if (isFinite(bestSq)) return Math.sqrt(bestSq);
+    return Physics.haversineDist(fp.lat, fp.lng, staLat, staLng);
+  }
+  var distKm = Physics.haversineDist(fp.lat, fp.lng, staLat, staLng);
+  var dLat = (staLat - fp.lat) * Math.PI / 180;
+  var dLng = (staLng - fp.lng) * Math.PI / 180;
+  var y = Math.sin(dLng) * Math.cos(staLat * Math.PI / 180);
+  var x = Math.cos(fp.lat * Math.PI / 180) * Math.sin(staLat * Math.PI / 180)
+        - Math.sin(fp.lat * Math.PI / 180) * Math.cos(staLat * Math.PI / 180) * Math.cos(dLng);
+  var bearing = Math.atan2(y, x);
+  var srRad = fp.strikeDeg * Math.PI / 180;
+  var dipRad = fp.dipDeg * Math.PI / 180;
+  var xS = distKm * Math.cos(bearing - srRad);
+  var yS = distKm * Math.sin(bearing - srRad);
+  var topOffset = fp.topOffset != null ? fp.topOffset
+    : -(fp.hypocenterFrac != null ? fp.hypocenterFrac : 0.35) * fp.W;
+  var bottomOffset = fp.bottomOffset != null ? fp.bottomOffset : topOffset + fp.W;
+  var cosDip = Math.cos(dipRad);
+  var yLo = Math.min(topOffset, bottomOffset) * cosDip;
+  var yHi = Math.max(topOffset, bottomOffset) * cosDip;
+  var xStar = Math.max(-fp.L / 2, Math.min(fp.L / 2, xS));
+  var yStar = Math.max(yLo, Math.min(yHi, yS));
+  var ddx = xStar - xS, ddy = yStar - yS;
+  return Math.sqrt(ddx * ddx + ddy * ddy);
 };
 
 // ================================================================
@@ -4930,7 +5252,20 @@ Physics.predictStationMotion = function(context, station, overrides) {
   // would double-count site response.
   function evaluateModel(m) {
     var usesRrup = !!geometry && (m === 'si-midorikawa' || m === 'log-ff');
-    var distanceKm = usesRrup ? Physics.rrupDistance(station.lat, station.lng, geometry) : rhypoKm;
+    // BSSA14 is calibrated on Rjb: point sources take the epicentral
+    // (horizontal) distance, finite faults the distance to the rupture's
+    // surface projection (rjbDistance), and the patch composite the
+    // horizontal distance to each patch centroid. Depth enters only via the
+    // model's h pseudo-depth (documented on the model block). The check
+    // resolves the auto route so region-mode 'auto' calls (crustal -> bssa14
+    // inside calcPGA) use Rjb semantics too; usesRrup and the site-term
+    // convention stay keyed on the LITERAL model, keeping the Japan auto path
+    // byte-identical (reference-760 + external site amp for auto-routed
+    // native-Vs30 models is the established convention).
+    var usesRjb = (m === 'bssa14') ||
+      (m === 'auto' && Physics.resolveGmpModel('auto', source.sourceType, source.mw) === 'bssa14');
+    var distanceKm = usesRrup ? Physics.rrupDistance(station.lat, station.lng, geometry)
+      : (usesRjb ? (geometry ? Physics.rjbDistance(station.lat, station.lng, geometry) : horizontalKm) : rhypoKm);
 
     // Site-term convention (matches tools/scorecard-strong-motion.js predictStation
     // and the app forecast path _predictPrefectureShindosFor): zhao2006/kanno2006
@@ -4938,7 +5273,9 @@ Physics.predictStationMotion = function(context, station, overrides) {
     // into the GMPE and NO external amplification is applied on top. The
     // reference-site models (si-midorikawa / log) predict on a 760 m/s reference
     // and take the external vs30Amplification factor below.
-    var nativeVsModel = (m === 'zhao2006' || m === 'kanno2006');
+    // bssa14 is likewise native-Vs30 (its linear + nonlinear site terms are
+    // inside the GMPE, calibrated against the NGA-West2 reference 760 m/s).
+    var nativeVsModel = (m === 'zhao2006' || m === 'kanno2006' || m === 'bssa14');
     var gmpeVs30 = nativeVsModel ? vs30 : (context.gmpeVs30 || 760);
 
     function pointPga(distance) {
@@ -4959,8 +5296,9 @@ Physics.predictStationMotion = function(context, station, overrides) {
         var patchHorizontal = Physics.haversineDist(station.lat, station.lng, sub.lat, sub.lng);
         var patchDistance = Math.sqrt(patchHorizontal * patchHorizontal + sub.depth * sub.depth);
         var weight = Math.sqrt(Math.max(0, Number(sub.momentFraction) || 0));
-        var patchPga = pointPga(patchDistance) * weight;
-        var patchPgv = pointPgv(patchDistance) * weight;
+        var patchEvalDist = usesRjb ? patchHorizontal : patchDistance;
+        var patchPga = pointPga(patchEvalDist) * weight;
+        var patchPgv = pointPgv(patchEvalDist) * weight;
         pgaSquares += patchPga * patchPga;
         pgvSquares += patchPgv * patchPgv;
         patches.push({source:sub, horizontalKm:patchHorizontal, distanceKm:patchDistance,
@@ -4979,8 +5317,9 @@ Physics.predictStationMotion = function(context, station, overrides) {
         var subF = geometry.subs[ifr];
         var phF = Physics.haversineDist(station.lat, station.lng, subF.lat, subF.lng);
         var pdF = Math.sqrt(phF * phF + subF.depth * subF.depth);
+        var evalDistF = usesRjb ? phF : pdF;
         var wF = Math.sqrt(Math.max(0, Number(subF.momentFraction) || 0));
-        var pF = pointPga(pdF) * wF, vF = pointPgv(pdF) * wF;
+        var pF = pointPga(evalDistF) * wF, vF = pointPgv(evalDistF) * wF;
         pgaSqFar += pF * pF; pgvSqFar += vF * vF;
       }
       var basePga = pointPga(cutoffKm), basePgv = pointPgv(cutoffKm);
@@ -5030,7 +5369,7 @@ Physics.predictStationMotion = function(context, station, overrides) {
         opts.siteHardMin == null ? 1 : Number(opts.siteHardMin), opts.soilProvinces || Physics.SOIL_PROVINCES);
     }
     return {
-      model:m, usesRrup:usesRrup, distanceKm:distanceKm, patches:patches,
+      model:m, usesRrup:usesRrup, usesRjb:usesRjb, distanceKm:distanceKm, patches:patches,
       referencePga:referencePga, referencePgv:referencePgv,
       pointPga:pointPga(distanceKm), pointPgv:pointPgv(distanceKm),
       sitePga:sitePga, sitePgv:sitePgv
@@ -5090,7 +5429,7 @@ Physics.predictStationMotion = function(context, station, overrides) {
   }
   var intensity = Physics.calcJmaIntensity(pga, pgv);
   var out = {
-    model:model, distanceMetric:res.usesRrup ? 'Rrup' : 'Rhypo', distanceKm:res.distanceKm,
+    model:model, distanceMetric:res.usesRrup ? 'Rrup' : (res.usesRjb ? 'Rjb' : 'Rhypo'), distanceKm:res.distanceKm,
     horizontalKm:horizontalKm, rhypoKm:rhypoKm, referencePga:res.referencePga,
     referencePgv:res.referencePgv, pointPga:res.pointPga, pointPgv:res.pointPgv,
     pga:pga, pgv:pgv, intensity:intensity, shindo:Physics.intensityToShindo(intensity),

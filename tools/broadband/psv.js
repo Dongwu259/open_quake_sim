@@ -1069,6 +1069,61 @@ function complianceAt(stack, omega, kInvM, zKm, params) {
   return psvSurfaceCompliance(stack, omega, kInvM, zKm, params);
 }
 
+/** Two-tier precision gate (params.twoTierQd, 2026-09-28) — the v16/P1
+ *  registered cure ("双链打底 + detM 洼邻域大浮点替换"). The double chain
+ *  sits on its own ~1e-16 detM subtraction floor inside the detM dips (the
+ *  Rayleigh-resonance family — measured 6000x off at HALF@f1.2 where the
+ *  bigfloat chain and the closed-form BVP agree to all printed digits); the
+ *  QD chain is exact there but ~0.07-0.21 s/triple, unaffordable band-wide
+ *  (the CS v4 NOT-EXECUTABLE verdict). The tier gate re-aims the v13 1-ulp
+ *  discriminator AS the router: a true resonance moves ~(u/gamma)^2 ≈ 0
+ *  under a 1-ulp k shift, while the chain's cancellation floor moves O(1)
+ *  (v13: -89%..+1203% measured) — so a >tol relative movement of the C
+ *  entries flags the sample for bigfloat re-evaluation. Two ulp offsets
+ *  (u, 7u) de-flake single-point luck (measured: one chaotic-zone sample at
+ *  HALF@f1.2 k=1.78/km probed stable once at 0.9 double-vs-QD divergence).
+ *
+ *  Relevance clause (measured on the same smoke scan): the e^{-k*zs}
+ *  evanescent tail past the halfspace S branch shows MILD floor jitter
+ *  (move ~1e-4) at magnitudes <=1e-25 — 15 orders below the weight band,
+ *  dead weight for the integral, and escalating it would waste the QD
+ *  budget. The corrupted dip samples themselves read corrupted-SMALL on the
+ *  double chain (1e-13 where QD carries 1e-9 signal), so the gate must not
+ *  trust the probed magnitude either. Cutoff instead: kRel =
+ *  omega/vs_halfspace + ln(1/relFloor)/zs — chaos beyond it is skipped.
+ *  cRef: the triple's own C at kInvM (saves one evaluation). Returns true
+ *  when the sample must be re-run on the QD chain. */
+function psvTwoTierChaos(stack, omega, kInvM, params, cRef) {
+  var st = params._twoTierStats;
+  if (st) st.probed++;
+  var tol = params.twoTierUlpTol || 1e-6;
+  var a = cRef || complianceAt(stack, omega, kInvM, params.zSourceKm, params);
+  if (!a) { if (st) st.escalated++; return true; }
+  var u = Math.pow(2, Math.floor(Math.log2(Math.abs(kInvM))) - 52); // 1 ulp of kInvM
+  var num = 0, den = 0;
+  for (var off = 0; off < 2; off++) {
+    var b = complianceAt(stack, omega, kInvM + (off ? 7 : 1) * u, params.zSourceKm, params);
+    if (!b) { if (st) st.escalated++; return true; } // solve failure: escalate
+    for (var i = 0; i < 2; i++) for (var j = 0; j < 2; j++) {
+      var d = cabs(csub(a[i][j], b[i][j]));
+      if (d > num) num = d;
+      var m = cabs(a[i][j]);
+      if (m > den) den = m;
+    }
+  }
+  if (num / Math.max(den, 1e-300) <= tol) return false;
+  // relevance gate (see the block comment): chaos in the dead evanescent
+  // tail does not earn the QD budget
+  var hsL = wvHalfspace(stack), zs = params.zSourceKm;
+  if (hsL && hsL.vsKmS > 0 && zs > 0) {
+    var relFloor = params.twoTierRelFloor || 1e-6;
+    var kRel = omega / (hsL.vsKmS * 1000) + Math.log(1 / relFloor) / (zs * 1000); // 1/m
+    if (kInvM > kRel) { if (st) st.skippedTail = (st.skippedTail || 0) + 1; return false; }
+  }
+  if (st) st.escalated++;
+  return true;
+}
+
 /** Compliance triple (C at zs, Cup/Cdn at zs -/+ dhM) with the per-call
  *  cache contract of the original inline loop (key omega|zs|dhM|k).
  *  fullSpace mode: params.fullSpace swaps the layered free-surface solve
@@ -1255,6 +1310,23 @@ function psvIntegrandAtK(stack, omega, kInvM, params) {
     params = Object.assign({}, params, { qP: params.qShear });
   }
   var ent = complianceTriple(stack, omega, kInvM, params);
+  // params.twoTierQd (2026-09-28): cheap chain by default, bigfloat only
+  // where the sample's own 1-ulp probe shows rounding chaos (or the cheap
+  // solve failed outright — the v15 QD field was measured solvable where the
+  // double crest guard returned null). Fresh params clone WITHOUT the caller
+  // cache: a cached double triple must never be served where QD was needed,
+  // and the QD triple must not poison the double cache.
+  if (params.twoTierQd && !params.qdCompliance && !params.ddCompliance &&
+      !params.closedFormHalfspace && !params.fullSpace) {
+    var broken = !(ent && ent.C && ent.Cup && ent.Cdn);
+    if (broken || psvTwoTierChaos(stack, omega, kInvM, params, ent && ent.C)) {
+      if (broken && params._twoTierStats) params._twoTierStats.escalated++;
+      var qdParams = Object.assign({}, params, { qdCompliance: 1 });
+      delete qdParams.cache;
+      var entQd = complianceTriple(stack, omega, kInvM, qdParams);
+      if (entQd && entQd.C) ent = entQd; // QD failure keeps the double ent (honest degrade)
+    }
+  }
   if (!ent.C || !ent.Cup || !ent.Cdn) return null;
   var T = tensorTerms(params);
   // adaptive depth stencil (v10): the FD divisor must match the stencil the
@@ -1913,6 +1985,7 @@ module.exports = {
   psvIntegrandAtK: psvIntegrandAtK, psvModalPoles: psvModalPoles,
   psvBranchPoints: psvBranchPoints, psvBranchModelFit: psvBranchModelFit,
   psvSchurCompliance: psvSchurCompliance, complianceAt: complianceAt,
+  psvTwoTierChaos: psvTwoTierChaos,
   subdivideCap: subdivideCap,
   clog: clog, poleChannelLS: poleChannelLS, nmMin2: nmMin2, psvPoleModelFit: psvPoleModelFit,
   psvPoleModelSet: psvPoleModelSet

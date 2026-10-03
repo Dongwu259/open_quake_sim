@@ -9,13 +9,16 @@
 //   - SCEDC       service.scedc.caltech.edu  (Caltech/USGS SCSN + CSMIP mirrors)
 //   - NCEDC       service.ncedc.org          (USGS NCSN + BSL mirrors)
 //   - EarthScope  service.earthscope.org     (global backbone IU/II/IC/US/IW)
+// v6.7 regions: taiwan (EarthScope TW = BATS broadband backbone — the only
+//   open-FDSN Taiwan network; CWA's dense nets are not open-FDSN, honest
+//   sparse note in the pack) and newzealand (GeoNet national network NZ).
 //
 // Operational filter per source (FDSN text format col 8 = EndTime):
 //   blank end  = open epoch (SCEDC returns the current epoch set this way)
 //   end >= '2500' = NCEDC encodes open epochs as 3000-01-01
 // Dedupe key = network|station (priority: SCEDC > NCEDC > EarthScope).
 //
-// Usage: node tools/fetch-region-stations.js [--region california|italy|chile]
+// Usage: node tools/fetch-region-stations.js [--region california|italy|chile|taiwan|newzealand]
 //   (writes public/geojson/region-stations-<region>.json)
 'use strict';
 const https = require('https');
@@ -45,6 +48,28 @@ const REGION_DEFS = {
     bbox: { minlat: -56.0, maxlat: -17.0, minlon: -76.0, maxlon: -66.0 },
     sources: [
       { name: 'EarthScope (CSN national network C1 + backbone IU/II/IW)', priority: 1, url: (b) => `https://service.earthscope.org/fdsnws/station/1/query?minlat=${b.minlat}&maxlat=${b.maxlat}&minlon=${b.minlon}&maxlon=${b.maxlon}&net=C1,${esNets}&level=station&format=text` },
+    ],
+  },
+  taiwan: {
+    bbox: { minlat: 21.5, maxlat: 25.6, minlon: 118.8, maxlon: 122.6 },
+    sources: [
+      // BATS (Broadband Array in Taiwan for Seismology, Academia Sinica/CWA)
+      // is the only open-FDSN Taiwan network (~20 operational broadband
+      // stations — sparse vs Japan/California, honestly noted in the pack).
+      // The SY network is a synthetic duplicate of TW (site names carry
+      // "synthetic") and is deliberately excluded.
+      { name: 'EarthScope (BATS Broadband Array in Taiwan for Seismology, net TW)', priority: 1, url: (b) => `https://service.earthscope.org/fdsnws/station/1/query?minlat=${b.minlat}&maxlat=${b.maxlat}&minlon=${b.minlon}&maxlon=${b.maxlon}&net=TW&level=station&format=text` },
+      { name: `EarthScope (global permanent backbone ${esNets})`, priority: 2, url: (b) => `https://service.earthscope.org/fdsnws/station/1/query?minlat=${b.minlat}&maxlat=${b.maxlat}&minlon=${b.minlon}&maxlon=${b.maxlon}&net=${esNets}&level=station&format=text` },
+    ],
+  },
+  newzealand: {
+    bbox: { minlat: -48.0, maxlat: -33.5, minlon: 165.0, maxlon: 180.0 },
+    sources: [
+      // GeoNet national network (GNS Science / MBIE): broadband + strong
+      // motion sites under one net=NZ code. Chatham Islands stations sit at
+      // ~-176.5° and fall outside the maxlon=180 window by design.
+      { name: 'GeoNet (GNS Science/MBIE New Zealand national network, net NZ)', priority: 1, url: (b) => `https://service.geonet.org.nz/fdsnws/station/1/query?minlat=${b.minlat}&maxlat=${b.maxlat}&minlon=${b.minlon}&maxlon=${b.maxlon}&net=NZ&level=station&format=text` },
+      { name: `EarthScope (global permanent backbone ${esNets})`, priority: 2, url: (b) => `https://service.earthscope.org/fdsnws/station/1/query?minlat=${b.minlat}&maxlat=${b.maxlat}&minlon=${b.minlon}&maxlon=${b.maxlon}&net=${esNets}&level=station&format=text` },
     ],
   },
 };

@@ -1,0 +1,196 @@
+{
+  "schema": "quake-sim-comcat-presets-v1",
+  "region": "newzealand",
+  "generatedAt": "2026-10-02T12:26:01.960Z",
+  "provenance": "USGS ComCat fdsnws event API + moment-tensor products (GCMT family preferred by source/preferredWeight); public domain",
+  "presets": [
+    {
+      "id": "nz-2010-darfield",
+      "label": "2010 Darfield M7 (NZ)",
+      "sourceType": "crustal",
+      "previous": {
+        "lat": -43.522,
+        "lng": 171.83,
+        "mag": 7,
+        "depth": 12,
+        "strike": 88,
+        "dip": 89,
+        "rake": 172
+      },
+      "resolved": true,
+      "comcatId": "usp000hk46",
+      "eventUrl": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000hk46",
+      "queryUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2010-09-02T10:35:00&endtime=2010-09-04T22:35:00&minlatitude=-44.722&maxlatitude=-42.322&minlongitude=170.175&maxlongitude=173.485&minmagnitude=5.5&orderby=time",
+      "detailUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=usp000hk46",
+      "match": {
+        "dtHours": 0.01,
+        "distKm": 0,
+        "dMag": 0
+      },
+      "comcat": {
+        "mag": 7,
+        "magType": "mwc",
+        "lat": -43.522,
+        "lng": 171.83,
+        "depthKm": 12,
+        "originTimeUtc": "2010-09-03T16:35:47.770Z"
+      },
+      "mechanism": {
+        "source": "us/pde20100903163547770_12_C_GCMT",
+        "productType": "moment-tensor",
+        "strikeDeg": 88,
+        "dipDeg": 89,
+        "rakeDeg": 172,
+        "alternatePlane": {
+          "strikeDeg": 178,
+          "dipDeg": 82,
+          "rakeDeg": 1
+        },
+        "selection": "nearest-current-preset-plane",
+        "derivedMagnitude": null,
+        "derivedDepthKm": 12
+      }
+    },
+    {
+      "id": "nz-2011-christchurch",
+      "label": "2011 Christchurch M6.1 (NZ)",
+      "sourceType": "crustal",
+      "previous": {
+        "lat": -43.583,
+        "lng": 172.68,
+        "mag": 6.1,
+        "depth": 5.9,
+        "strike": 59,
+        "dip": 59,
+        "rake": 147
+      },
+      "resolved": true,
+      "comcatId": "usp000huvq",
+      "eventUrl": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000huvq",
+      "queryUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2011-02-20T17:51:00&endtime=2011-02-23T05:51:00&minlatitude=-44.783&maxlatitude=-42.383&minlongitude=171.023&maxlongitude=174.337&minmagnitude=4.6&orderby=time",
+      "detailUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=usp000huvq",
+      "match": {
+        "dtHours": 0.01,
+        "distKm": 0,
+        "dMag": 0
+      },
+      "comcat": {
+        "mag": 6.1,
+        "magType": "mww",
+        "lat": -43.583,
+        "lng": 172.68,
+        "depthKm": 5.9,
+        "originTimeUtc": "2011-02-21T23:51:42.350Z"
+      },
+      "mechanism": {
+        "source": "us/pde20110221235142350_5_C_GCMT",
+        "productType": "moment-tensor",
+        "strikeDeg": 59,
+        "dipDeg": 59,
+        "rakeDeg": 147,
+        "alternatePlane": {
+          "strikeDeg": 168,
+          "dipDeg": 62,
+          "rakeDeg": 36
+        },
+        "selection": "nearest-current-preset-plane",
+        "derivedMagnitude": null,
+        "derivedDepthKm": 12
+      }
+    },
+    {
+      "id": "nz-2016-kaikoura",
+      "label": "2016 Kaikōura M7.8 (NZ)",
+      "sourceType": "crustal",
+      "previous": {
+        "lat": -42.737,
+        "lng": 173.054,
+        "mag": 7.8,
+        "depth": 15.1,
+        "strike": 219,
+        "dip": 38,
+        "rake": 128
+      },
+      "resolved": true,
+      "comcatId": "us1000778i",
+      "eventUrl": "https://earthquake.usgs.gov/earthquakes/eventpage/us1000778i",
+      "queryUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2016-11-12T05:02:00&endtime=2016-11-14T17:02:00&minlatitude=-43.937&maxlatitude=-41.537&minlongitude=171.420&maxlongitude=174.688&minmagnitude=6.3&orderby=time",
+      "detailUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=us1000778i",
+      "match": {
+        "dtHours": 0.02,
+        "distKm": 0,
+        "dMag": 0
+      },
+      "comcat": {
+        "mag": 7.8,
+        "magType": "mww",
+        "lat": -42.7373,
+        "lng": 173.054,
+        "depthKm": 15.11,
+        "originTimeUtc": "2016-11-13T11:02:56.340Z"
+      },
+      "mechanism": {
+        "source": "us/us_1000778i_mww",
+        "productType": "moment-tensor",
+        "strikeDeg": 219,
+        "dipDeg": 38,
+        "rakeDeg": 128,
+        "alternatePlane": {
+          "strikeDeg": 354,
+          "dipDeg": 61,
+          "rakeDeg": 64
+        },
+        "selection": "nearest-current-preset-plane",
+        "derivedMagnitude": 7.8,
+        "derivedDepthKm": 15.5
+      }
+    },
+    {
+      "id": "nz-2009-dusky",
+      "label": "2009 Dusky Sound M7.8 (NZ)",
+      "sourceType": "interplate",
+      "previous": {
+        "lat": -45.762,
+        "lng": 166.562,
+        "mag": 7.8,
+        "depth": 12,
+        "strike": 25,
+        "dip": 26,
+        "rake": 138
+      },
+      "resolved": true,
+      "comcatId": "usp000gz8j",
+      "eventUrl": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000gz8j",
+      "queryUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2009-07-14T03:22:00&endtime=2009-07-16T15:22:00&minlatitude=-46.962&maxlatitude=-44.562&minlongitude=164.842&maxlongitude=168.282&minmagnitude=6.3&orderby=time",
+      "detailUrl": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventid=usp000gz8j",
+      "match": {
+        "dtHours": 0.01,
+        "distKm": 0,
+        "dMag": 0
+      },
+      "comcat": {
+        "mag": 7.8,
+        "magType": "mwc",
+        "lat": -45.762,
+        "lng": 166.562,
+        "depthKm": 12,
+        "originTimeUtc": "2009-07-15T09:22:29.030Z"
+      },
+      "mechanism": {
+        "source": "us/pde20090715092229030_12_C_GCMT",
+        "productType": "moment-tensor",
+        "strikeDeg": 25,
+        "dipDeg": 26,
+        "rakeDeg": 138,
+        "alternatePlane": {
+          "strikeDeg": 154,
+          "dipDeg": 73,
+          "rakeDeg": 70
+        },
+        "selection": "nearest-current-preset-plane",
+        "derivedMagnitude": null,
+        "derivedDepthKm": 23.5
+      }
+    }
+  ]
+}

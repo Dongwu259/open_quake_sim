@@ -1,0 +1,119 @@
+{
+  "schema": "quake-sim-tsunami-predictions-v1",
+  "generatedAt": "2026-10-03T03:04:42.308Z",
+  "events": [
+    {
+      "id": "maule2010",
+      "grid": "cl-megathrust",
+      "nested": false,
+      "horizonS": 5400,
+      "solverSeconds": 64.6,
+      "model": "synthetic-pack-preset-mechanism",
+      "observations": [
+        {
+          "id": "maule2010-loanco",
+          "peakHeightM": 9.569036092990773,
+          "arrivalTime": "2010-02-27T06:35:14.000Z"
+        },
+        {
+          "id": "maule2010-curanipe",
+          "peakHeightM": 12.082222703658138,
+          "arrivalTime": "2010-02-27T06:35:14.000Z"
+        },
+        {
+          "id": "maule2010-dichato",
+          "peakHeightM": 11.569267340587864,
+          "arrivalTime": "2010-02-27T06:35:14.000Z"
+        },
+        {
+          "id": "maule2010-puerto-saavedra",
+          "peakHeightM": 0.7280794227183072,
+          "arrivalTime": "2010-02-27T06:35:14.000Z"
+        },
+        {
+          "id": "maule2010-llolleo",
+          "peakHeightM": 1.4869656419454118,
+          "arrivalTime": "2010-02-27T06:35:14.000Z"
+        },
+        {
+          "id": "maule2010-cobquecura",
+          "peakHeightM": 13.901684755026121,
+          "arrivalTime": "2010-02-27T06:35:14.000Z"
+        },
+        {
+          "id": "maule2010-valparaiso",
+          "peakHeightM": 1.3046026583977295,
+          "arrivalTime": "2010-02-27T06:35:14.000Z"
+        }
+      ]
+    },
+    {
+      "id": "illapel2015",
+      "grid": "cl-megathrust",
+      "nested": false,
+      "horizonS": 5400,
+      "solverSeconds": 73.4,
+      "model": "synthetic-pack-preset-mechanism",
+      "observations": [
+        {
+          "id": "illapel2015-coquimbo-gauge",
+          "peakHeightM": 0.5155645834525566,
+          "arrivalTime": "2015-09-16T22:55:32.000Z"
+        },
+        {
+          "id": "illapel2015-pichidangui-gauge",
+          "peakHeightM": 5.363290585021464,
+          "arrivalTime": "2015-09-16T22:55:32.000Z"
+        },
+        {
+          "id": "illapel2015-coquimbo-bay-inner",
+          "peakHeightM": 0.5155645834525566,
+          "arrivalTime": "2015-09-16T22:55:32.000Z"
+        }
+      ]
+    },
+    {
+      "id": "kaikoura2016",
+      "grid": "nz-aotearoa",
+      "nested": false,
+      "horizonS": 7200,
+      "solverSeconds": 98.9,
+      "model": "synthetic-pack-preset-mechanism",
+      "observations": [
+        {
+          "id": "kaikoura2016-kaikoura-gauge",
+          "peakHeightM": 0.15069121342595185,
+          "arrivalTime": "2016-11-13T11:03:56.000Z"
+        },
+        {
+          "id": "kaikoura2016-sumner-gauge",
+          "peakHeightM": 0.06997010545622677,
+          "arrivalTime": "2016-11-13T11:03:56.000Z"
+        },
+        {
+          "id": "kaikoura2016-wellington-gauge",
+          "peakHeightM": 0.01225557419829769
+        },
+        {
+          "id": "kaikoura2016-castlepoint-gauge",
+          "peakHeightM": 0.0028545410401738676
+        },
+        {
+          "id": "kaikoura2016-goose-bay",
+          "peakHeightM": 0.07979550202432503,
+          "arrivalTime": "2016-11-13T11:03:56.000Z"
+        },
+        {
+          "id": "kaikoura2016-oaro",
+          "peakHeightM": 0.615431476952328,
+          "arrivalTime": "2016-11-13T11:03:56.000Z"
+        },
+        {
+          "id": "kaikoura2016-little-pigeon-bay",
+          "peakHeightM": 0.0782455107007049,
+          "arrivalTime": "2016-11-13T11:03:56.000Z"
+        }
+      ]
+    }
+  ]
+}

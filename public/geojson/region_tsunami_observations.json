@@ -1,0 +1,290 @@
+{
+ "_schema": "quake-sim-tsunami-observations-v1",
+ "version": "2026-10-01-regional-v1",
+ "quality": {
+  "frozen": true,
+  "researchReady": true,
+  "note": "Regional curated tsunami observations v1 (v6.7 C batch): three events inside bundled regional bathymetry grids — 2010 Maule (cl-megathrust), 2015 Illapel (cl-megathrust), 2016 Kaikōura (nz-aotearoa). NCEI/ngdc.noaa.gov and PTWC are unreachable from the build network (probe 2026-10-01: 000), so every value is curated from open-access primary documents listed in each event's sources and read directly at curation time: Vargas et al. 2011 (Andean Geology open HTML), GEER Section 14 report PDF, Heidarzadeh & Satake 2017 (open CC-BY PDF), Satake & Heidarzadeh 2016 review (open PDF), Omira et al. 2016 (Coast. Eng. J., abstract verified), the GeoNet event story page and the NOAA/PMEL NCTR event page. Range values are frozen at their range midpoint with the range kept in the record note (e.g. Dichato 6-8 m -> 7 m). Tide-gauge values are zero-to-crest amplitudes as published; runup values are field-survey maxima — the two types are NOT interchangeable and are scored per-type. forecastAreas are intentionally absent: regional warning-area classification scoring stays a Japan-only scorecard for now (the regional area registry is an app-side construct, not a frozen observation set). 1960 Valdivia / 1908 Messina / California far-field events are out of scope of the regional grids and not curated."
+ },
+ "events": [
+  {
+   "id": "maule2010",
+   "region": "chile",
+   "regionalGrid": "cl-megathrust",
+   "originTime": "2010-02-27T06:34:14Z",
+   "mw": 8.8,
+   "lat": -36.122,
+   "lng": -72.898,
+   "depthKm": 22.9,
+   "sourceUrl": "https://earthquake.usgs.gov/earthquakes/eventpage/official20100227063411530_30",
+   "sources": [
+    {
+     "id": "vargas2011",
+     "url": "http://www.andeangeology.cl/index.php/revista1/article/view/V38n1-a12/html",
+     "citation": "Vargas, G., Farías, M., Carretier, S., Tassara, A., Baize, S., Melnick, D. (2011). Coastal uplift and tsunami effects associated to the 2010 Mw8.8 Maule earthquake in Central Chile. Andean Geology 38(1): 219-238 (open access HTML, read 2026-10-01)"
+    },
+    {
+     "id": "geer2010",
+     "url": "https://geerassociation.org/components/com_geer_reports/geerfiles/Maule_Chile_2010/Ver2_Section_14_UrbanPlanVer3_051710.pdf",
+     "citation": "GEER Association Report (2010). The 27 February 2010 Chile Earthquake, Section 14: Urban Planning (tsunami wave-height compilation from field reconnaissance)"
+    },
+    {
+     "id": "nctr2010",
+     "url": "https://nctr.pmel.noaa.gov/chile20100227/",
+     "citation": "NOAA/PMEL Center for Tsunami Research event page: February 27, 2010 Chile tsunami (Valparaiso first-arrival note)"
+    }
+   ],
+   "observations": [
+    {
+     "id": "maule2010-loanco",
+     "name": "Loanco",
+     "type": "runup",
+     "lat": -35.55,
+     "lng": -72.633,
+     "peakHeightM": 14,
+     "sourceId": "vargas2011",
+     "quality": "direct",
+     "record": { "doc": "vargas2011", "note": "highest measured tsunami height of the survey; conclusions: up to 14 m along the Loanco (35.58S)-Pelluhue (35.86S) coast" }
+    },
+    {
+     "id": "maule2010-curanipe",
+     "name": "Curanipe",
+     "type": "runup",
+     "lat": -35.844,
+     "lng": -72.639,
+     "peakHeightM": 3.5,
+     "sourceId": "geer2010",
+     "quality": "direct",
+     "record": { "doc": "geer2010", "note": "Talcahuano/Constitucion/Curanipe wave heights reported as 3-4 m; frozen at range midpoint 3.5 m. Photo-site coordinates S35.843823 W72.6385" }
+    },
+    {
+     "id": "maule2010-dichato",
+     "name": "Dichato",
+     "type": "runup",
+     "lat": -36.55,
+     "lng": -72.933,
+     "peakHeightM": 7,
+     "sourceId": "vargas2011",
+     "quality": "direct",
+     "record": { "doc": "vargas2011", "note": "Dichato-Talcahuano area values around 6-8 m; frozen at range midpoint 7 m" }
+    },
+    {
+     "id": "maule2010-puerto-saavedra",
+     "name": "Puerto Saavedra (outer coast)",
+     "type": "runup",
+     "lat": -38.783,
+     "lng": -73.397,
+     "peakHeightM": 7,
+     "sourceId": "vargas2011",
+     "quality": "direct",
+     "record": { "doc": "vargas2011", "note": "marks of impacted vegetation / eroded dunes evidencing 7 m at the western (outer) coast of the littoral bar; Tirúa-Puerto Saavedra values around 6-8 m" }
+    },
+    {
+     "id": "maule2010-llolleo",
+     "name": "Llolleo",
+     "type": "runup",
+     "lat": -33.617,
+     "lng": -71.633,
+     "peakHeightM": 5.5,
+     "sourceId": "vargas2011",
+     "quality": "direct",
+     "record": { "doc": "vargas2011", "note": "southern lagoon of Llolleo reached heights up to 5.5 m with total destruction of modest dwellings" }
+    },
+    {
+     "id": "maule2010-cobquecura",
+     "name": "Cobquecura",
+     "type": "runup",
+     "lat": -36.133,
+     "lng": -72.783,
+     "peakHeightM": 3,
+     "sourceId": "vargas2011",
+     "quality": "direct",
+     "record": { "doc": "vargas2011", "note": "in front of the epicenter, heights diminished to 4-2 m; frozen at range midpoint 3 m" }
+    },
+    {
+     "id": "maule2010-valparaiso",
+     "name": "Valparaíso",
+     "type": "tide-gauge",
+     "lat": -33.045,
+     "lng": -71.62,
+     "peakHeightM": 1.5,
+     "verticalDatum": "not stated in source (town-level wave-height compilation)",
+     "sourceId": "geer2010",
+     "quality": "direct",
+     "record": { "doc": "geer2010", "note": "San Antonio/Valparaiso ports heights reported as 0.75-2.5 m; frozen at range midpoint 1.5 m. NCTR (nctr2010): tsunami first arrived Valparaiso at 07:08 UTC, ~34 min after the earthquake" }
+    }
+   ]
+  },
+  {
+   "id": "illapel2015",
+   "region": "chile",
+   "regionalGrid": "cl-megathrust",
+   "originTime": "2015-09-16T22:54:32Z",
+   "mw": 8.3,
+   "lat": -31.573,
+   "lng": -71.674,
+   "depthKm": 22.4,
+   "sourceUrl": "https://earthquake.usgs.gov/earthquakes/eventpage/us20003k7a",
+   "sources": [
+    {
+     "id": "satake2016",
+     "url": "https://www.oceanblogs.org/earthquakeandtsunami/wp-content/uploads/sites/15/2016/12/Satake-and-Heidarzadeh-2016-A-Review-of-Source-Models-of-the-2015-Illapel-Chile-Earthquake-.pdf",
+     "citation": "Satake, K., Heidarzadeh, M. (2016). A Review of Source Models of the 2015 Illapel, Chile Earthquake and Insights from Tsunami Data (open-access PDF). Tide-gauge amplitudes after Heidarzadeh et al. (2016)"
+    },
+    {
+     "id": "omira2016",
+     "url": "https://www.academia.edu/26346008/Results_of_Post_Field_Survey_on_the_Mw_8_3_Illapel_Earthquake_Tsunami_in_2015",
+     "citation": "Omira, R., et al. (2016). Results of Post-Field Survey on the Mw 8.3 Illapel Earthquake Tsunami in 2015. Coastal Engineering Journal, DOI 10.1142/S0578563416500030 (abstract verified 2026-10-01)"
+    }
+   ],
+   "observations": [
+    {
+     "id": "illapel2015-coquimbo-gauge",
+     "name": "Coquimbo (tide gauge)",
+     "type": "tide-gauge",
+     "lat": -29.951,
+     "lng": -71.336,
+     "peakHeightM": 4.7,
+     "verticalDatum": "zero-to-crest amplitude above still water (as published)",
+     "sourceId": "satake2016",
+     "quality": "direct",
+     "record": { "doc": "satake2016", "note": "first arrival at 23 min with ~1 m amplitude; maximum amplitude 4.7 m recorded ~1.5 h after the earthquake (after Heidarzadeh et al. 2016)" }
+    },
+    {
+     "id": "illapel2015-pichidangui-gauge",
+     "name": "Pichidangui (tide gauge)",
+     "type": "tide-gauge",
+     "lat": -32.14,
+     "lng": -71.527,
+     "peakHeightM": 2,
+     "verticalDatum": "zero-to-crest amplitude above still water (as published)",
+     "sourceId": "satake2016",
+     "quality": "direct",
+     "record": { "doc": "satake2016", "note": "earliest arrival ~15 min with zero-to-peak amplitude of <2 m; frozen at the stated upper bound 2 m" }
+    },
+    {
+     "id": "illapel2015-coquimbo-bay-inner",
+     "name": "Coquimbo Bay (innermost corner)",
+     "type": "runup",
+     "lat": -29.933,
+     "lng": -71.343,
+     "peakHeightM": 6.1,
+     "sourceId": "omira2016",
+     "quality": "direct",
+     "record": { "doc": "omira2016", "note": "inundation height 6.0-6.2 m in the innermost corner of Coquimbo Bay (survey average 3-4 m); frozen at range midpoint 6.1 m" }
+    }
+   ]
+  },
+  {
+   "id": "kaikoura2016",
+   "region": "newzealand",
+   "regionalGrid": "nz-aotearoa",
+   "originTime": "2016-11-13T11:02:56Z",
+   "mw": 7.8,
+   "lat": -42.737,
+   "lng": 173.054,
+   "depthKm": 15.1,
+   "sourceUrl": "https://earthquake.usgs.gov/earthquakes/eventpage/us1000778i",
+   "sources": [
+    {
+     "id": "heidarzadeh2017",
+     "url": "https://www.oceanblogs.org/wp-content/uploads/sites/15/2017/08/Heidarzadeh-and-Satake-2017-Possible-dual-earthquake%E2%80%93landslide-source-of-the-13-November-2016-Kaikoura-New-Zealand-tsunami-r.pdf",
+     "citation": "Heidarzadeh, M., Satake, K. (2017). Possible Dual Earthquake-Landslide Source of the 13 November 2016 Kaikoura, New Zealand Tsunami. Pure and Applied Geophysics 174: 3737-3749 (open CC-BY PDF)"
+    },
+    {
+     "id": "geonet2016",
+     "url": "https://www.geonet.org.nz/tsunami/story/2016p858000",
+     "citation": "GeoNet event story: M 7.8 Kaikōura Mon, Nov 14 2016 (runup survey figures: Goose Bay 6.9 m, Little Pigeon Bay 3.2 m; GNS Science / NIWA)"
+    },
+    {
+     "id": "aidr2016",
+     "url": "https://knowledge.aidr.org.au/resources/kaikoura-earthquake/",
+     "citation": "Australian Disaster Resilience Knowledge Hub: New Zealand Kaikōura earthquake, 2016 (run-up 6.9 m above tide level at Goose Bay; approximately 5.3 m at Oaro)"
+    }
+   ],
+   "observations": [
+    {
+     "id": "kaikoura2016-kaikoura-gauge",
+     "name": "Kaikōura (tide gauge)",
+     "type": "tide-gauge",
+     "lat": -42.412,
+     "lng": 173.702,
+     "peakHeightM": 2.57,
+     "verticalDatum": "zero-to-crest amplitude above still water (as published)",
+     "sourceId": "heidarzadeh2017",
+     "quality": "direct",
+     "record": { "doc": "heidarzadeh2017", "note": "maximum zero-to-crest amplitude 257 cm recorded at the Kaikoura tide gauge station, located within the co-seismic uplift zone (~1 m uplift)" }
+    },
+    {
+     "id": "kaikoura2016-sumner-gauge",
+     "name": "Sumner (tide gauge)",
+     "type": "tide-gauge",
+     "lat": -43.576,
+     "lng": 172.763,
+     "peakHeightM": 0.67,
+     "verticalDatum": "zero-to-crest amplitude above still water (as published)",
+     "sourceId": "heidarzadeh2017",
+     "quality": "direct",
+     "record": { "doc": "heidarzadeh2017", "note": "zero-to-crest 67 cm; largest amplitude ~4 h after origin time" }
+    },
+    {
+     "id": "kaikoura2016-wellington-gauge",
+     "name": "Wellington (tide gauge)",
+     "type": "tide-gauge",
+     "lat": -41.284,
+     "lng": 174.781,
+     "peakHeightM": 0.4,
+     "verticalDatum": "zero-to-crest amplitude above still water (as published)",
+     "sourceId": "heidarzadeh2017",
+     "quality": "direct",
+     "record": { "doc": "heidarzadeh2017", "note": "zero-to-crest 40 cm" }
+    },
+    {
+     "id": "kaikoura2016-castlepoint-gauge",
+     "name": "Castlepoint (tide gauge)",
+     "type": "tide-gauge",
+     "lat": -40.9,
+     "lng": 176.217,
+     "peakHeightM": 0.2,
+     "verticalDatum": "zero-to-crest amplitude above still water (as published)",
+     "sourceId": "heidarzadeh2017",
+     "quality": "direct",
+     "record": { "doc": "heidarzadeh2017", "note": "zero-to-crest 20 cm" }
+    },
+    {
+     "id": "kaikoura2016-goose-bay",
+     "name": "Goose Bay (runup)",
+     "type": "runup",
+     "lat": -42.535,
+     "lng": 173.585,
+     "peakHeightM": 6.9,
+     "sourceId": "geonet2016",
+     "quality": "direct",
+     "record": { "doc": "geonet2016", "note": "6.9 m run-up measured in Goose Bay just south of Kaikōura (debris line above sea level); also stated as 6.9 m above tide level by aidr2016" }
+    },
+    {
+     "id": "kaikoura2016-oaro",
+     "name": "Oaro (runup)",
+     "type": "runup",
+     "lat": -42.524,
+     "lng": 173.414,
+     "peakHeightM": 5.3,
+     "sourceId": "aidr2016",
+     "quality": "direct",
+     "record": { "doc": "aidr2016", "note": "run-up height approximately 5.3 m at Oaro" }
+    },
+    {
+     "id": "kaikoura2016-little-pigeon-bay",
+     "name": "Little Pigeon Bay (runup)",
+     "type": "runup",
+     "lat": -43.657,
+     "lng": 172.909,
+     "peakHeightM": 3.2,
+     "sourceId": "geonet2016",
+     "quality": "direct",
+     "record": { "doc": "geonet2016", "note": "run-up 3.2 m above sea level at the head of Little Pigeon Bay, Banks Peninsula; inundation reached 140 m inland" }
+    }
+   ]
+  }
+ ]
+}
