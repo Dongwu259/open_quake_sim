@@ -7,7 +7,8 @@ message: >-
 title: Earthquake Simulator Pro
 abstract: >-
   Web-based research-oriented earthquake and tsunami simulation platform for
-  Japan: faithful Zhao et al. (2006) GMPE with calibrated bias tables, 1D
+  Japan: a faithful multi-model GMPE suite (Zhao et al. 2006 for Japan; BSSA14/CY14/CB14/ASK14
+  and NGA-Sub Parker et al. 2022 for regional events) with calibrated bias tables, 1D
   equivalent-linear site response, ensemble uncertainty fields, kinematic
   finite-fault sources (DC3D), two-way AMR nonlinear shallow-water tsunami
   solver with optional Peregrine-type Boussinesq dispersion, EEW inversion
@@ -28,13 +29,13 @@ keywords:
   - Japan
   - simulation
 license: MIT
-doi: 10.5281/zenodo.23001093
-version: 6.6.0
-date-released: '2026-09-26'
-commit: v6.6.0
+doi: 10.5281/zenodo.23418061
+version: 7.0.0
+date-released: '2026-10-16'
+commit: v7.0.0
 identifiers:
   - description: Concept DOI (cites all versions)
     identifier: '10.5281/zenodo.22828696'
-  - description: Version DOI (this release, v6.6.0)
-    identifier: '10.5281/zenodo.23001093'
+  - description: Version DOI (this release, v7.0.0)
+    identifier: '10.5281/zenodo.23418061'
     type: doi
