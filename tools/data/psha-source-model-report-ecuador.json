@@ -1,0 +1,341 @@
+{
+  "schema": "quake-sim-psha-source-model-report-v1",
+  "region": "ecuador",
+  "generatedAt": "2026-10-14T16:39:10.412Z",
+  "catalogCount": 1092,
+  "classCounts": {
+    "crustal": 298,
+    "interplate": 336,
+    "intraslab": 458
+  },
+  "declusteredMainshocks": 898,
+  "aftershocksRemoved": 194,
+  "completeness": {
+    "rule": "pre-registered: max in-window count among CV<=0.25; else min CV among count>=200",
+    "chosen": {
+      "mc": 5,
+      "start": 1980,
+      "count": 665,
+      "cv": 0.0504036490828253,
+      "decadeRates": [
+        15.3,
+        13.4,
+        14,
+        13.8
+      ],
+      "passes": true
+    },
+    "candidates": [
+      {
+        "mc": 5,
+        "start": 1923,
+        "count": 898,
+        "cv": 0.6750904907645722,
+        "decadeRates": [
+          1.1,
+          1.1,
+          1.6,
+          5.5,
+          12.3,
+          15.3,
+          13.4,
+          14,
+          13.8
+        ],
+        "passes": false
+      },
+      {
+        "mc": 5,
+        "start": 1940,
+        "count": 870,
+        "cv": 0.5741082388017178,
+        "decadeRates": [
+          1.1,
+          1.6,
+          5.5,
+          12.3,
+          15.3,
+          13.4,
+          14,
+          13.8
+        ],
+        "passes": false
+      },
+      {
+        "mc": 5,
+        "start": 1960,
+        "count": 843,
+        "cv": 0.25863956431071206,
+        "decadeRates": [
+          5.5,
+          12.3,
+          15.3,
+          13.4,
+          14,
+          13.8
+        ],
+        "passes": false
+      },
+      {
+        "mc": 5,
+        "start": 1980,
+        "count": 665,
+        "cv": 0.0504036490828253,
+        "decadeRates": [
+          15.3,
+          13.4,
+          14,
+          13.8
+        ],
+        "passes": true
+      },
+      {
+        "mc": 5,
+        "start": 1990,
+        "count": 512,
+        "cv": 0.01816338537268903,
+        "decadeRates": [
+          13.4,
+          14,
+          13.8
+        ],
+        "passes": true
+      },
+      {
+        "mc": 5,
+        "start": 2000,
+        "count": 378,
+        "cv": 0.007194244604316521,
+        "decadeRates": [
+          14,
+          13.8
+        ],
+        "passes": true
+      },
+      {
+        "mc": 5.5,
+        "start": 1923,
+        "count": 341,
+        "cv": 0.46409474911880333,
+        "decadeRates": [
+          1.1,
+          1.1,
+          1.6,
+          3.4,
+          3.9,
+          4.3,
+          5.1,
+          4.7,
+          4.9
+        ],
+        "passes": false
+      },
+      {
+        "mc": 5.5,
+        "start": 1940,
+        "count": 313,
+        "cv": 0.39031070887809716,
+        "decadeRates": [
+          1.1,
+          1.6,
+          3.4,
+          3.9,
+          4.3,
+          5.1,
+          4.7,
+          4.9
+        ],
+        "passes": false
+      },
+      {
+        "mc": 5.5,
+        "start": 1960,
+        "count": 286,
+        "cv": 0.1345921674557252,
+        "decadeRates": [
+          3.4,
+          3.9,
+          4.3,
+          5.1,
+          4.7,
+          4.9
+        ],
+        "passes": true
+      },
+      {
+        "mc": 5.5,
+        "start": 1980,
+        "count": 213,
+        "cv": 0.06227452403262754,
+        "decadeRates": [
+          4.3,
+          5.1,
+          4.7,
+          4.9
+        ],
+        "passes": true
+      },
+      {
+        "mc": 5.5,
+        "start": 1990,
+        "count": 170,
+        "cv": 0.033326391058274486,
+        "decadeRates": [
+          5.1,
+          4.7,
+          4.9
+        ],
+        "passes": true
+      },
+      {
+        "mc": 5.5,
+        "start": 2000,
+        "count": 119,
+        "cv": 0.02083333333333335,
+        "decadeRates": [
+          4.7,
+          4.9
+        ],
+        "passes": true
+      },
+      {
+        "mc": 6,
+        "start": 1923,
+        "count": 153,
+        "cv": 0.34314333645381484,
+        "decadeRates": [
+          0.5,
+          1,
+          1.4,
+          1.6,
+          1.3,
+          1.6,
+          2.2,
+          2.2,
+          1.9
+        ],
+        "passes": false
+      },
+      {
+        "mc": 6,
+        "start": 1940,
+        "count": 140,
+        "cv": 0.24242424242424243,
+        "decadeRates": [
+          1,
+          1.4,
+          1.6,
+          1.3,
+          1.6,
+          2.2,
+          2.2,
+          1.9
+        ],
+        "passes": true
+      },
+      {
+        "mc": 6,
+        "start": 1960,
+        "count": 116,
+        "cv": 0.18425693279752223,
+        "decadeRates": [
+          1.6,
+          1.3,
+          1.6,
+          2.2,
+          2.2,
+          1.9
+        ],
+        "passes": true
+      },
+      {
+        "mc": 6,
+        "start": 1980,
+        "count": 87,
+        "cv": 0.12594777684893924,
+        "decadeRates": [
+          1.6,
+          2.2,
+          2.2,
+          1.9
+        ],
+        "passes": true
+      },
+      {
+        "mc": 6,
+        "start": 1990,
+        "count": 71,
+        "cv": 0.06734350297014745,
+        "decadeRates": [
+          2.2,
+          2.2,
+          1.9
+        ],
+        "passes": true
+      },
+      {
+        "mc": 6,
+        "start": 2000,
+        "count": 49,
+        "cv": 0.07317073170731714,
+        "decadeRates": [
+          2.2,
+          1.9
+        ],
+        "passes": true
+      }
+    ]
+  },
+  "bValues": {
+    "crustal": 1.032629542568866,
+    "interplate": 1.0017801941673938,
+    "intraslab": 1.0682160999343795
+  },
+  "classStats": {
+    "crustal": {
+      "nWindow": 175,
+      "b": 1.032629542568866
+    },
+    "interplate": {
+      "nWindow": 176,
+      "b": 1.0017801941673938
+    },
+    "intraslab": {
+      "nWindow": 314,
+      "b": 1.0682160999343795
+    }
+  },
+  "cells": {
+    "total": 3387,
+    "byClass": {
+      "intraslab": 1527,
+      "crustal": 1294,
+      "interplate": 566
+    }
+  },
+  "rateConservation": {
+    "crustal": {
+      "catalogRate": 3.75,
+      "modelRate": 4.665,
+      "ratioBefore": 1.24,
+      "normalisationFactor": 0.8038,
+      "ratioAfter": 1
+    },
+    "interplate": {
+      "catalogRate": 3.771,
+      "modelRate": 4.863,
+      "ratioBefore": 1.29,
+      "normalisationFactor": 0.7755,
+      "ratioAfter": 1
+    },
+    "intraslab": {
+      "catalogRate": 6.729,
+      "modelRate": 7.065,
+      "ratioBefore": 1.05,
+      "normalisationFactor": 0.9524,
+      "ratioAfter": 1
+    }
+  },
+  "scenarios": [],
+  "scenarioSegments": null
+}

@@ -29,14 +29,38 @@ const OQ_PGV = { e0: 5.037, e1: 5.078, e2: 4.849, e3: 5.033, e4: 1.073, e5: -0.1
   mh: 6.2, c1: -1.243, c2: 0.1489, c3: -0.00344, h: 5.3, dc3: 0.0, c: -0.84, vc: 1300.0,
   f4: -0.1, f5: -0.00844, f6: -9.9, f7: -9.9, r1: 105.0, r2: 272.0, dfr: 0.082, dfv: 0.08,
   phi1: 0.644, phi2: 0.552, tau1: 0.401, tau2: 0.346 };
-const OQ_DC3 = { base: { pga: 0.0, pgv: 0.0 }, lowQ: { pga: -0.00255, pgv: -0.00033 },
+const OQ_DC3_PGA_PGV = { base: { pga: 0.0, pgv: 0.0 }, lowQ: { pga: -0.00255, pgv: -0.00033 },
   highQ: { pga: 0.002858, pgv: 0.004345 } };
+// v6.9: per-IMT Dc3 spot literals (inline so a tampered fixture cannot bless
+// a corrupted regional column) — from the same hazardlib transcription.
+const OQ_DC3_SA_SPOTS = {
+  lowQ: { '0.010': -0.0024367, '0.650': -0.0027273, '1.000': -0.0020894, '10.00': 0.00149 },
+  highQ: { '0.010': 0.002816, '0.650': 0.002508, '1.000': 0.002921, '10.00': 0.00303 }
+};
 const OQ_CONSTS = { mref: 4.5, rref: 1.0, vref: 760.0, f1: 0.0, f3: 0.1, v1: 225.0, v2: 300.0 };
 
 test('bssa14 — coefficient tables match the openquake.hazardlib transcription', () => {
   assert.deepStrictEqual(Physics.BSSA2014_PAPER.pga, OQ_PGA, 'pga row');
   assert.deepStrictEqual(Physics.BSSA2014_PAPER.pgv, OQ_PGV, 'pgv row');
-  assert.deepStrictEqual(Physics.BSSA2014_DC3, OQ_DC3, 'regional Dc3 variants');
+  assert.strictEqual(Physics.BSSA2014_DC3.base.pga, 0.0);
+  assert.strictEqual(Physics.BSSA2014_DC3.lowQ.pga, OQ_DC3_PGA_PGV.lowQ.pga);
+  assert.strictEqual(Physics.BSSA2014_DC3.highQ.pga, OQ_DC3_PGA_PGV.highQ.pga);
+  // v6.9: SA key list + per-IMT Dc3 columns
+  assert.strictEqual(Physics.BSSA2014_SA_KEYS.length, 105, '105 SA rows');
+  const nums = Physics.BSSA2014_SA_KEYS.map(parseFloat);
+  assert.deepStrictEqual(nums, nums.slice().sort((a, b) => a - b), 'SA keys monotone');
+  assert.strictEqual(nums[0], 0.01);
+  assert.strictEqual(nums[nums.length - 1], 10.0);
+  for (const variant of ['lowQ', 'highQ']) {
+    for (const [k, v] of Object.entries(OQ_DC3_SA_SPOTS[variant])) {
+      assert.strictEqual(Physics.BSSA2014_DC3[variant][k], v, `${variant} Dc3[${k}]`);
+    }
+    assert.strictEqual(Object.keys(Physics.BSSA2014_DC3[variant]).length, 107, variant + ' per-IMT map size');
+  }
+  // the base variant carries no anelastic adjustment on any row
+  for (const k of Object.keys(Physics.BSSA2014_DC3.base)) {
+    assert.strictEqual(Physics.BSSA2014_DC3.base[k], 0.0, 'base Dc3 zero ' + k);
+  }
   assert.deepStrictEqual(Physics.BSSA2014_CONSTS, OQ_CONSTS, 'IMT-independent constants');
   assert.strictEqual(fixture.source.sha256,
     'c12315ff4c3d7c84ef39433348285ead4999032ec3ada0b4ccd09238cf3b4422',
@@ -44,8 +68,10 @@ test('bssa14 — coefficient tables match the openquake.hazardlib transcription'
 });
 
 test('bssa14 — fixture grid covers the structural boundaries', () => {
-  assert.strictEqual(fixture.points.length, 5880, '5 mags x 7 rjb x 7 vs30 x 4 rake x 3 variants x 2 imt');
-  assert.strictEqual(fixture.sigmaPoints.length, 490, '5 mags x 7 rjb x 7 vs30 x 2 imt');
+  assert.strictEqual(fixture.points.length, 36120,
+    '5880 pga/pgv (v6.7 freeze, byte-identical) + 105 SA x 3 variants x 2 rakes x 3 mags x 4 rjb x 4 vs30');
+  assert.strictEqual(fixture.sigmaPoints.length, 5530,
+    '490 pga/pgv + 105 SA x 3 mags x 4 rjb x 4 vs30');
   const mags = new Set(fixture.points.map(p => p.mw));
   assert.ok(mags.has(5.5) && mags.has(6.2), 'both Mh hinges pinned');
   const vs30s = new Set(fixture.points.map(p => p.vs30));
@@ -54,6 +80,14 @@ test('bssa14 — fixture grid covers the structural boundaries', () => {
   const rjbs = new Set(fixture.points.map(p => p.rjbKm));
   assert.ok(rjbs.has(0.0), 'Rjb=0 pinned (R = h floor)');
   assert.ok(rjbs.has(110.0) && rjbs.has(270.0), 'pga R1/R2 boundaries pinned');
+  // v6.9: every SA row carries its own grid segment
+  const saImts = new Set(fixture.points.map(p => p.imt).filter(k => k !== 'pga' && k !== 'pgv'));
+  assert.strictEqual(saImts.size, 105, 'all 105 SA rows exercised');
+  const perImt = {};
+  for (const p of fixture.points) {
+    if (saImts.has(p.imt)) perImt[p.imt] = (perImt[p.imt] || 0) + 1;
+  }
+  for (const imt of saImts) assert.strictEqual(perImt[imt], 288, imt + ' SA grid density');
 });
 
 test('bssa14 — medians reproduce the hazardlib reference at every fixture point', () => {
@@ -140,12 +174,15 @@ test('bssa14 — region-aware auto routing; Japan path byte-identical', () => {
   assert.strictEqual(Physics.resolveGmpModel('auto', 'interplate', 8), 'zhao2006');
   assert.strictEqual(Physics.resolveGmpModel('auto', 'intraslab', 7), 'zhao2006');
   assert.strictEqual(Physics.resolveGmpModel('bssa14', 'crustal', 7), 'bssa14', 'explicit pass-through');
-  // Region active: crustal -> bssa14, subduction classes stay on zhao2006.
-  for (const rid of ['california', 'italy', 'chile', 'taiwan', 'newzealand']) {
+  // Region active: crustal -> bssa14; subduction classes -> ngasub (v6.8
+  // NGA-Sub batch consciously rewrites this from the v6.7 landed state
+  // 'zhao2006' — the whole point of the batch is the regional subduction
+  // re-route; Japan assertions above pin the byte-identical default).
+  for (const rid of ['california', 'italy', 'chile', 'taiwan', 'newzealand', 'ecuador']) {
     Physics.setActiveGmpRegion(rid);
     assert.strictEqual(Physics.resolveGmpModel('auto', 'crustal', 7), 'bssa14', `${rid} crustal`);
-    assert.strictEqual(Physics.resolveGmpModel('auto', 'interplate', 8), 'zhao2006', `${rid} interplate`);
-    assert.strictEqual(Physics.resolveGmpModel('auto', 'intraslab', 7), 'zhao2006', `${rid} intraslab`);
+    assert.strictEqual(Physics.resolveGmpModel('auto', 'interplate', 8), 'ngasub', `${rid} interplate`);
+    assert.strictEqual(Physics.resolveGmpModel('auto', 'intraslab', 7), 'ngasub', `${rid} intraslab`);
   }
   // Variant map: italy -> lowQ (paper's regional adjustment), base elsewhere.
   Physics.setActiveGmpRegion('italy');
@@ -256,6 +293,59 @@ test('bssa14 — rjbDistance: imported finite fault patch quads', () => {
   const edge = Physics.haversineDist(36.15, 140.1, 36.4, 140.1); // from the north edge
   assert.ok(Math.abs(Physics.rjbDistance(36.4, 140.1, quad) - edge) < 0.1,
     `outside measures from the edge (${hav.toFixed(1)} from center)`);
+});
+
+test('bssa14 — SA periods: exact rows, log-period interpolation, honest no-coverage', () => {
+  // zhao-style key '0.50' resolves the bssa14 '0.500' row exactly
+  const exact = Physics.bssa2014Ln('0.50', 7.0, 30, 400, 90, 'base');
+  const exact2 = Physics.bssa2014Ln('0.500', 7.0, 30, 400, 90, 'base');
+  const exact3 = Physics.bssa2014Ln(0.5, 7.0, 30, 400, 90, 'base');
+  assert.ok(Math.abs(exact - exact2) < 1e-15 && Math.abs(exact - exact3) < 1e-15,
+    '0.50 == 0.500 == numeric 0.5 (numeric key match)');
+  // '0.72' has no row (0.700 / 0.750 bracket it) — final-value log-period
+  // interpolation, the same engine convention as the NGA-Sub Parker table
+  const lo = Physics.bssa2014Ln('0.700', 7.0, 30, 400, 90, 'base');
+  const hi = Physics.bssa2014Ln('0.750', 7.0, 30, 400, 90, 'base');
+  const mid = Physics.bssa2014Ln('0.72', 7.0, 30, 400, 90, 'base');
+  const w = (Math.log(0.72) - Math.log(0.7)) / (Math.log(0.75) - Math.log(0.7));
+  assert.ok(Math.abs(mid - (lo + w * (hi - lo))) < 1e-12, 'log-period interpolation formula');
+  // outside [0.01, 10] s is honest no-coverage (never the old pga fallback)
+  assert.strictEqual(Physics.bssa2014Ln('15', 7, 30, 400, 90, 'base'), null);
+  assert.strictEqual(Physics.bssa2014Ln('0.005', 7, 30, 400, 90, 'base'), null);
+  assert.strictEqual(Physics.bssa2014Ln('sa:0.50', 7, 30, 400, 90, 'base'), null,
+    'imt-prefixed strings do not silently resolve');
+  // the full-table spectral shape: SA(0.65 s) sits well above PGA on rock
+  const pgaG = Math.exp(Physics.bssa2014Ln('pga', 7.0, 30, 400, 90, 'base'));
+  const saG = Math.exp(exact);
+  assert.ok(saG > pgaG * 1.5, `SA(0.65s)=${saG.toFixed(3)}g vs PGA=${pgaG.toFixed(3)}g`);
+});
+
+test('bssa14 — SA sigma reads the per-row tau/phi columns; wrapper gal contract', () => {
+  // row '0.650': tau1 0.431 / tau2 0.243, phi1 0.599 / phi2 0.611, R1 106.2
+  // (r=60 below it -> no distance term), vs30 400 (v1..v2 -> no site term)
+  const s = Physics.bssa2014SigmaLn('0.650', 7.0, 60, 400);
+  assert.ok(Math.abs(s.tau - 0.243) < 1e-12, 'tau from the 0.650 row: ' + s.tau);
+  assert.ok(Math.abs(s.phi - 0.611) < 1e-12, 'phi from the 0.650 row: ' + s.phi);
+  // different row, different columns
+  const s2 = Physics.bssa2014SigmaLn('1.000', 7.0, 60, 400);
+  assert.ok(Math.abs(s2.tau - Physics.BSSA2014_PAPER['1.000'].tau2) < 1e-12, '1.000 s row tau');
+  // interpolated period lerps the components
+  const lo = Physics.bssa2014SigmaLn('0.700', 7.0, 60, 400);
+  const hi = Physics.bssa2014SigmaLn('0.750', 7.0, 60, 400);
+  const mid = Physics.bssa2014SigmaLn('0.72', 7.0, 60, 400);
+  const w = (Math.log(0.72) - Math.log(0.7)) / (Math.log(0.75) - Math.log(0.7));
+  assert.ok(Math.abs(mid.tau - (lo.tau + w * (hi.tau - lo.tau))) < 1e-12, 'tau interpolation');
+  // outside coverage: null (not the pga row)
+  assert.strictEqual(Physics.bssa2014Sigma('15', 7, 60, 400), null);
+  // gal wrapper: same cap*tanh contract as the pga wrapper, null off-coverage
+  const gal = Physics.saBssa2014Gal('0.65', 7.0, 30, 400, 90, 'base');
+  const raw = Math.exp(Physics.bssa2014Ln('0.65', 7.0, 30, 400, 90, 'base')) * 980.665;
+  assert.strictEqual(gal, Physics.GMPE_PGA_SOFT_CAP * Math.tanh(raw / Physics.GMPE_PGA_SOFT_CAP));
+  assert.strictEqual(Physics.saBssa2014Gal('15', 7, 30, 400, 90, 'base'), null);
+  // lowQ (Italy/Japan) Dc3 decays faster than base at long range on SA too
+  const a = Physics._pshaBranchMotion('bssa14', 'sa:1.00', 'crustal', 7.0, 300, 10, 600, 0, 'lowQ');
+  const b = Physics._pshaBranchMotion('bssa14', 'sa:1.00', 'crustal', 7.0, 300, 10, 600, 0, 'base');
+  assert.ok(a.median < b.median, 'lowQ attenuates below base at 300 km (SA 1 s)');
 });
 
 test('bssa14 — auto route resolves Rjb semantics; Japan auto stays byte-identical', () => {

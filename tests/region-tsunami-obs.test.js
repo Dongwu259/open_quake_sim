@@ -17,14 +17,15 @@ const { runEvent, dataset, EVENT_HORIZONS, EVENT_MECHANISMS } = require('../tool
 const EVENT_LOCK = {
   maule2010: { region: 'chile', grid: 'cl-megathrust', obs: 7, runup: 6, gauge: 1 },
   illapel2015: { region: 'chile', grid: 'cl-megathrust', obs: 3, runup: 1, gauge: 2 },
-  kaikoura2016: { region: 'newzealand', grid: 'nz-aotearoa', obs: 7, runup: 3, gauge: 4 }
+  kaikoura2016: { region: 'newzealand', grid: 'nz-aotearoa', obs: 7, runup: 3, gauge: 4 },
+  pedernales2016: { region: 'ecuador', grid: 'ec-megathrust', obs: 3, runup: 0, gauge: 3 }
 };
 
 test('region tsunami obs: dataset validates and matches frozen event anchors', () => {
   const v = TsunamiValidation.validate(dataset);
   assert.deepEqual(v.errors, []);
   assert.equal(v.valid, true);
-  assert.equal(dataset.events.length, 3);
+  assert.equal(dataset.events.length, 4);
   for (const ev of dataset.events) {
     const lock = EVENT_LOCK[ev.id];
     assert.ok(lock, 'unexpected event ' + ev.id);
@@ -49,6 +50,15 @@ test('region tsunami obs: frozen observation values (record-level anchors)', () 
   const kaikoura = dataset.events.find(e => e.id === 'kaikoura2016');
   assert.equal(kaikoura.observations.find(o => o.id === 'kaikoura2016-kaikoura-gauge').peakHeightM, 2.57);
   assert.equal(kaikoura.observations.find(o => o.id === 'kaikoura2016-goose-bay').peakHeightM, 6.9);
+  // Pedernales 2016 (v2 batch 2026-10-16): record-level values from the
+  // primary INOCAR mareograph analysis (Renteria 2017) — Esmeraldas frozen
+  // at the max zero-to-peak excursion of the leading-depression record
+  // (trough -1.15 m / crest +0.43 m, range 1.58 m), Bahía at its second
+  // (maximum) oscillation regime, La Libertad at its post-growth ~10 cm.
+  const pedernales = dataset.events.find(e => e.id === 'pedernales2016');
+  assert.equal(pedernales.observations.find(o => o.id === 'pedernales2016-esmeraldas-gauge').peakHeightM, 1.15);
+  assert.equal(pedernales.observations.find(o => o.id === 'pedernales2016-bahia-gauge').peakHeightM, 0.6);
+  assert.equal(pedernales.observations.find(o => o.id === 'pedernales2016-la-libertad-gauge').peakHeightM, 0.1);
   // Every observation cites a source registered in its own event.
   for (const ev of dataset.events) {
     const ids = new Set(ev.sources.map(s => s.id));

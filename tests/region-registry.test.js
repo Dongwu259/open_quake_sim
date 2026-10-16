@@ -18,8 +18,8 @@ const indexSrc = fs.readFileSync(path.join(ROOT, 'public', 'index.html'), 'utf8'
 const CATALOG = (appSrc.match(/var REGION_CATALOG = \[([^\]]*)\]/) || [])[1];
 const ids = (CATALOG || '').match(/'([a-z]+)'/g).map((s) => s.replace(/'/g, ''));
 
-test('catalog declares california, italy, chile, taiwan, newzealand in app.js', () => {
-  assert.deepEqual(ids, ['california', 'italy', 'chile', 'taiwan', 'newzealand']);
+test('catalog declares california, italy, chile, taiwan, newzealand, ecuador in app.js', () => {
+  assert.deepEqual(ids, ['california', 'italy', 'chile', 'taiwan', 'newzealand', 'ecuador']);
 });
 
 test('every catalog region has: pack file + i18n key x3', () => {
@@ -125,6 +125,35 @@ test('v6.7 taiwan/newzealand packages: stations + NE admin-1 areas', () => {
   assert.ok(uniqueNz.size >= 16 && uniqueNz.size <= 20, 'newzealand regions 16-20, got ' + uniqueNz.size);
   for (const expected of ['Auckland', 'Canterbury', 'Wellington']) {
     assert.ok(uniqueNz.has(expected), 'contains ' + expected);
+  }
+});
+
+test('ecuador packages (2026-10-14 new-region batch): IG-EPN stations + NE admin-1 provinces', () => {
+  // ecuador: IG-EPN national network EC (RENSIG/RENAC + OV* volcano
+  // subarrays) archived at the EarthScope DMC + GSN backbone OTAV — sparse
+  // like taiwan, honest note in the pack
+  const ec = JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-stations-ecuador.json'), 'utf8'));
+  assert.equal(ec.schema, 'quake-sim-region-stations-v1');
+  assert.equal(ec.region, 'ecuador');
+  assert.ok(ec.stations.length >= 20, 'ecuador EC+backbone stations >= 20 (' + ec.stations.length + ')');
+  assert.ok(ec.sources.some((s) => /IG-EPN/.test(s.name)), 'IG-EPN source present');
+  assert.ok(ec.stations.some((s) => s.net === 'EC'), 'EC stations present');
+  assert.ok(ec.stations.some((s) => s.code === 'OTAV'), 'GSN backbone OTAV present');
+  const ecKept = ec.sources.reduce((a, s) => a + s.dedupedKept, 0);
+  assert.equal(ecKept, ec.count, 'ecuador provenance conservation');
+  for (const st of ec.stations) {
+    assert.ok(st.lat >= ec.bbox[0] - 0.01 && st.lat <= ec.bbox[2] + 0.01, 'ec lat in bbox');
+    assert.ok(st.lng >= ec.bbox[1] - 0.01 && st.lng <= ec.bbox[3] + 0.01, 'ec lng in bbox');
+  }
+
+  // areas: NE 10m admin-1, public domain — Ecuador's 24 provinces
+  const ecA = JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-areas-ecuador.json'), 'utf8'));
+  assert.equal(ecA._schema, 'quake-sim-region-areas-v1');
+  assert.equal(ecA.unit, 'province');
+  const uniqueEc = new Set(ecA.areas.features.map((f) => f.properties.name));
+  assert.equal(uniqueEc.size, 24, 'ecuador provinces == 24, got ' + uniqueEc.size);
+  for (const expected of ['Guayas', 'Pichincha', 'Manabi', 'Azuay', 'Esmeraldas']) {
+    assert.ok(uniqueEc.has(expected), 'contains ' + expected);
   }
 });
 

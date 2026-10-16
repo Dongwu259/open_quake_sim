@@ -54,14 +54,18 @@ function gridFor(rid) {
 // Kaikōura's Sumner gauge peaked ~4 h after origin (Heidarzadeh & Satake
 // 2017); a 7200 s horizon covers the dominant energy but may under-sample
 // that latest maximum — recorded in the report's horizonNote.
-const EVENT_HORIZONS = { maule2010: 5400, illapel2015: 5400, kaikoura2016: 7200 };
+// Pedernales: all four INOCAR arrivals are covered (latest: La Libertad at
+// ~3 h) but La Libertad's bay-resonance maximum came ~6 h after arrival
+// (Renteria 2017) — outside the 14400 s horizon, same caveat class.
+const EVENT_HORIZONS = { maule2010: 5400, illapel2015: 5400, kaikoura2016: 7200, pedernales2016: 14400 };
 
 // Region-pack preset mechanisms (ComCat/GCMT-curated; source of truth for
 // the app's own synthetic rupture path).
 const EVENT_MECHANISMS = {
   maule2010: { strike: 19, dip: 18, rake: 116 },
   illapel2015: { strike: 5, dip: 22, rake: 106 },
-  kaikoura2016: { strike: 219, dip: 38, rake: 128 }
+  kaikoura2016: { strike: 219, dip: 38, rake: 128 },
+  pedernales2016: { strike: 26, dip: 16, rake: 113 }
 };
 
 const dflt = k => CFG[k].v;
@@ -151,7 +155,9 @@ function main() {
       ...report,
       horizonNote: 'per-event horizons: ' + JSON.stringify(EVENT_HORIZONS)
         + '; Kaikōura Sumner gauge observed maximum arrived ~4 h after origin (outside the 7200 s horizon)'
-        + ' — the scorecard may under-sample that latest maximum.',
+        + ' — the scorecard may under-sample that latest maximum.'
+        + ' Pedernales La Libertad bay-resonance maximum came ~6 h after its 3 h arrival (Renteria 2017)'
+        + ' — outside the 14400 s horizon, same under-sampling caveat.',
       note: 'regional standalone single-grid runs (no AMR nesting — the regional grids sit outside the Japan '
         + 'global grid; mirrors the app _bathyCoarseCovers gate). No forecast-area classification: regional '
         + 'warning areas are an app-side registry, not a frozen observation set.'

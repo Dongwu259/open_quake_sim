@@ -12,13 +12,17 @@
 // v6.7 regions: taiwan (EarthScope TW = BATS broadband backbone — the only
 //   open-FDSN Taiwan network; CWA's dense nets are not open-FDSN, honest
 //   sparse note in the pack) and newzealand (GeoNet national network NZ).
+// Ecuador (2026-10-14 new-region batch): IG-EPN national network EC (RENSIG/
+//   RENAC + volcano-observatory subarrays) is archived at the EarthScope DMC;
+//   22 operational mainland stations (the 5 Galápagos stations sit outside
+//   the west edge by design — the pack is mainland-framed, honest note).
 //
 // Operational filter per source (FDSN text format col 8 = EndTime):
 //   blank end  = open epoch (SCEDC returns the current epoch set this way)
 //   end >= '2500' = NCEDC encodes open epochs as 3000-01-01
 // Dedupe key = network|station (priority: SCEDC > NCEDC > EarthScope).
 //
-// Usage: node tools/fetch-region-stations.js [--region california|italy|chile|taiwan|newzealand]
+// Usage: node tools/fetch-region-stations.js [--region california|italy|chile|taiwan|newzealand|ecuador]
 //   (writes public/geojson/region-stations-<region>.json)
 'use strict';
 const https = require('https');
@@ -69,6 +73,18 @@ const REGION_DEFS = {
       // motion sites under one net=NZ code. Chatham Islands stations sit at
       // ~-176.5° and fall outside the maxlon=180 window by design.
       { name: 'GeoNet (GNS Science/MBIE New Zealand national network, net NZ)', priority: 1, url: (b) => `https://service.geonet.org.nz/fdsnws/station/1/query?minlat=${b.minlat}&maxlat=${b.maxlat}&minlon=${b.minlon}&maxlon=${b.maxlon}&net=NZ&level=station&format=text` },
+      { name: `EarthScope (global permanent backbone ${esNets})`, priority: 2, url: (b) => `https://service.earthscope.org/fdsnws/station/1/query?minlat=${b.minlat}&maxlat=${b.maxlat}&minlon=${b.minlon}&maxlon=${b.maxlon}&net=${esNets}&level=station&format=text` },
+    ],
+  },
+  ecuador: {
+    bbox: { minlat: -5.3, maxlat: 1.8, minlon: -81.3, maxlon: -73.5 },
+    sources: [
+      // IG-EPN (Instituto Geofísico EPN, Quito) national network, FDSN net EC
+      // (RENSIG/RENAC + the OV*/OVGALA volcano-observatory subarrays), archived
+      // at the EarthScope DMC — 22 operational stations in the mainland window;
+      // the 5 Galápagos stations (ALCE + the Sierra Negra SN** rim array at
+      // ~-91°W) fall outside the west edge by design (mainland-framed pack).
+      { name: 'EarthScope (IG-EPN Ecuador national network, net EC)', priority: 1, url: (b) => `https://service.earthscope.org/fdsnws/station/1/query?minlat=${b.minlat}&maxlat=${b.maxlat}&minlon=${b.minlon}&maxlon=${b.maxlon}&net=EC&level=station&format=text` },
       { name: `EarthScope (global permanent backbone ${esNets})`, priority: 2, url: (b) => `https://service.earthscope.org/fdsnws/station/1/query?minlat=${b.minlat}&maxlat=${b.maxlat}&minlon=${b.minlon}&maxlon=${b.maxlon}&net=${esNets}&level=station&format=text` },
     ],
   },

@@ -209,6 +209,24 @@ test('chile/italy masked registries: near-stable control totals', () => {
 });
 
 // v6.7 regions: the same registry derivation frozen on the real packages
+test('ecuador masked registry (2026-10-14): exactly the five Pacific coastal provinces', () => {
+  const ec = deriveRegionalAreas(loadAreas('ecuador'), loadGrid('ec-megathrust'));
+  // Ecuador's Pacific coast is exactly five provinces (S->N: El Oro, Guayas,
+  // Santa Elena, Manabi, Esmeraldas); the other 19 provinces (incl. the
+  // Galapagos province — outside the grid window by design) carry no controls
+  assert.equal(ec.length, 5, 'ecuador coastal provinces: ' + ec.length);
+  assert.equal(ec.reduce((s, a) => s + a.controls, 0), 105, 'ecuador controls');
+  const ecNames = ec.map(a => a.name);
+  for (const absent of ['Pichincha', 'Azuay', 'Galápagos', 'Napo'])
+    assert.ok(!ecNames.includes(absent), absent + ' correctly control-less');
+  assert.ok(ec.some(a => a.name === 'Manabi' && a.controls >= 30), 'Manabi (Pedernales coast) control mass');
+  for (const a of ec) {
+    assert.ok(a.controls > 0 && a.controls <= 80, a.name + ' bounded controls: ' + a.controls);
+    assert.ok(a.lines > 0, a.name + ' has drawable coastal lines');
+  }
+});
+
+// v6.7 regions: the same registry derivation frozen on the real packages
 test('taiwan/newzealand masked registries: coastal units + bounded controls', () => {
   const tw = deriveRegionalAreas(loadAreas('taiwan'), loadGrid('tw-taiwan'));
   assert.equal(tw.length, 18, 'taiwan coastal counties: ' + tw.length);

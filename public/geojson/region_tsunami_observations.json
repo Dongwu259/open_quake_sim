@@ -1,10 +1,10 @@
 {
  "_schema": "quake-sim-tsunami-observations-v1",
- "version": "2026-10-01-regional-v1",
+ "version": "2026-10-16-regional-v2",
  "quality": {
   "frozen": true,
   "researchReady": true,
-  "note": "Regional curated tsunami observations v1 (v6.7 C batch): three events inside bundled regional bathymetry grids — 2010 Maule (cl-megathrust), 2015 Illapel (cl-megathrust), 2016 Kaikōura (nz-aotearoa). NCEI/ngdc.noaa.gov and PTWC are unreachable from the build network (probe 2026-10-01: 000), so every value is curated from open-access primary documents listed in each event's sources and read directly at curation time: Vargas et al. 2011 (Andean Geology open HTML), GEER Section 14 report PDF, Heidarzadeh & Satake 2017 (open CC-BY PDF), Satake & Heidarzadeh 2016 review (open PDF), Omira et al. 2016 (Coast. Eng. J., abstract verified), the GeoNet event story page and the NOAA/PMEL NCTR event page. Range values are frozen at their range midpoint with the range kept in the record note (e.g. Dichato 6-8 m -> 7 m). Tide-gauge values are zero-to-crest amplitudes as published; runup values are field-survey maxima — the two types are NOT interchangeable and are scored per-type. forecastAreas are intentionally absent: regional warning-area classification scoring stays a Japan-only scorecard for now (the regional area registry is an app-side construct, not a frozen observation set). 1960 Valdivia / 1908 Messina / California far-field events are out of scope of the regional grids and not curated."
+  "note": "Regional curated tsunami observations v2: four events inside bundled regional bathymetry grids — 2010 Maule (cl-megathrust), 2015 Illapel (cl-megathrust), 2016 Kaikōura (nz-aotearoa), 2016 Pedernales (ec-megathrust, added 2026-10-16). NCEI/ngdc.noaa.gov and PTWC are unreachable from the build network (probe 2026-10-01: 000), so every value is curated from open-access primary documents listed in each event's sources and read directly at curation time: Vargas et al. 2011 (Andean Geology open HTML), GEER Section 14 report PDF, Heidarzadeh & Satake 2017 (open CC-BY PDF), Satake & Heidarzadeh 2016 review (open PDF), Omira et al. 2016 (Coast. Eng. J., abstract verified), the GeoNet event story page, the NOAA/PMEL NCTR event page, Renteria 2017 (INOCAR mareograph analysis, VIII Jornadas en Ciencias de la Tierra proceedings PDF), Toulkeridis et al. 2017 (Science of Tsunami Hazards 36(4) open issue PDF), Heidarzadeh et al. 2017 GRL (open CC-BY PDF) and the INOCAR/GLOSS 2009 station-coordinate table. Range values are frozen at their range midpoint with the range kept in the record note (e.g. Dichato 6-8 m -> 7 m). Tide-gauge values are zero-to-crest/peak amplitudes as published; runup values are field-survey maxima — the two types are NOT interchangeable and are scored per-type. Pedernales specifics: the Manta gauge record carries no explicit amplitude in the primary analysis (only its three-sequence structure and the 6.5 cm coseismic subsidence step), so Manta is honestly omitted; the Galápagos gauges (Santa Cruz/Baltra) and DARTs 32067/32411/32413 sit outside the ec-megathrust grid and are not curated (GRL: DART amplitudes 0.5-2 cm); Heidarzadeh et al. 2017 report a max tide-gauge zero-to-peak of ~10 cm while Renteria's INOCAR-record analysis reports up to 1.58 m crest-to-trough at Esmeraldas — different gauge subsets/filtering, both published values kept at face value and the discrepancy recorded here; Toulkeridis et al. 2017 note the Esmeraldas arrival (~6-10 min) is too fast for the coseismic source alone (possible submarine-landslide contribution, unresolved). forecastAreas are intentionally absent: regional warning-area classification scoring stays a Japan-only scorecard for now (the regional area registry is an app-side construct, not a frozen observation set). 1960 Valdivia / 1908 Messina / California far-field events are out of scope of the regional grids and not curated."
  },
  "events": [
   {
@@ -285,6 +285,77 @@
      "record": { "doc": "geonet2016", "note": "run-up 3.2 m above sea level at the head of Little Pigeon Bay, Banks Peninsula; inundation reached 140 m inland" }
     }
    ]
-  }
- ]
-}
+  },
+  {
+   "id": "pedernales2016",
+   "region": "ecuador",
+   "regionalGrid": "ec-megathrust",
+   "originTime": "2016-04-16T23:58:36Z",
+   "mw": 7.8,
+   "lat": 0.382,
+   "lng": -79.922,
+   "depthKm": 20.6,
+   "sourceUrl": "https://earthquake.usgs.gov/earthquakes/eventpage/us20005j32",
+   "sources": [
+    {
+     "id": "renteria2017",
+     "url": "https://app.ingemmet.gob.pe/biblioteca/pdf/VIIIJCT-678.pdf",
+     "citation": "Renteria, W. (2017). Análisis de los registros mareográficos del tsunami del 16 de abril de 2016 en Pedernales-Ecuador. VIII Jornadas en Ciencias de la Tierra (INGEMMET) proceedings, pp. 317-321 (open proceedings PDF, read 2026-10-16). INOCAR operates the four gauges; this is the primary record analysis."
+    },
+    {
+     "id": "gloss2009",
+     "url": "https://gloss-sealevel.org/sites/gloss/files/publications/documents/ecuador_gexi2009.pdf",
+     "citation": "INOCAR / GLOSS (2009). Ecuador tide-gauge network station table — WGS-84 coordinates used here: Esmeraldas 00°59'27\"N 079°38'46\"W, Bahía de Caráquez 00°36'26\"S 080°25'22\"W, La Libertad 02°13'04\"S 080°54'23\"W (Manta 00°55'53\"S 080°43'18\"W listed for completeness)."
+    },
+    {
+     "id": "toulkeridis2017",
+     "url": "http://www.tsunamisociety.org/STHVol36N4Y2017c.pdf",
+     "citation": "Toulkeridis, K., Chunga, K., Rentería, W., Rodríguez, F., Mato, F., Nikolaou, S., et al. (2017). The 7.8 Mw earthquake and tsunami of 16th April 2016 in Ecuador: seismic evaluation, geological field survey and economic implications. Science of Tsunami Hazards 36(4): 197-242 (open-access issue PDF, read 2026-10-16)."
+    },
+    {
+     "id": "heidarzadeh2017grl",
+     "url": "https://drheidarzadehlab.wordpress.com/wp-content/uploads/2022/12/44-heidarzadeh-et-al-2017-grl-fault-size-and-depth-16-april-2016-ecuador-m-7.8-earthquake-and-tsunami.pdf",
+     "citation": "Heidarzadeh, M., Murotani, S., Satake, K., Takagawa, T., Saito, T. (2017). Fault size and depth extent of the Ecuador earthquake (Mw 7.8) of 16 April 2016 from teleseismic and tsunami data. Geophys. Res. Lett. 44: 2211-2219 (open CC-BY PDF at the author's repository, read 2026-10-16)."
+    }
+   ],
+   "observations": [
+    {
+     "id": "pedernales2016-esmeraldas-gauge",
+     "name": "Esmeraldas (tide gauge)",
+     "type": "tide-gauge",
+     "lat": 0.9908,
+     "lng": -79.6461,
+     "peakHeightM": 1.15,
+     "verticalDatum": "zero-to-peak absolute excursion of the detided residual; leading-depression record (trough -1.15 m, crest +0.43 m rel. mean sea level; published crest-to-trough range 1.58 m)",
+     "sourceId": "renteria2017",
+     "quality": "direct",
+     "record": { "doc": "renteria2017", "note": "first wave arrived 10 min after origin; measured crest-to-trough range 1.58 m (-1.15 m / +0.43 m vs MSL), attributed to the northern asperity with the Submerged Atacames Promontory effect; leading phase is the depression (stations lie east of the rupture). Frozen at the max zero-to-peak excursion 1.15 m so the |height| scoring compares like-for-like. Toulkeridis et al. 2017 independently report a ~50 cm/min water-level rate of change at this gauge 19:06-19:09 local (consistent with the ~1.5 m range) and note the arrival is too fast for the coseismic source alone (possible landslide contribution, unresolved). Heidarzadeh et al. 2017 report ~10 cm max tide-gauge zero-to-peak over their own subset — discrepancy recorded in the dataset quality note." }
+    },
+    {
+     "id": "pedernales2016-bahia-gauge",
+     "name": "Bahía de Caráquez (tide gauge)",
+     "type": "tide-gauge",
+     "lat": -0.6072,
+     "lng": -80.4228,
+     "peakHeightM": 0.6,
+     "verticalDatum": "zero-to-peak amplitude of the detided residual (as published)",
+     "sourceId": "renteria2017",
+     "quality": "direct",
+     "record": { "doc": "renteria2017", "note": "first arrival 1 h 45 min after origin; three oscillation regimes — <±10 cm (t=0-60 min), ~±60 cm (t=60-240 min, the maximum; frozen here), ~±40 cm (after t=300 min) — attributed to the two main asperities plus a possible weak third patch offshore Bahía; the record carries a 6.5 cm coseismic subsidence step." }
+    },
+    {
+     "id": "pedernales2016-la-libertad-gauge",
+     "name": "La Libertad (tide gauge)",
+     "type": "tide-gauge",
+     "lat": -2.2178,
+     "lng": -80.9064,
+     "peakHeightM": 0.1,
+     "verticalDatum": "zero-to-peak amplitude of the detided residual (as published)",
+     "sourceId": "renteria2017",
+     "quality": "direct",
+     "record": { "doc": "renteria2017", "note": "first arrival 3 h after origin; signal grew to ~10 cm for the two asperities, then the 47-min Salinas/La Libertad bay-resonance component amplified ~x1.5 and oscillations persisted >15 h with the maximum ~6 h after arrival — that late resonant maximum sits outside the 14400 s scorecard horizon and is under-sampled honestly (same caveat class as Kaikōura Sumner)." }
+    }
+   ]
+   }
+  ]
+ }

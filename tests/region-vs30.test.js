@@ -124,14 +124,16 @@ const globalPacks = {
   chile: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-vs30-chile.json'), 'utf8')),
   taiwan: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-vs30-taiwan.json'), 'utf8')),
   newzealand: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-vs30-newzealand.json'), 'utf8')),
+  ecuador: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-vs30-ecuador.json'), 'utf8')),
 };
 const regionStations = {
   italy: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-stations-italy.json'), 'utf8')),
   chile: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-stations-chile.json'), 'utf8')),
   taiwan: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-stations-taiwan.json'), 'utf8')),
   newzealand: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-stations-newzealand.json'), 'utf8')),
+  ecuador: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-stations-ecuador.json'), 'utf8')),
 };
-const GLOBAL_RIDS = ['italy', 'chile', 'taiwan', 'newzealand'];
+const GLOBAL_RIDS = ['italy', 'chile', 'taiwan', 'newzealand', 'ecuador'];
 
 test('global-hybrid packs: schema + provenance (Heath et al. 2020, Crossref-verified DOI)', () => {
   for (const rid of GLOBAL_RIDS) {
@@ -165,6 +167,7 @@ test('global-hybrid packs: station coverage (italy >=95%, chile >=90%, taiwan/ne
     // grid or sit on fill-masked cells — they keep the labelled estimate.
     // v6.7: taiwan 16/16 = 100%, newzealand 560/563 = 99.5% (3 misses are
     // offshore-island sites outside the grid window — honest fallback).
+    // ecuador (2026-10-14): 23/23 = 100% (mainland-framed window).
     const floor = rid === 'italy' ? 0.95 : 0.9;
     assert.ok(frac >= floor, rid + ' coverage ' + (frac * 100).toFixed(1) + '% (' + applied + '/' + stations.length + ')');
   }
@@ -174,8 +177,8 @@ test('global-hybrid packs: physical values + geology anchors', () => {
   for (const rid of GLOBAL_RIDS) {
     const valid = globalPacks[rid].data.filter(v => v > 0);
     // taiwan is a small island in its window (6,164 land cells), newzealand
-    // 48,252 — italy/chile keep their original >=50,000 floor untouched
-    const floor = { italy: 50000, chile: 50000, taiwan: 5000, newzealand: 40000 }[rid];
+    // 48,252, ecuador 86,804 — italy/chile keep their original >=50,000 floor
+    const floor = { italy: 50000, chile: 50000, taiwan: 5000, newzealand: 40000, ecuador: 50000 }[rid];
     assert.ok(valid.length > floor, rid + ' land coverage (' + valid.length + ' cells)');
     for (const v of valid) {
       assert.ok(v >= 100 && v <= 2000, 'vs30 ' + v + ' in physical range');
@@ -208,6 +211,15 @@ test('global-hybrid packs: physical values + geology anchors', () => {
   const alps = Physics.regionVs30Sample(nzPk, -43.0, 171.0);
   assert.ok(chch > 150 && chch < 350, 'Christchurch plain soft: ' + chch);
   assert.ok(alps > 700, 'Southern Alps stiff: ' + alps);
+  // ecuador (2026-10-14): Guayas lowland (Guayaquil 306) vs inter-Andean
+  // valley (Quito 620) — slope-derived product reads stiffer in the Andes
+  const ecPk = globalPacks.ecuador;
+  const guayaquil = Physics.regionVs30Sample(ecPk, -2.19, -79.89);
+  const quito = Physics.regionVs30Sample(ecPk, -0.23, -78.52);
+  assert.ok(guayaquil > 150 && guayaquil < 450, 'Guayaquil lowland soft: ' + guayaquil);
+  assert.ok(quito > guayaquil + 200, 'Andes stiffer than the Guayas lowland: ' + quito);
+  const esmeraldas = Physics.regionVs30Sample(ecPk, 0.97, -79.65);
+  assert.ok(esmeraldas > 150 && esmeraldas < 800, 'Esmeraldas coastal: ' + esmeraldas);
 });
 
 test('fill-fingerprint masking: far-field ocean reads null, no fill leak', () => {
@@ -233,4 +245,7 @@ test('fill-fingerprint masking: far-field ocean reads null, no fill leak', () =>
   assert.equal(Physics.regionVs30Sample(globalPacks.taiwan, 23.5, 122.4), null, 'Taiwan east Pacific fill');
   assert.equal(Physics.regionVs30Sample(globalPacks.newzealand, -40.0, 167.0), null, 'Tasman Sea fill');
   assert.equal(Physics.regionVs30Sample(globalPacks.newzealand, -42.0, 179.5), null, 'NZ Pacific fill');
+  // ecuador (2026-10-14): equatorial Pacific fill cells read null too
+  assert.equal(Physics.regionVs30Sample(globalPacks.ecuador, 0.0, -83.0), null, 'Ecuador Pacific fill');
+  assert.equal(Physics.regionVs30Sample(globalPacks.ecuador, -4.5, -82.5), null, 'Ecuador S Pacific fill');
 });

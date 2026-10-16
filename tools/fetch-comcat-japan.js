@@ -17,7 +17,7 @@
 // Usage: node tools/fetch-comcat-japan.js [--region=<id>]
 //   default (no flag) freezes the Japan catalog exactly as before
 //   (tools/data/psha/comcat-japan.json, schema quake-sim-comcat-japan-v1).
-//   --region=<california|italy|chile|taiwan|newzealand> freezes that
+//   --region=<california|italy|chile|taiwan|newzealand|ecuador> freezes that
 //   region's catalog to tools/data/psha/comcat-<id>.json (schema
 //   quake-sim-comcat-region-v1) for the regional PSHA source models (v6.7 D).
 // Exit codes: 0 ok, 1 network/validation failure (no partial write).
@@ -36,7 +36,8 @@ const REGION_QUERIES = {
   italy:      { minLat: 34,   maxLat: 49,   minLng: 4,   maxLng: 21,    minMag: 5.0, start: '1923-01-01', minCount: 200 },
   chile:      { minLat: -57,  maxLat: -16,  minLng: -78, maxLng: -64,   minMag: 5.0, start: '1923-01-01', minCount: 1000 },
   taiwan:     { minLat: 20,   maxLat: 27.5, minLng: 117, maxLng: 125,   minMag: 5.0, start: '1923-01-01', minCount: 200 },
-  newzealand: { minLat: -50,  maxLat: -32,  minLng: 160, maxLng: 180,   minMag: 5.0, start: '1923-01-01', minCount: 300 }
+  newzealand: { minLat: -50,  maxLat: -32,  minLng: 160, maxLng: 180,   minMag: 5.0, start: '1923-01-01', minCount: 300 },
+  ecuador:    { minLat: -8,   maxLat: 5,    minLng: -86, maxLng: -72,   minMag: 5.0, start: '1923-01-01', minCount: 400 }
 };
 
 const REGION = (process.argv.find(a => a.startsWith('--region=')) || '').slice('--region='.length) || 'japan';

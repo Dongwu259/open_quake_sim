@@ -7,11 +7,11 @@
 //            (CC-BY 4.0, ISTAT-derived). raw.githubusercontent unreachable
 //            from this network: download via api.github.com blob API with the
 //            pinned-IP + explicit-Host workaround.
-//   chile / taiwan / newzealand — Natural Earth 10m admin-1 (public domain,
+//   chile / taiwan / newzealand / ecuador — Natural Earth 10m admin-1 (public domain,
 //            nvkelso/natural-earth-vector), admin=<country> filtered and
 //            bbox-clipped to the region pack bounds.
 //
-// Usage: node tools/fetch-region-areas.js [--region italy|chile|taiwan|newzealand]
+// Usage: node tools/fetch-region-areas.js [--region italy|chile|taiwan|newzealand|ecuador]
 'use strict';
 const fs = require('fs');
 const path = require('path');
@@ -77,6 +77,21 @@ const REGIONS = {
     provenance: {
       label: 'Natural Earth 10m admin-1 (New Zealand regions)',
       source: 'Natural Earth 10m admin-1 states/provinces, admin = New Zealand',
+      license: 'public domain (Natural Earth)',
+      url: 'https://github.com/nvkelso/natural-earth-vector',
+      builder: 'tools/fetch-region-areas.js',
+    },
+  },
+  ecuador: {
+    unit: 'province',
+    admin: 'Ecuador',
+    bbox: { minlat: -5.3, maxlat: 1.8, minlon: -81.3, maxlon: -73.5 },
+    blob: { sha: '4a8438f98ac7dfec7dc1739b1eaf91398ad33f22', size: 40726851, repoApi: '/repos/nvkelso/natural-earth-vector', repo: 'nvkelso/natural-earth-vector (NE 10m admin-1, public domain)' },
+    nameOf: (p) => p.name,
+    extraProps: (p) => ({ iso: p.iso_3166_2 || '' }),
+    provenance: {
+      label: 'Natural Earth 10m admin-1 (Ecuador provinces)',
+      source: 'Natural Earth 10m admin-1 states/provinces, admin = Ecuador',
       license: 'public domain (Natural Earth)',
       url: 'https://github.com/nvkelso/natural-earth-vector',
       builder: 'tools/fetch-region-areas.js',

@@ -1,6 +1,6 @@
 {
   "schema": "quake-sim-tsunami-validation-report-v1",
-  "createdAt": "2026-10-03T03:08:39.236Z",
+  "createdAt": "2026-10-15T16:28:07.442Z",
   "datasetResearchReady": false,
   "confusionMatrix": {
     "labels": [
@@ -52,10 +52,10 @@
       "mae": 5.898005656848771
     },
     "tide-gauge": {
-      "count": 7,
-      "bias": -0.6601101055725141,
-      "rms": 2.2444123120867205,
-      "mae": 1.6210502727215041
+      "count": 10,
+      "bias": -0.6317560552897378,
+      "rms": 1.9147439113299747,
+      "mae": 1.3044141722940308
     }
   },
   "arrivalMinutes": {
@@ -67,6 +67,6 @@
   "missingEvents": [],
   "missingObservations": 0,
   "missingObservationsByEvent": {},
-  "horizonNote": "per-event horizons: {\"maule2010\":5400,\"illapel2015\":5400,\"kaikoura2016\":7200}; Kaikōura Sumner gauge observed maximum arrived ~4 h after origin (outside the 7200 s horizon) — the scorecard may under-sample that latest maximum.",
+  "horizonNote": "per-event horizons: {\"maule2010\":5400,\"illapel2015\":5400,\"kaikoura2016\":7200,\"pedernales2016\":14400}; Kaikōura Sumner gauge observed maximum arrived ~4 h after origin (outside the 7200 s horizon) — the scorecard may under-sample that latest maximum. Pedernales La Libertad bay-resonance maximum came ~6 h after its 3 h arrival (Renteria 2017) — outside the 14400 s horizon, same under-sampling caveat.",
   "note": "regional standalone single-grid runs (no AMR nesting — the regional grids sit outside the Japan global grid; mirrors the app _bathyCoarseCovers gate). No forecast-area classification: regional warning areas are an app-side registry, not a frozen observation set."
 }

@@ -31,15 +31,15 @@ const i18nSrc = fs.readFileSync(path.join(ROOT, 'public', 'i18n.js'), 'utf8');
 const fetchToolSrc = fs.readFileSync(path.join(ROOT, 'tools', 'fetch-comcat-presets.js'), 'utf8');
 const buildToolSrc = fs.readFileSync(path.join(ROOT, 'tools', 'build-region-packs.js'), 'utf8');
 
-const REGIONS = ['california', 'chile', 'italy', 'taiwan', 'newzealand'];
+const REGIONS = ['california', 'chile', 'italy', 'taiwan', 'newzealand', 'ecuador'];
 function loadPack(rid) {
   return JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-' + rid + '.json'), 'utf8'));
 }
 
-test('registry: four regions carry fronts, italy documents its absence', () => {
+test('registry: five regions carry fronts, italy documents its absence', () => {
   const R = Physics.REGIONAL_SUBDUCTION_LINES;
   assert.ok(R && typeof R === 'object', 'registry exists');
-  for (const rid of ['chile', 'taiwan', 'newzealand', 'california']) {
+  for (const rid of ['chile', 'taiwan', 'newzealand', 'california', 'ecuador']) {
     assert.ok(Array.isArray(R[rid]) && R[rid].length, rid + ' has front lines');
   }
   assert.equal(R.italy, undefined, 'italy carries no front (Apennine crustal; slab via depth rule)');
@@ -90,7 +90,8 @@ test('every megathrust-preset epicenter sits inside its region front gate', () =
   const R = Physics.REGIONAL_SUBDUCTION_LINES;
   const cases = [
     ['chile', 'cl-1960-valdivia'], ['chile', 'cl-2010-maule'], ['chile', 'cl-2015-illapel'], ['chile', 'cl-2014-iquique'],
-    ['newzealand', 'nz-2009-dusky'], ['taiwan', 'tw-2024-hualien']
+    ['newzealand', 'nz-2009-dusky'], ['taiwan', 'tw-2024-hualien'],
+    ['ecuador', 'ec-2016-pedernales'], ['ecuador', 'ec-1906-esmeraldas'], ['ecuador', 'ec-1979-tumaco']
   ];
   for (const [rid, pid] of cases) {
     const p = loadPack(rid).presets.find((x) => x.id === pid);
@@ -119,10 +120,11 @@ test('selectFaultPlane uses the active regional front strike as prior', () => {
   }
 });
 
-test('all 21 region presets carry a curated sourceType (packs)', () => {
+test('all 26 region presets carry a curated sourceType (packs)', () => {
   const expected = {
     'cl-1960-valdivia': 'interplate', 'cl-2010-maule': 'interplate', 'cl-2015-illapel': 'interplate', 'cl-2014-iquique': 'interplate',
-    'tw-2024-hualien': 'interplate', 'nz-2009-dusky': 'interplate'
+    'tw-2024-hualien': 'interplate', 'nz-2009-dusky': 'interplate',
+    'ec-2016-pedernales': 'interplate', 'ec-1906-esmeraldas': 'interplate', 'ec-1979-tumaco': 'interplate'
   };
   let n = 0;
   for (const rid of REGIONS) {
@@ -132,7 +134,7 @@ test('all 21 region presets carry a curated sourceType (packs)', () => {
       n++;
     }
   }
-  assert.equal(n, 21, '21 region presets tagged');
+  assert.equal(n, 26, '26 region presets tagged');
   // california is all-crustal (San Andreas system), italy all-crustal (Apennine)
   for (const p of loadPack('california').presets) assert.equal(p.sourceType, 'crustal', p.id);
   for (const p of loadPack('italy').presets) assert.equal(p.sourceType, 'crustal', p.id);
@@ -143,7 +145,7 @@ test('sourceType survives the ComCat refresh chain (tool + snapshots)', () => {
   // would silently strip the classification on the next --write run.
   assert.ok(/sourceType: preset\.sourceType/.test(fetchToolSrc), 'fetch tool carries sourceType into rewritten presets');
   // The fallback tables in the pack builder must match the committed packs.
-  for (const [id, st] of [['cl-2010-maule', 'interplate'], ['tw-2024-hualien', 'interplate'], ['nz-2009-dusky', 'interplate'], ['it-2009-laquila', 'crustal']]) {
+  for (const [id, st] of [['cl-2010-maule', 'interplate'], ['tw-2024-hualien', 'interplate'], ['nz-2009-dusky', 'interplate'], ['it-2009-laquila', 'crustal'], ['ec-2016-pedernales', 'interplate']]) {
     const re = new RegExp("id: '" + id + "'[^\\n]*sourceType: '" + st + "'");
     assert.ok(re.test(buildToolSrc), 'build-region-packs fallback ' + id + ' = ' + st);
   }

@@ -1,7 +1,7 @@
 {
   "schema": "quake-sim-psha-source-model-report-v1",
   "region": "california",
-  "generatedAt": "2026-10-03T04:20:43.850Z",
+  "generatedAt": "2026-10-13T08:20:29.721Z",
   "catalogCount": 931,
   "classCounts": {
     "crustal": 759,
@@ -311,11 +311,11 @@
     }
   },
   "cells": {
-    "total": 2885,
+    "total": 1616,
     "byClass": {
-      "crustal": 2303,
-      "intraslab": 265,
-      "interplate": 317
+      "crustal": 1211,
+      "intraslab": 243,
+      "interplate": 162
     }
   },
   "rateConservation": {
@@ -342,5 +342,16 @@
     }
   },
   "scenarios": [],
-  "scenarioSegments": null
+  "scenarioSegments": null,
+  "ucerf3": {
+    "cellsDroppedInRelm": 1269,
+    "gridMfdNodeCount": 7636,
+    "characteristicSourceCount": 633,
+    "tdParentsWithData": 130,
+    "fmWeight": "FM3.1/FM3.2 averaged 0.5/0.5 (branch-averaged solutions of the two fault models)",
+    "gridMfdTotalRateM5": 7.8,
+    "charTotalRate": 0.6519,
+    "provenance": "tools/data/ucerf3-sections-california.json + ucerf3-grid-mfd.json (Zenodo DOI 10.5281/zenodo.5519802, CC BY 4.0, Field et al. 2014; Legacy FSS parsed by tools/fetch-ucerf3-sections.js)",
+    "doubleCounting": "measured pre-swap packOverUcerf3 0.616 @M>=6.5 (faultShare 0.825) — additive stacking rejected; RELM-interior ComCat cells replaced by the closed UCERF3 budget (tools/data/ucerf3-reconcile-report.json)"
+  }
 }

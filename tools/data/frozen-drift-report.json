@@ -1,35 +1,35 @@
 {
   "schema": "quake-sim-frozen-drift-report-v1",
-  "generatedAt": "2026-08-31T16:35:16.086Z",
-  "month": "2026-09",
+  "generatedAt": "2026-10-01T03:15:11.726Z",
+  "month": "2026-10",
   "sources": [
     {
       "id": "jma-shindo-db",
       "bundled": "public/geojson/observed.json",
-      "localSha256": "e5b6898ec4af362304b4058723f711b6523a0ad502ca23645e09c6759f9b536f",
+      "localSha256": "a3ea861ac3efdd38064782ac5035e89615987ad039ec7825f2f07daadc05c151",
       "upstream": "https://www.data.jma.go.jp/eqdb/data/shindo/",
       "upstreamReachable": true,
       "drift": {
-        "upstreamChanged": false,
+        "upstreamChanged": true,
         "checks": [],
         "before": {
           "bytes": 474432
         },
         "after": {
-          "bytes": 474432
+          "bytes": 476561
         },
-        "countsChanged": false
+        "countsChanged": true
       },
-      "snapshotWritten": "tools\\data\\frozen\\2026-09\\jma-shindo-db.json"
+      "snapshotWritten": "tools\\data\\frozen\\2026-10\\jma-shindo-db.json"
     },
     {
       "id": "usgs-shakemap",
       "bundled": "public/geojson/strong-motion-obs.json",
-      "localSha256": "46e4e2fb2c2bee30d439f776f9a5766c59218bab6baed304a9ade034f173ac22",
+      "localSha256": "bbd7a2811b3b8a2c84420de914614772ea01cb499a75124b22e85a3535649aa1",
       "upstream": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&limit=1&orderby=time",
       "upstreamReachable": true,
       "drift": {
-        "upstreamChanged": false,
+        "upstreamChanged": true,
         "checks": [],
         "before": {
           "events": 13,
@@ -37,23 +37,22 @@
           "forecastAreas": 0
         },
         "after": {
-          "events": 13,
+          "events": 19,
           "observations": 0,
           "forecastAreas": 0
         },
-        "countsChanged": false
+        "countsChanged": true
       },
-      "snapshotWritten": "tools\\data\\frozen\\2026-09\\usgs-shakemap.json"
+      "snapshotWritten": "tools\\data\\frozen\\2026-10\\usgs-shakemap.json"
     },
     {
       "id": "ncei-tsunami-observations",
       "bundled": "public/geojson/historical_tsunami_observations.json",
-      "localSha256": "e2a35c7046698a9420f3fe33531afc476854d95975769eec63b92bf4e36bc46b",
-      "upstream": "https://www.ngdc.noaa.gov/hazard/tsu_db.shtml",
-      "upstreamReachable": false,
-      "upstreamError": "timeout",
+      "localSha256": "cf056e742ebd66aad6060d3f26fcaa3b6f150d32fef0438176f1401b4a4dc48d",
+      "upstream": "https://www.data.jma.go.jp/eqev/data/gaikyo/",
+      "upstreamReachable": true,
       "drift": {
-        "upstreamChanged": false,
+        "upstreamChanged": true,
         "checks": [],
         "before": {
           "events": 3,
@@ -61,15 +60,15 @@
           "forecastAreas": 16
         },
         "after": {
-          "events": 3,
-          "observations": 10,
-          "forecastAreas": 16
+          "events": 5,
+          "observations": 55,
+          "forecastAreas": 25
         },
-        "countsChanged": false
+        "countsChanged": true
       },
-      "snapshotWritten": "tools\\data\\frozen\\2026-09\\ncei-tsunami-observations.json"
+      "snapshotWritten": "tools\\data\\frozen\\2026-10\\ncei-tsunami-observations.json"
     }
   ],
   "note": "reachability probes gate upstream refresh; per-event re-import stays a reviewed manual step (see AGENTS.md R7-1)",
-  "previousGeneratedAt": "2026-08-26T06:46:00.971Z"
+  "previousGeneratedAt": "2026-08-31T16:35:16.086Z"
 }

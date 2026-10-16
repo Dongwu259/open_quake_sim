@@ -26,6 +26,7 @@ const GRIDS = {
   california: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'grids', 'us-california.json'), 'utf8')),
   taiwan: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'grids', 'tw-taiwan.json'), 'utf8')),
   newzealand: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'grids', 'nz-aotearoa.json'), 'utf8')),
+  ecuador: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'grids', 'ec-megathrust.json'), 'utf8')),
 };
 const PACKS = {
   chile: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-chile.json'), 'utf8')),
@@ -33,6 +34,7 @@ const PACKS = {
   california: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-california.json'), 'utf8')),
   taiwan: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-taiwan.json'), 'utf8')),
   newzealand: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-newzealand.json'), 'utf8')),
+  ecuador: JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-ecuador.json'), 'utf8')),
 };
 
 function regionBathyEntries() {
@@ -42,7 +44,7 @@ function regionBathyEntries() {
 }
 
 test('terrain grids validate + meta contract (data honesty)', () => {
-  for (const rid of ['chile', 'italy', 'california', 'taiwan', 'newzealand']) {
+  for (const rid of ['chile', 'italy', 'california', 'taiwan', 'newzealand', 'ecuador']) {
     const g = GRIDS[rid];
     const check = Physics.validateResearchGrid(g, 'terrain');
     assert.ok(check.valid, rid + ' valid: ' + check.errors.join(','));
@@ -62,7 +64,7 @@ test('terrain grids validate + meta contract (data honesty)', () => {
 
 test('REGIONAL_BATHY entries: region-tagged, bbox matches the grid extent', () => {
   const entries = regionBathyEntries();
-  for (const rid of ['cl-megathrust', 'it-messina', 'us-california', 'tw-taiwan', 'nz-aotearoa']) {
+  for (const rid of ['cl-megathrust', 'it-messina', 'us-california', 'tw-taiwan', 'nz-aotearoa', 'ec-megathrust']) {
     const entry = entries.find(e => e.includes("id:'" + rid + "'"));
     assert.ok(entry, rid + ' entry present');
     const region = entry.match(/region:'([a-z]+)'/);
@@ -148,8 +150,35 @@ test('newzealand strip: Hikurangi margin trench + Southern Alps + Kaikoura coast
   assert.ok(alps > 300, 'Southern Alps foothills land: ' + alps);
 });
 
+test('ecuador strip (2026-10-14 new-region batch): Ecuador-Colombia trench + Andes + Guayaquil estuary', () => {
+  const g = GRIDS.ecuador;
+  assert.equal(g.res, 0.05, 'ecuador strip is 0.05° (country-scale contract)');
+  assert.ok(g.minDepth < -5000, 'Ecuador trench / Panama basin deep in grid: ' + g.minDepth);
+  assert.ok(g.maxDepth > 5000, 'Andes crest (Chimborazo class) in grid: ' + g.maxDepth);
+  assert.equal(g.nx * g.ny, 30400, 'cell count frozen: ' + g.nx * g.ny);
+  const trench = Physics.lookupResearchGrid(g, 0.3, -82.5);
+  assert.ok(trench < -3000, 'trench deep water west of Pedernales: ' + trench);
+  const basin = Physics.lookupResearchGrid(g, 2.0, -82.0);
+  assert.ok(basin < -2500, 'north Panama basin deep water: ' + basin);
+  // Gulf of Guayaquil: shallow estuary water (mask-relevant: <10 m deep cells
+  // are not ocean-eligible for the alert registry)
+  const gulf = Physics.lookupResearchGrid(g, -2.9, -80.7);
+  assert.ok(gulf < -10 && gulf > -150, 'Gulf of Guayaquil shallow estuary: ' + gulf);
+  const andes = Physics.lookupResearchGrid(g, -0.23, -78.52);
+  assert.ok(andes > 1500, 'Andes land (Quito neighborhood): ' + andes);
+  // published-parameter honesty (Valdivia/Messina precedent): the Pedernales
+  // 2016 ComCat epicenter (0.3819,-79.9218) is a nearshore hypocenter that
+  // lands on a LAND cell at 0.05° — kept as published, never nudged into
+  // water; the tsunami-relevant rupture extended offshore (shelf water ~15 m
+  // deep a few km west)
+  const pedernales = Physics.lookupResearchGrid(g, 0.3819, -79.9218);
+  assert.ok(pedernales > 0, 'Pedernales 2016 preset epicenter sits on a land cell (honest note): ' + pedernales);
+  const offshore = Physics.lookupResearchGrid(g, 0.45, -80.10);
+  assert.ok(offshore < 0 && offshore > -100, 'Pedernales near-offshore shelf water: ' + offshore);
+});
+
 test('region packs flip tsunami:true with honest boundary notes', () => {
-  for (const rid of ['chile', 'italy', 'taiwan', 'newzealand']) {
+  for (const rid of ['chile', 'italy', 'taiwan', 'newzealand', 'ecuador']) {
     assert.equal(PACKS[rid].tsunami, true, rid + ' tsunami enabled');
     const notes = PACKS[rid].notes;
     assert.match(notes, /GEBCO 2025/, rid + ' names the terrain dataset');
@@ -200,7 +229,7 @@ test('app.js wiring: regional depth branch, coverage gate, checkpoint gate, warm
 });
 
 test('vs30 + terrain provenance cross-agree on source tokens', () => {
-  for (const rid of ['italy', 'chile', 'taiwan', 'newzealand']) {
+  for (const rid of ['italy', 'chile', 'taiwan', 'newzealand', 'ecuador']) {
     const vs30 = JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-vs30-' + rid + '.json'), 'utf8'));
     assert.equal(vs30.provenance.sourceToken, 'usgs-global-heath2020');
     assert.match(GRIDS[rid].meta.source, /GEBCO Compilation Group/);

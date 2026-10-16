@@ -31,7 +31,7 @@ const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
 const CACHE = path.join(ROOT, '.cache', 'comcat-presets');
-const REGIONS = ['california', 'chile', 'italy', 'taiwan', 'newzealand'];
+const REGIONS = ['california', 'chile', 'italy', 'taiwan', 'newzealand', 'ecuador'];
 
 // Epicenter keep-list (HANDOVER 6.6.0 decision 3): the pipeline must never
 // flush a documented honesty note by "correcting" parameters. The pack's

@@ -25,14 +25,18 @@ const EVENT_LOCK = {
   lomaprieta1989:   { usgsId: 'nc216859',                     stations: 106, maxPgaGal: 980.18, model: 'bssa14',  variant: 'base' },
   ridgecrest2019:   { usgsId: 'ci38457511',                   stations: 563, maxPgaGal: 558.08, model: 'bssa14',  variant: 'base' },
   parkfield2004:    { usgsId: 'nc30228270',                   stations: 137, maxPgaGal: 1287.03, model: 'bssa14', variant: 'base' },
+  napa2014:         { usgsId: 'nc72282711',                   stations: 546, maxPgaGal: 634.32, model: 'bssa14',  variant: 'base' },
+  hectormine1999:   { usgsId: 'ci9108652',                    stations: 102, maxPgaGal: 318.89, model: 'bssa14',  variant: 'base' },
   laquila2009:      { usgsId: 'usp000gvtu',                   stations: 66,  maxPgaGal: 612.34, model: 'bssa14',  variant: 'lowQ' },
   amatrice2016:     { usgsId: 'us10006g7d',                   stations: 135, maxPgaGal: 449.17, model: 'bssa14',  variant: 'lowQ' },
   norcia2016:       { usgsId: 'us1000731j',                   stations: 101, maxPgaGal: 460.44, model: 'bssa14',  variant: 'lowQ' },
-  maule2010:        { usgsId: 'official20100227063411530_30', stations: 28,  maxPgaGal: 910.06, model: 'zhao2006' },
-  illapel2015:      { usgsId: 'us20003k7a',                   stations: 29,  maxPgaGal: 814.05, model: 'zhao2006' },
-  iquique2014:      { usgsId: 'usc000nzvd',                   stations: 23,  maxPgaGal: 720.34, model: 'zhao2006' },
+  visso2016:        { usgsId: 'us1000725y',                   stations: 47,  maxPgaGal: 136.72, model: 'bssa14',  variant: 'lowQ' },
+  emilia2012:       { usgsId: 'usp000jkn8',                   stations: 49,  maxPgaGal: 41.72, model: 'bssa14',  variant: 'lowQ' },
+  maule2010:        { usgsId: 'official20100227063411530_30', stations: 28,  maxPgaGal: 910.06, model: 'ngasub' },
+  illapel2015:      { usgsId: 'us20003k7a',                   stations: 29,  maxPgaGal: 814.05, model: 'ngasub' },
+  iquique2014:      { usgsId: 'usc000nzvd',                   stations: 23,  maxPgaGal: 720.34, model: 'ngasub' },
   chichi1999:       { usgsId: 'usp0009eq0',                   stations: 414, maxPgaGal: 1134.63, model: 'bssa14', variant: 'base' },
-  hualien2024:      { usgsId: 'us7000m9g4',                   stations: 350, maxPgaGal: 1478.6, model: 'zhao2006' },
+  hualien2024:      { usgsId: 'us7000m9g4',                   stations: 350, maxPgaGal: 1478.6, model: 'ngasub' },
   darfield2010:     { usgsId: 'usp000hk46',                   stations: 78,  maxPgaGal: 737.48, model: 'bssa14',  variant: 'base' },
   christchurch2011: { usgsId: 'usp000huvq',                   stations: 84,  maxPgaGal: 1597.41, model: 'bssa14', variant: 'base' },
   kaikoura2016:     { usgsId: 'us1000778i',                   stations: 192, maxPgaGal: 1253.75, model: 'bssa14', variant: 'base' }
@@ -40,7 +44,7 @@ const EVENT_LOCK = {
 
 test('region obs: schema, event set and frozen per-event identity', () => {
   assert.equal(OBS.schema, 'quake-sim-region-obs-v1');
-  assert.equal(OBS.events.length, 15);
+  assert.equal(OBS.events.length, 19);
   const seen = {};
   for (const ev of OBS.events) {
     const lock = EVENT_LOCK[ev.eventId];
@@ -107,9 +111,10 @@ test('region scorecard: routing + model variants per event', () => {
     assert.equal(ev.model, lock.model, ev.eventId + ' model route drifted');
     if (lock.variant) assert.equal(ev.bssa2014Variant, lock.variant, ev.eventId + ' bssa14 variant drifted');
     else assert.equal(ev.bssa2014Variant, null);
-    // BSSA14 only on crustal regional events; zhao2006 on subduction classes.
+    // BSSA14 only on crustal regional events; ngasub on subduction classes.
     if (lock.model === 'bssa14') assert.equal(ev.sourceType, 'crustal');
     else assert.ok(ev.sourceType === 'interplate' || ev.sourceType === 'intraslab');
+    if (lock.model === 'ngasub') assert.ok(ev.ngasubVariant && typeof ev.ngasubVariant === 'object', ev.eventId + ' ngasub variant frozen');
   }
 });
 
@@ -117,10 +122,23 @@ test('region scorecard: Maule Vs30 grid fallback and frozen headline numbers', (
   const maule = FROZEN_REPORT.events.find(e => e.eventId === 'maule2010');
   assert.equal(maule.droppedNoVs30, 0);
   assert.equal(maule.gridVs30, 28, 'all 28 Maule stations fall back to the region Vs30 grid');
+  // v6.8 re-baseline (NGA-Sub routing for subduction classes): Chile
+  // improved (region PGA bias -0.551 -> -0.346, rms 0.869 -> 0.627; all three
+  // events better), Taiwan regressed (hualien2024 +0.034 -> -0.362 — Parker
+  // TW constants under-predict it; documented cost).
+  // v6.9-obs expansion (2026-10-07, +4 events / +744 stations: napa2014,
+  // hectormine1999, visso2016, emilia2012): overall pga bias -0.2183 ->
+  // -0.1156 (napa +0.35 dex at a soft-basin event offsets the persistent
+  // negative crustal bias; hector -0.28 consistent), pgv -0.2491 -> -0.1712,
+  // intensity -0.517 -> -0.3147; rms ~flat (0.4072 -> 0.4112). Chile/Taiwan
+  // aggregates byte-identical to the v6.8 record. hualien2018 (us1000chhc)
+  // probed and honestly REJECTED: both shakemap products carry 1-5 stations
+  // passing the pga+pgv instrumented rule (< 20-station floor); tocopilla2007
+  // rejected the same way (0-5 instrumented).
   assert.deepEqual(FROZEN_REPORT.overall, {
-    pga: { n: 2491, bias: -0.1692, rms: 0.4001 },
-    pgv: { n: 2491, bias: -0.2116, rms: 0.4138 },
-    intensity: { n: 2491, bias: -0.4348, rms: 0.7847 }
+    pga: { n: 3235, bias: -0.1156, rms: 0.4112 },
+    pgv: { n: 3235, bias: -0.1712, rms: 0.4042 },
+    intensity: { n: 3235, bias: -0.3147, rms: 0.8212 }
   });
   assert.equal(FROZEN_REPORT.schema, 'quake-sim-region-obs-report-v1');
 });
@@ -147,7 +165,7 @@ test('region routing: setActiveGmpRegion drives auto resolve + variant', () => {
     Physics.setActiveGmpRegion('italy');
     assert.equal(Physics.activeBssa2014Variant(), 'lowQ');
     Physics.setActiveGmpRegion('chile');
-    assert.equal(Physics.resolveGmpModel('auto', 'interplate', 8.8), 'zhao2006');
+    assert.equal(Physics.resolveGmpModel('auto', 'interplate', 8.8), 'ngasub');
     Physics.setActiveGmpRegion(null);
     assert.equal(Physics.resolveGmpModel('auto', 'crustal', 6.7), 'si-midorikawa');
   } finally {

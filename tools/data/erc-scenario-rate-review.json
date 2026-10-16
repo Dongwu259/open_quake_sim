@@ -1,0 +1,82 @@
+{
+  "schema": "quake-sim-erc-scenario-review-v1",
+  "generatedAt": "2026-10-13T13:48:14.523Z",
+  "purpose": "ERC 一次文献复核——逐情景源核对 quake-sim-psha-source-v2 的率与几何分配依据(SCIENTIFIC-REPORT §3.3 登记的整改方向=情景率/BPT 工程判断复核;对照 J-SHIS 只作测量,本表全部数字来自地震本部官方发布,不读官方危险曲线)",
+  "primarySources": [
+    {
+      "id": "erc-ichiran-2026",
+      "title": "活断層及び海溝型地震の長期評価結果一覧(算定基準日 令和8年(2026年)1月1日)",
+      "url": "https://www.jishin.go.jp/main/choukihyoka/ichiran.pdf",
+      "accessedAt": "2026-10-13",
+      "sha256": "df8f77cdc487f761c8884c356cba72f321ea43e9ba644b59ee348cc3562c4b3e",
+      "note": "pdftotext 日文 CID 抽取失败,pymupdf 提取核对;坑同 HANDOVER 的 PEER 表抽取教训"
+    },
+    {
+      "id": "erc-nankai-2025-revision",
+      "title": "南海トラフの地震活動の長期評価(第二版一部改訂,令和7年9月26日公表)の手引き",
+      "url": "https://www.jishin.go.jp/evaluation/long_term_evaluation/subduction_fault/summary_nankai/",
+      "accessedAt": "2026-10-13",
+      "sha256": "b43e9debf17c1152cb4a4f7b65b92a8f31786f232e2bf41e86f722ca1fa0a223"
+    },
+    {
+      "id": "erc-sagami-2014",
+      "title": "相模トラフ沿いの地震活動の長期評価(第二版)(平成26年(2014年)4月25日公表)",
+      "url": "https://www.jishin.go.jp/resource/column/kohyo_sum_kohyo_sum/",
+      "accessedAt": "2026-10-13",
+      "note": "南関東 M7 程度地震:元禄〜大正 220 年間に 8 回→平均発生間隔 27.5 年,ポアソン過程→30 年 70%程度(現行総表 2026-01-01 基準日亦 70%程度)"
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "nankaiFullM89 + nankaiEastM82 + nankaiWestM83",
+      "ours": {
+        "stationaryRatePerYear": "1/117 总率,4/1/1 模式分割(Hoei 型 1361/1605/1707/1854 全域 4/6,Meio 型 1498 东段 1/6,Showa 型 1944/46 西双段 1/6——历史目录判读,ERC 不发布模式分割)",
+        "timeDependent": "引擎 PSHA_BPT_SOURCES: mu 117 yr lastEvent 1707(全域)/mu 468 lastEvent 1944(东)/1946(西)"
+      },
+      "erc": {
+        "meanIntervalYears": 117.4,
+        "elapsedYears": 80.0,
+        "p30_intervalOnlyBPT": "20%~50%",
+        "p30_slipDependentBPT": "60%~90%程度以上",
+        "basis": "2025-09-26 一部改訂:两法并列(70%信用区间),无优劣判定,防灾强调高值;2025-01 曾由 70-80% 改 80%程度"
+      },
+      "conformity": "CONFORMANT——我方 1/117 与 ERC 均值 117.4 年逐位吻合(1361..1946 六事件五间隔);泊松 P30=22.6% 落区间 BPT 的 20~50% 带内(概念不同:我方为长程平稳率,ERC 20-50% 为条件概率,数值相邻非同一语义,如实记录);TD 视图由引擎 BPT 注册表承载(v2 对照报告 TD 臂已测);60-90%+ 滑り量依存法按 ERC 两法并列原则不做泊松换算",
+      "verdict": "KEEP(率不动)"
+    },
+    {
+      "id": "tokyoInland",
+      "ours": {
+        "ratePerYear": 0.04013,
+        "derivation": "lambda=-ln(1-0.70)/30,模型 rateBasis 记 ERC(2017-04-21)首都圈评估",
+        "geometry": "单一假想几何(app.js PRESETS.tokyoInland,M7.3)"
+      },
+      "erc": {
+        "p30": "70%程度(M7 程度,相模トラフ沿いプレートの沈み込みに伴う地震,南関東全域)",
+        "meanIntervalYears": 27.5,
+        "process": "POISSON(ERC 自身对该类用泊松——总表注:相模トラフ沿いのその他の南関東のM7程度の地震はポアソン過程)",
+        "primaryDoc": "相模トラフ沿いの地震活動の長期評価(第二版),2014-04-25(平成26年4月25日)公表"
+      },
+      "conformity": "率语义与 ERC 一致(泊松)。两处修订入档:①模型 rateBasis 引用错误——正确一次文献是 2014-04-25 相模トラフ第二版(平均间隔 27.5 年→P30=1-exp(-30/27.5)=66.4%≈70%程度),非 2017-04-21,且 sourceUrl 已 404;②由原始间隔直算率为 0.03636/yr,与标题概率反算的 0.04013/yr 差 +9.4%,在 ERC 有效数字舍入内——率不动(标题 70% 为官方发布口径),引用改挂 2014 第二版。残余问题=单几何集中度:ERC 的 70% 覆盖南関東多想定震源,我方钉死东京正下单点——对东京局地尾部高估、对南関東他点低估;由 jshis-decompose 的 LND 臂实测定量,多几何摊分(ERC/J-SHIS fltinfo 官方想定震源清单)登记为后续候选批",
+      "verdict": "KEEP-RATE / FIX-CITATION(率不动,rateBasis 改挂 2014 第二版)+ 登记多几何化候选"
+    },
+    {
+      "id": "japanTrenchM9(未入包——v2 模型登记局限:日本海沟 M9 复发无情景承载)",
+      "erc": {
+        "p30": "ほぼ0%(30/50/100 年同,更新过程,2011 后経過率 0.02-0.03→均值量级 ~600-800 年)",
+        "precedence2011Reference": "同总表参考栏:2011 年东日本大地震发生直前概率 30 年 4%~6%(経過率 0.83-1.00 时代)——长程平稳视角 P30 ~5% 量级可文档化",
+        "relatedRows": "海溝寄りのプレート間地震(津波地震等)Mt8.6-9.0:30年 30%程度;海溝軸外側 M8.2:30年 7%(411.2 年泊松,2020 作成条件编付表1.2.6-1)"
+      },
+      "conformity": "不加包。理由:①ERC 官方时间依赖概率=ほぼ0%,J-SHIS Y2024(同一概率观)同样近似不承载——缺失不构成对官方产品的差异;②若按长程平稳(~1/600-1/1200/yr,P30 2.5-5%)入包,长 RP 完整性改善但使我方平稳框架在仙台长尾上偏离官方 TD 产品=框架选择问题,不是误差修正;③jshis-decompose 的 PPE 臂先在仙台实测缺口是否存在(H2 预登记)",
+      "verdict": "DEFER(登记为框架决策:平稳完备性 vs 官方 TD 对齐,留用户拍板;若入包,率=长程均值 ~1/600-1/1200/yr 需另行冻结)"
+    }
+  ],
+  "reviewOutcome": {
+    "ratesChanged": false,
+    "citationFixed": "tokyoInland rateBasis 改挂相模トラフ第二版(2014-04-25,间隔 27.5 年,泊松)——经 build-psha-source-model.js 重生成,数值锚零漂移(率不变)",
+    "registeredFollowUps": [
+      "首都直下多几何化(J-SHIS fltinfo API 可提供官方想定震源几何;待 LND 臂测量结果定案)",
+      "日本海沟 M9 平稳长程入包=框架决策,挂用户",
+      "ERC 概率值有效数字 1 位(94.5% 以上记 90%程度以上)的舍入语义已入 provenance,后续引用按原样转录"
+    ]
+  }
+}

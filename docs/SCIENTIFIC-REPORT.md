@@ -13,8 +13,8 @@
 | 支柱 | 内容 | 状态 |
 |---|---|---|
 | **强震动验证基线** | 19 个冻结事件、6,917 个 K-NET/KiK-net 台站观测峰值;GMPE 预报路径对照 | 逐事件记分卡冻结;modelBias 留一(LOEO)结论经 19 事件扩容后**公开反转** |
-| **GMPE 交叉实现** | Zhao2006 对 openquake.hazardlib 官方实现逐位对拍(2,400 点,max\|ΔlnA\| = 2.7e-15);BSSA14/NGA-West2 同法对拍(5,880 点+490 σ 点,max\|Δln\| = 1.8e-15) | 锁死 |
-| **PSHA 引擎** | Poisson 年超越率积分、10,441 格 GR 震源模型 + 分段南海 BPT 情景源、UHS、危险分解 | 自验闭合;对 J-SHIS 外部对照**如实报告高估 1.83×** 并完成归因 |
+| **GMPE 交叉实现** | Zhao2006 对 openquake.hazardlib 官方实现逐位对拍(2,400 点,max\|ΔlnA\| = 2.7e-15);BSSA14/NGA-West2 同法对拍(5,880 点+490 σ 点,max\|Δln\| = 1.8e-15);**NGA-Sub/Parker2022 同法对拍(35,568 点×26 IMT 行全表,max\|Δln\| = 3.6e-15,σ 零差)**;**CY14/CB14/ASK14 同法对拍(17,856/17,532/17,800 点,max\|Δln\| ≤ 3.6e-15,σ ≤ 4×10⁻¹⁶)** | 锁死 |
+| **PSHA 引擎** | Poisson 年超越率积分、10,441 格 GR 震源模型 + 分段南海 BPT 情景源、UHS、危险分解 | 自验闭合;对 J-SHIS 外部对照**如实报告高估 1.83×** 并完成归因 + eqcode 分解闭卷(§3.4:残差全在俯冲侧,浅源侧 ×0.852;情景率 ERC 一次文献复核合规) |
 | **宽频带管线** | SH 离散波数内核 + Brune/Boore 混合 + 条件谱(CS)管线 + 短周期仲裁者 | 长周期改善 PASS(+0.143);形状门 FAIL 已收口为「合成-vs-GMPE 一致性监视器」(CS_GATE_ROLE:短带=种群+类别结构化配置性质,长带=源种群性质,四条全局治愈全否证);仲裁 INCONCLUSIVE |
 | **P-SV 研究内核** | 离散波数全空间/分层 Green 函数,十二轮迭代到终局(§6) | 全空间锚定(残差 ≤0.08);QD 算术五点门 1e-13 级;series 收敛(1.0012);带内无极点实测;**CS v4 门执行完毕,P-SV 水平块对形状门 MEASURED-NO-CURE(生产保持 SH-only)** |
 | **动力学破裂** | SH/PSV 交错有限差分 + TSN 滑移弱化,TPV5-AP 官方参数 | 反平面验收通过;CVWS 参考解在登录墙后,不做逐站一致声明 |
@@ -49,6 +49,13 @@
 - `GMPE_LOGIC_TREE`:crustal→Si-Midoriwara,interplate/intraslab→Zhao2006,三族 LLH 权重;`gmpModel 'logic-tree'` 输出加权几何均值 + 认知 σ。
 - **Zhao2006 忠实实现**(论文 Eq.1/5 自然对数形,c·exp(dM) 伪深度饱和、15 km 门控深度项、FR 逆断层项、Table-2 场地分类、PGV 经 SA(1s) 换算):对 hazardlib 官方 `zhao_2006.py`(jsDelivr 拉取,sha256 锁)生成 2,400 点夹具,**max |ΔlnA| = 2.7e-15**(tests/gmpe-benchmarks.test.js)。
 - **BSSA14 (NGA-West2) 忠实实现**(v6.7 区域 GMPE 批,Boore/Stewart/Seyhan/Atkinson 2014 Eq.2-8+13-17:Mh 铰接量级项+断层类型 e0-e3、Rjb 路径项+区域 Δc3、Vs30 线性+非线性场地(岩石 PGA 参照)、τ/φ 随量级/距离/场地):对 hazardlib 官方 `boore_2014.py`(sha256 c12315ff…)生成 5,880 点+490 σ 点夹具,**max |Δln| = 1.8e-15**(tests/gmpe-bssa14.test.js);hazardlib vs30=v1 边界双减 quirk 如实复制并锁定。区域模式 auto 路由:地壳内→BSSA14(日本外;日/意取 LowQ Δc3,其余 base),板间/板内仍→Zhao2006(无区域 NGA-Sub 模型打包,诚实登记);**盆地项关闭(各区域包无 z1.0 数据)、深度只经 h 准深度进入、区域首轮回观测标定已落地(v6.7 批 C**:`public/geojson/region-obs.json` 15 事件 2,491 仪器台站(USGS Shakemap stationlists,宏震伪台站排除;`tools/fetch-region-obs.js`)+`tools/scorecard-region-obs.js`:BSSA14 crustal PGA bias 加州 −0.203/意大利 −0.135/台湾 −0.060/新西兰 −0.254 log10(总体 −0.169/rms 0.400,原生未校正残差);智利板缘 zhao2006 −0.551=无区域 NGA-Sub 的量化代价(如实登记不外推校正);近场峰值因合成断层光滑化系统性偏低 2-4×。区域海啸观测记分卡(`region_tsunami_observations.json` 3 事件 17 点+`tools/scorecard-tsunami-regional.js`):Maule/Illapel/Kaikōura——gauge/runup 分型残差(Valparaíso 1.30 vs 1.5 m 吻合;Kaikōura 合成单平面源对多断层事件欠驱动至 30×,如实记录)。**区域 PSHA 源模型(v6.7 批 D)**:日本 PSHA 管线参数化到五区域(`build-psha-source-model.js --region=<id>`,ComCat 区域窗 1923- M≥5 冻结 931/758/4,616/1,556/1,011 事件)——区域 bbox+区域 Mmax 约定+`Physics.REGIONAL_SUBDUCTION_LINES` trench 分类(与 app 构造先验同几何;意大利无俯冲线=无板缘类);**纯网格 GR 无情景源**(UCERF3/NSHM 等区域特征断层复发率未策展,大断层附近长重现期危险低估,如实入包 limitations);区域 GMPE 树冻入包 `gmpeTree`(crustal=BSSA14 单分支 italy→lowQ 余→base,板缘/板内=zhao2006;SA 周期仍塌缩 zhao2006=区域谱形未标定),引擎 `_pshaBranchesFor/_pshaBranchMotion` 消费透传(日本三分支树字节兼容)。五区域城市锚 RP475:LA 304/罗马 96/圣地亚哥 775/台北 593/惠灵顿 537 gal——**无任何官方区域危险模型对照=不做等价声明**;附带修复 loader 只认 v1 schema 的真 bug(bundled v2 日本模型自 2026-09-04 起生产 waiting 27 天)。
+- **NGA-Sub (Parker 2022) 忠实实现**(v6.8 批,Parker/Stewart/Boore/Atkinson/Hassani PEER 2020/03;Earthquake Spectra 2022, 38(2) 845-870):对 hazardlib 官方 `parker_2020.py`(sha256 32df333b…)独立转写 `tools/gen-gmpe-fixtures-ngasub.py` 生成 **35,568 点夹具(interface/intraslab × 4 生产区域配置 × 26 IMT 行全表,含 σ),max |Δln| = 3.6e-15、σ 零差**(tests/gmpe-ngasub.test.js 13 锚)。范围如实冻结:盆地项关闭(各区域包无 z2.5 数据;J_e*/C_e*/del_* 列逐字携带未用)、遍历性 σ(Tau/phi21/phi22/phi2V)、无认知 sigma_mu 与阿拉斯加 2023 偏差调整、非遍历 σ 列携带未用。区域/饱和区归属按报告 §4.3.4 考证冻结:加州→Cascadia、智利→SA/SA_S(报告明确「the southern part of South America (namely, Chile)」=全条带)、台湾→TW/TW_E(TW_E/TW_W 列逐字相同,报告将东北常数应用于全区)、新西兰/意大利→全球默认(NGA-Sub 采集了 NZ 数据但未发布 NZ 区域因子;意大利无俯冲类);日本板缘/板内**保持 zhao2006 不动**。路由:`resolveGmpModel` 区域俯冲事件→ngasub(日本路径字节不变),`calcPGA/calcPGV` 增 ngasub 分支(src→trt 映射,Rrup 度规与 zhao 同约定),predictStationMotion 原生 Vs30(不叠外部放大);PSHA `_pshaBranchMotion` 增 ngasub 分支(pga/pgv/SA 全表;zhao 独有周期 0.60-1.25 s 对数周期插值,出 [0.01,10] s 诚实 null),`_pshaBranchesFor` 消费包 gmpeTree 的 ngasub 分支驱动俯冲类 SA(地壳内 BSSA14 谱行未转写仍塌缩 zhao)。区域观测记分卡重定基(`region-obs-report.json`):**智利板缘 PGA bias −0.551→−0.346、RMS 0.869→0.627(三事件全面改善:Maule −0.86→−0.64、Illapel −0.43→−0.18、Iquique −0.33→−0.20);台湾花莲 +0.034→−0.362 回退(Parker TW 常数对该单事件偏低,站数权重大使总体 −0.169→−0.218,如实记录)**。区域 PSHA 五包 gmpeTree 重生成(日本模型不动),城市锚重冻:LA 304(不变,地壳主导)/罗马 91(−5%)/圣地亚哥 825(+6.5%,Parker SA_S 抬升与 zhao 偏低同向)/台北 494(−17%,Parker TW 常数低于 zhao)/惠灵顿 387(−28%,全球默认 vs 日本标定)——模型形式差异如实冻结,不做等价声明。
+- **BSSA14 SA 全周期 + 区域观测扩容**(v6.9 批,2026-10-07):①同冻结 `boore_2014.py`(sha256 c12315ff…)全部 105 个 SA 行(0.010–10.00 s)**机械转写**(三张 COEFFS 表 107 行×27 列程序化验证:跨表仅 Dc3 列不同;盆地列 f6/f7 LowQ 源表个别周期低精度舍入=未用列,冻结 base 值),夹具扩至 **36,120+5,530 点,max |Δln|=1.8e-15、σ 零差**(pga/pgv 5,880+490 字节不动;tests/gmpe-bssa14.test.js 18 锚);**区域地壳 SA/UHS 不再塌缩 zhao2006**(树门 bssa14|ngasub;精确行否则对数周期终值插值=parker 引擎约定;出 [0.01,10] s 诚实 null;未知 imt 不再回退 pga 行),五城 RP475 UHS 重冻(谱形较 zhao 塌缩普遍 0.58–0.90×;台湾 1.0 s 反升 +7%=谱形差异如实记录),日本塌缩字节不变(东京 SA 锚 2421.5/1155.2/562.5 冻结),PSHA pga 城市锚零漂移。②区域强震动观测扩容:**19 事件 3,235 站**(+napa2014 546 站/hectormine1999 102/visso2016 47/emilia2012 49;候选 hualien2018 与 tocopilla2007 **诚实拒收**——全部 shakemap 产品过 pga+pgv 仪器规则的台站 <20 下限)——总体 PGA bias −0.218→−0.116、rms 0.407→0.411,PGV −0.249→−0.171,烈度 −0.517→−0.315;智利/台湾聚合与 v6.8 记录一致;加州 −0.203→−0.023(Napa +0.35 dex 软盆地事件部分抵消地壳类系统低估,意大利 +visso/emilia 后 −0.087)。
+- **UCERF3 特征断层源(加州 PSHA 包 v3,2026-10-12 批 A+B)**:v6.7 批 D 自记的「纯网格 GR 无情景源→大断层附近长重现期低估」局限在加州闭合——UCERF3 分支平均解(FM3.1 253,706/FM3.2 305,709 破裂,Zenodo DOI 10.5281/zenodo.5519802,zip sha256 钉死,`tools/fetch-ucerf3-sections.js` 零依赖最小 zip 读取器)父段聚合冻结(`tools/data/ucerf3-sections-california.json`:313/320 父段参与率+0.1 级稀疏 charMfd+子段几何 dip/折线;Parkfield 父段参与率 0.04666/yr 与 UCERF3 可得性报告一致,tests/ucerf3-sections.test.js 9 锚);**重复计账定案 γ(RELM 内置换)**:置换前本包 ComCat GR 在 RELM bbox 内携带与 UCERF3 闭合预算同级的总量(D/(A+B+C)@M6.5=0.616 FM 均、FM3.1 单 0.957,断层份额 0.825/0.960/0.9997 @M6.5/7.0/7.5→直接叠加=对主导项双重计数;α 缓冲减账不可审计、β 大 M 端不缺率均否决,`tools/ucerf3-reconcile.js` 冻结报告 ucerf3-reconcile-report.json),RELM 多边形内 1,269 个 ComCat 格由 UCERF3 闭合分账(**7,636 gridMfdSources** unassoc+subseismo 稀疏 MFD+**633 characteristicSources** 参与率≥1e-5/yr,补片=子段折线点上盘深度+倾向投影下盘,FM3.1/3.2 0.5/0.5 平均,Rjb 度规)置换,界外 apron 不变,接缝不调和如实入包 limitations;加州包升 `quake-sim-psha-source-v3`(loader 三接受 v1|v2|v3;`Physics._pshaV3SourcesEach` 共享消费器挂 hazardCurve/hazardCurveTimeDependent/deaggregate 三处,v1|v2 包字节兼容);**LA RP475 303.7→618.3 gal(+104%,~0.63 g@Vs30=600 落官方 NSHM 量级=v2 自记低估被已发表模型修复,非调参)**,RP2500→1055.5,UHS475 0.2/0.5/1.0 s=1362.0/848.6/472.4,deagg 主导 bin M7.2@4km 地壳特征源;其余四区域与日本路径锚零漂移(东京 901.9 冻结),tests/psha-region.test.js 11 锚+浏览器 E2E 探针 16/16。
+  - **UCERF3-TD 时间依赖接线(2026-10-12 批 A+B)**:加州 v3 包 633 特征源全部携带 `bpt.lastEventYear`(OpenSHA `UCERF3_OpenIntervals_ver11.xls`,391 行=287 历史+99 古震+5 FM3.2 独有,65 父段/FM 有数据,显式 null=走 1875 年起算历史开间式;批次 A 可得性报告 docs/UCERF3-TD-AVAILABILITY.md 逐字锁定方法学);引擎按官方概率模型(Field et al. 2015 Table 1:量级依赖 α 三档 × Low/Mid/High 权重 0.1/0.4/0.3 + Poisson 0.2)以 **OpenSHA probGain 精确语义**(P_renewal/expNum;OpenSHA 的 aveCondRecurInterval=子段参与率倒数面积加权,父段粒度下代数精确退化为参与级更新)逐 charMfd 级增益入背景道,gain-1≡TI 退化、日本路径字节不变;`bptProbOpenInterval` 分母用直接尾部积分(μ−∫₀^TH 写法在 T_H≫μ 灾难性消减,Creeping 案例 3.5× 偏差重写,暴力对拍 rel≤3e-5)。锚:LA TD RP475 **628.9 gal**(TI 618.3,+1.7%)/RP2500 1071.2/UHS475 1386.3/869/488.6;Parkfield 增益 0.7285(2004 新事件抑制)、Coachella 2.7499(1680 抬升);**对论文 Table 6 诚实带**:父段粒度对官方破裂级在主断层聚合 30yr M≥6.7 概率上系统性 +2~4×(SSA 0.939 vs 0.53、NSA 0.592 vs 0.33、SJ 0.381 vs 0.09)——机制=官方对跨父段破裂按面积加权 normTS 均化,本粒度保留单父段极端,已在测试注释与报告 §7 言明,不做等价声明。PSHA 卡 TD 开关由「仅日本」改为包声明 `bptReady` 解锁(加州可用、智利等仍禁用),ⓘ 注记跟随模型;tests/ucerf3-td.test.js 12 锚+E2E 24/24。
+- **NGA-West2 其余三模型 + 区域地壳四模型逻辑树(v7.x 批,2026-10-13)**:CY14(Chiou & Youngs 2014,ES 30(3) 1117-1153)/CB14(Campbell & Bozorgnia 2014,1087-1115)/ASK14(Abrahamson, Silva & Kamai 2014,1025-1055)三族忠实移植,hazardlib 官方源钉 sha256(`chiou_youngs_2014.py` 8ca60bce…/`campbell_bozorgnia_2014.py` c634814d…/`abrahamson_2014.py` 386e496e…,GitHub 钉 IP 通道——jsDelivr 已 TLS 重置),系数表提取-校验-拼接零手抄(CY14 26 行×45 列/CB14 23 行×40 列(cav/ia 未用列不携带)/ASK14 24 行×43 列),独立转写生成器 `tools/gen-gmpe-fixtures-{cy14,cb14,ask14}.py` 产出 **17,856/17,532/17,800 点夹具,physics.js 对拍 max |Δln|=3.6e-15/1.8e-15/3.6e-15、σ ≤4×10⁻¹⁶**(tests/gmpe-{cy14,cb14,ask14}.test.js 25 锚);结构边界逐钉:CY14 风格窗含闭区间(30≤rake≤150)vs CB14/ASK14 严格开区间、CY14 SA T≤0.3 s PGA 地板与 CB14 T<0.25 s 土壤 PGA 地板(ASK14 无地板)、CB14 Eq.39/35-37 宽度/震源深度估计器(zbot=20 km 登记默认)、ASK14 hw 五段锥形含 ry0 沿走向带、盆地项在「无实测盆地深度」下恒等于 0(CY14/ASK14 恒等式)或加州 Vs30→Z2.5 关系逐字(CB14)。**区域包 gmpeTree 地壳类由单分支 BSSA14 升为已发表四模型逻辑树等权 0.25**(USGS 2014 NSHM 约定;BSSA14 保区域 Δc3 变体 italy→lowQ,三新模型 base 形态——CY14 JPN/ITA/WEN、CB14 HighQ/LowQ、ASK14 CHN/JPN/TWN 区域别名**未接线**,如实入包 limitations),俯冲类保持单分支 NGA-Sub;SA 门改为全分支 SA 可消费才用树(`PSHA_SA_CAPABLE_MODELS`)。点源约定一处记录(`nw2PointGeom`:读入距离=Rjb,Rrup 由深度几何推导,Rx=Rjb 悬壁侧,Ry0=0,dip 缺省地壳先验 60°)。实测锚迁移(单分支→树):LA RP475 618.3→**651.8**(+5.4%)/罗马 91.3→117.0(+28%,CY14/ASK14 高于 BSSA14-lowQ 快衰减)/圣地亚哥 825.3→826.1(+0.1% 俯冲主导)/台北 493.7→502.3/惠灵顿 387.2→387.3;UCERF3-TD 联动重冻 LA TD 665.8/1108.8、UHS 1641.8/1058.5/574.4;**日本路径字节不变(东京 901.9 + SA 2421.5/1155.2/562.5 冻结)**。活体 auto 路由不动(区域地壳仍 BSSA14),三新模型为 ADV 显式可选(信息页模型行/距离度规 Rjb/原生 Vs30);E2E 探针 probe-nw2 18/18(浏览器复现全部冻结锚+ADV 标签+显式 cy14 起跑)。
+- **厄瓜多尔新区域批(2026-10-14,第六区域全管线)**:HANDOVER 挂账(Pedernales 2016 在既有条带之外)落地——按 v6.7 台/新模板一次走完:①GEBCO 2025 条带 `grids/ec-megathrust.json`(0.05° 190×160,海沟 −5435 m/安第斯 +5209 m);②USGS 全球混合 Vs30 包(0.025° 128,000 格,填充指纹清零 41,196);③**IG-EPN 国台网 net=EC 经 EarthScope DMC 开放**(22 主干站+GSN OTAV=23 站,稀疏如实注记;5 个加拉帕戈斯站按设计出框);④NE 10m admin-1 24 省;⑤ComCat 权威预设 **5/5**(Pedernales us20005j32/Esmeraldas 1906(前仪器,机制保文献值,Valdivia 先例)/Tumaco 1979/Reventador 1987/Guayas 2023);⑥PSHA 源模型 v2(1,092 事件→898 主震,3,387 格,无情景源诚实缺席;NGA-Sub 变体 **SA/SA_N**=报告 §4.3.4 北南美段,与智利 SA_S 对应)。诚实注记:Pedernales/Esmeraldas 已发表震中在 0.05° 网格落陆格(近海震源),入包 notes 不挪震中。锚:Quito RP475 **300.5 gal**/RP2500 629.7/UHS475 736.3/462.7/203.6(tests/psha-region.test.js 六城表),海啸警报注册表=5 沿海省 105 控制点;E2E probe-ecuador 全过(激活/变体/起跑/PSHA/海啸圈 Esmeraldas+Manabí@t=931s/停用复日本)。
+- **Pedernales 观测扩容批(2026-10-16,厄瓜多尔区域验证收口)**:①强震动侧=**实测不可行诚实拒收**——pedernales2016(us20005j32)三个 shakemap 产品(atlas w=322/atlas20160416235836 w=281/us w=233)过 pga+pgv 仪器规则的台站数 0/2/2,区域候选 guayas2023=5、tumaco1979=0、reventador1987=0,全部低于 20 站质量下限(IG-EPN 台网未以仪器形式贡献进 USGS stationlist;fetch-region-obs.js EVENTS 注释留档,hualien2018 先例),冻结集合保持 19 事件/3,235 站不动。②海啸侧落地:`region_tsunami_observations.json` v1→v2 增 pedernales2016 事件(区域网格 ec-megathrust,horizon 14400 s,机制=包预设 26/16/113)——三 INOCAR 陆域验潮站逐站值出**一手记录分析 Renteria 2017**(INOCAR  operator 本人,VIII Jornadas INGEMMET 纪要 pp.317-321,43MB 开放 PDF 直读):Esmeraldas 1.15 m(先导下降段零至峰;原书峰谷幅 1.58 m=−1.15/+0.43 vs 平均海面,10 min 首到)、Bahía de Caráquez 0.6 m(三振荡区制最大值;t=60-240 min ±60cm,含 6.5 cm 同震沉降阶)、La Libertad 0.1 m(3h 到,47 min 湾共振 ×1.5、>15 h 持续,最大值在到达后 ~6 h=超 horizon 诚实欠采,Kaikōura Sumner 同类注记);Manta 无显式幅值**诚实略去**;加拉帕戈斯(Santa Cruz/Baltra)与 DART 32067/32411/32413 出框不收(GRL:DART 0.5-2 cm)。台站坐标出 INOCAR/GLOSS 2009 表(WGS-84)。**测量口径分歧如实入档**:Heidarzadeh et al. 2017(GRL)报验潮站最大零至峰 ~10 cm vs Renteria 的 Esmeraldas 1.58 m 峰谷幅——子集/滤波口径不同,两文原值并存;Toulkeridis et al. 2017(STH 36(4))记 Esmeraldas ~50 cm/min 变化率(与 1.5 m 幅一致)+「到达过快、疑似滑坡分量」未决问题。记分卡重跑:预测 0.11/0.03/0.00 m vs 观测 1.15/0.6/0.1 m——合成 W&C 源对「同震变形大部在陆」事件欠驱动 ~10×,与 NOAA/NCTR 对该事件「amplitude smaller than expected…mostly on-land」的同向诊断一致,如实记录。tests/region-tsunami-obs.test.js 扩至 4 事件/20 点 5 锚全过。
 - **modelBias 距离分箱校正**:2,626 台站拟合,zhao2006 强度 bias +0.685 → +0.086,RMS 1.19 → 0.80。
 - **LOEO 反转(科研化方法论的标准案例)**:v5.8 R0-4 留一检验(13 事件)得出"modelBias 不泛化"并冻结;v6.2 扩容到 19 事件后三族 held-out RMS 全部**低于**未校正(zhao 0.840→0.804 / si-mid 0.637→0.634 / kanno 0.772→0.743)——旧结论是小样本伪象,公开更正并写入 tripwire(tests/scientific-tripwires.test.js)。
 - 大震饱和:Zhao 有效震级压缩 + tanh 软顶(3200 gal / 250 cm/s),对齐 2011 观测极大值(M9@30 km 从不可能的 12,718 gal 压到 ~3,100)。
@@ -83,6 +90,25 @@
 - mid-band 负 rate-ratio 尾部是 BPT 时间依赖特征——登记为 BPT 引擎的立项依据。
 
 **铁律重申**:下一步(若有)是可归因的物理整改(情景率/BPT 工程判断复核),绝不是对着 J-SHIS 调权重。
+
+### 3.4 整改批(2026-10-13):eqcode 分解对照 + ERC 情景率复核
+
+两个新冻结件(`tools/jshis-decompose.js` → `jshis-decompose-report.json`;`erc-scenario-rate-review.json`;7 锚 tripwire `tests/jshis-decompose.test.js`):
+
+**① J-SHIS 分量曲线对照(eqcode 轴,2020 版起)**——官方 hzcv 端点接受 `PPE_MTTL`(海溝型)/`LND_MTTL`(活断層等浅源)分解,实测穷举性 `TTL=1-(1-PPE)(1-LND)` 最大偏差 **8.08e-8**(独立性组合精确成立)。我方按引擎可加性取对应子模型(PPE=板缘+板内网格+南海 3 情景,LND=地壳网格+首都直下)。预登记假设先于首跑写入工具,判定机械计算:
+
+- **H1 成立**:尾部高估全部由俯冲侧承载(高知/大阪 PPE 比 ≥ TTL 比);
+- **H2 否定**:仙台 PPE=1.457 仍高估——「日本海沟 M9 缺口」在官方时间依赖框架下不构成 PPE 亏损(ERC 对该类 30 年概率=ほぼ0%,J-SHIS 同样近似不承载);
+- **H3 成立**:Vs30 400→800 阶梯 RP475 最大偏移 **19.7%**——工学基盘基差有界,解释不了 1.83×;
+- **结构发现**:LND 臂中位 **×0.852**(6 站 5 站 <1)——我方浅源地壳侧系统性中性偏低,残差完全是俯冲侧现象;俯冲侧残余分量指向 zhao PSV→PGV 代理(~1.2-1.5×,文献幅)与情景几何/饱和处理,而非率(率经 ERC 复核合规,见②)。
+
+**② ERC 情景率一次文献复核**(总表算定基准日 2026-01-01,`ichiran.pdf` sha256 钉死):
+
+- **南海 3 模式 KEEP**:我方 1/117 与 ERC 均值 **117.4 年**逐位吻合(1361..1946 六事件五间隔);ERC 2025-09-26 改訂两法并列(発生間隔のみ BPT P30=20~50% / 滑り量依存 BPT 60~90%以上,70% 信用区间,防灾强调高值)——我方平稳率 + BPT 注册表的双框架处理与 ERC 语义一致;
+- **首都直下 KEEP-RATE + FIX-CITATION**:率 0.04013/yr 保持(官方标题口径 70%/30 年泊松反算;原始间隔 27.5 年直算 0.03636/yr 在 ERC 有效数字舍入内);**引用纠错**——正确一次文献是相模トラフ長期評価第二版(2014-04-25,ポアソン,平均 27.5 年),非模型原记的 2017-04-21,死链已换;模型重生成数值零漂移(锚全过)。残余=单几何集中度(ERC 70% 覆盖南関東多震源,我方钉单点),由 LND 臂实测(东京 0.725 低估,集中度未表现为高估),多几何摊分登记为后续候选批;
+- **日本海沟 M9 DEFER**:ERC 时间依赖 30 年=ほぼ0%(2011 后経過率 0.02-0.03)→官方产品同样不承载,缺失非对官方差异;长程平稳入包(~1/600-1/1200/yr,2011 前参考栏 P30 4-6% 量级)是框架决策(平稳完备性 vs 官方 TD 对齐),留用户拍板。
+
+**残差结论更新**:1.83× 尾部分量在俯冲侧;率侧合规后,可归因残余=GMPE 侧(zhao PSV→PGV 代理、逻辑树近场行为)与情景几何——无率侧整改空间,继续对准 J-SHIS 调任何参数仍属红线。
 
 ---
 
@@ -312,6 +338,24 @@ CS v4 运行判决 = **NOT EXECUTABLE AS PRE-REGISTERED**(入 PRE_REG_V4):诚实
 
 本批从发射到收尾跨三个会话,途中四类缺陷(分片布局缺陷、nohup 清理连杀、复制漏改的未定义引用、冗余重跑的记账虚高)全部被廉价检查(进度计数、hash 对拍、抽样比对)在冻结前抓住——**900 个 QD 实现只有一个版本进入冻结报告,这正是六条纪律想要的形态:负结果也要以可复现的形态发表。**
 
+### 6.22 两级精度路由批 + opts.psv 生产三选判决(2026-09-28 / 2026-10-07):永留研究态——闭卷
+
+**6.22.1 twoTierQd 两级路由(v6.7 批,2026-09-28;冻结工件 `tools/data/psv-twotier-report.json`,tripwire tests/psv-twotier.test.js)**。v6.20 的「NOT EXECUTABLE AS PRE-REGISTERED」判决指出:诚实门臂必须跑 QD,而全 QD ~24–30 h/(case,bin) 是多月计算。两级路由把该账单砍到锚级测量=分钟级:双链 Schur 打底 + 每样本 1-ulp/7-ulp 双偏移混沌探针(v13 判别器改任路由器:真共振在 ulp 级 k 偏移下只动 (u/γ)²≈0,链消减地板动 O(1))+ relevance 门(e^{-k·zs} 死尾的混沌跳过不升级)+ QD 失败保留 double 值、double null 用 QD 重试的诚实降级。P1 锚(HALF 对闭式 BVP,门 ≤1e-2 预注册在先):twoTier 臂 worst **4.25e-6 PASS**(QD 臂 6.03e-13 级;double 臂 f1.2 FAIL@8.34=v6.19 地板机制的逐柱重申);成本=QD 全量的 **20.1% 墙钟**(5× 削减),非升级样本开销 ~2 次/采样点 double 柔度求值。scope 注记双重锁定(冻结报告+PRE_REG_V4.twoTierCure):**refutation stands——两级路由不得被引用为重开 v4**。
+
+**6.22.2 生产三选判决(2026-10-07,收拢 §6.17–§6.21 的判定为一份显式决策记录;HANDOVER-2 队列项 4 闭卷)**:
+
+| 选项 | 裁决 | 依据(全部已冻结) |
+|---|---|---|
+| ① opts.psv 解禁生产+调用计数案 | **否决** | 价值假设已被预注册门测量否定(§6.21:三带全 FAIL,containment 0.334/0.385 对门 0.8 双 FAIL)——生产启用只剩成本(两级 ~20% QD 墙钟;纯 double 合成在 f≥1 Hz 有 detM 消减地板,§6.19 双精度臂 FAIL@8.34)而无任何已测收益;违反「结论只在有锚时发表」 |
+| ② 双链+QD 锚混合(twoTierQd)入生产 | **否决** | 金标准路由(全 QD)已在门阵列被测量否证;更便宜、P1 精度更低(4.25e-6 vs 6.03e-13)的路由不可能通过金标准已失败的门;其自身 scope 注记明文 refutation stands |
+| ③ 永留研究态 | **采纳** | 见下 |
+
+**判决语义改写**:原「BLOCKED」的真实历史理由(分层柔度通道未收敛,QD 时代之前)已被 §6.17 关闭(QD series spread 1.0012 解冻,15 版不收敛终结);但**价值理由在 §6.21 被测量否定**。因此 `opts.psv` 的状态从「BLOCKED-by-physics(等修好,有解禁预期)」终判为「**NOT-ADOPTED-by-measurement(测过,不值,闭卷)**」——不再存在「修好某通道即解禁」的登记路径,§6.20 的登记治愈(两级接线)已交付并转为研究基建(6.22.1),生产接线门自本判决起**无限期关闭**。
+
+**重开条件(唯一,登记在案)**:一个**新的预注册假设**,其中 P-SV 水平块对某个预注册门是 load-bearing。§6.21 登记的三个带外候选(条件谱目标构造/HF-LF blend 拓扑/逐 bin 重拟合)已由 v7/v8 批测量否证并关闭(§10.3,v8 逐类 κ 重校准被预注册 G3 判死)——**今日无在册候选**。运输工具已备(twoTierQd,6.22.1);程序纪律不变:预注册门 → 预注册判据 → 门阵列执行 → 数字入冻结报告。
+
+
+
 ## 7. 动力学破裂(离线)
 
 - `tools/dynamic-rupture/`:SH/PSV 交错速度-应力有限差分 + TSN 滑移弱化;TPV5-AP 官方参数逐字冻结并跑通反平面约化(10 站序列在 dynamic-rupture-report.json);有限断层导出接入 app.js 捆绑模型下拉。
@@ -352,8 +396,8 @@ CS v4 运行判决 = **NOT EXECUTABLE AS PRE-REGISTERED**(入 PRE_REG_V4):诚实
 
 ### 10.2 黄(研究态,未接生产)
 
-- `opts.psv` 研究态(判定已关闭):QD 链全绿,但 P-SV 水平块对 CS 形状门 **MEASURED-NO-CURE**(§6.21)——接线保持 opt-in 研究态,不再等待生产化;
-- PSHA 绝对水平高估 1.83×:已归因,整改方向=情景率/BPT 复核,未动;
+- `opts.psv` 研究态(**生产三选判决已闭卷,§6.22**:永留研究态/NOT-ADOPTED-by-measurement)——QD 链全绿,但 P-SV 水平块对 CS 形状门 **MEASURED-NO-CURE**(§6.21)——接线保持 opt-in 研究态,不再等待生产化;twoTierQd 两级路由=研究基建(P1 PASS 4.25e-6,QD 墙钟 20.1%);重开唯一条件=新的预注册假设(P-SV load-bearing),今日无在册候选;
+- PSHA 绝对水平高估 1.83×:归因+eqcode 分解闭卷(§3.4,2026-10-13)——残差全在俯冲侧(LND 中位 ×0.852),情景率 ERC 复核合规(南海 1/117=ERC 117.4 年;首都直下引用纠至 2014 第二版),残余=GMPE 侧(zhao PSV→PGV 代理等),率侧无整改空间;日本海沟 M9 入包=框架决策留用户;
 - SH Love 模态极点窗(守卫后残余 max 0.80)。
 
 ### 10.3 红/开放(登记在案)
@@ -376,6 +420,7 @@ CS v4 线关闭两项:P-SV fullTensor 序列(v12 解冻条件触发,QD series �
 | `tools/data/psv-scale-diagnosis.json`(v16,含 QD 臂/定位器/series 冻结字面量) | `node tools/broadband/psv-scale-probe.js --write` | tests/psv-scale-diagnosis.test.js |
 | `tools/data/cs-pipeline-v4-report.json`(+30 分片文件) | `node tools/broadband/cs-pipeline.js --v4 --shardIdx s --shardN 30` ×30 → `--v4-merge --shardN 30` | tests/cs-pipeline.test.js(v4 数字锁) |
 | P1 水平绝对锚(6.03e-13,PRE_REG_V4.p1Anchor) | `node tools/broadband/psv-horizontal-anchor.js`(门预注册在先) | tests/broadband-psv.test.js 钩子契约 |
+| `tools/data/psv-twotier-report.json`(twoTierQd P1 锚 4.25e-6 + 20.1% 墙钟 + refutation-stands scope) | 手工冻结(数字出自 psv-horizontal-anchor.js 三臂实测;PRE_REG_V4.twoTierCure 登记同文) | tests/psv-twotier.test.js |
 | QD 定位器扫描/series | `node tools/broadband/psv-qd-locator.js` / `psv-qd-detsub-series.js` | tests/psv-qd.test.js |
 | `tools/data/cs-diagnosis-v2-report.json`(v5 五臂) / `cs-diagnosis-v3-report.json`(v6 交换+去倾斜) | `node tools/broadband/cs-pipeline.js --v5-diag` / `--v6-diag` | tests/cs-diagnosis.test.js |
 | `tools/data/cs-align-retest-report.json`(v7 管线配置×真事件) | `node tools/broadband/cs-align-retest.js`(~160 min,台站 90 s 预算守卫) | tests/cs-diagnosis.test.js |
@@ -384,6 +429,8 @@ CS v4 线关闭两项:P-SV fullTensor 序列(v12 解冻条件触发,QD series �
 | `tools/data/sh-alias-exposure.json` | `node tools/broadband/sh-alias-exposure.js --write` | tests/sh-alias-exposure.test.js |
 | `tools/data/cs-pipeline-report.json` / `cs-arbiter-report.json` / `cs-diagnosis-report.json` | cs-pipeline.js / cs-arbiter.js / cs-diagnose.js | tests/cs-pipeline / cs-arbiter / cs-diagnosis |
 | `tools/data/jshis-comparison-report.json` | `node tools/fetch-jshis-comparison.js` | tests/jshis-comparison.test.js |
+| `tools/data/jshis-decompose-report.json`(eqcode 分解:PPE/LND 分量对照+H1-H3 判定) | `node tools/jshis-decompose.js`(`--offline` 复用嵌入曲线) | tests/jshis-decompose.test.js |
+| `tools/data/erc-scenario-rate-review.json`(ERC 一次文献情景率复核) | 手工冻结(数字出自 ichiran 总表 2026-01-01/南海手引き/相模トラフ第二版,sha256 钉死) | tests/jshis-decompose.test.js |
 | `tools/data/psha-attribution-report.json` | `node tools/psha-attribution.js` | tests/psha-attribution.test.js |
 | `tools/data/strong-motion-report.json` | `node tools/scorecard-strong-motion.js` | tests/strong-motion*.test.js |
 | `tools/data/dynamic-rupture-report.json` | `node tools/dynamic-rupture/run-experiment.js` | tests/dynamic-rupture*.test.js |

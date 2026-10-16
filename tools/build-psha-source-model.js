@@ -33,16 +33,17 @@
 // Usage: node tools/build-psha-source-model.js [--region=<id>]
 //   default builds the Japan model exactly as before
 //   (public/geojson/psha-source-model.json).
-//   --region=<california|italy|chile|taiwan|newzealand> builds that region's
-//   model (v6.7 D): same classification/decluster/completeness/smoothing
+//   --region=<california|italy|chile|taiwan|newzealand|ecuador> builds that
+//   region's model (v6.7 D; ecuador added in the 2026-10-14 new-region batch): same classification/decluster/completeness/smoothing
 //   pipeline, region bbox + regional Mmax + the region's registered
 //   subduction lines (Physics.REGIONAL_SUBDUCTION_LINES; absent = no
 //   interplate class), NO scenario sources (no published characteristic
 //   recurrence rates curated for the regional packs — honest absent), and a
-//   regional GMPE tree (crustal BSSA14 single branch — si-mid/kanno are
-//   Japan-calibrated; interplate/intraslab zhao2006, same convention as the
-//   v6.7 regional strong-motion scorecard; SA periods still collapse to
-//   zhao2006 — the only bundled GMPE with spectral rows).
+//   regional GMPE tree (crustal = four-model NGA-West2 tree at equal 0.25
+//   since v7.x — BSSA14 (regional Dc3 variant frozen) + CY14 + CB14 + ASK14;
+//   interplate/intraslab NGA-Sub (Parker 2022) with the frozen
+//   region/saturation pair — v6.8; all tree branches are SA-capable so
+//   regional SA periods follow the tree).
 //   Outputs public/geojson/psha-source-model-<id>.json +
 //   tools/data/psha-source-model-report-<id>.json.
 // =====================================================================
@@ -58,13 +59,17 @@ const REGION = (process.argv.find(a => a.startsWith('--region=')) || '').slice('
 // Cascadia edge 8.5; Italy crustal 1915/1908-class 7.2 (no interplate class —
 // no registered subduction front); Chile interplate keeps the 1960 M9.5 tail,
 // slab 1939 Chillán-class 8.3; Taiwan Chi-Chi-class crustal 7.6, Ryukyu/
-// Manila fronts 8.0; NZ crustal Kaikōura-class 7.8, Hikurangi 9.0.
+// Manila fronts 8.0; NZ crustal Kaikōura-class 7.8, Hikurangi 9.0; Ecuador
+// interplate keeps the 1906 Esmeraldas M8.8 tail (Kanamori & McNally 1982),
+// crustal 1987 Reventador-class 7.5, slab 8.0 (2019 Lagunas M8.0 sits inside
+// the widened query window).
 const REGION_CONFIGS = {
   california: { bbox: { minLat: 30, maxLat: 44, minLng: -128, maxLng: -112 }, trenchRegion: 'california', mmax: { crustal: 8.0, interplate: 8.5, intraslab: 7.5 }, fallbackMinCount: 200 },
   italy:      { bbox: { minLat: 34, maxLat: 49, minLng: 4, maxLng: 21 },      trenchRegion: null,         mmax: { crustal: 7.2, intraslab: 7.5 },                              fallbackMinCount: 150 },
   chile:      { bbox: { minLat: -57, maxLat: -16, minLng: -78, maxLng: -64 }, trenchRegion: 'chile',      mmax: { crustal: 7.8, interplate: 9.5, intraslab: 8.3 },           fallbackMinCount: 300 },
   taiwan:     { bbox: { minLat: 20, maxLat: 27.5, minLng: 117, maxLng: 125 }, trenchRegion: 'taiwan',     mmax: { crustal: 7.6, interplate: 8.0, intraslab: 7.8 },           fallbackMinCount: 150 },
-  newzealand: { bbox: { minLat: -50, maxLat: -32, minLng: 160, maxLng: 180 }, trenchRegion: 'newzealand', mmax: { crustal: 7.8, interplate: 9.0, intraslab: 7.8 },           fallbackMinCount: 200 }
+  newzealand: { bbox: { minLat: -50, maxLat: -32, minLng: 160, maxLng: 180 }, trenchRegion: 'newzealand', mmax: { crustal: 7.8, interplate: 9.0, intraslab: 7.8 },           fallbackMinCount: 200 },
+  ecuador:    { bbox: { minLat: -8, maxLat: 5, minLng: -86, maxLng: -72 },    trenchRegion: 'ecuador',    mmax: { crustal: 7.5, interplate: 8.8, intraslab: 8.0 },           fallbackMinCount: 200 }
 };
 const IS_JAPAN = REGION === 'japan';
 if (!IS_JAPAN && !REGION_CONFIGS[REGION]) {
@@ -391,8 +396,8 @@ function main() {
       strikeDeg: 135, dipDeg: 60, rakeDeg: 120,
       provenance: {
         geometry: 'app.js PRESETS.tokyoInland (hypothetical capital-inland M7.3 class)',
-        rate: 'Earthquake Research Committee (2017-04-21) capital-region assessment: 70% probability of M7 within 30 years; lambda=-ln(1-0.70)/30',
-        sourceUrl: 'https://www.jishin.go.jp/main/choukihyoka/shuto_chokka/',
+        rate: 'Earthquake Research Committee, Long-term evaluation of seismic activity along the Sagami Trough, 2nd edition (2014-04-25): M7-class southern-Kanto earthquakes, mean recurrence 27.5 yr, Poisson process -> 70% within 30 years; lambda=-ln(1-0.70)/30 (primary-interval value 1/27.5=0.03636/yr is within ERC 1-significant-figure rounding of the headline 70%; rate kept at the headline back-conversion, citation corrected 2026-10-13 — the 2017-04-21 attribution was a provenance error, review: tools/data/erc-scenario-rate-review.json)',
+        sourceUrl: 'https://www.jishin.go.jp/resource/column/kohyo_sum_kohyo_sum/',
         accessed: 'figure is public record; page reachable via proxy only from this network (2026-09-01)'
       }
     }
@@ -424,6 +429,121 @@ function main() {
     };
   }
 
+  // ---- UCERF3 batch B (2026-10-12): california-only v3 swap -------------
+  // Double-counting measured in tools/ucerf3-reconcile.js (frozen report
+  // tools/data/ucerf3-reconcile-report.json): the pre-swap ComCat-GR pack
+  // alone carried ~0.62 of the full UCERF3 closed budget at M>=6.5 (fault
+  // share 0.825) — adding characteristic sources on top would double count.
+  // Decision γ: inside the RELM polygon REPLACE the ComCat cells with the
+  // UCERF3 branch-averaged budget (characteristic fault sources + grid MFD
+  // nodes, FM3.1/FM3.2 averaged 0.5/0.5); the ComCat apron outside RELM
+  // stays (offshore/Cascadia is outside UCERF3 scope).
+  let ucerf3 = null;
+  let ucerf3GridSources = null, ucerf3CharSources = null;
+  if (REGION === 'california') {
+    const sectionsDoc = JSON.parse(fs.readFileSync(path.join(ROOT, 'tools/data/ucerf3-sections-california.json'), 'utf8'));
+    const gridDoc = JSON.parse(fs.readFileSync(path.join(ROOT, 'tools/data/ucerf3-grid-mfd.json'), 'utf8'));
+    if (sectionsDoc.schema !== 'quake-sim-ucerf3-sections-v1' || gridDoc.schema !== 'quake-sim-ucerf3-gridmfd-v1') {
+      throw new Error('ucerf3 artifact schema mismatch');
+    }
+    // UCERF3-TD batch B: date-of-last-event per parent (Field et al. 2015 /
+    // OpenSHA UCERF3_OpenIntervals_ver11.xls — docs/UCERF3-TD-AVAILABILITY.md).
+    // lastEventYear null = no constraint -> historic-open-interval form in the
+    // engine (explicit null, 'unknown' is not 'absent').
+    const tdDoc = JSON.parse(fs.readFileSync(path.join(ROOT, 'tools/data/ucerf3-td-sections-california.json'), 'utf8'));
+    if (tdDoc.schema !== 'quake-sim-ucerf3-td-v1') throw new Error('ucerf3-td artifact schema mismatch');
+    const tdByFm = {};
+    let tdParentsWithData = 0;
+    for (const fm of ['FM3.1', 'FM3.2']) {
+      tdByFm[fm] = new Map(tdDoc.models[fm].parents.map(p => [p.parentId, p.lastEventYear]));
+      tdParentsWithData += tdDoc.models[fm].parentsWithData;
+    }
+    const polygon = gridDoc.region.polygon;
+    const inPoly = (lat, lng) => {
+      let inside = false;
+      for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+        const yi = polygon[i][0], xi = polygon[i][1], yj = polygon[j][0], xj = polygon[j][1];
+        if (((yi > lat) !== (yj > lat)) && (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi)) inside = !inside;
+      }
+      return inside;
+    };
+    const dropped = cells.filter(c => inPoly(c.lat, c.lng)).length;
+    for (let i = cells.length - 1; i >= 0; i--) if (inPoly(cells[i].lat, cells[i].lng)) cells.splice(i, 1);
+
+    // grid MFD nodes: FM3.1+FM3.2 averaged 0.5/0.5, unassoc+subseismo merged per bin
+    const g1 = gridDoc.models['FM3.1'].nodes, g2 = gridDoc.models['FM3.2'].nodes;
+    if (g1.length !== g2.length) throw new Error('ucerf3 grid node count mismatch');
+    const gridMfdSources = [];
+    for (let n = 0; n < g1.length; n++) {
+      const merged = new Map();
+      for (const arr of [g1[n][2], g1[n][3], g2[n][2], g2[n][3]]) {
+        for (const [mag, rate] of arr) merged.set(mag, (merged.get(mag) || 0) + rate * 0.5);
+      }
+      const mfd = Array.from(merged.entries()).sort((a, b) => a[0] - b[0]);
+      if (!mfd.length) continue;
+      gridMfdSources.push({ lat: g1[n][0], lng: g1[n][1], depthKm: 6, srcType: 'crustal', mfd });
+    }
+    ucerf3GridSources = gridMfdSources;
+
+    // characteristic sources: parents with participationRate >= 1e-5/yr, both
+    // FMs at weight 0.5; patches = subsection trace points at upper depth +
+    // downdip-offset points at lower depth (offset = thickness/tan(dip) along
+    // dipDirection), capped at 80 per parent (evenly thinned)
+    const characteristicSources = [];    for (const fm of ['FM3.1', 'FM3.2']) {
+      const mdl = sectionsDoc.models[fm];
+      for (const p of mdl.parents) {
+        if (!(p.participationRatePerYr >= 1e-5)) continue;
+        const patches = [];
+        for (const sid of p.subsectionIds) {
+          const s = mdl.subsections[sid];
+          const dipRad = s.dipDeg * Math.PI / 180;
+          const offKm = (s.lowerDepthKm - s.upperDepthKm) / Math.tan(dipRad);
+          const az = (s.dipDirectionDeg || 0) * Math.PI / 180;
+          for (const pt of s.trace) {
+            patches.push([pt[0], pt[1], +s.upperDepthKm.toFixed(1)]);
+            if (offKm > 0.01) {
+              const dLat = offKm * Math.cos(az) / 111.195;
+              const dLng = offKm * Math.sin(az) / (111.195 * Math.cos(pt[0] * Math.PI / 180));
+              patches.push([+(pt[0] + dLat).toFixed(5), +(pt[1] + dLng).toFixed(5), +s.lowerDepthKm.toFixed(1)]);
+            } else {
+              patches.push([pt[0], pt[1], +s.lowerDepthKm.toFixed(1)]);
+            }
+          }
+        }
+        let keep = patches;
+        if (patches.length > 80) {
+          keep = [];
+          const stride = patches.length / 80;
+          for (let k = 0; k < 80; k++) keep.push(patches[Math.floor(k * stride)]);
+        }
+        characteristicSources.push({
+          id: 'ucerf3-' + fm.toLowerCase().replace('.', '') + '-' + p.parentId,
+          name: p.name, faultModel: fm, weight: 0.5,
+          srcType: 'crustal', distanceMetric: 'rjb',
+          depthKm: +((p.upperDepthKm + p.lowerDepthKm) / 2).toFixed(2),
+          dipDeg: p.dipDeg, rakeDeg: p.rakeDeg,
+          mfd: p.charMfd,
+          participationRatePerYr: p.participationRatePerYr,
+          mmax: p.mmax,
+          bpt: { lastEventYear: tdByFm[fm].has(p.parentId) ? tdByFm[fm].get(p.parentId) : null },
+          patches: keep,
+        });
+      }
+    }
+    ucerf3CharSources = characteristicSources;
+    ucerf3 = {
+      cellsDroppedInRelm: dropped,
+      gridMfdNodeCount: gridMfdSources.length,
+      characteristicSourceCount: characteristicSources.length,
+      tdParentsWithData: tdParentsWithData,
+      fmWeight: 'FM3.1/FM3.2 averaged 0.5/0.5 (branch-averaged solutions of the two fault models)',
+      gridMfdTotalRateM5: +gridMfdSources.reduce((a, n) => a + n.mfd.reduce((x, b) => x + b[1], 0), 0).toPrecision(4),
+      charTotalRate: +characteristicSources.reduce((a, s) => a + s.participationRatePerYr * s.weight, 0).toPrecision(4),
+      provenance: 'tools/data/ucerf3-sections-california.json + ucerf3-grid-mfd.json (Zenodo DOI 10.5281/zenodo.5519802, CC BY 4.0, Field et al. 2014; Legacy FSS parsed by tools/fetch-ucerf3-sections.js)',
+      doubleCounting: 'measured pre-swap packOverUcerf3 0.616 @M>=6.5 (faultShare 0.825) — additive stacking rejected; RELM-interior ComCat cells replaced by the closed UCERF3 budget (tools/data/ucerf3-reconcile-report.json)',
+    };
+  }
+
   // B2 pre-registration (frozen before any broadband run — see ROADMAP v6.1)
   const preRegisteredB2 = {
     batch: 'B2 broadband scorecard acceptance (frozen 2026-09-01, before any B2 implementation run)',
@@ -437,7 +557,7 @@ function main() {
   };
 
   const model = {
-    schema: 'quake-sim-psha-source-v2',
+    schema: ucerf3 ? 'quake-sim-psha-source-v3' : 'quake-sim-psha-source-v2',
     region: REGION,
     generatedAt,
     mMin: MMIN, mc, windowStartYear: start, windowYears: +Tyears.toPrecision(5),
@@ -461,29 +581,77 @@ function main() {
         'class-level rake simplification (interplate reverse 90, others neutral); gridded Rrup via equal-area circular patch at hypocentre depth',
         'GMPE modelBias deliberately NOT applied (LOEO evidence: it does not generalise held-out)',
         'adaptive top-hat smoothing assumes seismogenic area fills the circle near coasts/bbox edges (edge effects uncorrected)'
+      ] : (ucerf3 ? [
+        'UCERF3 batch B v3: INSIDE the RELM polygon the ComCat smoothed-GR cells are REPLACED by the UCERF3 branch-averaged closed budget (characteristic fault sources + 0.1° grid MFD nodes, FM3.1/FM3.2 averaged 0.5/0.5; Zenodo DOI 10.5281/zenodo.5519802, CC BY 4.0, Field et al. 2014) — double-counting measured pre-swap (packOverUcerf3 0.616 @M>=6.5) and eliminated by construction; OUTSIDE RELM the self-computed ComCat GR apron stays (offshore/Cascadia beyond UCERF3 scope)',
+        'the two budgets are NOT harmonised at the RELM polygon seam (a rate discontinuity across the boundary is possible — visible in tools/data/ucerf3-reconcile-report.json closure rows)',
+        'characteristic-source geometry is a patch-point proxy (trace points at upper depth + downdip projection at lower depth, <=80 patches/parent); distance metric Rjb (min horizontal offset to patch points); rupture-level UCERF3 detail is aggregated to parent-section characteristic MFDs (0.1-mag bins) — sub-section association within a rupture is not modelled',
+        'UCERF3-TD batch B: every characteristic source carries bpt.lastEventYear from UCERF3_OpenIntervals_ver11.xls (Field et al. 2015, BSSA 105(2A); opensha-ucerf3, sha256-pinned) — 65 parents per FM have a date-of-last-event constraint (aggregated at parent granularity, NOT the official rupture-level combination), the rest are explicit null = historic-open-interval treatment (T_H = currentYear - 1875); the time-dependent engine applies the official Table-1 aperiodicity blend (Low/Mid/High 0.1/0.4/0.3 + Poisson 0.2) per charMfd bin — UCERF3-TD participation probabilities are reproduced at parent granularity, not rupture level',
+        'crustal class uses the four-model NGA-West2 logic tree at equal weight 0.25 (v7.x; BSSA14 with the frozen regional Dc3 variant + Chiou & Youngs 2014 + Campbell & Bozorgnia 2014 + Abrahamson et al. 2014 base forms — USGS 2014 NSHM convention; si-midorikawa/kanno2006 are Japan-calibrated and never validated in this region); interplate/intraslab use NGA-Sub (Parker et al. 2022) with the frozen region/saturation pair (v6.8; the v6.7 scorecard\'s -0.55 log10 Chile bias was measured under zhao2006 — the re-measured value under NGA-Sub is in tools/data/region-obs-report.json)',
+        'crustal SA/UHS periods follow the same four-model NGA-West2 tree (all branches carry full transcribed SA tables; CY14/CB14/ASK14 tables since v7.x); subduction SA periods use NGA-Sub (full table; periods missing from a table are log-period interpolated between its rows) — regional spectral shapes remain uncalibrated against observations',
+        'GMPE modelBias deliberately NOT applied; adaptive top-hat smoothing edge effects uncorrected (apron only)'
       ] : [
         'simplified self-computed REGIONAL model — NOT an official regional hazard model (no USGS NSHM/SHARE/EQAFE/NZ NSHM/T-REA comparison performed; no external gate exists for the regional packs)',
         'NO scenario/characteristic sources — grid-only GR; published regional fault-source recurrence rates (e.g. UCERF3, NSHM2022) are not curated into the pack, so long-RP hazard near known major faults is underestimated',
-        'crustal class uses the BSSA14 single branch (NGA-West2; si-midorikawa/kanno2006 are Japan-calibrated and never validated in this region) — no epistemic branch spread on crustal contributions; interplate/intraslab use zhao2006 (Japan subduction calibration — no NGA-Sub model is bundled; the v6.7 regional scorecard measured a -0.55 log10 PGA bias on Chile interplate predictions, so Chile megathrust hazard levels are biased LOW)',
-        'SA/UHS periods still collapse to the zhao2006 single model (the only bundled GMPE with spectral rows) — regional spectral shapes are uncalibrated',
+        'crustal class uses the four-model NGA-West2 logic tree at equal weight 0.25 (v7.x; BSSA14 with the frozen regional Dc3 variant + Chiou & Youngs 2014 + Campbell & Bozorgnia 2014 + Abrahamson et al. 2014 base forms — USGS 2014 NSHM convention; si-midorikawa/kanno2006 are Japan-calibrated and never validated in this region); interplate/intraslab use NGA-Sub (Parker et al. 2022) with the frozen region/saturation pair (v6.8; the v6.7 scorecard\'s -0.55 log10 Chile bias was measured under zhao2006 — the re-measured value under NGA-Sub is in tools/data/region-obs-report.json)',
+        'crustal SA/UHS periods follow the same four-model NGA-West2 tree (all branches carry full transcribed SA tables; CY14/CB14/ASK14 tables since v7.x); subduction SA periods use NGA-Sub (full table; periods missing from a table are log-period interpolated between its rows) — regional spectral shapes remain uncalibrated against observations',
         'gridded GR truncated at class Mmax without renormalisation; regional Mmax values are coarse public-record conventions (see REGION_CONFIGS in tools/build-psha-source-model.js), not official maxima',
         'class-level rake simplification (interplate reverse 90, others neutral); gridded Rrup via equal-area circular patch at hypocentre depth; BSSA14 Rrup is read as Rjb (horizontal proxy)',
         'GMPE modelBias deliberately NOT applied; adaptive top-hat smoothing edge effects uncorrected'
-      ]
+      ])
     },
     cells, scenarios
   };
+  if (ucerf3) {
+    model.gridMfdSources = ucerf3GridSources;
+    model.characteristicSources = ucerf3CharSources;
+    model.provenance.ucerf3 = ucerf3.provenance;
+    // UCERF3-TD: the pack declares time-dependent capability (the app enables
+    // the BPT toggle in region mode only when this flag is present; the engine
+    // routes bpt-carrying characteristic sources through the renewal channel).
+    model.bptReady = true;
+    model.bptMeta = {
+      model: 'UCERF3-TD (Field et al. 2015, BSSA 105(2A)) — Table-1 aperiodicity blend (Low/Mid/High weights 0.1/0.4/0.3 + Poisson 0.2), historic open interval from 1875',
+      params: 'tools/data/ucerf3-td-sections-california.json (quake-sim-ucerf3-td-v1; OpenSHA UCERF3_OpenIntervals_ver11.xls sha256 4cae78f9…)',
+      granularity: 'parent-section (633 characteristic sources), not the official rupture level'
+    };
+  }
   if (!IS_JAPAN) {
-    // Regional GMPE tree consumed by Physics._pshaBranchesFor (v6.7 D):
-    // crustal single-branch BSSA14 with the paper's regional anelastic
-    // variant frozen in (italy -> lowQ, everything else -> base); the
-    // subduction classes stay on zhao2006 (same convention as the regional
-    // strong-motion scorecard). SA periods bypass this tree (zhao single).
+    // Regional GMPE tree consumed by Physics._pshaBranchesFor. v7.x NGA-West2
+    // tree batch: the crustal class carries the published four-model
+    // NGA-West2 logic tree at equal weight 0.25 (USGS 2014 NSHM convention,
+    // Petersen et al. 2015): BSSA14 (with the paper's regional anelastic
+    // variant frozen in — italy -> lowQ, everything else -> base) + CY14 +
+    // CB14 + ASK14 (base/global regional forms — the CY14 JPN/ITA/WEN, CB14
+    // HighQ/LowQ and ASK14 CHN/JPN/TWN aliases are NOT wired, documented on
+    // the physics.js model block). All four branches are SA-capable (full
+    // transcribed tables), so crustal SA periods follow the tree. Subduction
+    // classes stay single-branch NGA-Sub (Parker et al. 2022) with the
+    // region/saturation pair frozen per PEER 2020/03 §4.3.4 — california ->
+    // Cascadia, chile -> SA/SA_S ("the southern part of South America
+    // (namely, Chile)"), ecuador -> SA/SA_N (the northern South America
+    // segment — Ecuador/Colombia margin; 2026-10-14 new-region batch),
+    // taiwan -> TW/TW_E (columns identical to TW_W), newzealand/italy ->
+    // global (NGA-Sub collected NZ data but published no NZ regional factors;
+    // Italy has no subduction class). Off-grid SA periods interpolate between
+    // the bracketing rows.
+    const NGASUB_VARIANT = {
+      california: { region: 'Cascadia', sat: null },
+      chile: { region: 'SA', sat: 'SA_S' },
+      taiwan: { region: 'TW', sat: 'TW_E' },
+      newzealand: { region: null, sat: null },
+      italy: { region: null, sat: null },
+      ecuador: { region: 'SA', sat: 'SA_N' }
+    }[REGION];
     model.gmpeTree = {
-      crustal: [{ model: 'bssa14', weight: 1, variant: REGION === 'italy' ? 'lowQ' : 'base' }],
-      interplate: [{ model: 'zhao2006', weight: 1 }],
-      intraslab: [{ model: 'zhao2006', weight: 1 }],
-      note: 'regional single-branch tree (v6.7 D): si-mid/kanno are Japan-calibrated; no NGA-Sub bundled; SA periods collapse to zhao2006 in the engine regardless'
+      crustal: [
+        { model: 'bssa14', weight: 0.25, variant: REGION === 'italy' ? 'lowQ' : 'base' },
+        { model: 'cy14', weight: 0.25 },
+        { model: 'cb14', weight: 0.25 },
+        { model: 'ask14', weight: 0.25 }
+      ],
+      interplate: [{ model: 'ngasub', weight: 1, variant: NGASUB_VARIANT }],
+      intraslab: [{ model: 'ngasub', weight: 1, variant: NGASUB_VARIANT }],
+      note: 'regional tree: crustal = four-model NGA-West2 logic tree at equal 0.25 (USGS 2014 NSHM convention; BSSA14 keeps its regional Dc3 variant, CY14/CB14/ASK14 base forms), subduction classes = single-branch NGA-Sub (Parker 2022) with the frozen region/saturation pair; all branches SA-capable (off-grid periods interpolate)'
     };
   }
   fs.writeFileSync(OUT_MODEL, JSON.stringify(model));
@@ -502,6 +670,7 @@ function main() {
     scenarios: scenarios.map(s => ({ id: s.id, mw: s.mw, ratePerYear: s.ratePerYear, patches: s.patches ? s.patches.length : 0 })),
     scenarioSegments
   };
+  if (ucerf3) report.ucerf3 = ucerf3;
   if (IS_JAPAN) report.preRegisteredB2 = preRegisteredB2;
   fs.writeFileSync(OUT_REPORT, JSON.stringify(report, null, 2));
 

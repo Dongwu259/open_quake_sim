@@ -45,6 +45,10 @@ const EVENTS = [
     start: '2019-07-06T03:15:00Z', end: '2019-07-06T03:30:00Z', minMag: 6.8, approx: [35.77, -117.60] },
   { region: 'california', key: 'parkfield2004', presetId: null, sourceType: 'crustal', name: '2004 Parkfield (M6.0)',
     start: '2004-09-28T17:10:00Z', end: '2004-09-28T17:25:00Z', minMag: 5.8, approx: [35.82, -120.37] },
+  { region: 'california', key: 'napa2014', presetId: null, sourceType: 'crustal', name: '2014 South Napa (M6.0)',
+    start: '2014-08-24T10:20:00Z', end: '2014-08-24T10:30:00Z', minMag: 5.8, approx: [38.22, -122.31] },
+  { region: 'california', key: 'hectormine1999', presetId: null, sourceType: 'crustal', name: '1999 Hector Mine (M7.1)',
+    start: '1999-10-16T09:40:00Z', end: '1999-10-16T09:55:00Z', minMag: 6.8, approx: [34.59, -116.27] },
   // ---- Italy ----
   { region: 'italy', key: 'laquila2009', presetId: 'it-2009-laquila', name: "2009 L'Aquila (M6.3)",
     start: '2009-04-06T01:30:00Z', end: '2009-04-06T01:45:00Z', minMag: 6.0, approx: [42.35, 13.38] },
@@ -52,6 +56,10 @@ const EVENTS = [
     start: '2016-08-24T01:35:00Z', end: '2016-08-24T01:45:00Z', minMag: 5.9, approx: [42.70, 13.23] },
   { region: 'italy', key: 'norcia2016', presetId: 'it-2016-norcia', name: '2016 Norcia (M6.6)',
     start: '2016-10-30T06:35:00Z', end: '2016-10-30T06:50:00Z', minMag: 6.2, approx: [42.83, 13.11] },
+  { region: 'italy', key: 'visso2016', presetId: null, sourceType: 'crustal', name: '2016 Visso (M6.1)',
+    start: '2016-10-26T19:10:00Z', end: '2016-10-26T19:25:00Z', minMag: 5.9, approx: [42.91, 13.13] },
+  { region: 'italy', key: 'emilia2012', presetId: null, sourceType: 'crustal', name: '2012 Emilia (M6.0)',
+    start: '2012-05-20T02:00:00Z', end: '2012-05-20T02:10:00Z', minMag: 5.9, approx: [44.89, 11.23] },
   // ---- Chile ----
   { region: 'chile', key: 'maule2010', presetId: 'cl-2010-maule', name: '2010 Maule (M8.8)',
     start: '2010-02-27T06:30:00Z', end: '2010-02-27T06:45:00Z', minMag: 8.4, approx: [-36.12, -72.90] },
@@ -60,6 +68,9 @@ const EVENTS = [
   { region: 'chile', key: 'iquique2014', presetId: 'cl-2014-iquique', name: '2014 Iquique (M8.2)',
     start: '2014-04-01T23:40:00Z', end: '2014-04-01T23:55:00Z', minMag: 7.8, approx: [-19.61, -70.77] },
   // ---- Taiwan ----
+  // hualien2018 (us1000chhc) probed 2026-10-07: both shakemap products carry
+  // 1-5 stations with BOTH pga+pgv instrumented (the pgv rule is the frozen
+  // quality floor) — honestly below MIN_INSTRUMENTED=20, not fetched.
   { region: 'taiwan', key: 'chichi1999', presetId: 'tw-1999-chichi', name: '1999 Chi-Chi (M7.7)',
     start: '1999-09-20T17:40:00Z', end: '1999-09-20T17:55:00Z', minMag: 7.3, approx: [23.85, 120.82] },
   { region: 'taiwan', key: 'hualien2024', presetId: 'tw-2024-hualien', name: '2024 Hualien (M7.4)',
@@ -71,6 +82,16 @@ const EVENTS = [
     start: '2011-02-21T23:45:00Z', end: '2011-02-22T00:00:00Z', minMag: 5.9, approx: [-43.58, 172.70] },
   { region: 'newzealand', key: 'kaikoura2016', presetId: 'nz-2016-kaikoura', name: '2016 Kaikoura (M7.8)',
     start: '2016-11-13T11:00:00Z', end: '2016-11-13T11:15:00Z', minMag: 7.4, approx: [-42.69, 173.05] },
+  // ---- Ecuador ----
+  // pedernales2016 (us20005j32) probed 2026-10-16: all three shakemap products
+  // (us20005j32/atlas w=322, atlas20160416235836 w=281, us20005j32/us w=233)
+  // carry 0-2 stations passing the pga+pgv instrumented rule — the IG-EPN
+  // strong-motion network is not contributed to the USGS stationlist in
+  // instrumented form. Honestly below MIN_INSTRUMENTED=20, not fetched.
+  // Regional candidates probed the same day, same outcome: guayas2023
+  // (us7000jl3s) 5 instrumented, tumaco1979 (usp00014ey) 0, reventador1987
+  // (usp000330w) 0. No Ecuador event currently qualifies; revisit if INOCAR or
+  // IG-EPN waveform archives become openly mirrored in a Shakemap product.
 ];
 
 const PGA_TO_GAL = { '%g': GAL_PER_G / 100, 'g': GAL_PER_G, 'cm/s^2': 1, 'cm/s/s': 1, 'gal': 1 };
@@ -317,7 +338,8 @@ async function main() {
   const payload = {
     schema: 'quake-sim-region-obs-v1',
     generatedAt: retrievedAt,
-    note: 'Frozen observed strong-motion station peaks for the five bundled regions (USGS Shakemap stationlists; '
+    note: 'Frozen observed strong-motion station peaks for five of the six bundled regions (USGS Shakemap stationlists; '
+      + 'Ecuador probed 2026-10-16 and honestly absent — no event reaches the 20-station instrumented floor, see EVENTS comments; '
       + 'instrumented stations only — macroseismic INTENSITY/DYFI pseudo-PGM excluded). pgaGal/pgvCms are the '
       + 'shakemap aggregate peak (larger horizontal component), converted from the units recorded in each event '
       + 'provenance. intensity is shakemap instrumental MMI (GMICE-converted), NOT JMA intensity — do not mix '

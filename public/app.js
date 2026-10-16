@@ -201,7 +201,12 @@ var REGIONAL_BATHY = [
   // New Zealand (Hikurangi margin + Fiordland — Kaikōura 2016 had a measured
   // tsunami). Both 0.05° GEBCO 2025 strips like the other regions.
   {id:'tw-taiwan',   region:'taiwan', bbox:[118.5,21.0,124.0,26.0]},
-  {id:'nz-aotearoa', region:'newzealand', bbox:[164.5,-48.0,179.8,-33.8]}
+  {id:'nz-aotearoa', region:'newzealand', bbox:[164.5,-48.0,179.8,-33.8]},
+  // Ecuador (2026-10-14 new-region batch): Ecuador-Colombia trench segment —
+  // Pedernales 2016 M7.8 produced a measured tsunami; the strip covers the
+  // Gulf of Guayaquil to Buenaventura margin at the 0.05° country-scale
+  // convention (Galápagos intentionally out of frame).
+  {id:'ec-megathrust', region:'ecuador', bbox:[-84.0,-5.5,-74.5,2.5]}
 ];
 var _regionalBathy = {};         // id -> grid (absent/false = not usable)
 var _regionalBathyLoading = {};  // id -> in-flight promise
@@ -1023,7 +1028,7 @@ var globalModeEl = document.getElementById('global-mode');
 // v6.4 multi-region: pilot regions available in the region select. Each id
 // must have a region-<id>.json pack, an i18n key region.<id> (x3) and the
 // optional region-stations-/region-areas-/region-vs30-<id>.json companions.
-var REGION_CATALOG = ['california', 'italy', 'chile', 'taiwan', 'newzealand'];
+var REGION_CATALOG = ['california', 'italy', 'chile', 'taiwan', 'newzealand', 'ecuador'];
 function _regionActivateSelected() {
   var rid = (regionSelEl && regionSelEl.value) || 'california';
   _regionProgressShow(8, 'Loading region package · 加载区域数据包');
@@ -4012,10 +4017,11 @@ function _predictPrefectureShindosFor(lat, lng, mag, depthKm, strDeg, dipDeg, sr
     var surfDist = Physics.haversineDist(lat, lng, pc.lat, pc.lng);
     if (faultParams && (_gmpResolved === 'si-midorikawa' || _gmpResolved === 'log-ff')) {
       dist = Physics.rrupDistance(pc.lat, pc.lng, faultParams);
-    } else if (_gmpResolved === 'bssa14') {
-      // BSSA14's native metric is Rjb: whole-fault surface projection when a
-      // finite fault exists, else the epicentral (horizontal) distance —
-      // hypocentral depth enters only through the model's h pseudo-depth.
+    } else if (_gmpResolved === 'bssa14' || _gmpResolved === 'cy14' || _gmpResolved === 'cb14' || _gmpResolved === 'ask14') {
+      // The NGA-West2 models' native metric is Rjb: whole-fault surface
+      // projection when a finite fault exists, else the epicentral
+      // (horizontal) distance — depth enters through the models' own
+      // pseudo-depth / ztor terms (the point geometry derives Rrup from it).
       dist = faultParams ? Physics.rjbDistance(pc.lat, pc.lng, faultParams) : surfDist;
     } else {
       dist = Math.sqrt(surfDist * surfDist + depthKm * depthKm);
@@ -4027,7 +4033,9 @@ function _predictPrefectureShindosFor(lat, lng, mag, depthKm, strDeg, dipDeg, sr
     // rock-reference output + external power-law amp (the old mix double-
     // counted Zhao's site class and referenced the amp to the wrong base).
     // BSSA14 is likewise native (linear + nonlinear site terms inside the GMPE).
-    var nativeSite = predVs > 0 && (_gmpResolved === 'zhao2006' || _gmpResolved === 'kanno2006' || _gmpResolved === 'bssa14');
+    // ngasub (Parker 2022) too — regional linear + nonlinear Vs30 terms inside.
+    // cy14/cb14/ask14 (v7.x) the same (native Vs30 site terms inside NGA-West2).
+    var nativeSite = predVs > 0 && (_gmpResolved === 'zhao2006' || _gmpResolved === 'kanno2006' || _gmpResolved === 'bssa14' || _gmpResolved === 'ngasub' || _gmpResolved === 'cy14' || _gmpResolved === 'cb14' || _gmpResolved === 'ask14');
     var refVs = nativeSite ? predVs : (_gmpResolved === 'zhao2006' ? 1200 : (_gmpResolved === 'kanno2006' ? 800 : 760));
     var pga = calcPGAFor(mag, dist, depthKm, predSrc, refVs, eventMwOverride, sliderMwOverride);
     var pgv = calcPGVFor(mag, dist, depthKm, predSrc, refVs, eventMwOverride, sliderMwOverride);
@@ -9502,7 +9510,7 @@ var ADV_RECOMMENDED = {
 };
 var ADV_OPTION_LABELS = {
   auto:'adv.opt.auto',crustal:'adv.opt.crustal',interplate:'adv.opt.interplate',intraslab:'adv.opt.intraslab',
-  log:'adv.opt.log','si-midorikawa':'adv.opt.si','log-ff':'adv.opt.logff',kanno2006:'adv.opt.kanno',zhao2006:'adv.opt.zhao',bssa14:'adv.opt.bssa14',
+  log:'adv.opt.log','si-midorikawa':'adv.opt.si','log-ff':'adv.opt.logff',kanno2006:'adv.opt.kanno',zhao2006:'adv.opt.zhao',bssa14:'adv.opt.bssa14',ngasub:'adv.opt.ngasub',cy14:'adv.opt.cy14',cb14:'adv.opt.cb14',ask14:'adv.opt.ask14',
   vs30:'adv.opt.vs30',geo:'adv.opt.geo',none:'adv.opt.none',off:'adv.opt.off',on:'adv.opt.on',ss14:'adv.opt.ss14','eqlin-1d':'adv.opt.eqlin',
   somerville1997:'adv.opt.somerville',pgaOnly:'adv.opt.pga',pgaPgv:'adv.opt.pgagv',exceedance:'adv.opt.exceedance',
   shindo:'intensity.shindo',mmi:'intensity.mmi',ems98:'intensity.ems98',csis:'intensity.csis',bilateral:'ff.bilateral',unilateral:'ff.unilateral',
@@ -10388,10 +10396,11 @@ function updateInfoPanel(curMaxPga, curMaxSh) {
   html += '<br><div class="info-hdr">' + t('info.computation') + '</div>';
   var resolvedModel = Physics.resolveGmpModel(cfgGet('gmpModel'), activeSrcType(), eventMw != null ? eventMw : _liveMag);
   var _gmpeNameMap = { 'si-midorikawa': 'Si &amp; Midorikawa (1999)', 'zhao2006': 'Zhao et al. (2006)',
-    'bssa14': 'Boore et al. (2014) NGA-West2', 'kanno2006': 'Kanno et al. (2006)' };
+    'bssa14': 'Boore et al. (2014) NGA-West2', 'ngasub': 'Parker et al. (2022) NGA-Sub', 'kanno2006': 'Kanno et al. (2006)',
+    'cy14': 'Chiou &amp; Youngs (2014) NGA-West2', 'cb14': 'Campbell &amp; Bozorgnia (2014) NGA-West2', 'ask14': 'Abrahamson et al. (2014) NGA-West2' };
   if (cfgGet('gmpModel') === 'auto') {
     // Show the model the auto-route actually resolved to (region-aware: BSSA14
-    // for shallow-crustal events outside Japan).
+    // for shallow-crustal events outside Japan, NGA-Sub for subduction there).
     html += infoRow(t('info.gmpe'), 'Auto -> ' + (_gmpeNameMap[resolvedModel] || resolvedModel) + ', ' + activeSrcType());
   } else if (cfgGet('gmpModel') === 'si-midorikawa')
     html += infoRow(t('info.gmpe'), 'Si &amp; Midorikawa (1999), '+activeSrcType());
@@ -10401,6 +10410,10 @@ function updateInfoPanel(curMaxPga, curMaxSh) {
     html += infoRow(t('info.gmpe'), 'Zhao et al. (2006), '+activeSrcType());
   else if (cfgGet('gmpModel') === 'bssa14')
     html += infoRow(t('info.gmpe'), 'Boore et al. (2014) NGA-West2, Rjb, Vs30');
+  else if (cfgGet('gmpModel') === 'ngasub')
+    html += infoRow(t('info.gmpe'), 'Parker et al. (2022) NGA-Sub, Rrup, Vs30, ' + activeSrcType());
+  else if (cfgGet('gmpModel') === 'cy14' || cfgGet('gmpModel') === 'cb14' || cfgGet('gmpModel') === 'ask14')
+    html += infoRow(t('info.gmpe'), _gmpeNameMap[cfgGet('gmpModel')] + ', Rjb, Vs30');
   else if (cfgGet('gmpModel') === 'logic-tree')
     html += infoRow(t('info.gmpe'), 'Logic tree (3-branch LLH), '+activeSrcType());
   else if (cfgGet('gmpModel') === 'log-ff')
@@ -10410,7 +10423,7 @@ function updateInfoPanel(curMaxPga, curMaxSh) {
   var sigmaInfo = Physics.getGmpSigmaComponents(cfgGet('gmpModel'), activeSrcType(), 'pga', eventMw != null ? eventMw : _liveMag);
   if (cfgGet('sigmaOverride') > 0) sigmaInfo.sigmaT = cfgGet('sigmaOverride');
   html += infoRow(t('info.source_type'), activeSrcType() + (cfgGet('sourceTypeOverride') !== 'auto' ? ' (override)' : ''));
-  html += infoRow(t('info.distance_metric'), resolvedModel === 'log-ff' || resolvedModel === 'si-midorikawa' ? 'Rrup (finite fault when available)' : (resolvedModel === 'bssa14' ? 'Rjb' : 'Rhypo'));
+  html += infoRow(t('info.distance_metric'), resolvedModel === 'log-ff' || resolvedModel === 'si-midorikawa' ? 'Rrup (finite fault when available)' : (resolvedModel === 'bssa14' || resolvedModel === 'cy14' || resolvedModel === 'cb14' || resolvedModel === 'ask14' ? 'Rjb' : 'Rhypo'));
   html += infoRow(t('info.sigma'), sigmaInfo.sigmaT.toFixed(3));
   html += infoRow(t('info.intensity_formula'), 'I=max(PGA, PGV empirical) · ' + t('info.empirical_jma_note'));
   html += infoRow(t('info.stations'), rawLandGrid.length.toLocaleString());
@@ -11670,8 +11683,9 @@ function drawResponseSpectrum() {
 // tools/build-psha-source-model.js from the frozen USGS ComCat catalog).
 // v6.7 D: in region mode the card loads that region's own pack
 // (geojson/psha-source-model-<rid>.json — same v2 schema plus region/gmpeTree
-// fields; regional packs are grid-only GR with a regional single-branch GMPE
-// tree and NO scenario sources). The model loads lazily (landuse-pack
+// fields; regional packs are grid-only GR with a regional GMPE tree (crustal:
+// four-model NGA-West2 tree since v7.x; subduction: NGA-Sub) and NO scenario
+// sources). The model loads lazily (landuse-pack
 // precedent); an absent pack leaves the canvases in their waiting state —
 // or, for a region whose pack failed, the honest absent note.
 // Absolute hazard LEVELS are pending the J-SHIS external comparison gate
@@ -11698,11 +11712,23 @@ function _pshaClearForRegionSwitch() {
   _pshaResultCache = null;
   _pshaSourceModel = null; // force a reload of the newly-active scope's pack
   if (_pshaComputeTimer) { clearTimeout(_pshaComputeTimer); _pshaComputeTimer = null; }
-  // TD (BPT) is Japan-scoped (Nankai renewal sources only): in region mode the
-  // toggle is a no-op — disable it so the switch visibly does not apply.
+  _pshaSyncTimedToggle();
+}
+
+/** TD (BPT) toggle gating (2026-10-12 UCERF3-TD batch): Japan-scoped by
+ *  default; a regional pack that declares `bptReady` (California v3 — every
+ *  characteristic source carries bpt.lastEventYear) enables it too. The note
+ *  tooltip follows the active scope's TD model. Called on region switches and
+ *  after every pack load (the pack's bptReady is only known then). */
+function _pshaSyncTimedToggle() {
   try {
     var pt = document.getElementById('psha-timed-toggle');
-    if (pt) pt.disabled = !!_pshaRegionActive();
+    if (!pt) return;
+    var rid = _pshaRegionActive();
+    var regionTdOk = !!rid && !!(_pshaSourceModel && _pshaSourceModel.bptReady);
+    pt.disabled = !!rid && !regionTdOk;
+    var span = document.querySelector('[data-i18n-title="info.psha_timed_note"]');
+    if (span) span.title = regionTdOk ? t('info.psha_timed_note_uc3') : t('info.psha_timed_note');
   } catch (e) { /* DOM optional */ }
 }
 var _lastUhsExport = null;
@@ -11712,14 +11738,18 @@ function _loadPshaSourceModel() {
   _pshaSourceModel = false;
   var rid = _pshaRegionActive();
   fetch(rid ? 'geojson/psha-source-model-' + rid + '.json' : 'geojson/psha-source-model.json').then(function(r){ return r.ok ? r.json() : null; }).then(function(doc){
-    // schema check accepts v1|v2 — the loader pinned v1 while the bundled
+    // schema check accepts v1|v2|v3 — the loader pinned v1 while the bundled
     // Japan model moved to v2 in the 2026-09-04 segmented-Nankai batch, which
     // silently parked the card in its waiting state from v6.2 until this fix.
-    if (!doc || (doc.schema !== 'quake-sim-psha-source-v1' && doc.schema !== 'quake-sim-psha-source-v2') || !Array.isArray(doc.cells)) return;
+    // v3 (2026-10-12 UCERF3 batch B): California pack gains gridMfdSources +
+    // characteristicSources blocks beside cells (consumed by
+    // Physics._pshaV3SourcesEach in all three engines).
+    if (!doc || (doc.schema !== 'quake-sim-psha-source-v1' && doc.schema !== 'quake-sim-psha-source-v2' && doc.schema !== 'quake-sim-psha-source-v3') || !Array.isArray(doc.cells)) return;
     // drop a stale fetch that resolves after a region switch (compare against
     // the CURRENT scope, not the one captured at fetch time)
     if ((doc.region || 'japan') !== (_pshaRegionActive() || 'japan')) { _pshaSourceModel = null; return; }
     _pshaSourceModel = doc;
+    _pshaSyncTimedToggle(); // a bptReady regional pack (California UCERF3-TD) unlocks the TD toggle
     _redrawInfoCharts();
   }).catch(function(){ /* pack optional — charts stay in waiting state */ });
 }
@@ -11744,10 +11774,11 @@ function _pshaCompute() {
   if (_pshaRegionGated()) return null;
   if (!site || !_pshaSourceModel) return null;
   var rp = cfgGet('pshaReturnPeriod') || 475;
-  // TD is Japan-scoped: regional packs carry no BPT renewal sources, so the
-  // time-dependent engine would silently equal the Poisson one — force the
-  // Poisson path (the toggle itself is disabled on region switches).
-  var td = !!cfgGet('pshaTimeDependent') && !_pshaRegionActive();
+  // TD gate: Japan (Nankai BPT registry) by default; a regional pack opts in
+  // by declaring bptReady (UCERF3-TD batch — California v3 characteristic
+  // sources carry bpt.lastEventYear and go through the renewal gain channel).
+  var regionTdOk = !!_pshaRegionActive() && !!(_pshaSourceModel && _pshaSourceModel.bptReady);
+  var td = !!cfgGet('pshaTimeDependent') && (!_pshaRegionActive() || regionTdOk);
   var key = (_pshaRegionActive() || 'jp') + '|' + site.lat.toFixed(3) + '|' + site.lng.toFixed(3) + '|' + rp + '|' + site.vs30 + (td ? '|td' : '');
   if (_pshaResultCache && _pshaResultCache.key === key) return _pshaResultCache;
   // time-dependent mode (v6.2 BPT UI batch): BPT renewal scenarios over the
@@ -11786,7 +11817,7 @@ function _pshaScheduleCompute() {
   var site = _pshaSite();
   if (!site || !_pshaSourceModel) return null;
   var rp = cfgGet('pshaReturnPeriod') || 475;
-  var tdKey = (cfgGet('pshaTimeDependent') && !_pshaRegionActive()) ? '|td' : '';
+  var tdKey = (cfgGet('pshaTimeDependent') && (!_pshaRegionActive() || (_pshaSourceModel && _pshaSourceModel.bptReady))) ? '|td' : '';
   var key = (_pshaRegionActive() || 'jp') + '|' + site.lat.toFixed(3) + '|' + site.lng.toFixed(3) + '|' + rp + '|' + site.vs30 + tdKey;
   if (_pshaResultCache && _pshaResultCache.key === key) return _pshaResultCache;
   if (_pshaComputeTimer) clearTimeout(_pshaComputeTimer);
@@ -11864,12 +11895,17 @@ function drawPshaHazard() {
   ctx.fillText('50y PGA(50%): ' + (p50 ? Math.round(p50) + ' gal' : '—') + ' | RP' + res.rp + ': ' +
     (res.uhs.pga[String(res.rp)] ? Math.round(res.uhs.pga[String(res.rp)]) + ' gal' : '>grid'), 34, 12);
   // time-dependent badge: BPT source count + full-segment conditional prob
+  // (UCERF3-TD: regional packs carry their renewal sources in charSources —
+  // count those and tag the model name instead of the Nankai P50 line)
   if (res.td && hz.timeDependent) {
     var tds = hz.timeDependent.sources || [];
+    var tdcs = hz.timeDependent.charSources || [];
     var m89 = null;
     for (var tb = 0; tb < tds.length; tb++) if (tds[tb].id === 'nankaiFullM89') m89 = tds[tb];
     ctx.fillStyle = '#66ccff'; ctx.font = '8px monospace';
-    ctx.fillText('BPT x' + tds.length + (m89 ? ('  P(' + hz.timeDependent.horizonYears + 'y|M8.9)=' +
+    var bptN = tds.length + tdcs.length;
+    ctx.fillText((hz.timeDependent.ucerf3Td ? 'UCERF3-TD x' : 'BPT x') + bptN +
+      (m89 ? ('  P(' + hz.timeDependent.horizonYears + 'y|M8.9)=' +
       Math.round(m89.conditionalProb * 100) + '%') : ''), 34, 22);
   }
 }

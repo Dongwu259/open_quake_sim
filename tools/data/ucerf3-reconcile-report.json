@@ -1,0 +1,96 @@
+{
+  "schema": "quake-sim-ucerf3-reconcile-v1",
+  "generatedAt": "2026-10-12T05:05:10.651Z",
+  "inputs": {
+    "sections": "tools/data/ucerf3-sections-california.json",
+    "gridMfd": "tools/data/ucerf3-grid-mfd.json",
+    "pack": "public/geojson/psha-source-model-california.json (schema quake-sim-psha-source-v3)",
+    "packSha256": "f6e68127fb5970a09b840058a8fa6824be9cd3f45fd774db174fb93d23151036"
+  },
+  "method": "A=UCERF3 characteristic fault rate (parent charMfd cumulative, FM-averaged 0.5/0.5); B/C=UCERF3 grid unassociated/sub-seismogenic MFD cumulative (FM-averaged); D=pack ComCat-GR survival rateMc*10^(-b*(M-mc)) summed over cells inside the RELM bbox; v3 packs additionally report their gridMfdSources/characteristicSources totals",
+  "bands": [
+    {
+      "threshold": 5,
+      "faultRate": 0.6518768517235125,
+      "gridUnassocRate": 3.6011013303999935,
+      "gridSubseismoRate": 4.198520721150004,
+      "ucerf3Total": 8.45149890327351,
+      "packRateRelmBbox": 0.4215151999999993,
+      "packOverUcerf3": 0.04987,
+      "faultShare": 0.07713
+    },
+    {
+      "threshold": 6,
+      "faultRate": 0.5849711869905219,
+      "gridUnassocRate": 0.2938632481499997,
+      "gridSubseismoRate": 0.11363379075000003,
+      "ucerf3Total": 0.9924682258905215,
+      "packRateRelmBbox": 0.06251007694364757,
+      "packOverUcerf3": 0.06298,
+      "faultShare": 0.5894
+    },
+    {
+      "threshold": 6.5,
+      "faultRate": 0.33618022978040596,
+      "gridUnassocRate": 0.06805601069999986,
+      "gridSubseismoRate": 0.0032793950999999997,
+      "ucerf3Total": 0.4075156355804059,
+      "packRateRelmBbox": 0.024401776989006942,
+      "packOverUcerf3": 0.05988,
+      "faultShare": 0.825
+    },
+    {
+      "threshold": 7,
+      "faultRate": 0.19080552722150723,
+      "gridUnassocRate": 0.008025146299999989,
+      "gridSubseismoRate": 0.000011219149999999999,
+      "ucerf3Total": 0.1988418926715072,
+      "packRateRelmBbox": 0.009611521759044785,
+      "packOverUcerf3": 0.04834,
+      "faultShare": 0.9596
+    },
+    {
+      "threshold": 7.5,
+      "faultRate": 0.09482181581862084,
+      "gridUnassocRate": 0.0000242437,
+      "gridSubseismoRate": 0,
+      "ucerf3Total": 0.09484605951862084,
+      "packRateRelmBbox": 0.003822485012665005,
+      "packOverUcerf3": 0.0403,
+      "faultShare": 0.9997
+    }
+  ],
+  "packCells": {
+    "total": 1616,
+    "inRelmBbox": 668,
+    "inRelmPolygon": 0
+  },
+  "packV3": {
+    "grid": {
+      "5": 7.799622051549997,
+      "6": 0.40749703889999966,
+      "7": 0.008036365450000003,
+      "6.5": 0.07133540580000018,
+      "7.5": 0.00002424369999999999
+    },
+    "char": {
+      "5": 0.6518768517235118,
+      "6": 0.5849711869905213,
+      "7": 0.19080552722150726,
+      "6.5": 0.3361802297804057,
+      "7.5": 0.09482181581862091
+    },
+    "nGrid": 7636,
+    "nChar": 633
+  },
+  "decision": {
+    "id": "gamma-replacement-inside-RELM",
+    "measured": "pre-swap v2 pack (2026-10-12): packOverUcerf3 (FM-averaged) = 0.616 @M>=6.5, 0.501 @M>=7.0, 0.421 @M>=7.5 — our catalog-GR pack carries the same order of budget as the whole UCERF3 closed partition (the FM3.1-only scratch comparison read 0.957/1.275/2.109; FM3.2 carries a heavier large-M tail, hence the FM-average shift). The on-fault share of the UCERF3 budget is faultShare 0.825/0.960/1.000 at M>=6.5/7.0/7.5, so ADDING UCERF3 characteristic sources on top of the untouched grid would double count precisely the dominant term.",
+    "chosen": "inside the RELM polygon the v3 pack REPLACES the ComCat smoothed-GR cells with the UCERF3 closed budget (characteristic sources + grid MFDs, FM-averaged); outside RELM the ComCat apron stays (offshore/Cascadia is outside UCERF3 scope). Zero double count by construction.",
+    "rejected": [
+      "alpha additive-with-buffer-subtraction: spatially rescaling a catalog-smoothed GR by a differently-smoothed decomposition leaves an uncontrolled residual — rejected as unauditable",
+      "beta large-M-only add: our grid is NOT under-represented at large M in rate terms (2.1x at M>=7.5) — the documented underestimate is SPATIAL (smearing), which beta leaves in place"
+    ],
+    "honesty": "the swapped-in UCERF3 branch-averaged budget is the published model (Field et al. 2014); our self-computed ComCat GR stays as the apron outside RELM. The two budgets are NOT harmonised at the polygon seam (rate discontinuity across the boundary is possible and visible in the closure rows)."
+  }
+}

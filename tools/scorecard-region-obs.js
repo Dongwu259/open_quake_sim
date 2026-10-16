@@ -10,7 +10,8 @@
 //  station-wise scorecard can:
 //    * Physics.setActiveGmpRegion(region) so the 'auto' router resolves
 //      crustal -> bssa14 (NGA-West2) outside Japan and
-//      interplate/intraslab -> zhao2006 (no regional NGA-Sub bundled);
+//      interplate/intraslab -> ngasub (NGA-Sub Parker 2022, v6.8, with the
+//      region's frozen variant);
 //    * prediction-side source parameters: the region-pack preset for events
 //      with presetId (app behavior), the frozen ComCat `prediction` block
 //      otherwise (ridgecrest2019, parkfield2004);
@@ -125,7 +126,8 @@ function computeReport(obs) {
     const src = predictionSource(ev);
     Physics.setActiveGmpRegion(ev.region);
     const model = Physics.resolveGmpModel('auto', src.sourceType, src.mw);
-    const variant = model === 'bssa14' ? Physics.activeBssa2014Variant() : null;
+    const bssaVariant = model === 'bssa14' ? Physics.activeBssa2014Variant() : null;
+    const ngasubVariant = model === 'ngasub' ? Physics.activeNgasubVariant() : null;
     const geometry = src.mw >= FINITE_MW
       ? Physics.genSubSources(src.lat, src.lng, src.mw, src.strikeDeg, src.dipDeg, src.depthKm, dflt('rupSpeed'), {})
       : null;
@@ -165,7 +167,7 @@ function computeReport(obs) {
     events.push({
       eventId: ev.eventId, region: ev.region, usgsId: ev.usgsId,
       mw: src.mw, depthKm: src.depthKm, sourceType: src.sourceType,
-      model, bssa2014Variant: variant, geometry: geometry ? 'finite-fault' : 'point-source',
+      model, bssa2014Variant: bssaVariant, ngasubVariant, geometry: geometry ? 'finite-fault' : 'point-source',
       predictionSource: { mode: ev.predictionSource, ref: src.ref },
       stations: acc.pga.n, droppedNoVs30: dropped, gridVs30: gridVs,
       maxPredPgaGal: +maxPred.toFixed(2), maxObsPgaGal: ev.maxObservedPgaGal,
@@ -184,7 +186,7 @@ function computeReport(obs) {
       + 'prediction block otherwise. USGS event metadata stays as frozen for provenance.',
     siteNote: 'station Vs30 = shakemap stationlist value, else the region Vs30 pack bilinear sample '
       + '(Physics.regionVs30Sample), else dropped (counted in droppedNoVs30). Native-Vs30 models '
-      + '(bssa14/zhao2006) take it inside the GMPE; no external amplification is stacked on top.',
+      + '(bssa14/zhao2006/ngasub) take it inside the GMPE; no external amplification is stacked on top.',
     calibrationNote: 'NO gmpe-calibration.json correction is applied: the modelBias table is Japan-fitted '
       + 'and bssa14 carries no block — residuals are the raw regional physics.',
     overall: fin(overall),

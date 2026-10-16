@@ -23,7 +23,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const ROOT = path.join(__dirname, '..');
-const REGIONS = ['california', 'chile', 'italy', 'taiwan', 'newzealand'];
+const REGIONS = ['california', 'chile', 'italy', 'taiwan', 'newzealand', 'ecuador'];
 
 function loadSnap(rid) {
   return JSON.parse(fs.readFileSync(path.join(ROOT, 'tools', 'data', 'comcat-presets-' + rid + '.json'), 'utf8'));
@@ -86,11 +86,12 @@ test('pack values equal the rounded snapshot values (keep-list explicit)', () =>
 });
 
 test('mechanism honesty: pre-instrumental events carry mechanism:null, never invented', () => {
-  const noMechanism = ['cal-1906-sanfrancisco', 'cal-1971-sanfernando', 'cl-1960-valdivia', 'it-1908-messina'];
+  const noMechanism = ['cal-1906-sanfrancisco', 'cal-1971-sanfernando', 'cl-1960-valdivia', 'it-1908-messina', 'ec-1906-esmeraldas'];
   const withMechanism = ['cal-1989-lomaprieta', 'cal-1994-northridge', 'cl-2010-maule', 'cl-2015-illapel', 'cl-2014-iquique',
     'it-2016-norcia', 'it-2016-amatrice', 'it-2009-laquila', 'it-1980-irpinia',
     'tw-1999-chichi', 'tw-2024-hualien', 'tw-2016-meinong', 'tw-2018-hualien',
-    'nz-2010-darfield', 'nz-2011-christchurch', 'nz-2016-kaikoura', 'nz-2009-dusky'];
+    'nz-2010-darfield', 'nz-2011-christchurch', 'nz-2016-kaikoura', 'nz-2009-dusky',
+    'ec-2016-pedernales', 'ec-1979-tumaco', 'ec-1987-reventador', 'ec-2023-guayas'];
   for (const rid of REGIONS) {
     for (const p of loadSnap(rid).presets) {
       if (noMechanism.includes(p.id)) {
@@ -135,7 +136,13 @@ test('frozen ComCat event-id anchors (no silent re-association)', () => {
     'nz-2010-darfield': 'usp000hk46',
     'nz-2011-christchurch': 'usp000huvq',
     'nz-2016-kaikoura': 'us1000778i',
-    'nz-2009-dusky': 'usp000gz8j'
+    'nz-2009-dusky': 'usp000gz8j',
+    // Ecuador batch (2026-10-14)
+    'ec-2016-pedernales': 'us20005j32',
+    'ec-1906-esmeraldas': 'official19060131153610_30',
+    'ec-1979-tumaco': 'usp00014ey',
+    'ec-1987-reventador': 'usp000330w',
+    'ec-2023-guayas': 'us7000jl3s'
   };
   for (const rid of REGIONS) {
     for (const p of loadSnap(rid).presets) {

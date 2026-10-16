@@ -125,6 +125,29 @@ const REGIONS = {
       { id: 'nz-2009-dusky', label: '2009 Dusky Sound M7.8 (NZ)', lat: -45.762, lng: 166.562, mag: 7.8, depth: 12, strike: 214, dip: 29, rake: 98, mechanismKnown: true, time: '2009/07/15 09:22', sourceType: 'interplate' },
     ],
   },
+  ecuador: {
+    bounds: [[-5.5, -84.0], [2.5, -73.5]],
+    homeZoom: 6,
+    tsunami: true, // regional GEBCO 2025 strip ec-megathrust (0.05°) bundled
+    notes: 'Ecuador region (mainland-framed: the Galapagos islands are intentionally out of frame). Real stations: IG-EPN national network EC via EarthScope FDSN (22 operational - RENSIG/RENAC + OV* volcano-observatory subarrays) + GSN backbone OTAV; an honestly sparse network. Areas: Natural Earth 10m admin-1 provinces (24). Vs30: USGS Global Vs30 (Heath et al. 2020, doi:10.1177/8755293020911137). Regional tsunami: GEBCO 2025 Ecuador / S. Colombia margin strip (0.05 deg water-mean) - ocean epicenters inside it run the nonlinear SWE solver on the regional grid (standalone, coarse-grid nesting needs the global grid to cover it; no landuse Manning roughness; tsunami alert levels apply the JMA thresholds as an approximation). The published Pedernales 2016 (0.382 N, 79.922 W) and Esmeraldas 1906 preset epicenters sit on a land cell at the 0.05 deg grid resolution (nearshore hypocenters; the tsunami-relevant ruptures extended offshore) - kept as published, never nudged into water. The 1906 Esmeraldas preset keeps its documented literature parameters (pre-instrumental, Kanamori & McNally 1982 class).',
+    stations: seed([
+      ['Guayaquil', -2.19, -79.89, 250], ['Quito', -0.23, -78.52, 450], ['Cuenca', -2.90, -79.00, 450],
+      ['Manta', -0.95, -80.72, 300], ['Portoviejo', -1.05, -80.45, 250], ['Esmeraldas', 0.97, -79.65, 300],
+      ['Ambato', -1.24, -78.63, 450], ['Riobamba', -1.67, -78.65, 450], ['Ibarra', 0.35, -78.12, 450],
+      ['Loja', -4.00, -79.21, 400], ['Machala', -3.26, -79.96, 250], ['Santo Domingo', -0.25, -79.17, 350],
+      ['Tena', -0.99, -77.81, 400], ['Puyo', -1.48, -78.00, 400], ['Macas', -2.30, -78.12, 450],
+      ['Zamora', -4.07, -78.96, 450], ['Tulcán', 0.81, -77.72, 450], ['Bahía de Caráquez', -0.60, -80.42, 250],
+      ['Latacunga', -0.93, -78.62, 450], ['Otavalo', 0.23, -78.26, 450], ['Salinas', -2.21, -80.96, 300],
+      ['Pedernales', 0.07, -80.05, 300], ['Lago Agrio', 0.08, -76.88, 400], ['Coca', -0.47, -76.98, 400],
+    ]),
+    presets: [
+      { id: 'ec-2016-pedernales', label: '2016 Pedernales M7.8 (EC)', lat: 0.371, lng: -79.940, mag: 7.8, depth: 21, strike: 205, dip: 20, rake: 100, mechanismKnown: true, time: '2016/04/16 23:58', sourceType: 'interplate' },
+      { id: 'ec-1906-esmeraldas', label: '1906 Esmeraldas M8.8 (EC)', lat: 1.000, lng: -79.500, mag: 8.8, depth: 25, strike: 30, dip: 15, rake: 90, mechanismKnown: true, time: '1906/01/31 15:36', sourceType: 'interplate' },
+      { id: 'ec-1979-tumaco', label: '1979 Tumaco M7.9 (EC)', lat: 1.598, lng: -79.417, mag: 7.9, depth: 24, strike: 25, dip: 16, rake: 100, mechanismKnown: true, time: '1979/12/12 07:59', sourceType: 'interplate' },
+      { id: 'ec-1987-reventador', label: '1987 Reventador M7.2 (EC)', lat: -0.077, lng: -77.656, mag: 7.2, depth: 10, strike: 170, dip: 78, rake: -155, mechanismKnown: true, time: '1987/03/06 04:10', sourceType: 'crustal' },
+      { id: 'ec-2023-guayas', label: '2023 Guayas M6.8 (EC)', lat: -2.804, lng: -79.735, mag: 6.8, depth: 66, strike: 200, dip: 45, rake: 90, mechanismKnown: true, time: '2023/03/18 17:12', sourceType: 'intraslab' },
+    ],
+  },
 };
 
 const california = JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'region-california.json'), 'utf8'));
