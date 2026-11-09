@@ -1308,7 +1308,12 @@
             "required": true,
             "schema": {
               "type": "string",
-              "enum": ["MAJO", "YSS", "INCN", "TATO"]
+              "enum": [
+                "MAJO",
+                "YSS",
+                "INCN",
+                "TATO"
+              ]
             },
             "description": "Whitelisted GSN station code"
           },
@@ -1333,28 +1338,68 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "station": { "type": "string" },
-                    "net": { "type": "string" },
-                    "loc": { "type": "string" },
-                    "cha": { "type": "string" },
-                    "lat": { "type": "number" },
-                    "lng": { "type": "number" },
-                    "windowSec": { "type": "integer" },
-                    "fetchedAt": { "type": "string", "format": "date-time" },
-                    "source": { "type": "string" },
-                    "nsamples": { "type": "integer" },
-                    "gaps": { "type": "integer" },
-                    "nodata": { "type": "boolean" },
-                    "droppedRecords": { "type": "integer" },
-                    "xnMismatches": { "type": "integer" },
+                    "station": {
+                      "type": "string"
+                    },
+                    "net": {
+                      "type": "string"
+                    },
+                    "loc": {
+                      "type": "string"
+                    },
+                    "cha": {
+                      "type": "string"
+                    },
+                    "lat": {
+                      "type": "number"
+                    },
+                    "lng": {
+                      "type": "number"
+                    },
+                    "windowSec": {
+                      "type": "integer"
+                    },
+                    "fetchedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "source": {
+                      "type": "string"
+                    },
+                    "nsamples": {
+                      "type": "integer"
+                    },
+                    "gaps": {
+                      "type": "integer"
+                    },
+                    "nodata": {
+                      "type": "boolean"
+                    },
+                    "droppedRecords": {
+                      "type": "integer"
+                    },
+                    "xnMismatches": {
+                      "type": "integer"
+                    },
                     "segments": {
                       "type": "array",
                       "items": {
                         "type": "object",
                         "properties": {
-                          "startMs": { "type": "number", "description": "Segment start epoch milliseconds" },
-                          "sps": { "type": "number", "description": "Samples per second" },
-                          "counts": { "type": "array", "items": { "type": "integer" } }
+                          "startMs": {
+                            "type": "number",
+                            "description": "Segment start epoch milliseconds"
+                          },
+                          "sps": {
+                            "type": "number",
+                            "description": "Samples per second"
+                          },
+                          "counts": {
+                            "type": "array",
+                            "items": {
+                              "type": "integer"
+                            }
+                          }
                         }
                       }
                     }
@@ -1367,7 +1412,9 @@
             "description": "Station not in the live-waveform whitelist",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -1375,7 +1422,9 @@
             "description": "Too many live-waveform requests (20/min per IP)",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
@@ -1383,7 +1432,9 @@
             "description": "Waveform source unavailable (no fresh-enough cached copy)",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -3058,6 +3109,59 @@
           },
           "503": {
             "description": "All realtime feeds down (same JSON body, status=degraded)"
+          }
+        }
+      }
+    },
+    "/api/doctor": {
+      "get": {
+        "tags": [
+          "Utility"
+        ],
+        "summary": "Doctor: deployment asset inventory (audio / map / data packages)",
+        "description": "Disk truth for the client resource-diagnostics panel: per-language sound inventory (22 required alert sounds + CSIS 12-level lazy sounds + bulletin concatenation fragments), offline vector basemap files, optional local tile package, terrain/region package presence and the research_data_manifest sha256 reconciliation. status is 'degraded' when a required sound, basemap file, terrain/region pack, fault-model index or manifest hash is missing or stale; bulletin fragments and intensity12 are advisory (Docker deployments intentionally trim info/female). Rate limit 30/min/IP. Cache-Control: no-cache.",
+        "responses": {
+          "200": {
+            "description": "Inventory report",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "ok",
+                        "degraded"
+                      ]
+                    },
+                    "audio": {
+                      "type": "object",
+                      "description": "per language jp/en/zh: required(22)/intensity12(12)/bulletinFragments(167-169) each with total + missing[]"
+                    },
+                    "map": {
+                      "type": "object",
+                      "description": "offlineVector[] (5 basemap files with ok flag) + localTiles {installed, note}"
+                    },
+                    "packages": {
+                      "type": "object",
+                      "description": "terrain[] (9 files), regions[] (6 regions x pack/stations/areas/vs30), faultModelIndex"
+                    },
+                    "manifest": {
+                      "type": "object",
+                      "description": "resources[] {id, path, exists, sha256Ok} for the 18 sha-pinned research data resources"
+                    },
+                    "time": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded (30/min/IP)"
           }
         }
       }

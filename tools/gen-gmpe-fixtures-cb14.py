@@ -224,11 +224,36 @@ def _get_fault_dip_term(C, mag, dip):
     return C["c19"] * (5.5 - mag) * dip
 
 
-def _get_anelastic_attenuation_term(C, rrup):
-    return (C["c20"] + C["Dc20"]) * (rrup - 80.0) if rrup >= 80.0 else 0.0
+# hazardlib CampbellBozorgnia2014{HighQ,LowQ} alias overlays (R-C batch):
+# per-IMT Dc20 on the anelastic term; keys missing from the overlay fall back
+# to the base row Dc20 (=0). CAV/IA never evaluated. Verbatim from the frozen
+# source coeffs_high/coeffs_low toml blocks.
+# keys in the generator's IMT style (SA_KEYS: '1', '1.5', '2' — hazardlib
+# toml "SA(1.0)" maps onto '1')
+DC20_HIGH = {"pga": 0.0036, "pgv": 0.0017, "0.01": 0.0036, "0.02": 0.0036,
+             "0.03": 0.0037, "0.05": 0.0040, "0.075": 0.0039, "0.1": 0.0042,
+             "0.15": 0.0042, "0.2": 0.0041, "0.25": 0.0036, "0.3": 0.0031,
+             "0.4": 0.0028, "0.5": 0.0025, "0.75": 0.0016, "1": 0.0006}
+DC20_LOW = {"pga": -0.0035, "pgv": -0.0006, "0.01": -0.0035, "0.02": -0.0035,
+            "0.03": -0.0034, "0.05": -0.0037, "0.075": -0.0037, "0.1": -0.0034,
+            "0.15": -0.0030, "0.2": -0.0031, "0.25": -0.0033, "0.3": -0.0035,
+            "0.4": -0.0034, "0.5": -0.0034, "0.75": -0.0032, "1": -0.0030,
+            "1.5": -0.0019, "2": -0.0005}
+DC20 = {"HighQ": DC20_HIGH, "LowQ": DC20_LOW}
 
 
-def _mean(C, mag, g, vs30_eval, pga_rock):
+def _dc20_for(variant, imt):
+    if not variant:
+        return None
+    return DC20[variant].get(imt)
+
+
+def _get_anelastic_attenuation_term(C, rrup, dc20=None):
+    dc = C["Dc20"] if dc20 is None else dc20
+    return (C["c20"] + dc) * (rrup - 80.0) if rrup >= 80.0 else 0.0
+
+
+def _mean(C, mag, g, vs30_eval, pga_rock, dc20=None):
     """get_mean_values: vs30_eval drives the site + basin terms (1100 for the
     rock reference; the site Vs30 otherwise)."""
     site_vs = vs30_eval if vs30_eval is not None else g["vs30"]
@@ -241,20 +266,20 @@ def _mean(C, mag, g, vs30_eval, pga_rock):
             + _get_basin_term(C, site_vs)
             + _get_hypocentral_depth_term(C, mag, g["hypoDepthKm"])
             + _get_fault_dip_term(C, mag, g["dip"])
-            + _get_anelastic_attenuation_term(C, g["rrup"]))
+            + _get_anelastic_attenuation_term(C, g["rrup"], dc20))
 
 
-def _pga1100(CP, mag, g):
-    return math.exp(_mean(CP, mag, g, 1100.0, None))
+def _pga1100(CP, mag, g, dc20_pga=None):
+    return math.exp(_mean(CP, mag, g, 1100.0, None, dc20_pga))
 
 
-def _mean_row(C, CP, period, mag, g):
-    pga1100 = _pga1100(CP, mag, g)
-    mean = _mean(C, mag, g, None, pga1100)
+def _mean_row(C, CP, period, mag, g, dc20=None, dc20_pga=None):
+    pga1100 = _pga1100(CP, mag, g, dc20_pga)
+    mean = _mean(C, mag, g, None, pga1100, dc20)
     if period is not None and period < 0.25:
         # hazardlib compute(): SA at T < 0.25 s raised to the soil PGA when
         # lower (Campbell & Bozorgnia 2013 NGA-West2 report)
-        pga_soil = _mean(CP, mag, g, None, pga1100)
+        pga_soil = _mean(CP, mag, g, None, pga1100, dc20)
         if mean <= pga_soil:
             mean = pga_soil
     return mean, pga1100
@@ -324,20 +349,20 @@ def _sa_bracket(T):
     return None
 
 
-def cb14_ln(imt, mag, geom):
+def cb14_ln(imt, mag, geom, variant=None):
     geom = _resolve_geom(mag, geom)
     CP = ROWS["pga"]
     if imt in ("pga", "pgv"):
-        return _mean_row(ROWS[imt], CP, None, mag, geom)[0]
+        return _mean_row(ROWS[imt], CP, None, mag, geom, _dc20_for(variant, imt), _dc20_for(variant, "pga"))[0]
     T = float(imt)
     key = _sa_key(T)
     if key:
-        return _mean_row(ROWS[key], CP, T, mag, geom)[0]
+        return _mean_row(ROWS[key], CP, T, mag, geom, _dc20_for(variant, key), _dc20_for(variant, "pga"))[0]
     br = _sa_bracket(T)
     if br is None:
         return None
-    lo = _mean_row(ROWS[br[0]], CP, br[2], mag, geom)[0]
-    hi = _mean_row(ROWS[br[1]], CP, br[3], mag, geom)[0]
+    lo = _mean_row(ROWS[br[0]], CP, br[2], mag, geom, _dc20_for(variant, br[0]), _dc20_for(variant, "pga"))[0]
+    hi = _mean_row(ROWS[br[1]], CP, br[3], mag, geom, _dc20_for(variant, br[1]), _dc20_for(variant, "pga"))[0]
     w = (math.log(T) - math.log(br[2])) / (math.log(br[3]) - math.log(br[2]))
     return lo + w * (hi - lo)
 
@@ -442,6 +467,19 @@ def generate():
                     for dip in HW_DIP:
                         g = point_geom(rx, ztor, 760, dip, 90, width=w)
                         emit("pga", mag, g, "hw", w, None)
+    # HighQ/LowQ alias grid (R-C batch): rrup straddles the 80 km anelastic
+    # gate (60/120) — Dc20 acts only beyond 80 km.
+    for variant in ("HighQ", "LowQ"):
+        for mag in (5.5, 6.5, 7.5):
+            for rjb in (60, 120):
+                for vs30 in (300, 760):
+                    g = point_geom(rjb, 5, vs30, 60, 0)
+                    for imt in ("pga", "pgv", "1"):
+                        ln_a = cb14_ln(imt, mag, g, variant)
+                        points.append([imt, mag, g["rrup"], g["rjb"], g["rx"],
+                                       g["ry0"], g["ztor"], g["dip"], g["rake"],
+                                       g["vs30"], g["widthKm"], g["hypoDepthKm"],
+                                       "reg-" + variant, ln_a, None, None, None])
     return points
 
 

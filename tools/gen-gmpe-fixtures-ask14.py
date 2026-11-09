@@ -224,7 +224,34 @@ def _get_top_of_rupture_depth_term(C, ztor):
     return C["a15"] * min(ztor / 20.0, 1.)
 
 
-def _get_mean(C, period, mag, g, vs30_eval, sa1180_arg):
+def _get_regional_term(region, C, period, rrup):
+    """hazardlib _get_regional_term, evaluated at the 1180 m/s REFERENCE
+    (the mean equation passes vs30_1180; CAL = 0)."""
+    if region in (None, "CAL"):
+        return 0.0
+    if region == "TWN":
+        vs30star = _get_vs30star(1180.0, period)
+        return C["a31"] * math.log(vs30star / C["vlin"]) + C["a25"] * rrup
+    if region == "CHN":
+        return C["a28"] * rrup
+    if region == "JPN":  # page 1043 interpolation table
+        xs = [150, 250, 350, 450, 600, 850, 1150, 2000]
+        vs = [C["a36"], C["a37"], C["a38"], C["a39"], C["a40"], C["a41"],
+              C["a42"], C["a42"]]
+        x = 1180.0
+        if x <= xs[0]:
+            f3 = vs[0]
+        else:
+            f3 = vs[-1]
+            for i in range(1, len(xs)):
+                if x <= xs[i]:
+                    f3 = vs[i - 1] + (vs[i] - vs[i - 1]) * (x - xs[i - 1]) / (xs[i] - xs[i - 1])
+                    break
+        return f3 + C["a29"] * rrup
+    return 0.0
+
+
+def _get_mean(C, period, mag, g, vs30_eval, sa1180_arg, region=None):
     return (_get_basic_term(C, mag, g["rrup"])
             + _get_hanging_wall_term(C, mag, g["rx"], g["ry0"], g["ztor"],
                                      g["dip"], g["widthKm"])
@@ -233,12 +260,13 @@ def _get_mean(C, period, mag, g, vs30_eval, sa1180_arg):
             + _get_faulting_style_term(C, mag, g["rake"])
             + 0.0  # aftershock f11: off (mainshock use)
             + _get_basin_term(C, vs30_eval)
-            + 0.0)  # regional term: None (California base)
+            + _get_regional_term(region, C, period, g["rrup"]))
 
 
-def _get_sa1180(C, period, mag, g):
-    """Mean at the rock reference (Vs30 = 1180, reference shaking 0)."""
-    return math.exp(_get_mean(C, period, mag, g, REF_VS, 0.0))
+def _get_sa1180(C, period, mag, g, region=None):
+    """Mean at the rock reference (Vs30 = 1180, reference shaking 0) —
+    carries the regional term like the hazardlib _get_sa_at_1180."""
+    return math.exp(_get_mean(C, period, mag, g, REF_VS, 0.0, region))
 
 
 def _get_derivative(C, sa1180, vs30):
@@ -248,13 +276,18 @@ def _get_derivative(C, sa1180, vs30):
             + 1. / (sa1180 + C["c"] * (vs30 / C["vlin"]) ** CONSTS["n"])))
 
 
-def _get_stddevs(C, mag, rrup, vs30, sa1180):
-    """region None branch; vs30measured=False -> s1e/s2e."""
+def _get_stddevs(C, mag, rrup, vs30, sa1180, region=None):
+    """region None = California; vs30measured=False -> s1e/s2e. JPN swaps
+    phi_al to the pure distance piecewise on s5/s6 (hazardlib
+    _get_phi_al_regional_JPN, paper p.1046 eq. 26); tau unchanged."""
     phi_al = C["s1e"] + (C["s2e"] - C["s1e"]) / 2. * (mag - 4.)
     if mag < 4:
         phi_al = C["s1e"]
     if mag >= 6:
         phi_al = C["s2e"]
+    if region == "JPN":
+        phi_al = C["s5"] if rrup < 30. else (
+            C["s5"] + (C["s6"] - C["s5"]) / 50. * (rrup - 30.) if rrup <= 80. else C["s6"])
     tau_al = C["s3"] + (C["s4"] - C["s3"]) / 2. * (mag - 5.)
     if mag < 5.:
         tau_al = C["s3"]
@@ -300,12 +333,12 @@ def _resolve_geom(mag, geom):
     return g
 
 
-def ask14_ln(imt, mag, geom):
+def ask14_ln(imt, mag, geom, region=None):
     geom = _resolve_geom(mag, geom)
     if imt in ("pga", "pgv"):
         C = ROWS[imt]
-        sa1180 = _get_sa1180(C, None, mag, geom)
-        return _get_mean(C, None, mag, geom, geom["vs30"], sa1180)
+        sa1180 = _get_sa1180(C, None, mag, geom, region)
+        return _get_mean(C, None, mag, geom, geom["vs30"], sa1180, region)
     T = float(imt)
     key = _sa_key(T)
     if key is None:
@@ -313,21 +346,21 @@ def ask14_ln(imt, mag, geom):
         if br is None:
             return None
         loC, hiC = ROWS[br[0]], ROWS[br[1]]
-        lo = _get_mean(loC, br[2], mag, geom, geom["vs30"], _get_sa1180(loC, br[2], mag, geom))
-        hi = _get_mean(hiC, br[3], mag, geom, geom["vs30"], _get_sa1180(hiC, br[3], mag, geom))
+        lo = _get_mean(loC, br[2], mag, geom, geom["vs30"], _get_sa1180(loC, br[2], mag, geom, region), region)
+        hi = _get_mean(hiC, br[3], mag, geom, geom["vs30"], _get_sa1180(hiC, br[3], mag, geom, region), region)
         w = (math.log(T) - math.log(br[2])) / (math.log(br[3]) - math.log(br[2]))
         return lo + w * (hi - lo)
     C = ROWS[key]
-    sa1180 = _get_sa1180(C, T, mag, geom)
-    return _get_mean(C, T, mag, geom, geom["vs30"], sa1180)
+    sa1180 = _get_sa1180(C, T, mag, geom, region)
+    return _get_mean(C, T, mag, geom, geom["vs30"], sa1180, region)
 
 
-def ask14_sigma(imt, mag, geom):
+def ask14_sigma(imt, mag, geom, region=None):
     geom = _resolve_geom(mag, geom)
 
     def row_sig(C, period):
-        sa1180 = _get_sa1180(C, period, mag, geom)
-        return _get_stddevs(C, mag, geom["rrup"], geom["vs30"], sa1180)
+        sa1180 = _get_sa1180(C, period, mag, geom, region)
+        return _get_stddevs(C, mag, geom["rrup"], geom["vs30"], sa1180, region)
 
     if imt in ("pga", "pgv"):
         return row_sig(ROWS[imt], None)
@@ -415,6 +448,27 @@ def generate():
                         for ry0 in RY0_GRID:
                             g = point_geom(rx, ztor, 760, dip, 90, ry0=ry0, width=w)
                             emit("pga", mag, g, "hw", w)
+    # Regional alias grid (R-C batch): TWN/CHN/JPN additive terms — rrup
+    # sweeps the a25/a28/a29 linear-distance dependence and the JPN phi
+    # s5/s6 distance gates (30/80 km); sigma captured for JPN.
+    for region in ("TWN", "CHN", "JPN"):
+        for mag in (5.5, 6.5, 7.5):
+            for rjb in (10, 50, 120):
+                for vs30 in (300, 760):
+                    g = point_geom(rjb, 5, vs30, 60, 0)
+                    for imt in ("pga", "pgv", "1"):
+                        ln_a = ask14_ln(imt, mag, g, region)
+                        if region == "JPN":
+                            sig = ask14_sigma(imt, mag, g, region)
+                            points.append([imt, mag, g["rrup"], g["rjb"], g["rx"],
+                                           g["ry0"], g["ztor"], g["dip"], g["rake"],
+                                           g["vs30"], g["widthKm"], g["hypoDepthKm"],
+                                           "reg-" + region, ln_a, sig[0], sig[1], sig[2]])
+                        else:
+                            points.append([imt, mag, g["rrup"], g["rjb"], g["rx"],
+                                           g["ry0"], g["ztor"], g["dip"], g["rake"],
+                                           g["vs30"], g["widthKm"], g["hypoDepthKm"],
+                                           "reg-" + region, ln_a, None, None, None])
     return points
 
 

@@ -1,0 +1,839 @@
+{
+ "schema": "quake-sim-psha-capital-multigeo-v1",
+ "generatedAt": "2026-10-17T15:03:55.344Z",
+ "preRegistered": {
+  "note": "hypotheses H-A0..H-A5, the arm set, the weighting design and the adoption rule were written into tools/psha-capital-multigeo.js BEFORE the first measured run; verdicts and the adoption decision are computed mechanically. Frozen MEASUREMENT, not a calibration input (data-honesty rule).",
+  "discovery": "shipped tokyoInland scenario carried no geometry since v1 — engine fallback (s.lat ?? 0) = Null Island, ~zero contribution; R8 LND ratios were measured with the capital source absent",
+  "hypotheses": {
+   "H-A0": "lndBaseline reproduces the R8 frozen LND RP475 ratios within 0.010 at all six sites",
+   "H-A1": "lndMulti RP475 ratio at tokyo strictly above the R8 baseline 0.725",
+   "H-A2": "|ratio_lndMulti(s) - ratio_R8(s)| < 0.10 at each non-capital site",
+   "H-A3": "0.725 < ratio_lndMulti(tokyo) <= 1.30 (parity target; >1.30 = overshoot blocks adoption)",
+   "H-A4": "ttlMulti tokyo <= 1.585x1.10; ttlMulti kochi/osaka within 0.020 of R8 frozen (1.827/3.313)",
+   "H-A5": "|lndMulti - lndMultiEqual| / lndMulti < 0.15 at tokyo (weighting robustness)"
+  }
+ },
+ "input": {
+  "umbrellaRatePerYear": 0.04013,
+  "faultsFile": "tools/data/jshis-capital-faults.json (schema quake-sim-jshis-capital-faults-v1, generated 2026-10-17T15:01:50.329Z)",
+  "nFaults": 16,
+  "totalTraceKm": 393,
+  "nFaultsStrict": 11,
+  "nPatches": 454,
+  "patchSpacingKm": 4,
+  "rateSplit": "W1 length-share (primary) / W2 equal (sensitivity); conservation asserted at 1e-4",
+  "jshisCurves": "reused verbatim (offline) from the frozen R8 report tools/data/jshis-decompose-report.json (Y2024 AVR T30)"
+ },
+ "scopeNotes": [
+  "the umbrella rate is spread over MAJOR ERC-evaluated faults only; unlocated M7-class activity in the domain stays carried by the ComCat crustal GR grid (J-SHIS carries its own background too — like-for-like imperfect, stated)",
+  "characteristic-vs-GR-grid overlap near the capital (double-counting risk) is what H-A3 guards; the seam is NOT adjusted in this measurement",
+  "lndSingle (single revived geometry at the app.js preset location) and lndMultiStrict (borderline-drop subset) are diagnostics, not gates"
+ ],
+ "hypotheses": {
+  "H-A0": {
+   "registered": "lndBaseline reproduces the R8 frozen LND RP475 ratios within 0.010 at all six sites",
+   "measured": [
+    {
+     "site": "tokyo",
+     "r8": 0.725,
+     "now": 0.725
+    },
+    {
+     "site": "osaka",
+     "r8": 0.58,
+     "now": 0.58
+    },
+    {
+     "site": "sendai",
+     "r8": 1.015,
+     "now": 1.015
+    },
+    {
+     "site": "kochi",
+     "r8": 0.523,
+     "now": 0.523
+    },
+    {
+     "site": "nagoya",
+     "r8": 0.856,
+     "now": 0.856
+    },
+    {
+     "site": "fukuoka",
+     "r8": 0.852,
+     "now": 0.852
+    }
+   ],
+   "verdict": "SUPPORTED"
+  },
+  "H-A1": {
+   "registered": "lndMulti RP475 ratio at tokyo strictly above the R8 baseline 0.725",
+   "measured": {
+    "tokyoBaseline": 0.725,
+    "tokyoMulti": 5.097
+   },
+   "verdict": "SUPPORTED"
+  },
+  "H-A2": {
+   "registered": "|ratio_lndMulti(s) - ratio_R8(s)| < 0.10 at each non-capital site",
+   "measured": [
+    {
+     "site": "osaka",
+     "r8": 0.58,
+     "multi": 0.591,
+     "delta": 0.011
+    },
+    {
+     "site": "sendai",
+     "r8": 1.015,
+     "multi": 1.043,
+     "delta": 0.028
+    },
+    {
+     "site": "kochi",
+     "r8": 0.523,
+     "multi": 0.529,
+     "delta": 0.006
+    },
+    {
+     "site": "nagoya",
+     "r8": 0.856,
+     "multi": 1.033,
+     "delta": 0.177
+    },
+    {
+     "site": "fukuoka",
+     "r8": 0.852,
+     "multi": 0.852,
+     "delta": 0
+    }
+   ],
+   "verdict": "REFUTED"
+  },
+  "H-A3": {
+   "registered": "0.725 < ratio_lndMulti(tokyo) <= 1.30 (parity target; >1.30 = overshoot blocks adoption)",
+   "measured": {
+    "tokyoMulti": 5.097
+   },
+   "verdict": "REFUTED"
+  },
+  "H-A4": {
+   "registered": "ttlMulti tokyo <= 1.585x1.10; ttlMulti kochi/osaka within 0.020 of R8 frozen (1.827/3.313)",
+   "measured": {
+    "tokyo": {
+     "r8": 1.585,
+     "multi": 1.911
+    },
+    "kochi": {
+     "r8": 1.827,
+     "multi": 1.827
+    },
+    "osaka": {
+     "r8": 3.313,
+     "multi": 3.313
+    }
+   },
+   "verdict": "REFUTED"
+  },
+  "H-A5": {
+   "registered": "|lndMulti - lndMultiEqual| / lndMulti < 0.15 at tokyo (weighting robustness)",
+   "measured": {
+    "multi": 5.097,
+    "equal": 5.055,
+    "relDiff": 0.008240141259564586
+   },
+   "verdict": "SUPPORTED"
+  }
+ },
+ "decision": {
+  "rule": "ADOPT the multi-geometry set into the production v2 pack iff H-A0 ∧ H-A1 ∧ H-A2 ∧ H-A3 ∧ H-A4 ∧ H-A5 (mechanical, no hand override)",
+  "verdict": "MEASURED-NOT-ADOPTED",
+  "failingGates": [
+   "H-A2",
+   "H-A3",
+   "H-A4"
+  ]
+ },
+ "diagnostics": {
+  "lndSingleTokyo": 30.805,
+  "lndMultiStrictTokyo": 5.725,
+  "lndArmMedian": {
+   "baseline": 0.852,
+   "multi": 1.033
+  }
+ },
+ "sites": [
+  {
+   "site": {
+    "id": "tokyo",
+    "lat": 35.6812,
+    "lng": 139.7671
+   },
+   "arms": {
+    "lndBaseline": {
+     "475": {
+      "jshisPgvCmS": 15.6,
+      "oursPgvCmS": 11.3,
+      "ratioOursOverJshis": 0.725
+     },
+     "2500": {
+      "jshisPgvCmS": 28.6,
+      "oursPgvCmS": 22.9,
+      "ratioOursOverJshis": 0.803
+     }
+    },
+    "lndSingle": {
+     "475": {
+      "jshisPgvCmS": 15.6,
+      "oursPgvCmS": 481.9,
+      "ratioOursOverJshis": 30.805
+     },
+     "2500": {
+      "jshisPgvCmS": 28.6,
+      "oursPgvCmS": 825,
+      "ratioOursOverJshis": 28.88
+     }
+    },
+    "lndMulti": {
+     "475": {
+      "jshisPgvCmS": 15.6,
+      "oursPgvCmS": 79.7,
+      "ratioOursOverJshis": 5.097
+     },
+     "2500": {
+      "jshisPgvCmS": 28.6,
+      "oursPgvCmS": 146.8,
+      "ratioOursOverJshis": 5.14
+     }
+    },
+    "lndMultiEqual": {
+     "475": {
+      "jshisPgvCmS": 15.6,
+      "oursPgvCmS": 79.1,
+      "ratioOursOverJshis": 5.055
+     },
+     "2500": {
+      "jshisPgvCmS": 28.6,
+      "oursPgvCmS": 147.7,
+      "ratioOursOverJshis": 5.169
+     }
+    },
+    "lndMultiStrict": {
+     "475": {
+      "jshisPgvCmS": 15.6,
+      "oursPgvCmS": 89.6,
+      "ratioOursOverJshis": 5.725
+     },
+     "2500": {
+      "jshisPgvCmS": 28.6,
+      "oursPgvCmS": 161.5,
+      "ratioOursOverJshis": 5.652
+     }
+    },
+    "ttlBaseline": {
+     "475": {
+      "jshisPgvCmS": 65.2,
+      "oursPgvCmS": 103.3,
+      "ratioOursOverJshis": 1.585
+     },
+     "2500": {
+      "jshisPgvCmS": 95,
+      "oursPgvCmS": 222.7,
+      "ratioOursOverJshis": 2.345
+     }
+    },
+    "ttlMulti": {
+     "475": {
+      "jshisPgvCmS": 65.2,
+      "oursPgvCmS": 124.6,
+      "ratioOursOverJshis": 1.911
+     },
+     "2500": {
+      "jshisPgvCmS": 95,
+      "oursPgvCmS": 241.9,
+      "ratioOursOverJshis": 2.547
+     }
+    }
+   }
+  },
+  {
+   "site": {
+    "id": "osaka",
+    "lat": 34.6937,
+    "lng": 135.5022
+   },
+   "arms": {
+    "lndBaseline": {
+     "475": {
+      "jshisPgvCmS": 26.6,
+      "oursPgvCmS": 15.4,
+      "ratioOursOverJshis": 0.58
+     },
+     "2500": {
+      "jshisPgvCmS": 81.8,
+      "oursPgvCmS": 39.6,
+      "ratioOursOverJshis": 0.484
+     }
+    },
+    "lndSingle": {
+     "475": {
+      "jshisPgvCmS": 26.6,
+      "oursPgvCmS": 15.6,
+      "ratioOursOverJshis": 0.586
+     },
+     "2500": {
+      "jshisPgvCmS": 81.8,
+      "oursPgvCmS": 39.6,
+      "ratioOursOverJshis": 0.484
+     }
+    },
+    "lndMulti": {
+     "475": {
+      "jshisPgvCmS": 26.6,
+      "oursPgvCmS": 15.7,
+      "ratioOursOverJshis": 0.591
+     },
+     "2500": {
+      "jshisPgvCmS": 81.8,
+      "oursPgvCmS": 39.6,
+      "ratioOursOverJshis": 0.485
+     }
+    },
+    "lndMultiEqual": {
+     "475": {
+      "jshisPgvCmS": 26.6,
+      "oursPgvCmS": 15.7,
+      "ratioOursOverJshis": 0.591
+     },
+     "2500": {
+      "jshisPgvCmS": 81.8,
+      "oursPgvCmS": 39.6,
+      "ratioOursOverJshis": 0.485
+     }
+    },
+    "lndMultiStrict": {
+     "475": {
+      "jshisPgvCmS": 26.6,
+      "oursPgvCmS": 15.7,
+      "ratioOursOverJshis": 0.588
+     },
+     "2500": {
+      "jshisPgvCmS": 81.8,
+      "oursPgvCmS": 39.6,
+      "ratioOursOverJshis": 0.485
+     }
+    },
+    "ttlBaseline": {
+     "475": {
+      "jshisPgvCmS": 52.2,
+      "oursPgvCmS": 173.1,
+      "ratioOursOverJshis": 3.313
+     },
+     "2500": {
+      "jshisPgvCmS": 87.4,
+      "oursPgvCmS": 431.3,
+      "ratioOursOverJshis": 4.937
+     }
+    },
+    "ttlMulti": {
+     "475": {
+      "jshisPgvCmS": 52.2,
+      "oursPgvCmS": 173.1,
+      "ratioOursOverJshis": 3.313
+     },
+     "2500": {
+      "jshisPgvCmS": 87.4,
+      "oursPgvCmS": 431.3,
+      "ratioOursOverJshis": 4.937
+     }
+    }
+   }
+  },
+  {
+   "site": {
+    "id": "sendai",
+    "lat": 38.2682,
+    "lng": 140.8694
+   },
+   "arms": {
+    "lndBaseline": {
+     "475": {
+      "jshisPgvCmS": 17.4,
+      "oursPgvCmS": 17.7,
+      "ratioOursOverJshis": 1.015
+     },
+     "2500": {
+      "jshisPgvCmS": 39.7,
+      "oursPgvCmS": 43.1,
+      "ratioOursOverJshis": 1.084
+     }
+    },
+    "lndSingle": {
+     "475": {
+      "jshisPgvCmS": 17.4,
+      "oursPgvCmS": 18.3,
+      "ratioOursOverJshis": 1.053
+     },
+     "2500": {
+      "jshisPgvCmS": 39.7,
+      "oursPgvCmS": 43.2,
+      "ratioOursOverJshis": 1.088
+     }
+    },
+    "lndMulti": {
+     "475": {
+      "jshisPgvCmS": 17.4,
+      "oursPgvCmS": 18.1,
+      "ratioOursOverJshis": 1.043
+     },
+     "2500": {
+      "jshisPgvCmS": 39.7,
+      "oursPgvCmS": 43.2,
+      "ratioOursOverJshis": 1.087
+     }
+    },
+    "lndMultiEqual": {
+     "475": {
+      "jshisPgvCmS": 17.4,
+      "oursPgvCmS": 18.1,
+      "ratioOursOverJshis": 1.04
+     },
+     "2500": {
+      "jshisPgvCmS": 39.7,
+      "oursPgvCmS": 43.1,
+      "ratioOursOverJshis": 1.086
+     }
+    },
+    "lndMultiStrict": {
+     "475": {
+      "jshisPgvCmS": 17.4,
+      "oursPgvCmS": 18.2,
+      "ratioOursOverJshis": 1.045
+     },
+     "2500": {
+      "jshisPgvCmS": 39.7,
+      "oursPgvCmS": 43.2,
+      "ratioOursOverJshis": 1.087
+     }
+    },
+    "ttlBaseline": {
+     "475": {
+      "jshisPgvCmS": 44.2,
+      "oursPgvCmS": 64.5,
+      "ratioOursOverJshis": 1.458
+     },
+     "2500": {
+      "jshisPgvCmS": 67.6,
+      "oursPgvCmS": 141.9,
+      "ratioOursOverJshis": 2.099
+     }
+    },
+    "ttlMulti": {
+     "475": {
+      "jshisPgvCmS": 44.2,
+      "oursPgvCmS": 64.5,
+      "ratioOursOverJshis": 1.458
+     },
+     "2500": {
+      "jshisPgvCmS": 67.6,
+      "oursPgvCmS": 141.9,
+      "ratioOursOverJshis": 2.099
+     }
+    }
+   }
+  },
+  {
+   "site": {
+    "id": "kochi",
+    "lat": 33.5597,
+    "lng": 133.5311
+   },
+   "arms": {
+    "lndBaseline": {
+     "475": {
+      "jshisPgvCmS": 12.7,
+      "oursPgvCmS": 6.6,
+      "ratioOursOverJshis": 0.523
+     },
+     "2500": {
+      "jshisPgvCmS": 24.3,
+      "oursPgvCmS": 13.5,
+      "ratioOursOverJshis": 0.554
+     }
+    },
+    "lndSingle": {
+     "475": {
+      "jshisPgvCmS": 12.7,
+      "oursPgvCmS": 6.7,
+      "ratioOursOverJshis": 0.526
+     },
+     "2500": {
+      "jshisPgvCmS": 24.3,
+      "oursPgvCmS": 13.5,
+      "ratioOursOverJshis": 0.554
+     }
+    },
+    "lndMulti": {
+     "475": {
+      "jshisPgvCmS": 12.7,
+      "oursPgvCmS": 6.7,
+      "ratioOursOverJshis": 0.529
+     },
+     "2500": {
+      "jshisPgvCmS": 24.3,
+      "oursPgvCmS": 13.5,
+      "ratioOursOverJshis": 0.554
+     }
+    },
+    "lndMultiEqual": {
+     "475": {
+      "jshisPgvCmS": 12.7,
+      "oursPgvCmS": 6.7,
+      "ratioOursOverJshis": 0.529
+     },
+     "2500": {
+      "jshisPgvCmS": 24.3,
+      "oursPgvCmS": 13.5,
+      "ratioOursOverJshis": 0.554
+     }
+    },
+    "lndMultiStrict": {
+     "475": {
+      "jshisPgvCmS": 12.7,
+      "oursPgvCmS": 6.7,
+      "ratioOursOverJshis": 0.527
+     },
+     "2500": {
+      "jshisPgvCmS": 24.3,
+      "oursPgvCmS": 13.5,
+      "ratioOursOverJshis": 0.554
+     }
+    },
+    "ttlBaseline": {
+     "475": {
+      "jshisPgvCmS": 118.2,
+      "oursPgvCmS": 216,
+      "ratioOursOverJshis": 1.827
+     },
+     "2500": {
+      "jshisPgvCmS": 151.9,
+      "oursPgvCmS": 545.1,
+      "ratioOursOverJshis": 3.589
+     }
+    },
+    "ttlMulti": {
+     "475": {
+      "jshisPgvCmS": 118.2,
+      "oursPgvCmS": 216,
+      "ratioOursOverJshis": 1.827
+     },
+     "2500": {
+      "jshisPgvCmS": 151.9,
+      "oursPgvCmS": 545.1,
+      "ratioOursOverJshis": 3.589
+     }
+    }
+   }
+  },
+  {
+   "site": {
+    "id": "nagoya",
+    "lat": 35.1815,
+    "lng": 136.9066
+   },
+   "arms": {
+    "lndBaseline": {
+     "475": {
+      "jshisPgvCmS": 17.9,
+      "oursPgvCmS": 15.4,
+      "ratioOursOverJshis": 0.856
+     },
+     "2500": {
+      "jshisPgvCmS": 35.4,
+      "oursPgvCmS": 36,
+      "ratioOursOverJshis": 1.017
+     }
+    },
+    "lndSingle": {
+     "475": {
+      "jshisPgvCmS": 17.9,
+      "oursPgvCmS": 17.5,
+      "ratioOursOverJshis": 0.977
+     },
+     "2500": {
+      "jshisPgvCmS": 35.4,
+      "oursPgvCmS": 37,
+      "ratioOursOverJshis": 1.046
+     }
+    },
+    "lndMulti": {
+     "475": {
+      "jshisPgvCmS": 17.9,
+      "oursPgvCmS": 18.5,
+      "ratioOursOverJshis": 1.033
+     },
+     "2500": {
+      "jshisPgvCmS": 35.4,
+      "oursPgvCmS": 38,
+      "ratioOursOverJshis": 1.074
+     }
+    },
+    "lndMultiEqual": {
+     "475": {
+      "jshisPgvCmS": 17.9,
+      "oursPgvCmS": 18.5,
+      "ratioOursOverJshis": 1.034
+     },
+     "2500": {
+      "jshisPgvCmS": 35.4,
+      "oursPgvCmS": 38,
+      "ratioOursOverJshis": 1.075
+     }
+    },
+    "lndMultiStrict": {
+     "475": {
+      "jshisPgvCmS": 17.9,
+      "oursPgvCmS": 18,
+      "ratioOursOverJshis": 1.004
+     },
+     "2500": {
+      "jshisPgvCmS": 35.4,
+      "oursPgvCmS": 37.4,
+      "ratioOursOverJshis": 1.058
+     }
+    },
+    "ttlBaseline": {
+     "475": {
+      "jshisPgvCmS": 74.1,
+      "oursPgvCmS": 132.7,
+      "ratioOursOverJshis": 1.793
+     },
+     "2500": {
+      "jshisPgvCmS": 103.6,
+      "oursPgvCmS": 342,
+      "ratioOursOverJshis": 3.302
+     }
+    },
+    "ttlMulti": {
+     "475": {
+      "jshisPgvCmS": 74.1,
+      "oursPgvCmS": 132.8,
+      "ratioOursOverJshis": 1.793
+     },
+     "2500": {
+      "jshisPgvCmS": 103.6,
+      "oursPgvCmS": 342,
+      "ratioOursOverJshis": 3.302
+     }
+    }
+   }
+  },
+  {
+   "site": {
+    "id": "fukuoka",
+    "lat": 33.5902,
+    "lng": 130.4017
+   },
+   "arms": {
+    "lndBaseline": {
+     "475": {
+      "jshisPgvCmS": 22.4,
+      "oursPgvCmS": 19.1,
+      "ratioOursOverJshis": 0.852
+     },
+     "2500": {
+      "jshisPgvCmS": 72.3,
+      "oursPgvCmS": 51.5,
+      "ratioOursOverJshis": 0.711
+     }
+    },
+    "lndSingle": {
+     "475": {
+      "jshisPgvCmS": 22.4,
+      "oursPgvCmS": 19.1,
+      "ratioOursOverJshis": 0.852
+     },
+     "2500": {
+      "jshisPgvCmS": 72.3,
+      "oursPgvCmS": 51.5,
+      "ratioOursOverJshis": 0.711
+     }
+    },
+    "lndMulti": {
+     "475": {
+      "jshisPgvCmS": 22.4,
+      "oursPgvCmS": 19.1,
+      "ratioOursOverJshis": 0.852
+     },
+     "2500": {
+      "jshisPgvCmS": 72.3,
+      "oursPgvCmS": 51.5,
+      "ratioOursOverJshis": 0.711
+     }
+    },
+    "lndMultiEqual": {
+     "475": {
+      "jshisPgvCmS": 22.4,
+      "oursPgvCmS": 19.1,
+      "ratioOursOverJshis": 0.852
+     },
+     "2500": {
+      "jshisPgvCmS": 72.3,
+      "oursPgvCmS": 51.5,
+      "ratioOursOverJshis": 0.711
+     }
+    },
+    "lndMultiStrict": {
+     "475": {
+      "jshisPgvCmS": 22.4,
+      "oursPgvCmS": 19.1,
+      "ratioOursOverJshis": 0.852
+     },
+     "2500": {
+      "jshisPgvCmS": 72.3,
+      "oursPgvCmS": 51.5,
+      "ratioOursOverJshis": 0.711
+     }
+    },
+    "ttlBaseline": {
+     "475": {
+      "jshisPgvCmS": 26.1,
+      "oursPgvCmS": 110.4,
+      "ratioOursOverJshis": 4.227
+     },
+     "2500": {
+      "jshisPgvCmS": 72.4,
+      "oursPgvCmS": 291.4,
+      "ratioOursOverJshis": 4.023
+     }
+    },
+    "ttlMulti": {
+     "475": {
+      "jshisPgvCmS": 26.1,
+      "oursPgvCmS": 110.4,
+      "ratioOursOverJshis": 4.227
+     },
+     "2500": {
+      "jshisPgvCmS": 72.4,
+      "oursPgvCmS": 291.4,
+      "ratioOursOverJshis": 4.023
+     }
+    }
+   }
+  }
+ ],
+ "multiSet": [
+  {
+   "id": "capitalM7_F014521_00001",
+   "ratePerYear": 0.002042,
+   "nPatches": 25,
+   "depthKm": 8.4,
+   "dipDeg": 45
+  },
+  {
+   "id": "capitalM7_F014721_00001",
+   "ratePerYear": 0.007352,
+   "nPatches": 90,
+   "depthKm": 12.8,
+   "dipDeg": 60
+  },
+  {
+   "id": "capitalM7_F014821_00001",
+   "ratePerYear": 0.002042,
+   "nPatches": 25,
+   "depthKm": 12.7,
+   "dipDeg": 50
+  },
+  {
+   "id": "capitalM7_F014822_00001",
+   "ratePerYear": 0.002042,
+   "nPatches": 25,
+   "depthKm": 12.7,
+   "dipDeg": 50
+  },
+  {
+   "id": "capitalM7_F014921_00001",
+   "ratePerYear": 0.001736,
+   "nPatches": 25,
+   "depthKm": 8,
+   "dipDeg": 45
+  },
+  {
+   "id": "capitalM7_F015021_00001",
+   "ratePerYear": 0.003472,
+   "nPatches": 45,
+   "depthKm": 10.9,
+   "dipDeg": 80
+  },
+  {
+   "id": "capitalM7_F015121_00001",
+   "ratePerYear": 0.002655,
+   "nPatches": 35,
+   "depthKm": 8.4,
+   "dipDeg": 45
+  },
+  {
+   "id": "capitalM7_F015221_00001",
+   "ratePerYear": 0.002859,
+   "nPatches": 35,
+   "depthKm": 9.4,
+   "dipDeg": 45
+  },
+  {
+   "id": "capitalM7_F015222_00001",
+   "ratePerYear": 0.002042,
+   "nPatches": 25,
+   "depthKm": 9.4,
+   "dipDeg": 45
+  },
+  {
+   "id": "capitalM7_F015223_00001",
+   "ratePerYear": 0.002042,
+   "nPatches": 15,
+   "depthKm": 9,
+   "dipDeg": 90
+  },
+  {
+   "id": "capitalM7_F015321_00001",
+   "ratePerYear": 0.002246,
+   "nPatches": 30,
+   "depthKm": 8.4,
+   "dipDeg": 45
+  },
+  {
+   "id": "capitalM7_F015421_00001",
+   "ratePerYear": 0.001838,
+   "nPatches": 20,
+   "depthKm": 6,
+   "dipDeg": 30
+  },
+  {
+   "id": "capitalM7_F015521_00001",
+   "ratePerYear": 0.001225,
+   "nPatches": 9,
+   "depthKm": 6.7,
+   "dipDeg": 70
+  },
+  {
+   "id": "capitalM7_F015521_00002",
+   "ratePerYear": 0.0008169,
+   "nPatches": 8,
+   "depthKm": 6.9,
+   "dipDeg": 45
+  },
+  {
+   "id": "capitalM7_F015821_00001",
+   "ratePerYear": 0.003676,
+   "nPatches": 27,
+   "depthKm": 6.9,
+   "dipDeg": 80
+  },
+  {
+   "id": "capitalM7_F015921_00001",
+   "ratePerYear": 0.002042,
+   "nPatches": 15,
+   "depthKm": 7,
+   "dipDeg": 90
+  }
+ ]
+}

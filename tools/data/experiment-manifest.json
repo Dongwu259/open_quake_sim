@@ -1,6 +1,6 @@
 {
  "schema": "quake-sim-experiment-manifest-v1",
- "generated": "2026-10-15T16:49:15.853Z",
+ "generated": "2026-11-09T11:41:28.097Z",
  "identityRule": "qsx1-<sha256[:16] of file bytes>; manifest excluded from its own listing",
  "entries": [
   {
@@ -19,7 +19,7 @@
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-10-06T18:15:55.520Z"
+   "mtime": "2026-11-09T11:31:53.305Z"
   },
   {
    "id": "qsx1-c2f5892ba9d0c58f",
@@ -37,7 +37,7 @@
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-10-06T18:15:55.520Z"
+   "mtime": "2026-11-09T11:31:53.308Z"
   },
   {
    "id": "qsx1-47654bd24604b25a",
@@ -469,7 +469,7 @@
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-10-06T18:15:55.529Z"
+   "mtime": "2026-11-09T11:31:53.340Z"
   },
   {
    "id": "qsx1-228c17a0c7536365",
@@ -553,13 +553,13 @@
    "mtime": "2026-08-26T11:54:17.275Z"
   },
   {
-   "id": "qsx1-40e5b7bb697a07c4",
+   "id": "qsx1-679dc03b4606fe63",
    "name": "frozen-drift-report.json",
-   "bytes": 2374,
+   "bytes": 2380,
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-10-06T17:27:44.335Z"
+   "mtime": "2026-11-08T15:35:32.715Z"
   },
   {
    "id": "qsx1-cc52637e196055c7",
@@ -568,16 +568,16 @@
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-10-06T18:15:55.536Z"
+   "mtime": "2026-11-09T11:31:53.354Z"
   },
   {
-   "id": "qsx1-a7e3572db79c1688",
+   "id": "qsx1-997155606d66c6d7",
    "name": "gmpe-fixtures-ask14.json",
-   "bytes": 2320927,
+   "bytes": 2339858,
    "kind": "fixture",
    "track": "v7.x NGA-West2 tree",
    "gate": "tests/gmpe-ask14.test.js",
-   "mtime": "2026-10-13T09:47:42.675Z"
+   "mtime": "2026-11-08T15:35:32.731Z"
   },
   {
    "id": "qsx1-14f24c5457e2ca8c",
@@ -586,25 +586,25 @@
    "kind": "fixture",
    "track": "v6.7 NGA-West2",
    "gate": "tests/gmpe-bssa14.test.js",
-   "mtime": "2026-10-06T18:15:55.554Z"
+   "mtime": "2026-11-09T11:31:53.381Z"
   },
   {
-   "id": "qsx1-b994f2a6e4beab7f",
+   "id": "qsx1-8a2ff4c46477f049",
    "name": "gmpe-fixtures-cb14.json",
-   "bytes": 2405447,
+   "bytes": 2413236,
    "kind": "fixture",
    "track": "v7.x NGA-West2 tree",
    "gate": "tests/gmpe-cb14.test.js",
-   "mtime": "2026-10-13T09:47:42.642Z"
+   "mtime": "2026-11-08T15:35:32.781Z"
   },
   {
-   "id": "qsx1-3055ec2d363988b4",
+   "id": "qsx1-9620a4697bbe1827",
    "name": "gmpe-fixtures-cy14.json",
-   "bytes": 2572148,
+   "bytes": 2589426,
    "kind": "fixture",
    "track": "v7.x NGA-West2 tree",
    "gate": "tests/gmpe-cy14.test.js",
-   "mtime": "2026-10-13T09:47:42.491Z"
+   "mtime": "2026-11-08T15:35:32.792Z"
   },
   {
    "id": "qsx1-f22379c505c9614c",
@@ -622,7 +622,7 @@
    "kind": "fixture",
    "track": "R0-3",
    "gate": "tests/gmpe-benchmarks.test.js",
-   "mtime": "2026-10-06T18:15:55.562Z"
+   "mtime": "2026-11-09T11:31:53.404Z"
   },
   {
    "id": "qsx1-bf7231c8999bc8e5",
@@ -631,7 +631,16 @@
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-10-06T18:15:55.562Z"
+   "mtime": "2026-11-09T11:31:53.404Z"
+  },
+  {
+   "id": "qsx1-2b7cc0c30bd9088c",
+   "name": "jshis-capital-faults.json",
+   "bytes": 163480,
+   "kind": "fixture",
+   "track": "R-A capital multigeo (J-SHIS fltinfo geometry freeze)",
+   "gate": "tests/psha-capital-multigeo.test.js",
+   "mtime": "2026-11-08T14:36:55.607Z"
   },
   {
    "id": "qsx1-4c0fe41eae711485",
@@ -650,6 +659,15 @@
    "track": "R8 rectification (eqcode decomposition)",
    "gate": "tests/jshis-decompose.test.js",
    "mtime": "2026-10-15T15:43:58.056Z"
+  },
+  {
+   "id": "qsx1-27afbd610347b8c6",
+   "name": "jtrench-m9-report.json",
+   "bytes": 5065,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-11-08T15:55:48.481Z"
   },
   {
    "id": "qsx1-4f0a3b6bf344fcd4",
@@ -679,6 +697,15 @@
    "mtime": "2026-09-03T16:26:19.052Z"
   },
   {
+   "id": "qsx1-a43199ac4ce830a3",
+   "name": "nw2-alias-report.json",
+   "bytes": 5069,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-11-08T15:35:32.827Z"
+  },
+  {
    "id": "qsx1-8e77c43480fa7967",
    "name": "psha-attribution-report.json",
    "bytes": 32476,
@@ -686,6 +713,15 @@
    "track": null,
    "gate": null,
    "mtime": "2026-09-05T01:32:02.397Z"
+  },
+  {
+   "id": "qsx1-ab631c1022784161",
+   "name": "psha-capital-multigeo-report.json",
+   "bytes": 17903,
+   "kind": "experiment",
+   "track": "R-A capital multigeo (measured-not-adopted)",
+   "gate": "tests/psha-capital-multigeo.test.js",
+   "mtime": "2026-11-08T14:36:55.610Z"
   },
   {
    "id": "qsx1-26b6d260913378f7",
@@ -742,13 +778,13 @@
    "mtime": "2026-10-13T09:47:42.805Z"
   },
   {
-   "id": "qsx1-56d701f84af764a0",
+   "id": "qsx1-ebe5a0887454c32f",
    "name": "psha-source-model-report.json",
    "bytes": 7699,
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-10-15T15:43:58.124Z"
+   "mtime": "2026-11-08T14:36:55.616Z"
   },
   {
    "id": "qsx1-d63b8df44c5e7053",
@@ -811,7 +847,7 @@
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-10-06T18:15:55.570Z"
+   "mtime": "2026-11-09T11:31:53.427Z"
   },
   {
    "id": "qsx1-366276b0b3c534f7",
@@ -847,7 +883,7 @@
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-10-06T18:15:55.570Z"
+   "mtime": "2026-11-09T11:31:53.436Z"
   },
   {
    "id": "qsx1-7bc3f861bd4a0a1e",
@@ -883,7 +919,7 @@
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-10-06T18:15:55.574Z"
+   "mtime": "2026-11-09T11:31:53.436Z"
   },
   {
    "id": "qsx1-bbaac4f5cba7266d",
@@ -910,7 +946,7 @@
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-10-06T18:15:55.576Z"
+   "mtime": "2026-11-09T11:31:53.448Z"
   },
   {
    "id": "qsx1-53e62f0b81c94ef0",
@@ -949,13 +985,13 @@
    "mtime": "2026-10-12T07:53:26.434Z"
   },
   {
-   "id": "qsx1-d33422b2cbfc9c94",
+   "id": "qsx1-cfb32ea050c345ab",
    "name": "version-report.json",
    "bytes": 5956,
    "kind": "envelope",
    "track": "R7-5",
    "gate": "tuning-read audit",
-   "mtime": "2026-10-06T17:27:44.402Z"
+   "mtime": "2026-11-08T15:35:32.903Z"
   }
  ]
 }

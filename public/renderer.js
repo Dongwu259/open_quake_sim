@@ -477,8 +477,11 @@
       var center=toCanvas(sub.lat,sub.lng),maxSlipWeight=geometry.maxSlipWeight||
         geometry.maxSlipM/Math.max(geometry.averageSlipM,1e-9),
         slipAlpha=0.16+0.24*Math.min(1,(sub.slipWeight||1)/Math.max(1,maxSlipWeight));
-      var pTravel=age*pSpeed,pRadius=pTravel>sub.depth?Math.sqrt(pTravel*pTravel-sub.depth*sub.depth):0;
-      var sTravel=age*sSpeed,sRadius=sTravel>sub.depth?Math.sqrt(sTravel*sTravel-sub.depth*sub.depth):0;
+      // Patch fronts invert the same layered clock the per-station patch
+      // arrivals use (app.js preComputeArrivals -> pTravelTime/sTravelTime);
+      // the old straight-ray formula drew them inside the activated discs.
+      var pRadius=Physics.wavefrontRadiusKm('P',age,sub.depth,pSpeed);
+      var sRadius=Physics.wavefrontRadiusKm('S',age,sub.depth,sSpeed);
       if(pRadius>0){var pr=kmToPx(pRadius,sub);if(pr>0&&pr<waveCanvas.width*2){waveCtx.beginPath();waveCtx.arc(center.x,center.y,pr,0,Math.PI*2);waveCtx.strokeStyle='rgba(77,166,255,'+slipAlpha.toFixed(3)+')';waveCtx.lineWidth=1.6;waveCtx.stroke();}}
       if(sRadius>0){var sr=kmToPx(sRadius,sub);if(sr>0&&sr<waveCanvas.width*2){waveCtx.beginPath();waveCtx.arc(center.x,center.y,sr,0,Math.PI*2);waveCtx.strokeStyle='rgba(255,159,67,'+Math.min(.48,slipAlpha+.06).toFixed(3)+')';waveCtx.lineWidth=2;waveCtx.stroke();}}
     }

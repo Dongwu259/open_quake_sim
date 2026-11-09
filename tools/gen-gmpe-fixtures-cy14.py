@@ -134,12 +134,21 @@ def get_geometric_spreading(C, mag, rrup):
         rrup + C["c5"] * math.cosh(C["c6"] * max(mag - C["chm"], 0.0)))
 
 
-def get_far_field_distance_scaling(C, mag, rrup):
-    """region CAL branch, delta_g = 0."""
+def get_far_field_distance_scaling(C, mag, rrup, region="CAL"):
+    """region dispatch, delta_g = 0 — CAL base; JPN/ITA scale the
+    magnitude-dependent term f_rm = gamma*rrup by gjpit inside 6<mag<6.9,
+    WEN scales it by gwn unconditionally (hazardlib
+    get_far_field_distance_scaling_2/3/4, verbatim)."""
     f_r = (CONSTANTS["c4a"] - CONSTANTS["c4"]) * math.log(
         math.sqrt(rrup ** 2 + CONSTANTS["crb"] ** 2))
     gamma = C["cg1"] + C["cg2"] / math.cosh(max(mag - C["cg3"], 0.0))
-    return f_r + gamma * rrup
+    f_rm = gamma * rrup
+    if region in ("JPN", "ITA"):
+        if 6.0 < mag < 6.9:
+            f_rm *= C["gjpit"]
+    elif region == "WEN":
+        f_rm *= C["gwn"]
+    return f_r + f_rm
 
 
 def get_hanging_wall_term(C, mag, rrup, rjb, rx, ztor, dip):
@@ -151,8 +160,9 @@ def get_hanging_wall_term(C, mag, rrup, rjb, rx, ztor, dip):
     return C["c9"] * math.cos(math.radians(dip)) * fdist
 
 
-def get_linear_site_term(C, vs30):
-    return C["phi1"] * min(math.log(vs30 / REF_VS), 0.0)
+def get_linear_site_term(C, vs30, region="CAL"):
+    coeff = C["phi1jp"] if region == "JPN" else C["phi1"]
+    return coeff * min(math.log(vs30 / REF_VS), 0.0)
 
 
 def get_nonlinear_site_term(C, vs30, y_ref):
@@ -184,30 +194,30 @@ def get_stddevs(C, mag, y_ref, f_nl_scaling):
     return sigma, abs((1.0 + nl0) * tau), phi_nl0
 
 
-def _ln_y_ref(C, mag, rrup, rjb, rx, ztor, dip, rake):
+def _ln_y_ref(C, mag, rrup, rjb, rx, ztor, dip, rake, region="CAL"):
     dz = _get_centered_ztor(mag, rake, ztor)
     return (C["c1"]
             + get_magnitude_scaling(C, mag)
             + get_source_scaling_terms(C, mag, rake, dip, dz)
             + get_geometric_spreading(C, mag, rrup)
-            + get_far_field_distance_scaling(C, mag, rrup)
+            + get_far_field_distance_scaling(C, mag, rrup, region)
             + get_hanging_wall_term(C, mag, rrup, rjb, rx, ztor, dip))
 
 
-def _mean_row(C, CP, period, mag, g):
+def _mean_row(C, CP, period, mag, g, region="CAL"):
     ln_y_ref = _ln_y_ref(C, mag, g["rrup"], g["rjb"], g["rx"], g["ztor"],
-                         g["dip"], g["rake"])
+                         g["dip"], g["rake"], region)
     y_ref = math.exp(ln_y_ref)
-    f_lin = get_linear_site_term(C, g["vs30"])
+    f_lin = get_linear_site_term(C, g["vs30"], region)
     f_nl, f_nl_scaling = get_nonlinear_site_term(C, g["vs30"], y_ref)
-    mean = ln_y_ref + f_lin + f_nl  # basin = 0 (unmeasured z1pt0, CAL)
+    mean = ln_y_ref + f_lin + f_nl  # basin = 0 (unmeasured z1pt0)
     if period is not None and period <= 0.3:
         # hazardlib compute(): SA at T <= 0.3 s raised to the PGA mean when
         # it falls below it (paper p.1144)
         ln_y_ref_p = _ln_y_ref(CP, mag, g["rrup"], g["rjb"], g["rx"], g["ztor"],
-                               g["dip"], g["rake"])
+                               g["dip"], g["rake"], region)
         y_ref_p = math.exp(ln_y_ref_p)
-        f_lin_p = get_linear_site_term(CP, g["vs30"])
+        f_lin_p = get_linear_site_term(CP, g["vs30"], region)
         f_nl_p, _ = get_nonlinear_site_term(CP, g["vs30"], y_ref_p)
         pga_mean = ln_y_ref_p + f_lin_p + f_nl_p
         if mean < pga_mean:
@@ -237,20 +247,20 @@ def _sa_bracket(T):
     return None
 
 
-def cy14_ln(imt, mag, geom):
+def cy14_ln(imt, mag, geom, region="CAL"):
     """Median ln ground motion. imt: 'pga' | 'pgv' | SA period string/number."""
     CP = ROWS["pga"]
     if imt in ("pga", "pgv"):
-        return _mean_row(ROWS[imt], CP, None, mag, geom)[0]
+        return _mean_row(ROWS[imt], CP, None, mag, geom, region)[0]
     T = float(imt)
     key = _sa_key(T)
     if key:
-        return _mean_row(ROWS[key], CP, T, mag, geom)[0]
+        return _mean_row(ROWS[key], CP, T, mag, geom, region)[0]
     br = _sa_bracket(T)
     if br is None:
         return None
-    lo = _mean_row(ROWS[br[0]], CP, br[2], mag, geom)[0]
-    hi = _mean_row(ROWS[br[1]], CP, br[3], mag, geom)[0]
+    lo = _mean_row(ROWS[br[0]], CP, br[2], mag, geom, region)[0]
+    hi = _mean_row(ROWS[br[1]], CP, br[3], mag, geom, region)[0]
     w = (math.log(T) - math.log(br[2])) / (math.log(br[3]) - math.log(br[2]))
     return lo + w * (hi - lo)
 
@@ -351,6 +361,22 @@ def generate():
                     for dip in (60, 90):
                         g = point_geom(rjb, 5, vs30, dip, rake)
                         emit("pga", mag, g, "rakeBnd")
+    # Regional alias grid (R-C batch): the hazardlib
+    # get_far_field_distance_scaling region overloads — mags straddle the
+    # gjpit 6-6.9 window (5.5 outside / 6.4 inside / 7.5 outside); WEN
+    # scales unconditionally. Sigma is region-independent -> sigma columns
+    # repeat the base values for the same geometry (cheap cross-check).
+    for region in ("JPN", "ITA", "WEN"):
+        for mag in (5.5, 6.4, 7.5):
+            for rjb in (10, 60, 150):
+                for vs30 in (300, 760):
+                    g = point_geom(rjb, 10, vs30, 60, 0)
+                    for imt in ("pga", "pgv", "1"):
+                        ln_a = cy14_ln(imt, mag, g, region)
+                        points.append([imt, mag, g["rrup"], g["rjb"], g["rx"],
+                                       g["ry0"], g["ztor"], g["dip"], g["rake"],
+                                       g["vs30"], g["widthKm"], g["hypoDepthKm"],
+                                       "reg-" + region, ln_a, None, None, None])
     for w in HW_WIDTH:
         for rx in HW_RX:
             for ztor in HW_ZTOR:

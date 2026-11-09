@@ -1,0 +1,11760 @@
+{
+ "schema": "quake-sim-jshis-capital-faults-v1",
+ "generatedAt": "2026-10-17T15:01:50.329Z",
+ "provenance": {
+  "lteListUrl": "https://www.j-shis.bosai.go.jp/cgi-bin/JSHIS2/getLtecodeList.cgi?version=Y2024",
+  "fltinfoUrl": "https://www.j-shis.bosai.go.jp/map/api/pshm/Y2024/AVR/{CODE}/fltinfo.geojson?epsg=4326",
+  "version": "Y2024",
+  "case": "AVR",
+  "epsg": 4326,
+  "license": "NIED J-SHIS (防災科研 地震ハザードステーション) — government open data",
+  "note": "rectangle fault-plane geometry (top-center + strike/dip/len/wid/topDepth + 3D corner polygon, [lng,lat,depthKm]) per ERC major-active-fault evaluation; the capital M7-class umbrella rate itself is NOT published per-fault by J-SHIS — this freeze carries GEOMETRY only"
+ },
+ "selectionRule": {
+  "universe": "every standalone F-code (regex ^F\\d{6}$) in the Y2024 ltecode list; composite A-F suffix entries excluded (standalone segments tile the same surfaces; including both would double-count)",
+  "primary": "any polygon vertex inside lat [34.9,36.25] x lng [139,140.45] (southern-Kanto M7-class domain operationalisation)",
+  "strict": "any polygon vertex inside lat [35,36] x lng [139.2,140.4] (borderline-drop sensitivity subset)",
+  "weights": "primary rate split = trace-length share (lenKm); equal split is the sensitivity arm (psha-capital-multigeo.js W2)"
+ },
+ "stats": {
+  "nLtecodeEntries": 477,
+  "nFetchedFcodes": 231,
+  "nFaultPlanes": 269,
+  "nFetchFailures": 0,
+  "fetchFailures": [],
+  "nSelected": 16,
+  "nSelectedStrict": 11,
+  "selectedTotalLenKm": 393
+ },
+ "selected": [
+  {
+   "code": "F014521",
+   "name": "太田断層",
+   "lenKm": 20,
+   "widKm": 18,
+   "dipDeg": 45,
+   "strikeDeg": 153.9,
+   "topDepthKm": 2,
+   "strict": false
+  },
+  {
+   "code": "F014721",
+   "name": "深谷断層帯",
+   "lenKm": 72,
+   "widKm": 18,
+   "dipDeg": 60,
+   "strikeDeg": 122.1,
+   "topDepthKm": 5,
+   "strict": true
+  },
+  {
+   "code": "F014821",
+   "name": "綾瀬川断層鴻巣－伊奈区間",
+   "lenKm": 20,
+   "widKm": 20,
+   "dipDeg": 50,
+   "strikeDeg": 130.2,
+   "topDepthKm": 5,
+   "strict": true
+  },
+  {
+   "code": "F014822",
+   "name": "綾瀬川断層伊奈－川口区間",
+   "lenKm": 20,
+   "widKm": 20,
+   "dipDeg": 50,
+   "strikeDeg": 140.6,
+   "topDepthKm": 5,
+   "strict": true
+  },
+  {
+   "code": "F014921",
+   "name": "越生断層",
+   "lenKm": 17,
+   "widKm": 17,
+   "dipDeg": 45,
+   "strikeDeg": 161.7,
+   "topDepthKm": 2,
+   "strict": true
+  },
+  {
+   "code": "F015021",
+   "name": "立川断層帯",
+   "lenKm": 34,
+   "widKm": 18,
+   "dipDeg": 80,
+   "strikeDeg": 315,
+   "topDepthKm": 2,
+   "strict": true
+  },
+  {
+   "code": "F015121",
+   "name": "鴨川低地断層帯",
+   "lenKm": 26,
+   "widKm": 18,
+   "dipDeg": 45,
+   "strikeDeg": 265.7,
+   "topDepthKm": 2,
+   "strict": true
+  },
+  {
+   "code": "F015221",
+   "name": "三浦半島断層群主部衣笠・北武断層帯",
+   "lenKm": 28,
+   "widKm": 18,
+   "dipDeg": 45,
+   "strikeDeg": 300,
+   "topDepthKm": 3,
+   "strict": true
+  },
+  {
+   "code": "F015222",
+   "name": "三浦半島断層群主部武山断層帯",
+   "lenKm": 20,
+   "widKm": 18,
+   "dipDeg": 45,
+   "strikeDeg": 300,
+   "topDepthKm": 3,
+   "strict": true
+  },
+  {
+   "code": "F015223",
+   "name": "三浦半島断層群南部",
+   "lenKm": 20,
+   "widKm": 12,
+   "dipDeg": 90,
+   "strikeDeg": 300,
+   "topDepthKm": 3,
+   "strict": true
+  },
+  {
+   "code": "F015321",
+   "name": "伊勢原断層",
+   "lenKm": 22,
+   "widKm": 18,
+   "dipDeg": 45,
+   "strikeDeg": 351.5,
+   "topDepthKm": 2,
+   "strict": true
+  },
+  {
+   "code": "F015421",
+   "name": "塩沢断層帯",
+   "lenKm": 18,
+   "widKm": 16,
+   "dipDeg": 30,
+   "strikeDeg": 241.4,
+   "topDepthKm": 2,
+   "strict": false
+  },
+  {
+   "code": "F015521",
+   "name": "平山-松田北断層帯",
+   "lenKm": 12,
+   "widKm": 10,
+   "dipDeg": 70,
+   "strikeDeg": 218.4,
+   "topDepthKm": 2,
+   "strict": false
+  },
+  {
+   "code": "F015521",
+   "name": "平山-松田北断層帯",
+   "lenKm": 8,
+   "widKm": 14,
+   "dipDeg": 45,
+   "strikeDeg": 279.8,
+   "topDepthKm": 2,
+   "strict": true
+  },
+  {
+   "code": "F015821",
+   "name": "北伊豆断層帯",
+   "lenKm": 36,
+   "widKm": 10,
+   "dipDeg": 80,
+   "strikeDeg": 193.6,
+   "topDepthKm": 2,
+   "strict": false
+  },
+  {
+   "code": "F015921",
+   "name": "伊東沖断層",
+   "lenKm": 20,
+   "widKm": 10,
+   "dipDeg": 90,
+   "strikeDeg": 165.9,
+   "topDepthKm": 2,
+   "strict": false
+  }
+ ],
+ "faults": [
+  {
+   "code": "F000101",
+   "name": "標津断層帯",
+   "flt_id": "F000101_00001",
+   "lenKm": 56,
+   "widKm": 18,
+   "strikeDeg": 216,
+   "dipDeg": 45,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 43.96,
+    "lng": 145.08
+   },
+   "polygonLngLatDep": [
+    [
+     145.08,
+     43.96,
+     3
+    ],
+    [
+     144.66988,
+     43.55226,
+     3
+    ],
+    [
+     144.54159,
+     43.61959,
+     15.72792
+    ],
+    [
+     144.9517,
+     44.02733,
+     15.72792
+    ],
+    [
+     145.08,
+     43.96,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F000201",
+   "name": "十勝平野断層帯主部",
+   "flt_id": "F000201_00001",
+   "lenKm": 84,
+   "widKm": 24,
+   "strikeDeg": 9,
+   "dipDeg": 45,
+   "topDepthKm": 4,
+   "topCenter": {
+    "lat": 42.544,
+    "lng": 143.298
+   },
+   "polygonLngLatDep": [
+    [
+     143.298,
+     42.544,
+     4
+    ],
+    [
+     143.45797,
+     43.29088,
+     4
+    ],
+    [
+     143.66203,
+     43.26698,
+     20.97056
+    ],
+    [
+     143.50206,
+     42.5201,
+     20.97056
+    ],
+    [
+     143.298,
+     42.544,
+     4
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F000202",
+   "name": "光地園断層",
+   "flt_id": "F000202_00001",
+   "lenKm": 28,
+   "widKm": 18,
+   "strikeDeg": 333,
+   "dipDeg": 45,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 42.306,
+    "lng": 143.354
+   },
+   "polygonLngLatDep": [
+    [
+     143.354,
+     42.306,
+     3
+    ],
+    [
+     143.19983,
+     42.5306,
+     3
+    ],
+    [
+     143.33737,
+     42.58262,
+     15.72792
+    ],
+    [
+     143.49154,
+     42.35802,
+     15.72792
+    ],
+    [
+     143.354,
+     42.306,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F000301",
+   "name": "富良野断層帯西部",
+   "flt_id": "F000301_00001",
+   "lenKm": 28,
+   "widKm": 18,
+   "strikeDeg": 196.3,
+   "dipDeg": 45,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 43.443,
+    "lng": 142.421
+   },
+   "polygonLngLatDep": [
+    [
+     142.421,
+     43.443,
+     2
+    ],
+    [
+     142.32392,
+     43.20111,
+     2
+    ],
+    [
+     142.17302,
+     43.23326,
+     14.72792
+    ],
+    [
+     142.27009,
+     43.47515,
+     14.72792
+    ],
+    [
+     142.421,
+     43.443,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F000302",
+   "name": "富良野断層帯東部",
+   "flt_id": "F000302_00001",
+   "lenKm": 28,
+   "widKm": 18,
+   "strikeDeg": 14,
+   "dipDeg": 50,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 43.133,
+    "lng": 142.416
+   },
+   "polygonLngLatDep": [
+    [
+     142.416,
+     43.133,
+     2
+    ],
+    [
+     142.49925,
+     43.37755,
+     2
+    ],
+    [
+     142.63723,
+     43.35235,
+     15.7888
+    ],
+    [
+     142.55398,
+     43.1078,
+     15.7888
+    ],
+    [
+     142.416,
+     43.133,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F000401",
+   "name": "増毛山地東縁断層帯",
+   "flt_id": "F000401_00001",
+   "lenKm": 64,
+   "widKm": 18,
+   "strikeDeg": 197.5,
+   "dipDeg": 45,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 43.891,
+    "lng": 141.878
+   },
+   "polygonLngLatDep": [
+    [
+     141.878,
+     43.891,
+     3
+    ],
+    [
+     141.63849,
+     43.34165,
+     3
+    ],
+    [
+     141.48742,
+     43.3761,
+     15.72792
+    ],
+    [
+     141.72693,
+     43.92545,
+     15.72792
+    ],
+    [
+     141.878,
+     43.891,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F000402",
+   "name": "沼田－砂川付近の断層帯",
+   "flt_id": "F000402_00001",
+   "lenKm": 40,
+   "widKm": 18,
+   "strikeDeg": 0,
+   "dipDeg": 45,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 43.491,
+    "lng": 141.954
+   },
+   "polygonLngLatDep": [
+    [
+     141.954,
+     43.491,
+     3
+    ],
+    [
+     141.954,
+     43.85103,
+     3
+    ],
+    [
+     142.11135,
+     43.85103,
+     15.72792
+    ],
+    [
+     142.11135,
+     43.491,
+     15.72792
+    ],
+    [
+     141.954,
+     43.491,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F000501",
+   "name": "当別断層",
+   "flt_id": "F000501_00001",
+   "lenKm": 22,
+   "widKm": 18,
+   "strikeDeg": 180,
+   "dipDeg": 40,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 43.456,
+    "lng": 141.539
+   },
+   "polygonLngLatDep": [
+    [
+     141.539,
+     43.456,
+     3
+    ],
+    [
+     141.539,
+     43.25798,
+     3
+    ],
+    [
+     141.36863,
+     43.25798,
+     14.57018
+    ],
+    [
+     141.36863,
+     43.456,
+     14.57018
+    ],
+    [
+     141.539,
+     43.456,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F000601",
+   "name": "石狩低地東縁断層帯主部",
+   "flt_id": "F000601_00001",
+   "lenKm": 37.9,
+   "widKm": 18,
+   "strikeDeg": 14,
+   "dipDeg": 30,
+   "topDepthKm": 9,
+   "topCenter": {
+    "lat": 42.969,
+    "lng": 141.915
+   },
+   "polygonLngLatDep": [
+    [
+     141.915,
+     42.969,
+     9
+    ],
+    [
+     142.02739,
+     43.30002,
+     9
+    ],
+    [
+     142.21279,
+     43.26608,
+     18
+    ],
+    [
+     142.1004,
+     42.93505,
+     18
+    ],
+    [
+     141.915,
+     42.969,
+     9
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F000601",
+   "name": "石狩低地東縁断層帯主部",
+   "flt_id": "F000601_00002",
+   "lenKm": 21.9,
+   "widKm": 18,
+   "strikeDeg": 164,
+   "dipDeg": 150,
+   "topDepthKm": 9,
+   "topCenter": {
+    "lat": 42.969,
+    "lng": 141.915
+   },
+   "polygonLngLatDep": [
+    [
+     141.915,
+     42.969,
+     9
+    ],
+    [
+     141.98899,
+     42.7795,
+     9
+    ],
+    [
+     142.17267,
+     42.81818,
+     18
+    ],
+    [
+     142.09868,
+     43.00768,
+     18
+    ],
+    [
+     141.915,
+     42.969,
+     9
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F000602",
+   "name": "石狩低地東縁断層帯南部",
+   "flt_id": "F000602_00001",
+   "lenKm": 56,
+   "widKm": 18,
+   "strikeDeg": 342.5,
+   "dipDeg": 30,
+   "topDepthKm": 9,
+   "topCenter": {
+    "lat": 42.411,
+    "lng": 142.028
+   },
+   "polygonLngLatDep": [
+    [
+     142.028,
+     42.411,
+     9
+    ],
+    [
+     141.82343,
+     42.8918,
+     9
+    ],
+    [
+     142.00404,
+     42.934,
+     18
+    ],
+    [
+     142.20861,
+     42.4532,
+     18
+    ],
+    [
+     142.028,
+     42.411,
+     9
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F000701",
+   "name": "黒松内低地断層帯",
+   "flt_id": "F000701_00001",
+   "lenKm": 34,
+   "widKm": 18,
+   "strikeDeg": 170.1,
+   "dipDeg": 45,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 42.754,
+    "lng": 140.24
+   },
+   "polygonLngLatDep": [
+    [
+     140.24,
+     42.754,
+     2
+    ],
+    [
+     140.3114,
+     42.45249,
+     2
+    ],
+    [
+     140.15825,
+     42.43279,
+     14.72792
+    ],
+    [
+     140.08684,
+     42.7343,
+     14.72792
+    ],
+    [
+     140.24,
+     42.754,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F000801",
+   "name": "函館平野西縁断層帯",
+   "flt_id": "F000801_00001",
+   "lenKm": 26,
+   "widKm": 18,
+   "strikeDeg": 187.1,
+   "dipDeg": 45,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 41.943,
+    "lng": 140.63
+   },
+   "polygonLngLatDep": [
+    [
+     140.63,
+     41.943,
+     2
+    ],
+    [
+     140.59125,
+     41.71071,
+     2
+    ],
+    [
+     140.43894,
+     41.72488,
+     14.72792
+    ],
+    [
+     140.47769,
+     41.95716,
+     14.72792
+    ],
+    [
+     140.63,
+     41.943,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F000901",
+   "name": "青森湾西岸断層帯",
+   "flt_id": "F000901_00001",
+   "lenKm": 32,
+   "widKm": 18,
+   "strikeDeg": 166.7,
+   "dipDeg": 60,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 40.99,
+    "lng": 140.611
+   },
+   "polygonLngLatDep": [
+    [
+     140.611,
+     40.99,
+     3
+    ],
+    [
+     140.69848,
+     40.70958,
+     3
+    ],
+    [
+     140.5944,
+     40.69094,
+     18.58846
+    ],
+    [
+     140.50691,
+     40.97136,
+     18.58846
+    ],
+    [
+     140.611,
+     40.99,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F001001",
+   "name": "津軽山地西縁断層帯北部",
+   "flt_id": "F001001_00001",
+   "lenKm": 18,
+   "widKm": 18,
+   "strikeDeg": 339.2,
+   "dipDeg": 45,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 40.701,
+    "lng": 140.603
+   },
+   "polygonLngLatDep": [
+    [
+     140.603,
+     40.701,
+     3
+    ],
+    [
+     140.52737,
+     40.85253,
+     3
+    ],
+    [
+     140.66815,
+     40.89323,
+     15.72792
+    ],
+    [
+     140.74379,
+     40.7417,
+     15.72792
+    ],
+    [
+     140.603,
+     40.701,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F001002",
+   "name": "津軽山地西縁断層帯南部",
+   "flt_id": "F001002_00001",
+   "lenKm": 24,
+   "widKm": 18,
+   "strikeDeg": 6.7,
+   "dipDeg": 45,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 40.559,
+    "lng": 140.655
+   },
+   "polygonLngLatDep": [
+    [
+     140.655,
+     40.559,
+     3
+    ],
+    [
+     140.68806,
+     40.77365,
+     3
+    ],
+    [
+     140.83732,
+     40.76028,
+     15.72792
+    ],
+    [
+     140.80426,
+     40.54563,
+     15.72792
+    ],
+    [
+     140.655,
+     40.559,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F001101",
+   "name": "折爪断層",
+   "flt_id": "F001101_00001",
+   "lenKm": 48,
+   "widKm": 18,
+   "strikeDeg": 162.3,
+   "dipDeg": 45,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 40.499,
+    "lng": 141.242
+   },
+   "polygonLngLatDep": [
+    [
+     141.242,
+     40.499,
+     2
+    ],
+    [
+     141.41416,
+     40.0872,
+     2
+    ],
+    [
+     141.27112,
+     40.05235,
+     14.72792
+    ],
+    [
+     141.09896,
+     40.46415,
+     14.72792
+    ],
+    [
+     141.242,
+     40.499,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F001201",
+   "name": "能代断層帯",
+   "flt_id": "F001201_00001",
+   "lenKm": 24,
+   "widKm": 18,
+   "strikeDeg": 7.3,
+   "dipDeg": 45,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 40.078,
+    "lng": 139.999
+   },
+   "polygonLngLatDep": [
+    [
+     139.999,
+     40.078,
+     3
+    ],
+    [
+     140.03475,
+     40.29239,
+     3
+    ],
+    [
+     140.18276,
+     40.27783,
+     15.72792
+    ],
+    [
+     140.14701,
+     40.06343,
+     15.72792
+    ],
+    [
+     139.999,
+     40.078,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F001301",
+   "name": "北上低地西縁断層帯",
+   "flt_id": "F001301_00001",
+   "lenKm": 64,
+   "widKm": 18,
+   "strikeDeg": 182.7,
+   "dipDeg": 35,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 39.636,
+    "lng": 141.052
+   },
+   "polygonLngLatDep": [
+    [
+     141.052,
+     39.636,
+     3
+    ],
+    [
+     141.01688,
+     39.06021,
+     3
+    ],
+    [
+     140.84531,
+     39.06646,
+     13.32438
+    ],
+    [
+     140.88043,
+     39.64226,
+     13.32438
+    ],
+    [
+     141.052,
+     39.636,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F001401",
+   "name": "雫石盆地西縁断層帯",
+   "flt_id": "F001401_00001",
+   "lenKm": 18,
+   "widKm": 18,
+   "strikeDeg": 189.7,
+   "dipDeg": 45,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 39.809,
+    "lng": 140.928
+   },
+   "polygonLngLatDep": [
+    [
+     140.928,
+     39.809,
+     2
+    ],
+    [
+     140.89258,
+     39.6492,
+     2
+    ],
+    [
+     140.74607,
+     39.66852,
+     14.72792
+    ],
+    [
+     140.78149,
+     39.82831,
+     14.72792
+    ],
+    [
+     140.928,
+     39.809,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F001402",
+   "name": "真昼山地東縁断層帯北部",
+   "flt_id": "F001402_00001",
+   "lenKm": 22,
+   "widKm": 18,
+   "strikeDeg": 208.5,
+   "dipDeg": 40,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 39.619,
+    "lng": 140.799
+   },
+   "polygonLngLatDep": [
+    [
+     140.799,
+     39.619,
+     3
+    ],
+    [
+     140.67675,
+     39.44486,
+     3
+    ],
+    [
+     140.53562,
+     39.50412,
+     14.57018
+    ],
+    [
+     140.65788,
+     39.67826,
+     14.57018
+    ],
+    [
+     140.799,
+     39.619,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F001403",
+   "name": "真昼山地東縁断層帯南部",
+   "flt_id": "F001403_00001",
+   "lenKm": 18,
+   "widKm": 18,
+   "strikeDeg": 184.4,
+   "dipDeg": 45,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 39.437,
+    "lng": 140.662
+   },
+   "polygonLngLatDep": [
+    [
+     140.662,
+     39.437,
+     3
+    ],
+    [
+     140.64596,
+     39.27535,
+     3
+    ],
+    [
+     140.49855,
+     39.28415,
+     15.72792
+    ],
+    [
+     140.51459,
+     39.4458,
+     15.72792
+    ],
+    [
+     140.662,
+     39.437,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F001501",
+   "name": "横手盆地東縁断層帯北部",
+   "flt_id": "F001501_00001",
+   "lenKm": 28,
+   "widKm": 18,
+   "strikeDeg": 12.5,
+   "dipDeg": 25,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 39.367,
+    "lng": 140.638
+   },
+   "polygonLngLatDep": [
+    [
+     140.638,
+     39.367,
+     3
+    ],
+    [
+     140.70832,
+     39.61322,
+     3
+    ],
+    [
+     140.89314,
+     39.58142,
+     10.60713
+    ],
+    [
+     140.82282,
+     39.3352,
+     10.60713
+    ],
+    [
+     140.638,
+     39.367,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F001502",
+   "name": "横手盆地東縁断層帯南部",
+   "flt_id": "F001502_00001",
+   "lenKm": 32,
+   "widKm": 18,
+   "strikeDeg": 357.2,
+   "dipDeg": 45,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 39.105,
+    "lng": 140.619
+   },
+   "polygonLngLatDep": [
+    [
+     140.619,
+     39.105,
+     3
+    ],
+    [
+     140.60093,
+     39.3929,
+     3
+    ],
+    [
+     140.7479,
+     39.3985,
+     15.72792
+    ],
+    [
+     140.76597,
+     39.1106,
+     15.72792
+    ],
+    [
+     140.619,
+     39.105,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F001601",
+   "name": "北由利断層",
+   "flt_id": "F001601_00001",
+   "lenKm": 32,
+   "widKm": 18,
+   "strikeDeg": 0,
+   "dipDeg": 45,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 39.391,
+    "lng": 140.052
+   },
+   "polygonLngLatDep": [
+    [
+     140.052,
+     39.391,
+     3
+    ],
+    [
+     140.052,
+     39.67923,
+     3
+    ],
+    [
+     140.19975,
+     39.67923,
+     15.72792
+    ],
+    [
+     140.19975,
+     39.391,
+     15.72792
+    ],
+    [
+     140.052,
+     39.391,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F001701",
+   "name": "新庄盆地断層帯東部",
+   "flt_id": "F001701_00001",
+   "lenKm": 24,
+   "widKm": 18,
+   "strikeDeg": 19.6,
+   "dipDeg": 35,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 38.62,
+    "lng": 140.346
+   },
+   "polygonLngLatDep": [
+    [
+     140.346,
+     38.62,
+     3
+    ],
+    [
+     140.43845,
+     38.82367,
+     3
+    ],
+    [
+     140.59794,
+     38.77912,
+     13.32438
+    ],
+    [
+     140.5055,
+     38.57544,
+     13.32438
+    ],
+    [
+     140.346,
+     38.62,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F001702",
+   "name": "新庄盆地断層帯西部",
+   "flt_id": "F001702_00001",
+   "lenKm": 18,
+   "widKm": 18,
+   "strikeDeg": 175,
+   "dipDeg": 45,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 38.831,
+    "lng": 140.182
+   },
+   "polygonLngLatDep": [
+    [
+     140.182,
+     38.831,
+     3
+    ],
+    [
+     140.20007,
+     38.66947,
+     3
+    ],
+    [
+     140.05404,
+     38.65948,
+     15.72792
+    ],
+    [
+     140.03598,
+     38.82101,
+     15.72792
+    ],
+    [
+     140.182,
+     38.831,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F001801",
+   "name": "山形盆地断層帯北部",
+   "flt_id": "F001801_00001",
+   "lenKm": 30,
+   "widKm": 18,
+   "strikeDeg": 196,
+   "dipDeg": 45,
+   "topDepthKm": 4,
+   "topCenter": {
+    "lat": 38.676,
+    "lng": 140.332
+   },
+   "polygonLngLatDep": [
+    [
+     140.332,
+     38.676,
+     4
+    ],
+    [
+     140.23697,
+     38.41622,
+     4
+    ],
+    [
+     140.09638,
+     38.44782,
+     16.72792
+    ],
+    [
+     140.1914,
+     38.7076,
+     16.72792
+    ],
+    [
+     140.332,
+     38.676,
+     4
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F001802",
+   "name": "山形盆地断層帯南部",
+   "flt_id": "F001802_00001",
+   "lenKm": 32,
+   "widKm": 18,
+   "strikeDeg": 184,
+   "dipDeg": 45,
+   "topDepthKm": 4,
+   "topCenter": {
+    "lat": 38.409,
+    "lng": 140.236
+   },
+   "polygonLngLatDep": [
+    [
+     140.236,
+     38.409,
+     4
+    ],
+    [
+     140.21044,
+     38.12142,
+     4
+    ],
+    [
+     140.06507,
+     38.12942,
+     16.72792
+    ],
+    [
+     140.09063,
+     38.417,
+     16.72792
+    ],
+    [
+     140.236,
+     38.409,
+     4
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F001901",
+   "name": "庄内平野東縁断層帯北部",
+   "flt_id": "F001901_00001",
+   "lenKm": 26,
+   "widKm": 18,
+   "strikeDeg": 355,
+   "dipDeg": 30,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 38.847,
+    "lng": 140.006
+   },
+   "polygonLngLatDep": [
+    [
+     140.006,
+     38.847,
+     3
+    ],
+    [
+     139.9799,
+     39.08032,
+     3
+    ],
+    [
+     140.15878,
+     39.09255,
+     12
+    ],
+    [
+     140.18488,
+     38.85924,
+     12
+    ],
+    [
+     140.006,
+     38.847,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F001902",
+   "name": "庄内平野東縁断層帯南部",
+   "flt_id": "F001902_00001",
+   "lenKm": 20,
+   "widKm": 18,
+   "strikeDeg": 4.8,
+   "dipDeg": 45,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 38.717,
+    "lng": 139.994
+   },
+   "polygonLngLatDep": [
+    [
+     139.994,
+     38.717,
+     3
+    ],
+    [
+     140.01324,
+     38.89653,
+     3
+    ],
+    [
+     140.15908,
+     38.88694,
+     15.72792
+    ],
+    [
+     140.13983,
+     38.70741,
+     15.72792
+    ],
+    [
+     139.994,
+     38.717,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F002001",
+   "name": "長町－利府線断層帯",
+   "flt_id": "F002001_00001",
+   "lenKm": 42,
+   "widKm": 18,
+   "strikeDeg": 231.9,
+   "dipDeg": 40,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 38.404,
+    "lng": 141.027
+   },
+   "polygonLngLatDep": [
+    [
+     141.027,
+     38.404,
+     3
+    ],
+    [
+     140.64862,
+     38.17054,
+     3
+    ],
+    [
+     140.55121,
+     38.26829,
+     14.57018
+    ],
+    [
+     140.92959,
+     38.50175,
+     14.57018
+    ],
+    [
+     141.027,
+     38.404,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F002101",
+   "name": "福島盆地西縁断層帯",
+   "flt_id": "F002101_00001",
+   "lenKm": 60,
+   "widKm": 18,
+   "strikeDeg": 212.6,
+   "dipDeg": 45,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 38.143,
+    "lng": 140.679
+   },
+   "polygonLngLatDep": [
+    [
+     140.679,
+     38.143,
+     2
+    ],
+    [
+     140.31024,
+     37.68762,
+     2
+    ],
+    [
+     140.18792,
+     37.7494,
+     14.72792
+    ],
+    [
+     140.55668,
+     38.20478,
+     14.72792
+    ],
+    [
+     140.679,
+     38.143,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F002201",
+   "name": "長井盆地西縁断層帯",
+   "flt_id": "F002201_00001",
+   "lenKm": 54,
+   "widKm": 18,
+   "strikeDeg": 186.7,
+   "dipDeg": 45,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 38.323,
+    "lng": 140.13
+   },
+   "polygonLngLatDep": [
+    [
+     140.13,
+     38.323,
+     2
+    ],
+    [
+     140.05795,
+     37.83985,
+     2
+    ],
+    [
+     139.91339,
+     37.85323,
+     14.72792
+    ],
+    [
+     139.98544,
+     38.33638,
+     14.72792
+    ],
+    [
+     140.13,
+     38.323,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F002301",
+   "name": "双葉断層",
+   "flt_id": "F002301_00001",
+   "lenKm": 42,
+   "widKm": 18,
+   "strikeDeg": 353.5,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 37.658,
+    "lng": 140.901
+   },
+   "polygonLngLatDep": [
+    [
+     140.901,
+     37.658,
+     2
+    ],
+    [
+     140.84712,
+     38.03398,
+     2
+    ],
+    [
+     140.84712,
+     38.03398,
+     20
+    ],
+    [
+     140.901,
+     37.658,
+     20
+    ],
+    [
+     140.901,
+     37.658,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F002401",
+   "name": "会津盆地西縁断層帯",
+   "flt_id": "F002401_00001",
+   "lenKm": 36,
+   "widKm": 18,
+   "strikeDeg": 192.5,
+   "dipDeg": 45,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 37.729,
+    "lng": 139.847
+   },
+   "polygonLngLatDep": [
+    [
+     139.847,
+     37.729,
+     2
+    ],
+    [
+     139.75861,
+     37.41234,
+     2
+    ],
+    [
+     139.61765,
+     37.43716,
+     14.72792
+    ],
+    [
+     139.70604,
+     37.75382,
+     14.72792
+    ],
+    [
+     139.847,
+     37.729,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F002402",
+   "name": "会津盆地東縁断層帯",
+   "flt_id": "F002402_00001",
+   "lenKm": 50,
+   "widKm": 18,
+   "strikeDeg": 12.1,
+   "dipDeg": 45,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 37.209,
+    "lng": 139.854
+   },
+   "polygonLngLatDep": [
+    [
+     139.854,
+     37.209,
+     2
+    ],
+    [
+     139.97207,
+     37.64952,
+     2
+    ],
+    [
+     140.11227,
+     37.62548,
+     14.72792
+    ],
+    [
+     139.9942,
+     37.18496,
+     14.72792
+    ],
+    [
+     139.854,
+     37.209,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F002501",
+   "name": "櫛形山脈断層帯",
+   "flt_id": "F002501_00001",
+   "lenKm": 18,
+   "widKm": 18,
+   "strikeDeg": 206.3,
+   "dipDeg": 45,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 38.149,
+    "lng": 139.438
+   },
+   "polygonLngLatDep": [
+    [
+     139.438,
+     38.149,
+     3
+    ],
+    [
+     139.34701,
+     38.00362,
+     3
+    ],
+    [
+     139.21684,
+     38.05443,
+     15.72792
+    ],
+    [
+     139.30783,
+     38.19981,
+     15.72792
+    ],
+    [
+     139.438,
+     38.149,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F002601",
+   "name": "月岡断層帯",
+   "flt_id": "F002601_00001",
+   "lenKm": 32,
+   "widKm": 18,
+   "strikeDeg": 200.3,
+   "dipDeg": 55,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 37.936,
+    "lng": 139.3
+   },
+   "polygonLngLatDep": [
+    [
+     139.3,
+     37.936,
+     3
+    ],
+    [
+     139.17371,
+     37.66561,
+     3
+    ],
+    [
+     139.06356,
+     37.69788,
+     17.74474
+    ],
+    [
+     139.18985,
+     37.96827,
+     17.74474
+    ],
+    [
+     139.3,
+     37.936,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F002701",
+   "name": "長岡平野西縁断層帯",
+   "flt_id": "F002701_00001",
+   "lenKm": 84,
+   "widKm": 24,
+   "strikeDeg": 185,
+   "dipDeg": 55,
+   "topDepthKm": 6,
+   "topCenter": {
+    "lat": 38.053,
+    "lng": 138.819
+   },
+   "polygonLngLatDep": [
+    [
+     138.819,
+     38.053,
+     6
+    ],
+    [
+     138.73559,
+     37.29911,
+     6
+    ],
+    [
+     138.57934,
+     37.30991,
+     25.65965
+    ],
+    [
+     138.66276,
+     38.06381,
+     25.65965
+    ],
+    [
+     138.819,
+     38.053,
+     6
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F003901",
+   "name": "十日町断層帯西部",
+   "flt_id": "F003901_00001",
+   "lenKm": 34,
+   "widKm": 18,
+   "strikeDeg": 210.4,
+   "dipDeg": 45,
+   "topDepthKm": 5,
+   "topCenter": {
+    "lat": 37.267,
+    "lng": 138.725
+   },
+   "polygonLngLatDep": [
+    [
+     138.725,
+     37.267,
+     5
+    ],
+    [
+     138.53103,
+     37.00277,
+     5
+    ],
+    [
+     138.40726,
+     37.0608,
+     17.72792
+    ],
+    [
+     138.60123,
+     37.32503,
+     17.72792
+    ],
+    [
+     138.725,
+     37.267,
+     5
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F003902",
+   "name": "十日町断層帯東部",
+   "flt_id": "F003902_00001",
+   "lenKm": 20,
+   "widKm": 20,
+   "strikeDeg": 24,
+   "dipDeg": 45,
+   "topDepthKm": 5,
+   "topCenter": {
+    "lat": 37.046,
+    "lng": 138.698
+   },
+   "polygonLngLatDep": [
+    [
+     138.698,
+     37.046,
+     5
+    ],
+    [
+     138.78944,
+     37.21063,
+     5
+    ],
+    [
+     138.93468,
+     37.1588,
+     19.14214
+    ],
+    [
+     138.84323,
+     36.99417,
+     19.14214
+    ],
+    [
+     138.698,
+     37.046,
+     5
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F004501",
+   "name": "木曽山脈西縁断層帯主部北部",
+   "flt_id": "F004501_00001",
+   "lenKm": 14,
+   "widKm": 16,
+   "strikeDeg": 44.4,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.583,
+    "lng": 137.6
+   },
+   "polygonLngLatDep": [
+    [
+     137.6,
+     35.583,
+     2
+    ],
+    [
+     137.70807,
+     35.67315,
+     2
+    ],
+    [
+     137.70807,
+     35.67315,
+     18
+    ],
+    [
+     137.6,
+     35.583,
+     18
+    ],
+    [
+     137.6,
+     35.583,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F004501",
+   "name": "木曽山脈西縁断層帯主部北部",
+   "flt_id": "F004501_00002",
+   "lenKm": 30,
+   "widKm": 18,
+   "strikeDeg": 20.6,
+   "dipDeg": 40,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.676,
+    "lng": 137.725
+   },
+   "polygonLngLatDep": [
+    [
+     137.725,
+     35.676,
+     2
+    ],
+    [
+     137.84159,
+     35.9291,
+     2
+    ],
+    [
+     137.98416,
+     35.88537,
+     13.57018
+    ],
+    [
+     137.86757,
+     35.63227,
+     13.57018
+    ],
+    [
+     137.725,
+     35.676,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F004502",
+   "name": "木曽山脈西縁断層帯主部南部",
+   "flt_id": "F004502_00001",
+   "lenKm": 9.4,
+   "widKm": 9,
+   "strikeDeg": 9.3,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.517,
+    "lng": 137.583
+   },
+   "polygonLngLatDep": [
+    [
+     137.583,
+     35.517,
+     2
+    ],
+    [
+     137.59975,
+     35.60061,
+     2
+    ],
+    [
+     137.59975,
+     35.60061,
+     11
+    ],
+    [
+     137.583,
+     35.517,
+     11
+    ],
+    [
+     137.583,
+     35.517,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F004503",
+   "name": "清内路峠断層帯",
+   "flt_id": "F004503_00001",
+   "lenKm": 38,
+   "widKm": 16,
+   "strikeDeg": 12.8,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.383,
+    "lng": 137.617
+   },
+   "polygonLngLatDep": [
+    [
+     137.617,
+     35.383,
+     2
+    ],
+    [
+     137.70966,
+     35.71699,
+     2
+    ],
+    [
+     137.70966,
+     35.71699,
+     18
+    ],
+    [
+     137.617,
+     35.383,
+     18
+    ],
+    [
+     137.617,
+     35.383,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F004601",
+   "name": "境峠・神谷断層帯主部",
+   "flt_id": "F004601_00001",
+   "lenKm": 52,
+   "widKm": 16,
+   "strikeDeg": 325,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.85,
+    "lng": 137.9
+   },
+   "polygonLngLatDep": [
+    [
+     137.9,
+     35.85,
+     2
+    ],
+    [
+     137.56983,
+     36.2339,
+     2
+    ],
+    [
+     137.56983,
+     36.2339,
+     18
+    ],
+    [
+     137.9,
+     35.85,
+     18
+    ],
+    [
+     137.9,
+     35.85,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F004602",
+   "name": "霧訪山－奈良井断層帯",
+   "flt_id": "F004602_00001",
+   "lenKm": 32,
+   "widKm": 16,
+   "strikeDeg": 48.7,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.921,
+    "lng": 137.767
+   },
+   "polygonLngLatDep": [
+    [
+     137.767,
+     35.921,
+     2
+    ],
+    [
+     138.03337,
+     36.11134,
+     2
+    ],
+    [
+     138.03337,
+     36.11134,
+     18
+    ],
+    [
+     137.767,
+     35.921,
+     18
+    ],
+    [
+     137.767,
+     35.921,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F004701",
+   "name": "跡津川断層帯",
+   "flt_id": "F004701_00001",
+   "lenKm": 74,
+   "widKm": 16,
+   "strikeDeg": 59.6,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 36.267,
+    "lng": 136.933
+   },
+   "polygonLngLatDep": [
+    [
+     136.933,
+     36.267,
+     2
+    ],
+    [
+     137.64329,
+     36.60447,
+     2
+    ],
+    [
+     137.64329,
+     36.60447,
+     18
+    ],
+    [
+     136.933,
+     36.267,
+     18
+    ],
+    [
+     136.933,
+     36.267,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F004801",
+   "name": "高山・大原断層帯国府断層帯",
+   "flt_id": "F004801_00001",
+   "lenKm": 28,
+   "widKm": 14,
+   "strikeDeg": 50,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 36.047,
+    "lng": 136.996
+   },
+   "polygonLngLatDep": [
+    [
+     136.996,
+     36.047,
+     2
+    ],
+    [
+     137.23403,
+     36.2092,
+     2
+    ],
+    [
+     137.23403,
+     36.2092,
+     16
+    ],
+    [
+     136.996,
+     36.047,
+     16
+    ],
+    [
+     136.996,
+     36.047,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F004802",
+   "name": "高山・大原断層帯高山断層帯",
+   "flt_id": "F004802_00001",
+   "lenKm": 48,
+   "widKm": 14,
+   "strikeDeg": 50,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.888,
+    "lng": 136.976
+   },
+   "polygonLngLatDep": [
+    [
+     136.976,
+     35.888,
+     2
+    ],
+    [
+     137.38324,
+     36.16607,
+     2
+    ],
+    [
+     137.38324,
+     36.16607,
+     16
+    ],
+    [
+     136.976,
+     35.888,
+     16
+    ],
+    [
+     136.976,
+     35.888,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F004803",
+   "name": "高山・大原断層帯猪之鼻断層帯",
+   "flt_id": "F004803_00001",
+   "lenKm": 24,
+   "widKm": 14,
+   "strikeDeg": 60,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.932,
+    "lng": 137.281
+   },
+   "polygonLngLatDep": [
+    [
+     137.281,
+     35.932,
+     2
+    ],
+    [
+     137.51132,
+     36.04015,
+     2
+    ],
+    [
+     137.51132,
+     36.04015,
+     16
+    ],
+    [
+     137.281,
+     35.932,
+     16
+    ],
+    [
+     137.281,
+     35.932,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F004901",
+   "name": "牛首断層帯",
+   "flt_id": "F004901_00001",
+   "lenKm": 58,
+   "widKm": 16,
+   "strikeDeg": 52.5,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 36.267,
+    "lng": 136.883
+   },
+   "polygonLngLatDep": [
+    [
+     136.883,
+     36.267,
+     2
+    ],
+    [
+     137.39508,
+     36.58519,
+     2
+    ],
+    [
+     137.39508,
+     36.58519,
+     18
+    ],
+    [
+     136.883,
+     36.267,
+     18
+    ],
+    [
+     136.883,
+     36.267,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F005001",
+   "name": "庄川断層帯",
+   "flt_id": "F005001_00001",
+   "lenKm": 72,
+   "widKm": 14,
+   "strikeDeg": 340.3,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.912,
+    "lng": 137.06
+   },
+   "polygonLngLatDep": [
+    [
+     137.06,
+     35.912,
+     2
+    ],
+    [
+     136.79111,
+     36.52292,
+     2
+    ],
+    [
+     136.79111,
+     36.52292,
+     16
+    ],
+    [
+     137.06,
+     35.912,
+     16
+    ],
+    [
+     137.06,
+     35.912,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F005101",
+   "name": "伊那谷断層帯主部",
+   "flt_id": "F005101_00001",
+   "lenKm": 37.5,
+   "widKm": 18,
+   "strikeDeg": 214,
+   "dipDeg": 70,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.637,
+    "lng": 137.858
+   },
+   "polygonLngLatDep": [
+    [
+     137.858,
+     35.637,
+     2
+    ],
+    [
+     137.62648,
+     35.3568,
+     2
+    ],
+    [
+     137.57013,
+     35.38783,
+     18.91447
+    ],
+    [
+     137.80165,
+     35.66803,
+     18.91447
+    ],
+    [
+     137.858,
+     35.637,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F005101",
+   "name": "伊那谷断層帯主部",
+   "flt_id": "F005101_00002",
+   "lenKm": 41.5,
+   "widKm": 18,
+   "strikeDeg": 10,
+   "dipDeg": 110,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.637,
+    "lng": 137.858
+   },
+   "polygonLngLatDep": [
+    [
+     137.858,
+     35.637,
+     2
+    ],
+    [
+     137.93756,
+     36.00535,
+     2
+    ],
+    [
+     137.87063,
+     36.01499,
+     18.91447
+    ],
+    [
+     137.79106,
+     35.64664,
+     18.91447
+    ],
+    [
+     137.858,
+     35.637,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F005102",
+   "name": "伊那谷断層帯南東部",
+   "flt_id": "F005102_00001",
+   "lenKm": 34,
+   "widKm": 18,
+   "strikeDeg": 200,
+   "dipDeg": 60,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.517,
+    "lng": 137.829
+   },
+   "polygonLngLatDep": [
+    [
+     137.829,
+     35.517,
+     2
+    ],
+    [
+     137.7008,
+     35.22904,
+     2
+    ],
+    [
+     137.60757,
+     35.25678,
+     17.58846
+    ],
+    [
+     137.73577,
+     35.54474,
+     17.58846
+    ],
+    [
+     137.829,
+     35.517,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F005201",
+   "name": "阿寺断層帯主部北部",
+   "flt_id": "F005201_00001",
+   "lenKm": 20,
+   "widKm": 16,
+   "strikeDeg": 349.8,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.837,
+    "lng": 137.22
+   },
+   "polygonLngLatDep": [
+    [
+     137.22,
+     35.837,
+     2
+    ],
+    [
+     137.1808,
+     36.0144,
+     2
+    ],
+    [
+     137.1808,
+     36.0144,
+     18
+    ],
+    [
+     137.22,
+     35.837,
+     18
+    ],
+    [
+     137.22,
+     35.837,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F005202",
+   "name": "阿寺断層帯主部南部",
+   "flt_id": "F005202_00001",
+   "lenKm": 64,
+   "widKm": 16,
+   "strikeDeg": 312,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.488,
+    "lng": 137.616
+   },
+   "polygonLngLatDep": [
+    [
+     137.616,
+     35.488,
+     2
+    ],
+    [
+     137.09187,
+     35.87398,
+     2
+    ],
+    [
+     137.09187,
+     35.87398,
+     18
+    ],
+    [
+     137.616,
+     35.488,
+     18
+    ],
+    [
+     137.616,
+     35.488,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F005203",
+   "name": "阿寺断層帯佐見断層帯",
+   "flt_id": "F005203_00001",
+   "lenKm": 28,
+   "widKm": 16,
+   "strikeDeg": 63.9,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.611,
+    "lng": 137.085
+   },
+   "polygonLngLatDep": [
+    [
+     137.085,
+     35.611,
+     2
+    ],
+    [
+     137.36252,
+     35.72202,
+     2
+    ],
+    [
+     137.36252,
+     35.72202,
+     18
+    ],
+    [
+     137.085,
+     35.611,
+     18
+    ],
+    [
+     137.085,
+     35.611,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F005204",
+   "name": "阿寺断層帯白川断層帯",
+   "flt_id": "F005204_00001",
+   "lenKm": 34,
+   "widKm": 16,
+   "strikeDeg": 68.9,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.578,
+    "lng": 137.051
+   },
+   "polygonLngLatDep": [
+    [
+     137.051,
+     35.578,
+     2
+    ],
+    [
+     137.40095,
+     35.68832,
+     2
+    ],
+    [
+     137.40095,
+     35.68832,
+     18
+    ],
+    [
+     137.051,
+     35.578,
+     18
+    ],
+    [
+     137.051,
+     35.578,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F005301",
+   "name": "屏風山・恵那山－猿投山断層帯屏風山断層帯",
+   "flt_id": "F005301_00001",
+   "lenKm": 20,
+   "widKm": 18,
+   "strikeDeg": 61.5,
+   "dipDeg": 60,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.405,
+    "lng": 137.395
+   },
+   "polygonLngLatDep": [
+    [
+     137.395,
+     35.405,
+     2
+    ],
+    [
+     137.5885,
+     35.49101,
+     2
+    ],
+    [
+     137.63577,
+     35.41973,
+     17.58846
+    ],
+    [
+     137.44228,
+     35.33371,
+     17.58846
+    ],
+    [
+     137.395,
+     35.405,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F005302",
+   "name": "赤河断層帯",
+   "flt_id": "F005302_00001",
+   "lenKm": 24,
+   "widKm": 18,
+   "strikeDeg": 125.5,
+   "dipDeg": 60,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.565,
+    "lng": 137.182
+   },
+   "polygonLngLatDep": [
+    [
+     137.182,
+     35.565,
+     2
+    ],
+    [
+     137.39753,
+     35.43939,
+     2
+    ],
+    [
+     137.33988,
+     35.37335,
+     17.58846
+    ],
+    [
+     137.12435,
+     35.49896,
+     17.58846
+    ],
+    [
+     137.182,
+     35.565,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F005303",
+   "name": "恵那山－猿投山北断層帯",
+   "flt_id": "F005303_00001",
+   "lenKm": 22,
+   "widKm": 18,
+   "strikeDeg": 48.4,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.183,
+    "lng": 137.1
+   },
+   "polygonLngLatDep": [
+    [
+     137.1,
+     35.183,
+     2
+    ],
+    [
+     137.28062,
+     35.31466,
+     2
+    ],
+    [
+     137.28062,
+     35.31466,
+     20
+    ],
+    [
+     137.1,
+     35.183,
+     20
+    ],
+    [
+     137.1,
+     35.183,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F005303",
+   "name": "恵那山－猿投山北断層帯",
+   "flt_id": "F005303_00002",
+   "lenKm": 38,
+   "widKm": 18,
+   "strikeDeg": 56.1,
+   "dipDeg": 40,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.249,
+    "lng": 137.231
+   },
+   "polygonLngLatDep": [
+    [
+     137.231,
+     35.249,
+     2
+    ],
+    [
+     137.57756,
+     35.44003,
+     2
+    ],
+    [
+     137.66206,
+     35.33688,
+     13.57018
+    ],
+    [
+     137.3155,
+     35.14584,
+     13.57018
+    ],
+    [
+     137.231,
+     35.249,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F005304",
+   "name": "猿投－高浜断層帯",
+   "flt_id": "F005304_00001",
+   "lenKm": 34,
+   "widKm": 18,
+   "strikeDeg": 37.5,
+   "dipDeg": 115,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.005,
+    "lng": 136.959
+   },
+   "polygonLngLatDep": [
+    [
+     136.959,
+     35.005,
+     2
+    ],
+    [
+     137.18575,
+     35.24814,
+     2
+    ],
+    [
+     137.11963,
+     35.28988,
+     18.31354
+    ],
+    [
+     136.89289,
+     35.04674,
+     18.31354
+    ],
+    [
+     136.959,
+     35.005,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F005304",
+   "name": "猿投－高浜断層帯",
+   "flt_id": "F005304_00002",
+   "lenKm": 18,
+   "widKm": 18,
+   "strikeDeg": 152.8,
+   "dipDeg": 65,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.996,
+    "lng": 136.958
+   },
+   "polygonLngLatDep": [
+    [
+     136.958,
+     34.996,
+     2
+    ],
+    [
+     137.04813,
+     34.85169,
+     2
+    ],
+    [
+     136.97401,
+     34.82035,
+     18.31354
+    ],
+    [
+     136.88389,
+     34.96466,
+     18.31354
+    ],
+    [
+     136.958,
+     34.996,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F005305",
+   "name": "加木屋断層帯",
+   "flt_id": "F005305_00001",
+   "lenKm": 26,
+   "widKm": 18,
+   "strikeDeg": 350,
+   "dipDeg": 45,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.736,
+    "lng": 136.938
+   },
+   "polygonLngLatDep": [
+    [
+     136.938,
+     34.736,
+     2
+    ],
+    [
+     136.8887,
+     34.96681,
+     2
+    ],
+    [
+     137.02557,
+     34.98673,
+     14.72792
+    ],
+    [
+     137.07487,
+     34.75592,
+     14.72792
+    ],
+    [
+     136.938,
+     34.736,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F005305",
+   "name": "加木屋断層帯",
+   "flt_id": "F005305_00002",
+   "lenKm": 12,
+   "widKm": 18,
+   "strikeDeg": 166.8,
+   "dipDeg": 60,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.036,
+    "lng": 136.908
+   },
+   "polygonLngLatDep": [
+    [
+     136.908,
+     35.036,
+     2
+    ],
+    [
+     136.93803,
+     34.93069,
+     2
+    ],
+    [
+     136.842,
+     34.91217,
+     17.58846
+    ],
+    [
+     136.81197,
+     35.01748,
+     17.58846
+    ],
+    [
+     136.908,
+     35.036,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F005501",
+   "name": "邑知潟断層帯",
+   "flt_id": "F005501_00001",
+   "lenKm": 46,
+   "widKm": 18,
+   "strikeDeg": 35.7,
+   "dipDeg": 30,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 36.674,
+    "lng": 136.758
+   },
+   "polygonLngLatDep": [
+    [
+     136.758,
+     36.674,
+     2
+    ],
+    [
+     137.05829,
+     37.01063,
+     2
+    ],
+    [
+     137.19991,
+     36.92865,
+     11
+    ],
+    [
+     136.89962,
+     36.59203,
+     11
+    ],
+    [
+     136.758,
+     36.674,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F005601",
+   "name": "砺波平野断層帯西部",
+   "flt_id": "F005601_00001",
+   "lenKm": 26,
+   "widKm": 22,
+   "strikeDeg": 220,
+   "dipDeg": 45,
+   "topDepthKm": 4,
+   "topCenter": {
+    "lat": 36.752,
+    "lng": 136.957
+   },
+   "polygonLngLatDep": [
+    [
+     136.957,
+     36.752,
+     4
+    ],
+    [
+     136.76985,
+     36.57252,
+     4
+    ],
+    [
+     136.6364,
+     36.66263,
+     19.55635
+    ],
+    [
+     136.82355,
+     36.84211,
+     19.55635
+    ],
+    [
+     136.957,
+     36.752,
+     4
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F005602",
+   "name": "砺波平野断層帯東部",
+   "flt_id": "F005602_00001",
+   "lenKm": 22,
+   "widKm": 18,
+   "strikeDeg": 30,
+   "dipDeg": 45,
+   "topDepthKm": 4,
+   "topCenter": {
+    "lat": 36.453,
+    "lng": 136.945
+   },
+   "polygonLngLatDep": [
+    [
+     136.945,
+     36.453,
+     4
+    ],
+    [
+     137.06771,
+     36.6247,
+     4
+    ],
+    [
+     137.19067,
+     36.56735,
+     16.72792
+    ],
+    [
+     137.06796,
+     36.39565,
+     16.72792
+    ],
+    [
+     136.945,
+     36.453,
+     4
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F005603",
+   "name": "呉羽山断層帯",
+   "flt_id": "F005603_00001",
+   "lenKm": 30,
+   "widKm": 22,
+   "strikeDeg": 210,
+   "dipDeg": 45,
+   "topDepthKm": 4,
+   "topCenter": {
+    "lat": 36.851,
+    "lng": 137.276
+   },
+   "polygonLngLatDep": [
+    [
+     137.276,
+     36.851,
+     4
+    ],
+    [
+     137.10781,
+     36.61689,
+     4
+    ],
+    [
+     136.95675,
+     36.68698,
+     19.55635
+    ],
+    [
+     137.12494,
+     36.92109,
+     19.55635
+    ],
+    [
+     137.276,
+     36.851,
+     4
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F005701",
+   "name": "森本・富樫断層帯",
+   "flt_id": "F005701_00001",
+   "lenKm": 26,
+   "widKm": 20,
+   "strikeDeg": 25.7,
+   "dipDeg": 50,
+   "topDepthKm": 4,
+   "topCenter": {
+    "lat": 36.453,
+    "lng": 136.65
+   },
+   "polygonLngLatDep": [
+    [
+     136.65,
+     36.453,
+     4
+    ],
+    [
+     136.77578,
+     36.66413,
+     4
+    ],
+    [
+     136.905,
+     36.61388,
+     19.32089
+    ],
+    [
+     136.77922,
+     36.40276,
+     19.32089
+    ],
+    [
+     136.65,
+     36.453,
+     4
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F005801",
+   "name": "福井平野東縁断層帯主部",
+   "flt_id": "F005801_00001",
+   "lenKm": 48,
+   "widKm": 16,
+   "strikeDeg": 174.4,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 36.434,
+    "lng": 136.266
+   },
+   "polygonLngLatDep": [
+    [
+     136.266,
+     36.434,
+     2
+    ],
+    [
+     136.31824,
+     36.0035,
+     2
+    ],
+    [
+     136.31824,
+     36.0035,
+     18
+    ],
+    [
+     136.266,
+     36.434,
+     18
+    ],
+    [
+     136.266,
+     36.434,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F005802",
+   "name": "福井平野東縁断層帯西部",
+   "flt_id": "F005802_00001",
+   "lenKm": 36,
+   "widKm": 16,
+   "strikeDeg": 156.8,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 36.303,
+    "lng": 136.132
+   },
+   "polygonLngLatDep": [
+    [
+     136.132,
+     36.303,
+     2
+    ],
+    [
+     136.2899,
+     36.00481,
+     2
+    ],
+    [
+     136.2899,
+     36.00481,
+     18
+    ],
+    [
+     136.132,
+     36.303,
+     18
+    ],
+    [
+     136.132,
+     36.303,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F005901",
+   "name": "長良川上流断層帯",
+   "flt_id": "F005901_00001",
+   "lenKm": 32,
+   "widKm": 16,
+   "strikeDeg": 332.4,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.705,
+    "lng": 136.974
+   },
+   "polygonLngLatDep": [
+    [
+     136.974,
+     35.705,
+     2
+    ],
+    [
+     136.81018,
+     35.96059,
+     2
+    ],
+    [
+     136.81018,
+     35.96059,
+     18
+    ],
+    [
+     136.974,
+     35.705,
+     18
+    ],
+    [
+     136.974,
+     35.705,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F006001",
+   "name": "温見断層北西部",
+   "flt_id": "F006001_00001",
+   "lenKm": 20,
+   "widKm": 12,
+   "strikeDeg": 316.5,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.8,
+    "lng": 136.483
+   },
+   "polygonLngLatDep": [
+    [
+     136.483,
+     35.8,
+     2
+    ],
+    [
+     136.33069,
+     35.93075,
+     2
+    ],
+    [
+     136.33069,
+     35.93075,
+     14
+    ],
+    [
+     136.483,
+     35.8,
+     14
+    ],
+    [
+     136.483,
+     35.8,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F006002",
+   "name": "温見断層南東部",
+   "flt_id": "F006002_00001",
+   "lenKm": 22,
+   "widKm": 18,
+   "strikeDeg": 117.1,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.8,
+    "lng": 136.483
+   },
+   "polygonLngLatDep": [
+    [
+     136.483,
+     35.8,
+     2
+    ],
+    [
+     136.69967,
+     35.70968,
+     2
+    ],
+    [
+     136.69967,
+     35.70968,
+     20
+    ],
+    [
+     136.483,
+     35.8,
+     20
+    ],
+    [
+     136.483,
+     35.8,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F006003",
+   "name": "濃尾断層帯主部根尾谷断層帯",
+   "flt_id": "F006003_00001",
+   "lenKm": 34,
+   "widKm": 14,
+   "strikeDeg": 323,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.533,
+    "lng": 136.7
+   },
+   "polygonLngLatDep": [
+    [
+     136.7,
+     35.533,
+     2
+    ],
+    [
+     136.47438,
+     35.77774,
+     2
+    ],
+    [
+     136.47438,
+     35.77774,
+     16
+    ],
+    [
+     136.7,
+     35.533,
+     16
+    ],
+    [
+     136.7,
+     35.533,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F006004",
+   "name": "濃尾断層帯主部梅原断層帯",
+   "flt_id": "F006004_00001",
+   "lenKm": 40,
+   "widKm": 18,
+   "strikeDeg": 125.3,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.617,
+    "lng": 136.65
+   },
+   "polygonLngLatDep": [
+    [
+     136.65,
+     35.617,
+     2
+    ],
+    [
+     137.01034,
+     35.40867,
+     2
+    ],
+    [
+     137.01034,
+     35.40867,
+     20
+    ],
+    [
+     136.65,
+     35.617,
+     20
+    ],
+    [
+     136.65,
+     35.617,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F006005",
+   "name": "濃尾断層帯主部三田洞断層帯",
+   "flt_id": "F006005_00001",
+   "lenKm": 22,
+   "widKm": 18,
+   "strikeDeg": 126.3,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.533,
+    "lng": 136.7
+   },
+   "polygonLngLatDep": [
+    [
+     136.7,
+     35.533,
+     2
+    ],
+    [
+     136.8955,
+     35.41561,
+     2
+    ],
+    [
+     136.8955,
+     35.41561,
+     20
+    ],
+    [
+     136.7,
+     35.533,
+     20
+    ],
+    [
+     136.7,
+     35.533,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F006006",
+   "name": "揖斐川断層帯",
+   "flt_id": "F006006_00001",
+   "lenKm": 28,
+   "widKm": 14,
+   "strikeDeg": 303.4,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.65,
+    "lng": 136.583
+   },
+   "polygonLngLatDep": [
+    [
+     136.583,
+     35.65,
+     2
+    ],
+    [
+     136.32488,
+     35.78892,
+     2
+    ],
+    [
+     136.32488,
+     35.78892,
+     16
+    ],
+    [
+     136.583,
+     35.65,
+     16
+    ],
+    [
+     136.583,
+     35.65,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F006007",
+   "name": "武儀川断層",
+   "flt_id": "F006007_00001",
+   "lenKm": 32,
+   "widKm": 18,
+   "strikeDeg": 116.8,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.65,
+    "lng": 136.583
+   },
+   "polygonLngLatDep": [
+    [
+     136.583,
+     35.65,
+     2
+    ],
+    [
+     136.8984,
+     35.51996,
+     2
+    ],
+    [
+     136.8984,
+     35.51996,
+     20
+    ],
+    [
+     136.583,
+     35.65,
+     20
+    ],
+    [
+     136.583,
+     35.65,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F006101",
+   "name": "柳ヶ瀬・関ヶ原断層帯主部北部",
+   "flt_id": "F006101_00001",
+   "lenKm": 23.9,
+   "widKm": 18,
+   "strikeDeg": 22.1,
+   "dipDeg": 40,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.905,
+    "lng": 135.981
+   },
+   "polygonLngLatDep": [
+    [
+     135.981,
+     35.905,
+     2
+    ],
+    [
+     136.08061,
+     36.10457,
+     2
+    ],
+    [
+     136.22213,
+     36.05782,
+     13.57018
+    ],
+    [
+     136.12253,
+     35.85825,
+     13.57018
+    ],
+    [
+     135.981,
+     35.905,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F006101",
+   "name": "柳ヶ瀬・関ヶ原断層帯主部北部",
+   "flt_id": "F006101_00002",
+   "lenKm": 23.9,
+   "widKm": 18,
+   "strikeDeg": 135.1,
+   "dipDeg": 140,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.905,
+    "lng": 135.981
+   },
+   "polygonLngLatDep": [
+    [
+     135.981,
+     35.905,
+     2
+    ],
+    [
+     136.16788,
+     35.75242,
+     2
+    ],
+    [
+     136.27608,
+     35.84014,
+     13.57018
+    ],
+    [
+     136.0892,
+     35.99272,
+     13.57018
+    ],
+    [
+     135.981,
+     35.905,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F006102",
+   "name": "柳ヶ瀬・関ヶ原断層帯主部中部",
+   "flt_id": "F006102_00001",
+   "lenKm": 13,
+   "widKm": 12,
+   "strikeDeg": 353.4,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.633,
+    "lng": 136.167
+   },
+   "polygonLngLatDep": [
+    [
+     136.167,
+     35.633,
+     2
+    ],
+    [
+     136.1505,
+     35.74939,
+     2
+    ],
+    [
+     136.1505,
+     35.74939,
+     14
+    ],
+    [
+     136.167,
+     35.633,
+     14
+    ],
+    [
+     136.167,
+     35.633,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F006103",
+   "name": "柳ヶ瀬・関ヶ原断層帯主部南部",
+   "flt_id": "F006103_00001",
+   "lenKm": 48,
+   "widKm": 16,
+   "strikeDeg": 134.7,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.633,
+    "lng": 136.167
+   },
+   "polygonLngLatDep": [
+    [
+     136.167,
+     35.633,
+     2
+    ],
+    [
+     136.54367,
+     35.3287,
+     2
+    ],
+    [
+     136.54367,
+     35.3287,
+     18
+    ],
+    [
+     136.167,
+     35.633,
+     18
+    ],
+    [
+     136.167,
+     35.633,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F006104",
+   "name": "浦底－柳ヶ瀬山断層帯",
+   "flt_id": "F006104_00001",
+   "lenKm": 26,
+   "widKm": 18,
+   "strikeDeg": 320.8,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.583,
+    "lng": 136.183
+   },
+   "polygonLngLatDep": [
+    [
+     136.183,
+     35.583,
+     2
+    ],
+    [
+     136.00169,
+     35.7646,
+     2
+    ],
+    [
+     136.00169,
+     35.7646,
+     20
+    ],
+    [
+     136.183,
+     35.583,
+     20
+    ],
+    [
+     136.183,
+     35.583,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F006301",
+   "name": "野坂断層帯",
+   "flt_id": "F006301_00001",
+   "lenKm": 34,
+   "widKm": 16,
+   "strikeDeg": 316.4,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.6,
+    "lng": 136.05
+   },
+   "polygonLngLatDep": [
+    [
+     136.05,
+     35.6,
+     2
+    ],
+    [
+     135.79125,
+     35.82192,
+     2
+    ],
+    [
+     135.79125,
+     35.82192,
+     18
+    ],
+    [
+     136.05,
+     35.6,
+     18
+    ],
+    [
+     136.05,
+     35.6,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F006302",
+   "name": "集福寺断層",
+   "flt_id": "F006302_00001",
+   "lenKm": 9.6,
+   "widKm": 10,
+   "strikeDeg": 320.7,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.533,
+    "lng": 136.167
+   },
+   "polygonLngLatDep": [
+    [
+     136.167,
+     35.533,
+     2
+    ],
+    [
+     136.09996,
+     35.59996,
+     2
+    ],
+    [
+     136.09996,
+     35.59996,
+     12
+    ],
+    [
+     136.167,
+     35.533,
+     12
+    ],
+    [
+     136.167,
+     35.533,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F006401",
+   "name": "湖北山地断層帯北西部",
+   "flt_id": "F006401_00001",
+   "lenKm": 26,
+   "widKm": 18,
+   "strikeDeg": 30.7,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.479,
+    "lng": 135.981
+   },
+   "polygonLngLatDep": [
+    [
+     135.981,
+     35.479,
+     2
+    ],
+    [
+     136.12727,
+     35.6805,
+     2
+    ],
+    [
+     136.12727,
+     35.6805,
+     20
+    ],
+    [
+     135.981,
+     35.479,
+     20
+    ],
+    [
+     135.981,
+     35.479,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F006402",
+   "name": "湖北山地断層帯南東部",
+   "flt_id": "F006402_00001",
+   "lenKm": 20,
+   "widKm": 16,
+   "strikeDeg": 219.3,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.583,
+    "lng": 136.117
+   },
+   "polygonLngLatDep": [
+    [
+     136.117,
+     35.583,
+     2
+    ],
+    [
+     135.97724,
+     35.44351,
+     2
+    ],
+    [
+     135.97724,
+     35.44351,
+     18
+    ],
+    [
+     136.117,
+     35.583,
+     18
+    ],
+    [
+     136.117,
+     35.583,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F006501",
+   "name": "琵琶湖西岸断層帯北部",
+   "flt_id": "F006501_00001",
+   "lenKm": 24,
+   "widKm": 18,
+   "strikeDeg": 181.1,
+   "dipDeg": 45,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 35.48,
+    "lng": 135.993
+   },
+   "polygonLngLatDep": [
+    [
+     135.993,
+     35.48,
+     3
+    ],
+    [
+     135.98792,
+     35.26373,
+     3
+    ],
+    [
+     135.8477,
+     35.26593,
+     15.72792
+    ],
+    [
+     135.85278,
+     35.4822,
+     15.72792
+    ],
+    [
+     135.993,
+     35.48,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F006502",
+   "name": "琵琶湖西岸断層帯南部",
+   "flt_id": "F006502_00001",
+   "lenKm": 40,
+   "widKm": 18,
+   "strikeDeg": 200,
+   "dipDeg": 35,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 35.303,
+    "lng": 136.007
+   },
+   "polygonLngLatDep": [
+    [
+     136.007,
+     35.303,
+     3
+    ],
+    [
+     135.85658,
+     34.96421,
+     3
+    ],
+    [
+     135.70424,
+     35.00966,
+     13.32438
+    ],
+    [
+     135.85466,
+     35.34845,
+     13.32438
+    ],
+    [
+     136.007,
+     35.303,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F006701",
+   "name": "養老−桑名−四日市断層帯",
+   "flt_id": "F006701_00001",
+   "lenKm": 38.2,
+   "widKm": 18,
+   "strikeDeg": 334,
+   "dipDeg": 150,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.066,
+    "lng": 136.641
+   },
+   "polygonLngLatDep": [
+    [
+     136.641,
+     35.066,
+     2
+    ],
+    [
+     136.45741,
+     35.37548,
+     2
+    ],
+    [
+     136.30381,
+     35.31388,
+     11
+    ],
+    [
+     136.4874,
+     35.0044,
+     11
+    ],
+    [
+     136.641,
+     35.066,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F006701",
+   "name": "養老−桑名−四日市断層帯",
+   "flt_id": "F006701_00002",
+   "lenKm": 20.2,
+   "widKm": 18,
+   "strikeDeg": 203,
+   "dipDeg": 30,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.066,
+    "lng": 136.641
+   },
+   "polygonLngLatDep": [
+    [
+     136.641,
+     35.066,
+     2
+    ],
+    [
+     136.55447,
+     34.8984,
+     2
+    ],
+    [
+     136.39716,
+     34.9533,
+     11
+    ],
+    [
+     136.48369,
+     35.1209,
+     11
+    ],
+    [
+     136.641,
+     35.066,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F006801",
+   "name": "鈴鹿東縁断層帯",
+   "flt_id": "F006801_00001",
+   "lenKm": 48,
+   "widKm": 18,
+   "strikeDeg": 191.2,
+   "dipDeg": 60,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.339,
+    "lng": 136.489
+   },
+   "polygonLngLatDep": [
+    [
+     136.489,
+     35.339,
+     2
+    ],
+    [
+     136.38645,
+     34.9146,
+     2
+    ],
+    [
+     136.28933,
+     34.93036,
+     17.58846
+    ],
+    [
+     136.39189,
+     35.35476,
+     17.58846
+    ],
+    [
+     136.489,
+     35.339,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F006901",
+   "name": "鈴鹿西縁断層帯",
+   "flt_id": "F006901_00001",
+   "lenKm": 46,
+   "widKm": 18,
+   "strikeDeg": 358,
+   "dipDeg": 35,
+   "topDepthKm": 1,
+   "topCenter": {
+    "lat": 34.908,
+    "lng": 136.366
+   },
+   "polygonLngLatDep": [
+    [
+     136.366,
+     34.908,
+     1
+    ],
+    [
+     136.34843,
+     35.32239,
+     1
+    ],
+    [
+     136.50967,
+     35.32703,
+     11.32438
+    ],
+    [
+     136.52724,
+     34.91264,
+     11.32438
+    ],
+    [
+     136.366,
+     34.908,
+     1
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F007001",
+   "name": "頓宮断層",
+   "flt_id": "F007001_00001",
+   "lenKm": 32,
+   "widKm": 18,
+   "strikeDeg": 357,
+   "dipDeg": 65,
+   "topDepthKm": 1,
+   "topCenter": {
+    "lat": 34.696,
+    "lng": 136.222
+   },
+   "polygonLngLatDep": [
+    [
+     136.222,
+     34.696,
+     1
+    ],
+    [
+     136.20372,
+     34.98406,
+     1
+    ],
+    [
+     136.28663,
+     34.98765,
+     17.31354
+    ],
+    [
+     136.30491,
+     34.69959,
+     17.31354
+    ],
+    [
+     136.222,
+     34.696,
+     1
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F007101",
+   "name": "布引山地東縁断層帯西部",
+   "flt_id": "F007101_00001",
+   "lenKm": 34,
+   "widKm": 18,
+   "strikeDeg": 174.8,
+   "dipDeg": 55,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.912,
+    "lng": 136.402
+   },
+   "polygonLngLatDep": [
+    [
+     136.402,
+     34.912,
+     2
+    ],
+    [
+     136.43572,
+     34.60679,
+     2
+    ],
+    [
+     136.32321,
+     34.59835,
+     16.74474
+    ],
+    [
+     136.28949,
+     34.90357,
+     16.74474
+    ],
+    [
+     136.402,
+     34.912,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F007102",
+   "name": "布引山地東縁断層帯東部",
+   "flt_id": "F007102_00001",
+   "lenKm": 50,
+   "widKm": 18,
+   "strikeDeg": 196.6,
+   "dipDeg": 45,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.879,
+    "lng": 136.599
+   },
+   "polygonLngLatDep": [
+    [
+     136.599,
+     34.879,
+     2
+    ],
+    [
+     136.44275,
+     34.44708,
+     2
+    ],
+    [
+     136.30933,
+     34.47986,
+     14.72792
+    ],
+    [
+     136.46558,
+     34.91178,
+     14.72792
+    ],
+    [
+     136.599,
+     34.879,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F007201",
+   "name": "木津川断層帯",
+   "flt_id": "F007201_00001",
+   "lenKm": 32,
+   "widKm": 18,
+   "strikeDeg": 250,
+   "dipDeg": 50,
+   "topDepthKm": 1,
+   "topCenter": {
+    "lat": 34.857,
+    "lng": 136.264
+   },
+   "polygonLngLatDep": [
+    [
+     136.264,
+     34.857,
+     1
+    ],
+    [
+     135.93517,
+     34.75834,
+     1
+    ],
+    [
+     135.8919,
+     34.85635,
+     14.7888
+    ],
+    [
+     136.22073,
+     34.955,
+     14.7888
+    ],
+    [
+     136.264,
+     34.857,
+     1
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F007301",
+   "name": "三方断層帯",
+   "flt_id": "F007301_00001",
+   "lenKm": 28,
+   "widKm": 18,
+   "strikeDeg": 356.7,
+   "dipDeg": 60,
+   "topDepthKm": 1,
+   "topCenter": {
+    "lat": 35.441,
+    "lng": 135.907
+   },
+   "polygonLngLatDep": [
+    [
+     135.907,
+     35.441,
+     1
+    ],
+    [
+     135.88925,
+     35.69295,
+     1
+    ],
+    [
+     135.98821,
+     35.69762,
+     16.58846
+    ],
+    [
+     136.00596,
+     35.44567,
+     16.58846
+    ],
+    [
+     135.907,
+     35.441,
+     1
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F007302",
+   "name": "花折断層帯北部",
+   "flt_id": "F007302_00001",
+   "lenKm": 30,
+   "widKm": 18,
+   "strikeDeg": 16.3,
+   "dipDeg": 90,
+   "topDepthKm": 1,
+   "topCenter": {
+    "lat": 35.183,
+    "lng": 135.867
+   },
+   "polygonLngLatDep": [
+    [
+     135.867,
+     35.183,
+     1
+    ],
+    [
+     135.95944,
+     35.44254,
+     1
+    ],
+    [
+     135.95944,
+     35.44254,
+     19
+    ],
+    [
+     135.867,
+     35.183,
+     19
+    ],
+    [
+     135.867,
+     35.183,
+     1
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F007303",
+   "name": "花折断層帯中南部",
+   "flt_id": "F007303_00001",
+   "lenKm": 22,
+   "widKm": 18,
+   "strikeDeg": 202.3,
+   "dipDeg": 90,
+   "topDepthKm": 1,
+   "topCenter": {
+    "lat": 35.183,
+    "lng": 135.867
+   },
+   "polygonLngLatDep": [
+    [
+     135.867,
+     35.183,
+     1
+    ],
+    [
+     135.77535,
+     34.99953,
+     1
+    ],
+    [
+     135.77535,
+     34.99953,
+     19
+    ],
+    [
+     135.867,
+     35.183,
+     19
+    ],
+    [
+     135.867,
+     35.183,
+     1
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F007303",
+   "name": "花折断層帯中南部",
+   "flt_id": "F007303_00002",
+   "lenKm": 16,
+   "widKm": 18,
+   "strikeDeg": 354.8,
+   "dipDeg": 50,
+   "topDepthKm": 1,
+   "topCenter": {
+    "lat": 34.89,
+    "lng": 135.825
+   },
+   "polygonLngLatDep": [
+    [
+     135.825,
+     34.89,
+     1
+    ],
+    [
+     135.80914,
+     35.03363,
+     1
+    ],
+    [
+     135.93519,
+     35.04308,
+     14.7888
+    ],
+    [
+     135.95105,
+     34.89945,
+     14.7888
+    ],
+    [
+     135.825,
+     34.89,
+     1
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F007401",
+   "name": "山田断層帯主部",
+   "flt_id": "F007401_00001",
+   "lenKm": 38,
+   "widKm": 16,
+   "strikeDeg": 51.6,
+   "dipDeg": 90,
+   "topDepthKm": 1,
+   "topCenter": {
+    "lat": 35.469,
+    "lng": 134.928
+   },
+   "polygonLngLatDep": [
+    [
+     134.928,
+     35.469,
+     1
+    ],
+    [
+     135.25611,
+     35.68174,
+     1
+    ],
+    [
+     135.25611,
+     35.68174,
+     17
+    ],
+    [
+     134.928,
+     35.469,
+     17
+    ],
+    [
+     134.928,
+     35.469,
+     1
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F007402",
+   "name": "郷村断層帯",
+   "flt_id": "F007402_00001",
+   "lenKm": 38,
+   "widKm": 16,
+   "strikeDeg": 334,
+   "dipDeg": 90,
+   "topDepthKm": 1,
+   "topCenter": {
+    "lat": 35.567,
+    "lng": 135.094
+   },
+   "polygonLngLatDep": [
+    [
+     135.094,
+     35.567,
+     1
+    ],
+    [
+     134.91025,
+     35.87483,
+     1
+    ],
+    [
+     134.91025,
+     35.87483,
+     17
+    ],
+    [
+     135.094,
+     35.567,
+     17
+    ],
+    [
+     135.094,
+     35.567,
+     1
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F007501",
+   "name": "奈良盆地東縁断層帯",
+   "flt_id": "F007501_00001",
+   "lenKm": 36,
+   "widKm": 18,
+   "strikeDeg": 355,
+   "dipDeg": 55,
+   "topDepthKm": 1,
+   "topCenter": {
+    "lat": 34.512,
+    "lng": 135.858
+   },
+   "polygonLngLatDep": [
+    [
+     135.858,
+     34.512,
+     1
+    ],
+    [
+     135.82383,
+     34.83529,
+     1
+    ],
+    [
+     135.93584,
+     34.8434,
+     15.74474
+    ],
+    [
+     135.97001,
+     34.52011,
+     15.74474
+    ],
+    [
+     135.858,
+     34.512,
+     1
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F007601",
+   "name": "有馬−高槻断層帯",
+   "flt_id": "F007601_00001",
+   "lenKm": 60,
+   "widKm": 16,
+   "strikeDeg": 78.6,
+   "dipDeg": 90,
+   "topDepthKm": 1,
+   "topCenter": {
+    "lat": 34.796,
+    "lng": 135.062
+   },
+   "polygonLngLatDep": [
+    [
+     135.062,
+     34.796,
+     1
+    ],
+    [
+     135.7047,
+     34.9029,
+     1
+    ],
+    [
+     135.7047,
+     34.9029,
+     17
+    ],
+    [
+     135.062,
+     34.796,
+     17
+    ],
+    [
+     135.062,
+     34.796,
+     1
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F007701",
+   "name": "生駒断層帯",
+   "flt_id": "F007701_00001",
+   "lenKm": 40,
+   "widKm": 18,
+   "strikeDeg": 9.4,
+   "dipDeg": 35,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.52,
+    "lng": 135.646
+   },
+   "polygonLngLatDep": [
+    [
+     135.646,
+     34.52,
+     2
+    ],
+    [
+     135.71715,
+     34.87574,
+     2
+    ],
+    [
+     135.87558,
+     34.85403,
+     12.32438
+    ],
+    [
+     135.80443,
+     34.49829,
+     12.32438
+    ],
+    [
+     135.646,
+     34.52,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F007801",
+   "name": "上林川断層",
+   "flt_id": "F007801_00001",
+   "lenKm": 30,
+   "widKm": 16,
+   "strikeDeg": 236.9,
+   "dipDeg": 90,
+   "topDepthKm": 1,
+   "topCenter": {
+    "lat": 35.427,
+    "lng": 135.518
+   },
+   "polygonLngLatDep": [
+    [
+     135.518,
+     35.427,
+     1
+    ],
+    [
+     135.24126,
+     35.27934,
+     1
+    ],
+    [
+     135.24126,
+     35.27934,
+     17
+    ],
+    [
+     135.518,
+     35.427,
+     17
+    ],
+    [
+     135.518,
+     35.427,
+     1
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F007802",
+   "name": "三峠断層",
+   "flt_id": "F007802_00001",
+   "lenKm": 30,
+   "widKm": 16,
+   "strikeDeg": 282.1,
+   "dipDeg": 90,
+   "topDepthKm": 1,
+   "topCenter": {
+    "lat": 35.213,
+    "lng": 135.489
+   },
+   "polygonLngLatDep": [
+    [
+     135.489,
+     35.213,
+     1
+    ],
+    [
+     135.16683,
+     35.26968,
+     1
+    ],
+    [
+     135.16683,
+     35.26968,
+     17
+    ],
+    [
+     135.489,
+     35.213,
+     17
+    ],
+    [
+     135.489,
+     35.213,
+     1
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F007803",
+   "name": "京都西山断層帯",
+   "flt_id": "F007803_00001",
+   "lenKm": 30,
+   "widKm": 18,
+   "strikeDeg": 298.4,
+   "dipDeg": 90,
+   "topDepthKm": 1,
+   "topCenter": {
+    "lat": 35.033,
+    "lng": 135.667
+   },
+   "polygonLngLatDep": [
+    [
+     135.667,
+     35.033,
+     1
+    ],
+    [
+     135.37781,
+     35.16162,
+     1
+    ],
+    [
+     135.37781,
+     35.16162,
+     19
+    ],
+    [
+     135.667,
+     35.033,
+     19
+    ],
+    [
+     135.667,
+     35.033,
+     1
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F007803",
+   "name": "京都西山断層帯",
+   "flt_id": "F007803_00002",
+   "lenKm": 18,
+   "widKm": 18,
+   "strikeDeg": 182,
+   "dipDeg": 45,
+   "topDepthKm": 1,
+   "topCenter": {
+    "lat": 35.034,
+    "lng": 135.656
+   },
+   "polygonLngLatDep": [
+    [
+     135.656,
+     35.034,
+     1
+    ],
+    [
+     135.64912,
+     34.87185,
+     1
+    ],
+    [
+     135.50972,
+     34.87585,
+     13.72792
+    ],
+    [
+     135.5166,
+     35.038,
+     13.72792
+    ],
+    [
+     135.656,
+     35.034,
+     1
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F007901",
+   "name": "六甲・淡路島断層帯主部六甲山地南縁−淡路島東岸区間",
+   "flt_id": "F007901_00001",
+   "lenKm": 74,
+   "widKm": 18,
+   "strikeDeg": 234.5,
+   "dipDeg": 60,
+   "topDepthKm": 1,
+   "topCenter": {
+    "lat": 34.845,
+    "lng": 135.526
+   },
+   "polygonLngLatDep": [
+    [
+     135.526,
+     34.845,
+     1
+    ],
+    [
+     134.8673,
+     34.45765,
+     1
+    ],
+    [
+     134.81016,
+     34.52369,
+     16.58846
+    ],
+    [
+     135.46886,
+     34.91105,
+     16.58846
+    ],
+    [
+     135.526,
+     34.845,
+     1
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F007902",
+   "name": "六甲・淡路島断層帯主部淡路島西岸区間",
+   "flt_id": "F007902_00001",
+   "lenKm": 28,
+   "widKm": 16,
+   "strikeDeg": 58.8,
+   "dipDeg": 80,
+   "topDepthKm": 1,
+   "topCenter": {
+    "lat": 34.492,
+    "lng": 134.821
+   },
+   "polygonLngLatDep": [
+    [
+     134.821,
+     34.492,
+     1
+    ],
+    [
+     135.08176,
+     34.62275,
+     1
+    ],
+    [
+     135.09743,
+     34.60133,
+     16.75692
+    ],
+    [
+     134.83667,
+     34.47058,
+     16.75692
+    ],
+    [
+     134.821,
+     34.492,
+     1
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F007903",
+   "name": "先山断層帯",
+   "flt_id": "F007903_00001",
+   "lenKm": 11.1,
+   "widKm": 11,
+   "strikeDeg": 213.6,
+   "dipDeg": 45,
+   "topDepthKm": 1,
+   "topCenter": {
+    "lat": 34.421,
+    "lng": 134.875
+   },
+   "polygonLngLatDep": [
+    [
+     134.875,
+     34.421,
+     1
+    ],
+    [
+     134.80818,
+     34.33766,
+     1
+    ],
+    [
+     134.7377,
+     34.37646,
+     8.77817
+    ],
+    [
+     134.80452,
+     34.4598,
+     8.77817
+    ],
+    [
+     134.875,
+     34.421,
+     1
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F008001",
+   "name": "上町断層帯",
+   "flt_id": "F008001_00001",
+   "lenKm": 46,
+   "widKm": 16,
+   "strikeDeg": 8.2,
+   "dipDeg": 70,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.414,
+    "lng": 135.421
+   },
+   "polygonLngLatDep": [
+    [
+     135.421,
+     34.414,
+     2
+    ],
+    [
+     135.49237,
+     34.82444,
+     2
+    ],
+    [
+     135.55128,
+     34.8174,
+     17.03508
+    ],
+    [
+     135.47992,
+     34.40696,
+     17.03508
+    ],
+    [
+     135.421,
+     34.414,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F008204",
+   "name": "草谷断層",
+   "flt_id": "F008204_00001",
+   "lenKm": 18,
+   "widKm": 14,
+   "strikeDeg": 240,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.783,
+    "lng": 135
+   },
+   "polygonLngLatDep": [
+    [
+     135,
+     34.783,
+     2
+    ],
+    [
+     134.82969,
+     34.70187,
+     2
+    ],
+    [
+     134.82969,
+     34.70187,
+     16
+    ],
+    [
+     135,
+     34.783,
+     16
+    ],
+    [
+     135,
+     34.783,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F009701",
+   "name": "伊勢湾断層帯主部北部",
+   "flt_id": "F009701_00001",
+   "lenKm": 26,
+   "widKm": 18,
+   "strikeDeg": 341,
+   "dipDeg": 65,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 34.771,
+    "lng": 136.831
+   },
+   "polygonLngLatDep": [
+    [
+     136.831,
+     34.771,
+     3
+    ],
+    [
+     136.73853,
+     34.9926,
+     3
+    ],
+    [
+     136.8171,
+     35.01492,
+     19.31354
+    ],
+    [
+     136.90957,
+     34.79332,
+     19.31354
+    ],
+    [
+     136.831,
+     34.771,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F009702",
+   "name": "伊勢湾断層帯主部南部",
+   "flt_id": "F009702_00001",
+   "lenKm": 18,
+   "widKm": 18,
+   "strikeDeg": 303.9,
+   "dipDeg": 45,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.693,
+    "lng": 136.988
+   },
+   "polygonLngLatDep": [
+    [
+     136.988,
+     34.693,
+     2
+    ],
+    [
+     136.82495,
+     34.7835,
+     2
+    ],
+    [
+     136.90242,
+     34.87873,
+     14.72792
+    ],
+    [
+     137.06548,
+     34.78823,
+     14.72792
+    ],
+    [
+     136.988,
+     34.693,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F009703",
+   "name": "白子－野間断層",
+   "flt_id": "F009703_00001",
+   "lenKm": 22,
+   "widKm": 18,
+   "strikeDeg": 270.1,
+   "dipDeg": 60,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.777,
+    "lng": 136.805
+   },
+   "polygonLngLatDep": [
+    [
+     136.805,
+     34.777,
+     2
+    ],
+    [
+     136.56466,
+     34.77735,
+     2
+    ],
+    [
+     136.56483,
+     34.85847,
+     17.58846
+    ],
+    [
+     136.80517,
+     34.85813,
+     17.58846
+    ],
+    [
+     136.805,
+     34.777,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F009801",
+   "name": "大阪湾断層帯",
+   "flt_id": "F009801_00001",
+   "lenKm": 44,
+   "widKm": 12,
+   "strikeDeg": 205.6,
+   "dipDeg": 70,
+   "topDepthKm": 4,
+   "topCenter": {
+    "lat": 34.69,
+    "lng": 135.219
+   },
+   "polygonLngLatDep": [
+    [
+     135.219,
+     34.69,
+     4
+    ],
+    [
+     135.01152,
+     34.33231,
+     4
+    ],
+    [
+     134.97112,
+     34.34829,
+     15.27631
+    ],
+    [
+     135.17861,
+     34.70599,
+     15.27631
+    ],
+    [
+     135.219,
+     34.69,
+     4
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F009901",
+   "name": "サロベツ断層帯",
+   "flt_id": "F009901_00001",
+   "lenKm": 44,
+   "widKm": 18,
+   "strikeDeg": 337,
+   "dipDeg": 30,
+   "topDepthKm": 7,
+   "topCenter": {
+    "lat": 44.856,
+    "lng": 141.9
+   },
+   "polygonLngLatDep": [
+    [
+     141.9,
+     44.856,
+     7
+    ],
+    [
+     141.6825,
+     45.22046,
+     7
+    ],
+    [
+     141.86403,
+     45.27527,
+     16
+    ],
+    [
+     142.08153,
+     44.91081,
+     16
+    ],
+    [
+     141.9,
+     44.856,
+     7
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F010101",
+   "name": "花輪東断層帯",
+   "flt_id": "F010101_00001",
+   "lenKm": 20,
+   "widKm": 20,
+   "strikeDeg": 15,
+   "dipDeg": 45,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 40.075,
+    "lng": 140.804
+   },
+   "polygonLngLatDep": [
+    [
+     140.804,
+     40.075,
+     3
+    ],
+    [
+     140.86468,
+     40.24898,
+     3
+    ],
+    [
+     141.02483,
+     40.21602,
+     17.14214
+    ],
+    [
+     140.96414,
+     40.04204,
+     17.14214
+    ],
+    [
+     140.804,
+     40.075,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F010201",
+   "name": "高田平野西縁断層帯",
+   "flt_id": "F010201_00001",
+   "lenKm": 32,
+   "widKm": 18,
+   "strikeDeg": 178.5,
+   "dipDeg": 45,
+   "topDepthKm": 5,
+   "topCenter": {
+    "lat": 37.296,
+    "lng": 138.19
+   },
+   "polygonLngLatDep": [
+    [
+     138.19,
+     37.296,
+     5
+    ],
+    [
+     138.19945,
+     37.00777,
+     5
+    ],
+    [
+     138.05595,
+     37.00476,
+     17.72792
+    ],
+    [
+     138.0465,
+     37.293,
+     17.72792
+    ],
+    [
+     138.19,
+     37.296,
+     5
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F010202",
+   "name": "高田平野東縁断層帯",
+   "flt_id": "F010202_00001",
+   "lenKm": 28,
+   "widKm": 18,
+   "strikeDeg": 25.2,
+   "dipDeg": 35,
+   "topDepthKm": 7,
+   "topCenter": {
+    "lat": 36.962,
+    "lng": 138.359
+   },
+   "polygonLngLatDep": [
+    [
+     138.359,
+     36.962,
+     7
+    ],
+    [
+     138.49287,
+     37.19029,
+     7
+    ],
+    [
+     138.64268,
+     37.13372,
+     17.32438
+    ],
+    [
+     138.50881,
+     36.90543,
+     17.32438
+    ],
+    [
+     138.359,
+     36.962,
+     7
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F010302",
+   "name": "六日町断層帯南部",
+   "flt_id": "F010302_00001",
+   "lenKm": 32,
+   "widKm": 18,
+   "strikeDeg": 199.5,
+   "dipDeg": 50,
+   "topDepthKm": 5,
+   "topCenter": {
+    "lat": 37.186,
+    "lng": 138.883
+   },
+   "polygonLngLatDep": [
+    [
+     138.883,
+     37.186,
+     5
+    ],
+    [
+     138.7627,
+     36.9142,
+     5
+    ],
+    [
+     138.63987,
+     36.949,
+     18.7888
+    ],
+    [
+     138.76017,
+     37.2208,
+     18.7888
+    ],
+    [
+     138.883,
+     37.186,
+     5
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F010335",
+   "name": "六日町断層帯北部(ケース1)",
+   "flt_id": "F010335_00001",
+   "lenKm": 24,
+   "widKm": 18,
+   "strikeDeg": 209.6,
+   "dipDeg": 50,
+   "topDepthKm": 5,
+   "topCenter": {
+    "lat": 37.38,
+    "lng": 139.02
+   },
+   "polygonLngLatDep": [
+    [
+     139.02,
+     37.38,
+     5
+    ],
+    [
+     138.88615,
+     37.19198,
+     5
+    ],
+    [
+     138.77256,
+     37.24347,
+     18.7888
+    ],
+    [
+     138.90641,
+     37.43149,
+     18.7888
+    ],
+    [
+     139.02,
+     37.38,
+     5
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F010336",
+   "name": "六日町断層帯北部(ケース2)",
+   "flt_id": "F010336_00001",
+   "lenKm": 24,
+   "widKm": 18,
+   "strikeDeg": 209.6,
+   "dipDeg": 50,
+   "topDepthKm": 5,
+   "topCenter": {
+    "lat": 37.4,
+    "lng": 138.976
+   },
+   "polygonLngLatDep": [
+    [
+     138.976,
+     37.4,
+     5
+    ],
+    [
+     138.84212,
+     37.21198,
+     5
+    ],
+    [
+     138.7285,
+     37.26347,
+     18.7888
+    ],
+    [
+     138.86238,
+     37.45149,
+     18.7888
+    ],
+    [
+     138.976,
+     37.4,
+     5
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F010501",
+   "name": "魚津断層帯",
+   "flt_id": "F010501_00001",
+   "lenKm": 24,
+   "widKm": 18,
+   "strikeDeg": 205,
+   "dipDeg": 137,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 36.877,
+    "lng": 137.491
+   },
+   "polygonLngLatDep": [
+    [
+     137.491,
+     36.877,
+     3
+    ],
+    [
+     137.37723,
+     36.681,
+     3
+    ],
+    [
+     137.51106,
+     36.63087,
+     15.27597
+    ],
+    [
+     137.62482,
+     36.82687,
+     15.27597
+    ],
+    [
+     137.491,
+     36.877,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F010501",
+   "name": "魚津断層帯",
+   "flt_id": "F010501_00002",
+   "lenKm": 7.9,
+   "widKm": 18,
+   "strikeDeg": 68,
+   "dipDeg": 43,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 36.877,
+    "lng": 137.491
+   },
+   "polygonLngLatDep": [
+    [
+     137.491,
+     36.877,
+     3
+    ],
+    [
+     137.57316,
+     36.90367,
+     3
+    ],
+    [
+     137.62847,
+     36.79368,
+     15.27597
+    ],
+    [
+     137.54631,
+     36.76701,
+     15.27597
+    ],
+    [
+     137.491,
+     36.877,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F011001",
+   "name": "宮古島断層帯中部",
+   "flt_id": "F011001_00001",
+   "lenKm": 30,
+   "widKm": 18,
+   "strikeDeg": 326.7,
+   "dipDeg": 60,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 24.718,
+    "lng": 125.41
+   },
+   "polygonLngLatDep": [
+    [
+     125.41,
+     24.718,
+     3
+    ],
+    [
+     125.24721,
+     24.94437,
+     3
+    ],
+    [
+     125.32156,
+     24.98897,
+     18.58846
+    ],
+    [
+     125.48435,
+     24.76261,
+     18.58846
+    ],
+    [
+     125.41,
+     24.718,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F011002",
+   "name": "宮古島断層帯西部",
+   "flt_id": "F011002_00001",
+   "lenKm": 20,
+   "widKm": 18,
+   "strikeDeg": 322.2,
+   "dipDeg": 60,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 24.697,
+    "lng": 125.34
+   },
+   "polygonLngLatDep": [
+    [
+     125.34,
+     24.697,
+     3
+    ],
+    [
+     125.21887,
+     24.83967,
+     3
+    ],
+    [
+     125.28914,
+     24.88947,
+     18.58846
+    ],
+    [
+     125.41027,
+     24.7468,
+     18.58846
+    ],
+    [
+     125.34,
+     24.697,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F012001",
+   "name": "小倉東断層",
+   "flt_id": "F012001_00001",
+   "lenKm": 28,
+   "widKm": 14,
+   "strikeDeg": 186.5,
+   "dipDeg": 70,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 34.003,
+    "lng": 130.894
+   },
+   "polygonLngLatDep": [
+    [
+     130.894,
+     34.003,
+     3
+    ],
+    [
+     130.85969,
+     33.75219,
+     3
+    ],
+    [
+     130.80819,
+     33.75708,
+     16.1557
+    ],
+    [
+     130.8425,
+     34.00789,
+     16.1557
+    ],
+    [
+     130.894,
+     34.003,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F012101",
+   "name": "福智山断層帯",
+   "flt_id": "F012101_00001",
+   "lenKm": 32,
+   "widKm": 12,
+   "strikeDeg": 165,
+   "dipDeg": 75,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 33.936,
+    "lng": 130.726
+   },
+   "polygonLngLatDep": [
+    [
+     130.726,
+     33.936,
+     3
+    ],
+    [
+     130.81558,
+     33.65734,
+     3
+    ],
+    [
+     130.78313,
+     33.65009,
+     14.59111
+    ],
+    [
+     130.69355,
+     33.92875,
+     14.59111
+    ],
+    [
+     130.726,
+     33.936,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F012201",
+   "name": "西山断層帯大島沖区間",
+   "flt_id": "F012201_00001",
+   "lenKm": 42,
+   "widKm": 16,
+   "strikeDeg": 142,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.212,
+    "lng": 130.122
+   },
+   "polygonLngLatDep": [
+    [
+     130.122,
+     34.212,
+     2
+    ],
+    [
+     130.40259,
+     33.91364,
+     2
+    ],
+    [
+     130.40259,
+     33.91364,
+     18
+    ],
+    [
+     130.122,
+     34.212,
+     18
+    ],
+    [
+     130.122,
+     34.212,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F012202",
+   "name": "西山断層帯西山区間",
+   "flt_id": "F012202_00001",
+   "lenKm": 48,
+   "widKm": 16,
+   "strikeDeg": 144.8,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 33.932,
+    "lng": 130.387
+   },
+   "polygonLngLatDep": [
+    [
+     130.387,
+     33.932,
+     2
+    ],
+    [
+     130.68626,
+     33.57839,
+     2
+    ],
+    [
+     130.68626,
+     33.57839,
+     18
+    ],
+    [
+     130.387,
+     33.932,
+     18
+    ],
+    [
+     130.387,
+     33.932,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F012203",
+   "name": "西山断層帯嘉麻峠区間",
+   "flt_id": "F012203_00001",
+   "lenKm": 34,
+   "widKm": 16,
+   "strikeDeg": 136.5,
+   "dipDeg": 75,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 33.583,
+    "lng": 130.658
+   },
+   "polygonLngLatDep": [
+    [
+     130.658,
+     33.583,
+     2
+    ],
+    [
+     130.91011,
+     33.36064,
+     2
+    ],
+    [
+     130.87775,
+     33.33494,
+     17.45481
+    ],
+    [
+     130.62564,
+     33.5573,
+     17.45481
+    ],
+    [
+     130.658,
+     33.583,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F012301",
+   "name": "宇美断層",
+   "flt_id": "F012301_00001",
+   "lenKm": 28,
+   "widKm": 14,
+   "strikeDeg": 146.7,
+   "dipDeg": 62.5,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 33.684,
+    "lng": 130.405
+   },
+   "polygonLngLatDep": [
+    [
+     130.405,
+     33.684,
+     2
+    ],
+    [
+     130.57079,
+     33.47301,
+     2
+    ],
+    [
+     130.51252,
+     33.44101,
+     14.41815
+    ],
+    [
+     130.34673,
+     33.652,
+     14.41815
+    ],
+    [
+     130.405,
+     33.684,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F012401",
+   "name": "警固断層帯北西部",
+   "flt_id": "F012401_00001",
+   "lenKm": 30,
+   "widKm": 16,
+   "strikeDeg": 306,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 33.659,
+    "lng": 130.313
+   },
+   "polygonLngLatDep": [
+    [
+     130.313,
+     33.659,
+     2
+    ],
+    [
+     130.05133,
+     33.81798,
+     2
+    ],
+    [
+     130.05133,
+     33.81798,
+     18
+    ],
+    [
+     130.313,
+     33.659,
+     18
+    ],
+    [
+     130.313,
+     33.659,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F012402",
+   "name": "警固断層帯南東部",
+   "flt_id": "F012402_00001",
+   "lenKm": 32,
+   "widKm": 16,
+   "strikeDeg": 136,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 33.656,
+    "lng": 130.309
+   },
+   "polygonLngLatDep": [
+    [
+     130.309,
+     33.656,
+     2
+    ],
+    [
+     130.54865,
+     33.44847,
+     2
+    ],
+    [
+     130.54865,
+     33.44847,
+     18
+    ],
+    [
+     130.309,
+     33.656,
+     18
+    ],
+    [
+     130.309,
+     33.656,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F012501",
+   "name": "日向峠-小笠木峠断層帯",
+   "flt_id": "F012501_00001",
+   "lenKm": 32,
+   "widKm": 14,
+   "strikeDeg": 305.5,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 33.384,
+    "lng": 130.521
+   },
+   "polygonLngLatDep": [
+    [
+     130.521,
+     33.384,
+     2
+    ],
+    [
+     130.24101,
+     33.55154,
+     2
+    ],
+    [
+     130.24101,
+     33.55154,
+     16
+    ],
+    [
+     130.521,
+     33.384,
+     16
+    ],
+    [
+     130.521,
+     33.384,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F012601",
+   "name": "水縄断層帯",
+   "flt_id": "F012601_00001",
+   "lenKm": 30,
+   "widKm": 14,
+   "strikeDeg": 266,
+   "dipDeg": 60,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 33.334,
+    "lng": 130.853
+   },
+   "polygonLngLatDep": [
+    [
+     130.853,
+     33.334,
+     3
+    ],
+    [
+     130.53155,
+     33.31513,
+     3
+    ],
+    [
+     130.5263,
+     33.37809,
+     15.12436
+    ],
+    [
+     130.84776,
+     33.39696,
+     15.12436
+    ],
+    [
+     130.853,
+     33.334,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F012701",
+   "name": "佐賀平野北縁断層帯",
+   "flt_id": "F012701_00001",
+   "lenKm": 42,
+   "widKm": 14,
+   "strikeDeg": 78.7,
+   "dipDeg": 70,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 33.233,
+    "lng": 130.067
+   },
+   "polygonLngLatDep": [
+    [
+     130.067,
+     33.233,
+     3
+    ],
+    [
+     130.50888,
+     33.3072,
+     3
+    ],
+    [
+     130.51894,
+     33.26487,
+     16.1557
+    ],
+    [
+     130.07707,
+     33.19066,
+     16.1557
+    ],
+    [
+     130.067,
+     33.233,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F012901",
+   "name": "雲仙断層群北部",
+   "flt_id": "F012901_00001",
+   "lenKm": 32,
+   "widKm": 18,
+   "strikeDeg": 86.2,
+   "dipDeg": 60,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 32.734,
+    "lng": 130.057
+   },
+   "polygonLngLatDep": [
+    [
+     130.057,
+     32.734,
+     3
+    ],
+    [
+     130.39765,
+     32.75312,
+     3
+    ],
+    [
+     130.40401,
+     32.67215,
+     18.58846
+    ],
+    [
+     130.06336,
+     32.65302,
+     18.58846
+    ],
+    [
+     130.057,
+     32.734,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F012902",
+   "name": "雲仙断層群南東部",
+   "flt_id": "F012902_00001",
+   "lenKm": 26,
+   "widKm": 18,
+   "strikeDeg": 279,
+   "dipDeg": 60,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 32.73,
+    "lng": 130.519
+   },
+   "polygonLngLatDep": [
+    [
+     130.519,
+     32.73,
+     3
+    ],
+    [
+     130.24504,
+     32.76668,
+     3
+    ],
+    [
+     130.26006,
+     32.84683,
+     18.58846
+    ],
+    [
+     130.53402,
+     32.81016,
+     18.58846
+    ],
+    [
+     130.519,
+     32.73,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F012903",
+   "name": "雲仙断層群南西部北部",
+   "flt_id": "F012903_00001",
+   "lenKm": 34,
+   "widKm": 18,
+   "strikeDeg": 266.6,
+   "dipDeg": 60,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 32.733,
+    "lng": 130.298
+   },
+   "polygonLngLatDep": [
+    [
+     130.298,
+     32.733,
+     3
+    ],
+    [
+     129.93591,
+     32.71482,
+     3
+    ],
+    [
+     129.93021,
+     32.79583,
+     18.58846
+    ],
+    [
+     130.29231,
+     32.81401,
+     18.58846
+    ],
+    [
+     130.298,
+     32.733,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F012904",
+   "name": "雲仙断層群南西部南部",
+   "flt_id": "F012904_00001",
+   "lenKm": 26,
+   "widKm": 18,
+   "strikeDeg": 75.8,
+   "dipDeg": 60,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 32.598,
+    "lng": 129.872
+   },
+   "polygonLngLatDep": [
+    [
+     129.872,
+     32.598,
+     3
+    ],
+    [
+     130.1405,
+     32.65551,
+     3
+    ],
+    [
+     130.16402,
+     32.57684,
+     18.58846
+    ],
+    [
+     129.89552,
+     32.51932,
+     18.58846
+    ],
+    [
+     129.872,
+     32.598,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F013001",
+   "name": "布田川断層帯布田川区間",
+   "flt_id": "F013001_00001",
+   "lenKm": 24,
+   "widKm": 14,
+   "strikeDeg": 233.2,
+   "dipDeg": 90,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 32.888,
+    "lng": 131.027
+   },
+   "polygonLngLatDep": [
+    [
+     131.027,
+     32.888,
+     3
+    ],
+    [
+     130.82162,
+     32.75837,
+     3
+    ],
+    [
+     130.82162,
+     32.75837,
+     17
+    ],
+    [
+     131.027,
+     32.888,
+     17
+    ],
+    [
+     131.027,
+     32.888,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F013002",
+   "name": "布田川断層帯宇土区間",
+   "flt_id": "F013002_00001",
+   "lenKm": 22,
+   "widKm": 16,
+   "strikeDeg": 243.2,
+   "dipDeg": 60,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 32.78,
+    "lng": 130.831
+   },
+   "polygonLngLatDep": [
+    [
+     130.831,
+     32.78,
+     3
+    ],
+    [
+     130.62139,
+     32.69056,
+     3
+    ],
+    [
+     130.58289,
+     32.75494,
+     16.85641
+    ],
+    [
+     130.7925,
+     32.84439,
+     16.85641
+    ],
+    [
+     130.831,
+     32.78,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F013003",
+   "name": "布田川断層帯宇土半島北岸区間",
+   "flt_id": "F013003_00001",
+   "lenKm": 32,
+   "widKm": 16,
+   "strikeDeg": 236.1,
+   "dipDeg": 60,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 32.748,
+    "lng": 130.637
+   },
+   "polygonLngLatDep": [
+    [
+     130.637,
+     32.748,
+     3
+    ],
+    [
+     130.35359,
+     32.58706,
+     3
+    ],
+    [
+     130.30598,
+     32.64694,
+     16.85641
+    ],
+    [
+     130.58939,
+     32.80787,
+     16.85641
+    ],
+    [
+     130.637,
+     32.748,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F013101",
+   "name": "日奈久断層帯高野-白旗区間",
+   "flt_id": "F013101_00001",
+   "lenKm": 20,
+   "widKm": 14,
+   "strikeDeg": 202.9,
+   "dipDeg": 90,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 32.763,
+    "lng": 130.819
+   },
+   "polygonLngLatDep": [
+    [
+     130.819,
+     32.763,
+     3
+    ],
+    [
+     130.73594,
+     32.59687,
+     3
+    ],
+    [
+     130.73594,
+     32.59687,
+     17
+    ],
+    [
+     130.819,
+     32.763,
+     17
+    ],
+    [
+     130.819,
+     32.763,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F013102",
+   "name": "日奈久断層帯日奈久区間",
+   "flt_id": "F013102_00001",
+   "lenKm": 44,
+   "widKm": 16,
+   "strikeDeg": 218.6,
+   "dipDeg": 60,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 32.653,
+    "lng": 130.751
+   },
+   "polygonLngLatDep": [
+    [
+     130.751,
+     32.653,
+     3
+    ],
+    [
+     130.4584,
+     32.34292,
+     3
+    ],
+    [
+     130.39176,
+     32.38793,
+     16.85641
+    ],
+    [
+     130.68436,
+     32.69801,
+     16.85641
+    ],
+    [
+     130.751,
+     32.653,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F013103",
+   "name": "日奈久断層帯八代海区間",
+   "flt_id": "F013103_00001",
+   "lenKm": 34,
+   "widKm": 14,
+   "strikeDeg": 227.3,
+   "dipDeg": 90,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 32.363,
+    "lng": 130.469
+   },
+   "polygonLngLatDep": [
+    [
+     130.469,
+     32.363,
+     3
+    ],
+    [
+     130.20352,
+     32.15508,
+     3
+    ],
+    [
+     130.20352,
+     32.15508,
+     17
+    ],
+    [
+     130.469,
+     32.363,
+     17
+    ],
+    [
+     130.469,
+     32.363,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F013201",
+   "name": "緑川断層帯",
+   "flt_id": "F013201_00001",
+   "lenKm": 38,
+   "widKm": 12,
+   "strikeDeg": 250.8,
+   "dipDeg": 80,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 32.691,
+    "lng": 131.163
+   },
+   "polygonLngLatDep": [
+    [
+     131.163,
+     32.691,
+     2
+    ],
+    [
+     130.78033,
+     32.57831,
+     2
+    ],
+    [
+     130.77302,
+     32.59606,
+     13.81769
+    ],
+    [
+     131.15569,
+     32.70874,
+     13.81769
+    ],
+    [
+     131.163,
+     32.691,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F013301",
+   "name": "人吉盆地南縁断層",
+   "flt_id": "F013301_00001",
+   "lenKm": 24,
+   "widKm": 18,
+   "strikeDeg": 238,
+   "dipDeg": 60,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 32.28,
+    "lng": 131.003
+   },
+   "polygonLngLatDep": [
+    [
+     131.003,
+     32.28,
+     2
+    ],
+    [
+     130.78695,
+     32.16531,
+     2
+    ],
+    [
+     130.73632,
+     32.23414,
+     17.58846
+    ],
+    [
+     130.95237,
+     32.34883,
+     17.58846
+    ],
+    [
+     131.003,
+     32.28,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F013401",
+   "name": "出水断層帯",
+   "flt_id": "F013401_00001",
+   "lenKm": 22,
+   "widKm": 18,
+   "strikeDeg": 227.6,
+   "dipDeg": 45,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 32.159,
+    "lng": 130.42
+   },
+   "polygonLngLatDep": [
+    [
+     130.42,
+     32.159,
+     3
+    ],
+    [
+     130.24777,
+     32.02522,
+     3
+    ],
+    [
+     130.15679,
+     32.10998,
+     15.72792
+    ],
+    [
+     130.32902,
+     32.24376,
+     15.72792
+    ],
+    [
+     130.42,
+     32.159,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F013501",
+   "name": "甑断層帯上甑島北東沖区間",
+   "flt_id": "F013501_00001",
+   "lenKm": 22,
+   "widKm": 12,
+   "strikeDeg": 211.3,
+   "dipDeg": 75,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 32.08,
+    "lng": 130.045
+   },
+   "polygonLngLatDep": [
+    [
+     130.045,
+     32.08,
+     2
+    ],
+    [
+     129.92394,
+     31.91048,
+     2
+    ],
+    [
+     129.89583,
+     31.92503,
+     13.59111
+    ],
+    [
+     130.01689,
+     32.09455,
+     13.59111
+    ],
+    [
+     130.045,
+     32.08,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F013502",
+   "name": "甑断層帯甑区間",
+   "flt_id": "F013502_00001",
+   "lenKm": 12,
+   "widKm": 12,
+   "strikeDeg": 96.1,
+   "dipDeg": 60,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 31.793,
+    "lng": 129.994
+   },
+   "polygonLngLatDep": [
+    [
+     129.994,
+     31.793,
+     2
+    ],
+    [
+     130.11999,
+     31.7815,
+     2
+    ],
+    [
+     130.11326,
+     31.7277,
+     12.3923
+    ],
+    [
+     129.98727,
+     31.7392,
+     12.3923
+    ],
+    [
+     129.994,
+     31.793,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F013502",
+   "name": "甑断層帯甑区間",
+   "flt_id": "F013502_00002",
+   "lenKm": 30,
+   "widKm": 18,
+   "strikeDeg": 230.6,
+   "dipDeg": 130,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 31.793,
+    "lng": 129.994
+   },
+   "polygonLngLatDep": [
+    [
+     129.994,
+     31.793,
+     2
+    ],
+    [
+     129.74922,
+     31.62127,
+     2
+    ],
+    [
+     129.82676,
+     31.54064,
+     15.7888
+    ],
+    [
+     130.07155,
+     31.71237,
+     15.7888
+    ],
+    [
+     129.994,
+     31.793,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F013601",
+   "name": "市来断層帯市来区間",
+   "flt_id": "F013601_00001",
+   "lenKm": 30,
+   "widKm": 14,
+   "strikeDeg": 90.4,
+   "dipDeg": 60,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 31.726,
+    "lng": 130.112
+   },
+   "polygonLngLatDep": [
+    [
+     130.112,
+     31.726,
+     2
+    ],
+    [
+     130.42854,
+     31.72411,
+     2
+    ],
+    [
+     130.42802,
+     31.66098,
+     14.12436
+    ],
+    [
+     130.11148,
+     31.66287,
+     14.12436
+    ],
+    [
+     130.112,
+     31.726,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F013602",
+   "name": "市来断層帯甑海峡中央区間",
+   "flt_id": "F013602_00001",
+   "lenKm": 42,
+   "widKm": 12,
+   "strikeDeg": 31.5,
+   "dipDeg": 75,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 31.451,
+    "lng": 129.922
+   },
+   "polygonLngLatDep": [
+    [
+     129.922,
+     31.451,
+     2
+    ],
+    [
+     130.15287,
+     31.77398,
+     2
+    ],
+    [
+     130.18073,
+     31.75934,
+     13.59111
+    ],
+    [
+     129.94986,
+     31.43636,
+     13.59111
+    ],
+    [
+     129.922,
+     31.451,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F013603",
+   "name": "市来断層帯吹上浜西方沖区間",
+   "flt_id": "F013603_00001",
+   "lenKm": 24,
+   "widKm": 12,
+   "strikeDeg": 223,
+   "dipDeg": 75,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 31.646,
+    "lng": 130.31
+   },
+   "polygonLngLatDep": [
+    [
+     130.31,
+     31.646,
+     2
+    ],
+    [
+     130.13744,
+     31.4877,
+     2
+    ],
+    [
+     130.11349,
+     31.5068,
+     13.59111
+    ],
+    [
+     130.28605,
+     31.6651,
+     13.59111
+    ],
+    [
+     130.31,
+     31.646,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F013701",
+   "name": "日出生断層帯",
+   "flt_id": "F013701_00001",
+   "lenKm": 46,
+   "widKm": 14,
+   "strikeDeg": 84.5,
+   "dipDeg": 70,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 33.31,
+    "lng": 131.133
+   },
+   "polygonLngLatDep": [
+    [
+     131.133,
+     33.31,
+     3
+    ],
+    [
+     131.62469,
+     33.34975,
+     3
+    ],
+    [
+     131.62961,
+     33.30678,
+     16.1557
+    ],
+    [
+     131.13793,
+     33.26703,
+     16.1557
+    ],
+    [
+     131.133,
+     33.31,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F013801",
+   "name": "万年山−崩平山断層帯",
+   "flt_id": "F013801_00001",
+   "lenKm": 36,
+   "widKm": 14,
+   "strikeDeg": 101.5,
+   "dipDeg": 70,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 33.235,
+    "lng": 130.964
+   },
+   "polygonLngLatDep": [
+    [
+     130.964,
+     33.235,
+     3
+    ],
+    [
+     131.34249,
+     33.17029,
+     3
+    ],
+    [
+     131.33225,
+     33.12798,
+     16.1557
+    ],
+    [
+     130.95376,
+     33.19269,
+     16.1557
+    ],
+    [
+     130.964,
+     33.235,
+     3
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F014121",
+   "name": "関谷断層",
+   "flt_id": "F014121_00001",
+   "lenKm": 40,
+   "widKm": 18,
+   "strikeDeg": 192.1,
+   "dipDeg": 45,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 37.164,
+    "lng": 139.929
+   },
+   "polygonLngLatDep": [
+    [
+     139.929,
+     37.164,
+     2
+    ],
+    [
+     139.8346,
+     36.81158,
+     2
+    ],
+    [
+     139.69448,
+     36.83562,
+     14.72792
+    ],
+    [
+     139.78888,
+     37.18804,
+     14.72792
+    ],
+    [
+     139.929,
+     37.164,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F014221",
+   "name": "内ノ籠断層",
+   "flt_id": "F014221_00001",
+   "lenKm": 20,
+   "widKm": 10,
+   "strikeDeg": 209.6,
+   "dipDeg": 70,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 36.734,
+    "lng": 139.534
+   },
+   "polygonLngLatDep": [
+    [
+     139.534,
+     36.734,
+     2
+    ],
+    [
+     139.4234,
+     36.5773,
+     2
+    ],
+    [
+     139.39011,
+     36.59252,
+     11.39693
+    ],
+    [
+     139.50071,
+     36.74922,
+     11.39693
+    ],
+    [
+     139.534,
+     36.734,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F014321",
+   "name": "片品川左岸断層",
+   "flt_id": "F014321_00001",
+   "lenKm": 20,
+   "widKm": 14,
+   "strikeDeg": 7.8,
+   "dipDeg": 45,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 36.663,
+    "lng": 139.246
+   },
+   "polygonLngLatDep": [
+    [
+     139.246,
+     36.663,
+     2
+    ],
+    [
+     139.27636,
+     36.84156,
+     2
+    ],
+    [
+     139.38606,
+     36.82945,
+     11.89949
+    ],
+    [
+     139.3557,
+     36.65089,
+     11.89949
+    ],
+    [
+     139.246,
+     36.663,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F014421",
+   "name": "大久保断層",
+   "flt_id": "F014421_00001",
+   "lenKm": 24,
+   "widKm": 14,
+   "strikeDeg": 300.9,
+   "dipDeg": 45,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 36.379,
+    "lng": 139.411
+   },
+   "polygonLngLatDep": [
+    [
+     139.411,
+     36.379,
+     2
+    ],
+    [
+     139.18149,
+     36.49007,
+     2
+    ],
+    [
+     139.23815,
+     36.56662,
+     11.89949
+    ],
+    [
+     139.46766,
+     36.45555,
+     11.89949
+    ],
+    [
+     139.411,
+     36.379,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F014521",
+   "name": "太田断層",
+   "flt_id": "F014521_00001",
+   "lenKm": 20,
+   "widKm": 18,
+   "strikeDeg": 153.9,
+   "dipDeg": 45,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 36.378,
+    "lng": 139.319
+   },
+   "polygonLngLatDep": [
+    [
+     139.319,
+     36.378,
+     2
+    ],
+    [
+     139.41706,
+     36.21614,
+     2
+    ],
+    [
+     139.28968,
+     36.16568,
+     14.72792
+    ],
+    [
+     139.19162,
+     36.32754,
+     14.72792
+    ],
+    [
+     139.319,
+     36.378,
+     2
+    ]
+   ],
+   "selected": true,
+   "selectedStrict": false
+  },
+  {
+   "code": "F014621",
+   "name": "長野盆地西縁断層帯飯山−千曲区間",
+   "flt_id": "F014621_00001",
+   "lenKm": 62,
+   "widKm": 18,
+   "strikeDeg": 33.7,
+   "dipDeg": 35,
+   "topDepthKm": 4,
+   "topCenter": {
+    "lat": 36.553,
+    "lng": 138.043
+   },
+   "polygonLngLatDep": [
+    [
+     138.043,
+     36.553,
+     4
+    ],
+    [
+     138.42723,
+     37.01782,
+     4
+    ],
+    [
+     138.56425,
+     36.9441,
+     14.32438
+    ],
+    [
+     138.18001,
+     36.47928,
+     14.32438
+    ],
+    [
+     138.043,
+     36.553,
+     4
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F014622",
+   "name": "長野盆地西縁断層帯麻績区間",
+   "flt_id": "F014622_00001",
+   "lenKm": 18,
+   "widKm": 16,
+   "strikeDeg": 28.3,
+   "dipDeg": 45,
+   "topDepthKm": 4,
+   "topCenter": {
+    "lat": 36.428,
+    "lng": 137.97
+   },
+   "polygonLngLatDep": [
+    [
+     137.97,
+     36.428,
+     4
+    ],
+    [
+     138.06516,
+     36.57082,
+     4
+    ],
+    [
+     138.17625,
+     36.52249,
+     15.31371
+    ],
+    [
+     138.08109,
+     36.37966,
+     15.31371
+    ],
+    [
+     137.97,
+     36.428,
+     4
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F014721",
+   "name": "深谷断層帯",
+   "flt_id": "F014721_00001",
+   "lenKm": 72,
+   "widKm": 18,
+   "strikeDeg": 122.1,
+   "dipDeg": 60,
+   "topDepthKm": 5,
+   "topCenter": {
+    "lat": 36.366,
+    "lng": 138.821
+   },
+   "polygonLngLatDep": [
+    [
+     138.821,
+     36.366,
+     5
+    ],
+    [
+     139.50062,
+     36.0212,
+     5
+    ],
+    [
+     139.44733,
+     35.9525,
+     20.58846
+    ],
+    [
+     138.76771,
+     36.29729,
+     20.58846
+    ],
+    [
+     138.821,
+     36.366,
+     5
+    ]
+   ],
+   "selected": true,
+   "selectedStrict": true
+  },
+  {
+   "code": "F014821",
+   "name": "綾瀬川断層鴻巣－伊奈区間",
+   "flt_id": "F014821_00001",
+   "lenKm": 20,
+   "widKm": 20,
+   "strikeDeg": 130.2,
+   "dipDeg": 50,
+   "topDepthKm": 5,
+   "topCenter": {
+    "lat": 36.057,
+    "lng": 139.444
+   },
+   "polygonLngLatDep": [
+    [
+     139.444,
+     36.057,
+     5
+    ],
+    [
+     139.61355,
+     35.94066,
+     5
+    ],
+    [
+     139.52145,
+     35.85217,
+     20.32089
+    ],
+    [
+     139.3519,
+     35.96851,
+     20.32089
+    ],
+    [
+     139.444,
+     36.057,
+     5
+    ]
+   ],
+   "selected": true,
+   "selectedStrict": true
+  },
+  {
+   "code": "F014822",
+   "name": "綾瀬川断層伊奈－川口区間",
+   "flt_id": "F014822_00001",
+   "lenKm": 20,
+   "widKm": 20,
+   "strikeDeg": 140.6,
+   "dipDeg": 50,
+   "topDepthKm": 5,
+   "topCenter": {
+    "lat": 35.946,
+    "lng": 139.607
+   },
+   "polygonLngLatDep": [
+    [
+     139.607,
+     35.946,
+     5
+    ],
+    [
+     139.7477,
+     35.80672,
+     5
+    ],
+    [
+     139.6376,
+     35.73318,
+     20.32089
+    ],
+    [
+     139.4969,
+     35.87246,
+     20.32089
+    ],
+    [
+     139.607,
+     35.946,
+     5
+    ]
+   ],
+   "selected": true,
+   "selectedStrict": true
+  },
+  {
+   "code": "F014921",
+   "name": "越生断層",
+   "flt_id": "F014921_00001",
+   "lenKm": 17,
+   "widKm": 17,
+   "strikeDeg": 161.7,
+   "dipDeg": 45,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 36.014,
+    "lng": 139.238
+   },
+   "polygonLngLatDep": [
+    [
+     139.238,
+     36.014,
+     2
+    ],
+    [
+     139.29721,
+     35.86854,
+     2
+    ],
+    [
+     139.17061,
+     35.83452,
+     14.02082
+    ],
+    [
+     139.1114,
+     35.97998,
+     14.02082
+    ],
+    [
+     139.238,
+     36.014,
+     2
+    ]
+   ],
+   "selected": true,
+   "selectedStrict": true
+  },
+  {
+   "code": "F015021",
+   "name": "立川断層帯",
+   "flt_id": "F015021_00001",
+   "lenKm": 34,
+   "widKm": 18,
+   "strikeDeg": 315,
+   "dipDeg": 80,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.669,
+    "lng": 139.453
+   },
+   "polygonLngLatDep": [
+    [
+     139.453,
+     35.669,
+     2
+    ],
+    [
+     139.18746,
+     35.88568,
+     2
+    ],
+    [
+     139.21187,
+     35.9056,
+     19.72654
+    ],
+    [
+     139.47741,
+     35.68892,
+     19.72654
+    ],
+    [
+     139.453,
+     35.669,
+     2
+    ]
+   ],
+   "selected": true,
+   "selectedStrict": true
+  },
+  {
+   "code": "F015121",
+   "name": "鴨川低地断層帯",
+   "flt_id": "F015121_00001",
+   "lenKm": 26,
+   "widKm": 18,
+   "strikeDeg": 265.7,
+   "dipDeg": 45,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.102,
+    "lng": 140.107
+   },
+   "polygonLngLatDep": [
+    [
+     140.107,
+     35.102,
+     2
+    ],
+    [
+     139.82264,
+     35.08443,
+     2
+    ],
+    [
+     139.81217,
+     35.19883,
+     14.72792
+    ],
+    [
+     140.09653,
+     35.2164,
+     14.72792
+    ],
+    [
+     140.107,
+     35.102,
+     2
+    ]
+   ],
+   "selected": true,
+   "selectedStrict": true
+  },
+  {
+   "code": "F015221",
+   "name": "三浦半島断層群主部衣笠・北武断層帯",
+   "flt_id": "F015221_00001",
+   "lenKm": 28,
+   "widKm": 18,
+   "strikeDeg": 300,
+   "dipDeg": 45,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 35.198,
+    "lng": 139.788
+   },
+   "polygonLngLatDep": [
+    [
+     139.788,
+     35.198,
+     3
+    ],
+    [
+     139.52173,
+     35.32419,
+     3
+    ],
+    [
+     139.59161,
+     35.42354,
+     15.72792
+    ],
+    [
+     139.85788,
+     35.29735,
+     15.72792
+    ],
+    [
+     139.788,
+     35.198,
+     3
+    ]
+   ],
+   "selected": true,
+   "selectedStrict": true
+  },
+  {
+   "code": "F015222",
+   "name": "三浦半島断層群主部武山断層帯",
+   "flt_id": "F015222_00001",
+   "lenKm": 20,
+   "widKm": 18,
+   "strikeDeg": 300,
+   "dipDeg": 45,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 35.181,
+    "lng": 139.758
+   },
+   "polygonLngLatDep": [
+    [
+     139.758,
+     35.181,
+     3
+    ],
+    [
+     139.56785,
+     35.27114,
+     3
+    ],
+    [
+     139.63771,
+     35.37049,
+     15.72792
+    ],
+    [
+     139.82787,
+     35.28035,
+     15.72792
+    ],
+    [
+     139.758,
+     35.181,
+     3
+    ]
+   ],
+   "selected": true,
+   "selectedStrict": true
+  },
+  {
+   "code": "F015223",
+   "name": "三浦半島断層群南部",
+   "flt_id": "F015223_00001",
+   "lenKm": 20,
+   "widKm": 12,
+   "strikeDeg": 300,
+   "dipDeg": 90,
+   "topDepthKm": 3,
+   "topCenter": {
+    "lat": 35.117,
+    "lng": 139.75
+   },
+   "polygonLngLatDep": [
+    [
+     139.75,
+     35.117,
+     3
+    ],
+    [
+     139.55999,
+     35.20714,
+     3
+    ],
+    [
+     139.55999,
+     35.20714,
+     15
+    ],
+    [
+     139.75,
+     35.117,
+     15
+    ],
+    [
+     139.75,
+     35.117,
+     3
+    ]
+   ],
+   "selected": true,
+   "selectedStrict": true
+  },
+  {
+   "code": "F015321",
+   "name": "伊勢原断層",
+   "flt_id": "F015321_00001",
+   "lenKm": 22,
+   "widKm": 18,
+   "strikeDeg": 351.5,
+   "dipDeg": 45,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.363,
+    "lng": 139.323
+   },
+   "polygonLngLatDep": [
+    [
+     139.323,
+     35.363,
+     2
+    ],
+    [
+     139.28722,
+     35.55911,
+     2
+    ],
+    [
+     139.42573,
+     35.57607,
+     14.72792
+    ],
+    [
+     139.46151,
+     35.37996,
+     14.72792
+    ],
+    [
+     139.323,
+     35.363,
+     2
+    ]
+   ],
+   "selected": true,
+   "selectedStrict": true
+  },
+  {
+   "code": "F015421",
+   "name": "塩沢断層帯",
+   "flt_id": "F015421_00001",
+   "lenKm": 18,
+   "widKm": 16,
+   "strikeDeg": 241.4,
+   "dipDeg": 30,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.428,
+    "lng": 139.039
+   },
+   "polygonLngLatDep": [
+    [
+     139.039,
+     35.428,
+     2
+    ],
+    [
+     138.86497,
+     35.35034,
+     2
+    ],
+    [
+     138.79193,
+     35.45999,
+     10
+    ],
+    [
+     138.96596,
+     35.53765,
+     10
+    ],
+    [
+     139.039,
+     35.428,
+     2
+    ]
+   ],
+   "selected": true,
+   "selectedStrict": false
+  },
+  {
+   "code": "F015521",
+   "name": "平山-松田北断層帯",
+   "flt_id": "F015521_00001",
+   "lenKm": 12,
+   "widKm": 10,
+   "strikeDeg": 218.4,
+   "dipDeg": 70,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.356,
+    "lng": 139.086
+   },
+   "polygonLngLatDep": [
+    [
+     139.086,
+     35.356,
+     2
+    ],
+    [
+     139.00399,
+     35.27124,
+     2
+    ],
+    [
+     138.9745,
+     35.29038,
+     11.39693
+    ],
+    [
+     139.05651,
+     35.37515,
+     11.39693
+    ],
+    [
+     139.086,
+     35.356,
+     2
+    ]
+   ],
+   "selected": true,
+   "selectedStrict": false
+  },
+  {
+   "code": "F015521",
+   "name": "平山-松田北断層帯",
+   "flt_id": "F015521_00002",
+   "lenKm": 8,
+   "widKm": 14,
+   "strikeDeg": 279.8,
+   "dipDeg": 45,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.357,
+    "lng": 139.183
+   },
+   "polygonLngLatDep": [
+    [
+     139.183,
+     35.357,
+     2
+    ],
+    [
+     139.09627,
+     35.36927,
+     2
+    ],
+    [
+     139.1148,
+     35.4572,
+     11.89949
+    ],
+    [
+     139.20154,
+     35.44493,
+     11.89949
+    ],
+    [
+     139.183,
+     35.357,
+     2
+    ]
+   ],
+   "selected": true,
+   "selectedStrict": true
+  },
+  {
+   "code": "F015621",
+   "name": "曽根丘陵断層帯",
+   "flt_id": "F015621_00001",
+   "lenKm": 34,
+   "widKm": 18,
+   "strikeDeg": 52.5,
+   "dipDeg": 35,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.52,
+    "lng": 138.504
+   },
+   "polygonLngLatDep": [
+    [
+     138.504,
+     35.52,
+     2
+    ],
+    [
+     138.80138,
+     35.70655,
+     2
+    ],
+    [
+     138.90033,
+     35.60112,
+     12.32438
+    ],
+    [
+     138.60296,
+     35.41457,
+     12.32438
+    ],
+    [
+     138.504,
+     35.52,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F015721",
+   "name": "身延断層",
+   "flt_id": "F015721_00001",
+   "lenKm": 22,
+   "widKm": 18,
+   "strikeDeg": 150.2,
+   "dipDeg": 70,
+   "topDepthKm": 5,
+   "topCenter": {
+    "lat": 35.377,
+    "lng": 138.403
+   },
+   "polygonLngLatDep": [
+    [
+     138.403,
+     35.377,
+     5
+    ],
+    [
+     138.52332,
+     35.20493,
+     5
+    ],
+    [
+     138.46453,
+     35.17735,
+     21.91447
+    ],
+    [
+     138.34421,
+     35.34942,
+     21.91447
+    ],
+    [
+     138.403,
+     35.377,
+     5
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F015821",
+   "name": "北伊豆断層帯",
+   "flt_id": "F015821_00001",
+   "lenKm": 36,
+   "widKm": 10,
+   "strikeDeg": 193.6,
+   "dipDeg": 80,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.217,
+    "lng": 139.034
+   },
+   "polygonLngLatDep": [
+    [
+     139.034,
+     35.217,
+     2
+    ],
+    [
+     138.94102,
+     34.90161,
+     2
+    ],
+    [
+     138.92249,
+     34.90529,
+     11.84808
+    ],
+    [
+     139.01546,
+     35.22068,
+     11.84808
+    ],
+    [
+     139.034,
+     35.217,
+     2
+    ]
+   ],
+   "selected": true,
+   "selectedStrict": false
+  },
+  {
+   "code": "F015921",
+   "name": "伊東沖断層",
+   "flt_id": "F015921_00001",
+   "lenKm": 20,
+   "widKm": 10,
+   "strikeDeg": 165.9,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.001,
+    "lng": 139.167
+   },
+   "polygonLngLatDep": [
+    [
+     139.167,
+     35.001,
+     2
+    ],
+    [
+     139.22037,
+     34.82615,
+     2
+    ],
+    [
+     139.22037,
+     34.82615,
+     12
+    ],
+    [
+     139.167,
+     35.001,
+     12
+    ],
+    [
+     139.167,
+     35.001,
+     2
+    ]
+   ],
+   "selected": true,
+   "selectedStrict": false
+  },
+  {
+   "code": "F016021",
+   "name": "稲取断層帯",
+   "flt_id": "F016021_00001",
+   "lenKm": 8,
+   "widKm": 10,
+   "strikeDeg": 120.6,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.795,
+    "lng": 138.961
+   },
+   "polygonLngLatDep": [
+    [
+     138.961,
+     34.795,
+     2
+    ],
+    [
+     139.03624,
+     34.75829,
+     2
+    ],
+    [
+     139.03624,
+     34.75829,
+     12
+    ],
+    [
+     138.961,
+     34.795,
+     12
+    ],
+    [
+     138.961,
+     34.795,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F016021",
+   "name": "稲取断層帯",
+   "flt_id": "F016021_00002",
+   "lenKm": 20,
+   "widKm": 10,
+   "strikeDeg": 90.6,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.758,
+    "lng": 139.036
+   },
+   "polygonLngLatDep": [
+    [
+     139.036,
+     34.758,
+     2
+    ],
+    [
+     139.25443,
+     34.75611,
+     2
+    ],
+    [
+     139.25443,
+     34.75611,
+     12
+    ],
+    [
+     139.036,
+     34.758,
+     12
+    ],
+    [
+     139.036,
+     34.758,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F016121",
+   "name": "石廊崎断層",
+   "flt_id": "F016121_00001",
+   "lenKm": 24,
+   "widKm": 10,
+   "strikeDeg": 305.2,
+   "dipDeg": 80,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.567,
+    "lng": 138.927
+   },
+   "polygonLngLatDep": [
+    [
+     138.927,
+     34.567,
+     2
+    ],
+    [
+     138.71329,
+     34.69171,
+     2
+    ],
+    [
+     138.7242,
+     34.7045,
+     11.84808
+    ],
+    [
+     138.93791,
+     34.57979,
+     11.84808
+    ],
+    [
+     138.927,
+     34.567,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F016221",
+   "name": "糸魚川−静岡構造線断層帯北部",
+   "flt_id": "F016221_00001",
+   "lenKm": 20.5,
+   "widKm": 4,
+   "strikeDeg": 343.7,
+   "dipDeg": 30,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 36.355,
+    "lng": 137.957
+   },
+   "polygonLngLatDep": [
+    [
+     137.957,
+     36.355,
+     2
+    ],
+    [
+     137.8929,
+     36.53232,
+     2
+    ],
+    [
+     137.92994,
+     36.54108,
+     4
+    ],
+    [
+     137.99404,
+     36.36376,
+     4
+    ],
+    [
+     137.957,
+     36.355,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F016221",
+   "name": "糸魚川−静岡構造線断層帯北部",
+   "flt_id": "F016221_00002",
+   "lenKm": 20,
+   "widKm": 14,
+   "strikeDeg": 343.7,
+   "dipDeg": 60,
+   "topDepthKm": 4,
+   "topCenter": {
+    "lat": 36.364,
+    "lng": 137.994
+   },
+   "polygonLngLatDep": [
+    [
+     137.994,
+     36.364,
+     4
+    ],
+    [
+     137.93145,
+     36.53699,
+     4
+    ],
+    [
+     138.00632,
+     36.5547,
+     16.12436
+    ],
+    [
+     138.06886,
+     36.38171,
+     16.12436
+    ],
+    [
+     137.994,
+     36.364,
+     4
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F016221",
+   "name": "糸魚川−静岡構造線断層帯北部",
+   "flt_id": "F016221_00003",
+   "lenKm": 13.1,
+   "widKm": 4,
+   "strikeDeg": 2,
+   "dipDeg": 30,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 36.533,
+    "lng": 137.893
+   },
+   "polygonLngLatDep": [
+    [
+     137.893,
+     36.533,
+     2
+    ],
+    [
+     137.89811,
+     36.65098,
+     2
+    ],
+    [
+     137.93676,
+     36.64989,
+     4
+    ],
+    [
+     137.93166,
+     36.53191,
+     4
+    ],
+    [
+     137.893,
+     36.533,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F016221",
+   "name": "糸魚川−静岡構造線断層帯北部",
+   "flt_id": "F016221_00004",
+   "lenKm": 12,
+   "widKm": 14,
+   "strikeDeg": 2,
+   "dipDeg": 60,
+   "topDepthKm": 4,
+   "topCenter": {
+    "lat": 36.537,
+    "lng": 137.932
+   },
+   "polygonLngLatDep": [
+    [
+     137.932,
+     36.537,
+     4
+    ],
+    [
+     137.93668,
+     36.64507,
+     4
+    ],
+    [
+     138.0148,
+     36.64287,
+     16.12436
+    ],
+    [
+     138.01012,
+     36.5348,
+     16.12436
+    ],
+    [
+     137.932,
+     36.537,
+     4
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F016221",
+   "name": "糸魚川−静岡構造線断層帯北部",
+   "flt_id": "F016221_00005",
+   "lenKm": 16.5,
+   "widKm": 4,
+   "strikeDeg": 18.9,
+   "dipDeg": 30,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 36.651,
+    "lng": 137.898
+   },
+   "polygonLngLatDep": [
+    [
+     137.898,
+     36.651,
+     2
+    ],
+    [
+     137.95777,
+     36.79167,
+     2
+    ],
+    [
+     137.99442,
+     36.78156,
+     4
+    ],
+    [
+     137.93465,
+     36.64089,
+     4
+    ],
+    [
+     137.898,
+     36.651,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F016221",
+   "name": "糸魚川−静岡構造線断層帯北部",
+   "flt_id": "F016221_00006",
+   "lenKm": 16,
+   "widKm": 14,
+   "strikeDeg": 18.9,
+   "dipDeg": 60,
+   "topDepthKm": 4,
+   "topCenter": {
+    "lat": 36.645,
+    "lng": 137.937
+   },
+   "polygonLngLatDep": [
+    [
+     137.937,
+     36.645,
+     4
+    ],
+    [
+     137.99496,
+     36.78141,
+     4
+    ],
+    [
+     138.06901,
+     36.76098,
+     16.12436
+    ],
+    [
+     138.01106,
+     36.62457,
+     16.12436
+    ],
+    [
+     137.937,
+     36.645,
+     4
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F016222",
+   "name": "糸魚川−静岡構造線断層帯中北部",
+   "flt_id": "F016222_00001",
+   "lenKm": 7.8,
+   "widKm": 10,
+   "strikeDeg": 304.6,
+   "dipDeg": 70,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.983,
+    "lng": 138.162
+   },
+   "polygonLngLatDep": [
+    [
+     138.162,
+     35.983,
+     2
+    ],
+    [
+     138.09081,
+     36.02292,
+     2
+    ],
+    [
+     138.11234,
+     36.04829,
+     11.39693
+    ],
+    [
+     138.18354,
+     36.00837,
+     11.39693
+    ],
+    [
+     138.162,
+     35.983,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F016222",
+   "name": "糸魚川−静岡構造線断層帯中北部",
+   "flt_id": "F016222_00002",
+   "lenKm": 5.8,
+   "widKm": 10,
+   "strikeDeg": 330.9,
+   "dipDeg": 70,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 36.023,
+    "lng": 138.091
+   },
+   "polygonLngLatDep": [
+    [
+     138.091,
+     36.023,
+     2
+    ],
+    [
+     138.05971,
+     36.06867,
+     2
+    ],
+    [
+     138.09286,
+     36.08366,
+     11.39693
+    ],
+    [
+     138.12415,
+     36.03799,
+     11.39693
+    ],
+    [
+     138.091,
+     36.023,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F016222",
+   "name": "糸魚川−静岡構造線断層帯中北部",
+   "flt_id": "F016222_00003",
+   "lenKm": 33.9,
+   "widKm": 10,
+   "strikeDeg": 339.2,
+   "dipDeg": 70,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 36.069,
+    "lng": 138.059
+   },
+   "polygonLngLatDep": [
+    [
+     138.059,
+     36.069,
+     2
+    ],
+    [
+     137.92537,
+     36.3546,
+     2
+    ],
+    [
+     137.96086,
+     36.36555,
+     11.39693
+    ],
+    [
+     138.09449,
+     36.07995,
+     11.39693
+    ],
+    [
+     138.059,
+     36.069,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F016223",
+   "name": "糸魚川−静岡構造線断層帯中南部",
+   "flt_id": "F016223_00001",
+   "lenKm": 5.7,
+   "widKm": 14,
+   "strikeDeg": 116,
+   "dipDeg": 70,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 36.079,
+    "lng": 138.049
+   },
+   "polygonLngLatDep": [
+    [
+     138.049,
+     36.079,
+     2
+    ],
+    [
+     138.10588,
+     36.05648,
+     2
+    ],
+    [
+     138.08257,
+     36.0177,
+     15.1557
+    ],
+    [
+     138.0257,
+     36.04021,
+     15.1557
+    ],
+    [
+     138.049,
+     36.079,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F016223",
+   "name": "糸魚川−静岡構造線断層帯中南部",
+   "flt_id": "F016223_00002",
+   "lenKm": 5.7,
+   "widKm": 14,
+   "strikeDeg": 157.7,
+   "dipDeg": 70,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 36.056,
+    "lng": 138.106
+   },
+   "polygonLngLatDep": [
+    [
+     138.106,
+     36.056,
+     2
+    ],
+    [
+     138.13001,
+     36.00847,
+     2
+    ],
+    [
+     138.08084,
+     35.9921,
+     15.1557
+    ],
+    [
+     138.05683,
+     36.03963,
+     15.1557
+    ],
+    [
+     138.106,
+     36.056,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F016223",
+   "name": "糸魚川−静岡構造線断層帯中南部",
+   "flt_id": "F016223_00003",
+   "lenKm": 24,
+   "widKm": 14,
+   "strikeDeg": 141.2,
+   "dipDeg": 70,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 36.007,
+    "lng": 138.131
+   },
+   "polygonLngLatDep": [
+    [
+     138.131,
+     36.007,
+     2
+    ],
+    [
+     138.29781,
+     35.83843,
+     2
+    ],
+    [
+     138.25641,
+     35.81139,
+     15.1557
+    ],
+    [
+     138.08961,
+     35.97996,
+     15.1557
+    ],
+    [
+     138.131,
+     36.007,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F016224",
+   "name": "糸魚川−静岡構造線断層帯南部",
+   "flt_id": "F016224_00001",
+   "lenKm": 11.1,
+   "widKm": 22,
+   "strikeDeg": 137.5,
+   "dipDeg": 45,
+   "topDepthKm": 4,
+   "topCenter": {
+    "lat": 35.828,
+    "lng": 138.26
+   },
+   "polygonLngLatDep": [
+    [
+     138.26,
+     35.828,
+     4
+    ],
+    [
+     138.34299,
+     35.75424,
+     4
+    ],
+    [
+     138.21606,
+     35.65952,
+     19.55635
+    ],
+    [
+     138.13307,
+     35.73328,
+     19.55635
+    ],
+    [
+     138.26,
+     35.828,
+     4
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F016224",
+   "name": "糸魚川−静岡構造線断層帯南部",
+   "flt_id": "F016224_00002",
+   "lenKm": 23.6,
+   "widKm": 22,
+   "strikeDeg": 164,
+   "dipDeg": 45,
+   "topDepthKm": 4,
+   "topCenter": {
+    "lat": 35.755,
+    "lng": 138.343
+   },
+   "polygonLngLatDep": [
+    [
+     138.343,
+     35.755,
+     4
+    ],
+    [
+     138.41493,
+     35.55054,
+     4
+    ],
+    [
+     138.24958,
+     35.51189,
+     19.55635
+    ],
+    [
+     138.17766,
+     35.71635,
+     19.55635
+    ],
+    [
+     138.343,
+     35.755,
+     4
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F016224",
+   "name": "糸魚川−静岡構造線断層帯南部",
+   "flt_id": "F016224_00003",
+   "lenKm": 14.5,
+   "widKm": 22,
+   "strikeDeg": 205.1,
+   "dipDeg": 45,
+   "topDepthKm": 4,
+   "topCenter": {
+    "lat": 35.551,
+    "lng": 138.415
+   },
+   "polygonLngLatDep": [
+    [
+     138.415,
+     35.551,
+     4
+    ],
+    [
+     138.34716,
+     35.43265,
+     4
+    ],
+    [
+     138.1918,
+     35.49213,
+     19.55635
+    ],
+    [
+     138.25963,
+     35.61048,
+     19.55635
+    ],
+    [
+     138.415,
+     35.551,
+     4
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F017001",
+   "name": "宍道（鹿島）断層（ケース1）",
+   "flt_id": "F017001_00001",
+   "lenKm": 26,
+   "widKm": 14,
+   "strikeDeg": 261.8,
+   "dipDeg": 70,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.552,
+    "lng": 133.233
+   },
+   "polygonLngLatDep": [
+    [
+     133.233,
+     35.552,
+     2
+    ],
+    [
+     132.94918,
+     35.51858,
+     2
+    ],
+    [
+     132.94165,
+     35.56129,
+     15.1557
+    ],
+    [
+     133.22547,
+     35.59472,
+     15.1557
+    ],
+    [
+     133.233,
+     35.552,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F017101",
+   "name": "宍道（鹿島）断層（ケース2）",
+   "flt_id": "F017101_00001",
+   "lenKm": 26,
+   "widKm": 14,
+   "strikeDeg": 261.8,
+   "dipDeg": 70,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.552,
+    "lng": 133.233
+   },
+   "polygonLngLatDep": [
+    [
+     133.233,
+     35.552,
+     2
+    ],
+    [
+     132.94918,
+     35.51858,
+     2
+    ],
+    [
+     132.94165,
+     35.56129,
+     15.1557
+    ],
+    [
+     133.22547,
+     35.59472,
+     15.1557
+    ],
+    [
+     133.233,
+     35.552,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F017201",
+   "name": "雨滝－釜戸断層",
+   "flt_id": "F017201_00001",
+   "lenKm": 19,
+   "widKm": 15,
+   "strikeDeg": 315,
+   "dipDeg": 70,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.427,
+    "lng": 134.415
+   },
+   "polygonLngLatDep": [
+    [
+     134.415,
+     35.427,
+     2
+    ],
+    [
+     134.26706,
+     35.54809,
+     2
+    ],
+    [
+     134.307,
+     35.58079,
+     16.09539
+    ],
+    [
+     134.45495,
+     35.4597,
+     16.09539
+    ],
+    [
+     134.415,
+     35.427,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F017301",
+   "name": "鹿野−吉岡断層",
+   "flt_id": "F017301_00001",
+   "lenKm": 30,
+   "widKm": 14,
+   "strikeDeg": 251.6,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.517,
+    "lng": 134.318
+   },
+   "polygonLngLatDep": [
+    [
+     134.318,
+     35.517,
+     2
+    ],
+    [
+     134.00418,
+     35.43165,
+     2
+    ],
+    [
+     134.00418,
+     35.43165,
+     16
+    ],
+    [
+     134.318,
+     35.517,
+     16
+    ],
+    [
+     134.318,
+     35.517,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F017401",
+   "name": "日南湖断層",
+   "flt_id": "F017401_00001",
+   "lenKm": 19,
+   "widKm": 15,
+   "strikeDeg": 146.5,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.277,
+    "lng": 133.276
+   },
+   "polygonLngLatDep": [
+    [
+     133.276,
+     35.277,
+     2
+    ],
+    [
+     133.39127,
+     35.13419,
+     2
+    ],
+    [
+     133.39127,
+     35.13419,
+     17
+    ],
+    [
+     133.276,
+     35.277,
+     17
+    ],
+    [
+     133.276,
+     35.277,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F017501",
+   "name": "岩坪断層",
+   "flt_id": "F017501_00001",
+   "lenKm": 19,
+   "widKm": 15,
+   "strikeDeg": 87.8,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.403,
+    "lng": 133.992
+   },
+   "polygonLngLatDep": [
+    [
+     133.992,
+     35.403,
+     2
+    ],
+    [
+     134.20101,
+     35.40957,
+     2
+    ],
+    [
+     134.20101,
+     35.40957,
+     17
+    ],
+    [
+     133.992,
+     35.403,
+     17
+    ],
+    [
+     133.992,
+     35.403,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F017601",
+   "name": "山崎断層帯（那岐山断層帯）",
+   "flt_id": "F017601_00001",
+   "lenKm": 34,
+   "widKm": 18,
+   "strikeDeg": 262.7,
+   "dipDeg": 45,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 35.171,
+    "lng": 134.239
+   },
+   "polygonLngLatDep": [
+    [
+     134.239,
+     35.171,
+     2
+    ],
+    [
+     133.8688,
+     35.13206,
+     2
+    ],
+    [
+     133.85105,
+     35.24585,
+     14.72792
+    ],
+    [
+     134.22125,
+     35.28479,
+     14.72792
+    ],
+    [
+     134.239,
+     35.171,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F017701",
+   "name": "山崎断層帯（主部北西部区間）",
+   "flt_id": "F017701_00001",
+   "lenKm": 54,
+   "widKm": 18,
+   "strikeDeg": 303.7,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.88,
+    "lng": 134.748
+   },
+   "polygonLngLatDep": [
+    [
+     134.748,
+     34.88,
+     2
+    ],
+    [
+     134.25659,
+     35.15007,
+     2
+    ],
+    [
+     134.25659,
+     35.15007,
+     20
+    ],
+    [
+     134.748,
+     34.88,
+     20
+    ],
+    [
+     134.748,
+     34.88,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F017702",
+   "name": "山崎断層帯（主部南東部区間）",
+   "flt_id": "F017702_00001",
+   "lenKm": 32,
+   "widKm": 18,
+   "strikeDeg": 309.9,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.78,
+    "lng": 135.02
+   },
+   "polygonLngLatDep": [
+    [
+     135.02,
+     34.78,
+     2
+    ],
+    [
+     134.7518,
+     34.96503,
+     2
+    ],
+    [
+     134.7518,
+     34.96503,
+     20
+    ],
+    [
+     135.02,
+     34.78,
+     20
+    ],
+    [
+     135.02,
+     34.78,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F017801",
+   "name": "長者ヶ原－芳井断層",
+   "flt_id": "F017801_00001",
+   "lenKm": 32,
+   "widKm": 18,
+   "strikeDeg": 225.1,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.67,
+    "lng": 133.487
+   },
+   "polygonLngLatDep": [
+    [
+     133.487,
+     34.67,
+     2
+    ],
+    [
+     133.23969,
+     34.46639,
+     2
+    ],
+    [
+     133.23969,
+     34.46639,
+     20
+    ],
+    [
+     133.487,
+     34.67,
+     20
+    ],
+    [
+     133.487,
+     34.67,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F017901",
+   "name": "宇津戸断層",
+   "flt_id": "F017901_00001",
+   "lenKm": 17,
+   "widKm": 17,
+   "strikeDeg": 219.6,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.622,
+    "lng": 133.193
+   },
+   "polygonLngLatDep": [
+    [
+     133.193,
+     34.622,
+     2
+    ],
+    [
+     133.07484,
+     34.50392,
+     2
+    ],
+    [
+     133.07484,
+     34.50392,
+     19
+    ],
+    [
+     133.193,
+     34.622,
+     19
+    ],
+    [
+     133.193,
+     34.622,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F018001",
+   "name": "安田断層",
+   "flt_id": "F018001_00001",
+   "lenKm": 17,
+   "widKm": 17,
+   "strikeDeg": 228.6,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.779,
+    "lng": 133.09
+   },
+   "polygonLngLatDep": [
+    [
+     133.09,
+     34.779,
+     2
+    ],
+    [
+     132.95069,
+     34.67766,
+     2
+    ],
+    [
+     132.95069,
+     34.67766,
+     19
+    ],
+    [
+     133.09,
+     34.779,
+     19
+    ],
+    [
+     133.09,
+     34.779,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F018101",
+   "name": "菊川断層帯（北部区間）",
+   "flt_id": "F018101_00001",
+   "lenKm": 56,
+   "widKm": 18,
+   "strikeDeg": 126.2,
+   "dipDeg": 90,
+   "topDepthKm": 4,
+   "topCenter": {
+    "lat": 34.653,
+    "lng": 130.239
+   },
+   "polygonLngLatDep": [
+    [
+     130.239,
+     34.653,
+     4
+    ],
+    [
+     130.73195,
+     34.35486,
+     4
+    ],
+    [
+     130.73195,
+     34.35486,
+     22
+    ],
+    [
+     130.239,
+     34.653,
+     22
+    ],
+    [
+     130.239,
+     34.653,
+     4
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F018201",
+   "name": "菊川断層帯（中部区間）",
+   "flt_id": "F018201_00001",
+   "lenKm": 44,
+   "widKm": 18,
+   "strikeDeg": 133,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.359,
+    "lng": 130.729
+   },
+   "polygonLngLatDep": [
+    [
+     130.729,
+     34.359,
+     2
+    ],
+    [
+     131.0788,
+     34.08849,
+     2
+    ],
+    [
+     131.0788,
+     34.08849,
+     20
+    ],
+    [
+     130.729,
+     34.359,
+     20
+    ],
+    [
+     130.729,
+     34.359,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F018301",
+   "name": "菊川断層帯（南部区間）",
+   "flt_id": "F018301_00001",
+   "lenKm": 20,
+   "widKm": 18,
+   "strikeDeg": 149.2,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.087,
+    "lng": 131.078
+   },
+   "polygonLngLatDep": [
+    [
+     131.078,
+     34.087,
+     2
+    ],
+    [
+     131.18896,
+     33.93213,
+     2
+    ],
+    [
+     131.18896,
+     33.93213,
+     20
+    ],
+    [
+     131.078,
+     34.087,
+     20
+    ],
+    [
+     131.078,
+     34.087,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F018401",
+   "name": "岩国－五日市断層帯（己斐断層区間）",
+   "flt_id": "F018401_00001",
+   "lenKm": 24,
+   "widKm": 18,
+   "strikeDeg": 219.4,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.493,
+    "lng": 132.507
+   },
+   "polygonLngLatDep": [
+    [
+     132.507,
+     34.493,
+     2
+    ],
+    [
+     132.34114,
+     34.32582,
+     2
+    ],
+    [
+     132.34114,
+     34.32582,
+     20
+    ],
+    [
+     132.507,
+     34.493,
+     20
+    ],
+    [
+     132.507,
+     34.493,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F018501",
+   "name": "岩国−五日市断層帯（五日市断層区間）",
+   "flt_id": "F018501_00001",
+   "lenKm": 28,
+   "widKm": 18,
+   "strikeDeg": 206.8,
+   "dipDeg": 70,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.506,
+    "lng": 132.409
+   },
+   "polygonLngLatDep": [
+    [
+     132.409,
+     34.506,
+     2
+    ],
+    [
+     132.27153,
+     34.2807,
+     2
+    ],
+    [
+     132.21169,
+     34.30573,
+     18.91447
+    ],
+    [
+     132.34916,
+     34.53102,
+     18.91447
+    ],
+    [
+     132.409,
+     34.506,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F018601",
+   "name": "岩国－五日市断層帯（岩国断層区間）",
+   "flt_id": "F018601_00001",
+   "lenKm": 48,
+   "widKm": 18,
+   "strikeDeg": 236.3,
+   "dipDeg": 70,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.282,
+    "lng": 132.277
+   },
+   "polygonLngLatDep": [
+    [
+     132.277,
+     34.282,
+     2
+    ],
+    [
+     131.84331,
+     34.04191,
+     2
+    ],
+    [
+     131.80621,
+     34.08808,
+     18.91447
+    ],
+    [
+     132.2399,
+     34.32817,
+     18.91447
+    ],
+    [
+     132.277,
+     34.282,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F018701",
+   "name": "周防灘断層帯（周防灘断層帯主部区間）",
+   "flt_id": "F018701_00001",
+   "lenKm": 46,
+   "widKm": 18,
+   "strikeDeg": 212.4,
+   "dipDeg": 70,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.019,
+    "lng": 131.637
+   },
+   "polygonLngLatDep": [
+    [
+     131.637,
+     34.019,
+     2
+    ],
+    [
+     131.37014,
+     33.66885,
+     2
+    ],
+    [
+     131.31387,
+     33.69859,
+     18.91447
+    ],
+    [
+     131.58072,
+     34.04874,
+     18.91447
+    ],
+    [
+     131.637,
+     34.019,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F018801",
+   "name": "周防灘断層帯（秋穂沖断層区間）",
+   "flt_id": "F018801_00001",
+   "lenKm": 24,
+   "widKm": 18,
+   "strikeDeg": 218.1,
+   "dipDeg": 70,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 33.932,
+    "lng": 131.525
+   },
+   "polygonLngLatDep": [
+    [
+     131.525,
+     33.932,
+     2
+    ],
+    [
+     131.36483,
+     33.76173,
+     2
+    ],
+    [
+     131.31243,
+     33.79598,
+     18.91447
+    ],
+    [
+     131.4726,
+     33.96625,
+     18.91447
+    ],
+    [
+     131.525,
+     33.932,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F018901",
+   "name": "安芸灘断層帯",
+   "flt_id": "F018901_00001",
+   "lenKm": 28,
+   "widKm": 18,
+   "strikeDeg": 230.4,
+   "dipDeg": 70,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.13,
+    "lng": 132.422
+   },
+   "polygonLngLatDep": [
+    [
+     132.422,
+     34.13,
+     2
+    ],
+    [
+     132.18812,
+     33.9691,
+     2
+    ],
+    [
+     132.14557,
+     34.01186,
+     18.91447
+    ],
+    [
+     132.37946,
+     34.17276,
+     18.91447
+    ],
+    [
+     132.422,
+     34.13,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F019001",
+   "name": "広島湾－岩国沖断層帯",
+   "flt_id": "F019001_00001",
+   "lenKm": 40,
+   "widKm": 18,
+   "strikeDeg": 207,
+   "dipDeg": 70,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.347,
+    "lng": 132.366
+   },
+   "polygonLngLatDep": [
+    [
+     132.366,
+     34.347,
+     2
+    ],
+    [
+     132.16863,
+     34.02571,
+     2
+    ],
+    [
+     132.10901,
+     34.05091,
+     18.91447
+    ],
+    [
+     132.30638,
+     34.3722,
+     18.91447
+    ],
+    [
+     132.366,
+     34.347,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F019101",
+   "name": "宇部南方沖断層",
+   "flt_id": "F019101_00001",
+   "lenKm": 18,
+   "widKm": 16,
+   "strikeDeg": 170.3,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 33.893,
+    "lng": 131.28
+   },
+   "polygonLngLatDep": [
+    [
+     131.28,
+     33.893,
+     2
+    ],
+    [
+     131.31279,
+     33.73304,
+     2
+    ],
+    [
+     131.31279,
+     33.73304,
+     18
+    ],
+    [
+     131.28,
+     33.893,
+     18
+    ],
+    [
+     131.28,
+     33.893,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F019201",
+   "name": "弥栄断層",
+   "flt_id": "F019201_00001",
+   "lenKm": 56,
+   "widKm": 18,
+   "strikeDeg": 227.2,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.787,
+    "lng": 132.21
+   },
+   "polygonLngLatDep": [
+    [
+     132.21,
+     34.787,
+     2
+    ],
+    [
+     131.76106,
+     34.44402,
+     2
+    ],
+    [
+     131.76106,
+     34.44402,
+     20
+    ],
+    [
+     132.21,
+     34.787,
+     20
+    ],
+    [
+     132.21,
+     34.787,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F019301",
+   "name": "地福断層",
+   "flt_id": "F019301_00001",
+   "lenKm": 28,
+   "widKm": 18,
+   "strikeDeg": 228.5,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.405,
+    "lng": 131.73
+   },
+   "polygonLngLatDep": [
+    [
+     131.73,
+     34.405,
+     2
+    ],
+    [
+     131.50192,
+     34.23775,
+     2
+    ],
+    [
+     131.50192,
+     34.23775,
+     20
+    ],
+    [
+     131.73,
+     34.405,
+     20
+    ],
+    [
+     131.73,
+     34.405,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F019401",
+   "name": "大原湖断層",
+   "flt_id": "F019401_00001",
+   "lenKm": 44,
+   "widKm": 18,
+   "strikeDeg": 232.5,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.41,
+    "lng": 131.832
+   },
+   "polygonLngLatDep": [
+    [
+     131.832,
+     34.41,
+     2
+    ],
+    [
+     131.45232,
+     34.16854,
+     2
+    ],
+    [
+     131.45232,
+     34.16854,
+     20
+    ],
+    [
+     131.832,
+     34.41,
+     20
+    ],
+    [
+     131.832,
+     34.41,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F019501",
+   "name": "小郡断層",
+   "flt_id": "F019501_00001",
+   "lenKm": 32,
+   "widKm": 18,
+   "strikeDeg": 207.7,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.158,
+    "lng": 131.439
+   },
+   "polygonLngLatDep": [
+    [
+     131.439,
+     34.158,
+     2
+    ],
+    [
+     131.27769,
+     33.90258,
+     2
+    ],
+    [
+     131.27769,
+     33.90258,
+     20
+    ],
+    [
+     131.439,
+     34.158,
+     20
+    ],
+    [
+     131.439,
+     34.158,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F019601",
+   "name": "筒賀断層",
+   "flt_id": "F019601_00001",
+   "lenKm": 60,
+   "widKm": 18,
+   "strikeDeg": 228.4,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.763,
+    "lng": 132.509
+   },
+   "polygonLngLatDep": [
+    [
+     132.509,
+     34.763,
+     2
+    ],
+    [
+     132.01891,
+     34.40391,
+     2
+    ],
+    [
+     132.01891,
+     34.40391,
+     20
+    ],
+    [
+     132.509,
+     34.763,
+     20
+    ],
+    [
+     132.509,
+     34.763,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F019701",
+   "name": "滝部断層",
+   "flt_id": "F019701_00001",
+   "lenKm": 17,
+   "widKm": 17,
+   "strikeDeg": 116.6,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.33,
+    "lng": 130.867
+   },
+   "polygonLngLatDep": [
+    [
+     130.867,
+     34.33,
+     2
+    ],
+    [
+     131.03218,
+     34.26138,
+     2
+    ],
+    [
+     131.03218,
+     34.26138,
+     19
+    ],
+    [
+     130.867,
+     34.33,
+     19
+    ],
+    [
+     130.867,
+     34.33,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F019801",
+   "name": "奈古断層",
+   "flt_id": "F019801_00001",
+   "lenKm": 17,
+   "widKm": 17,
+   "strikeDeg": 234.4,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.574,
+    "lng": 131.601
+   },
+   "polygonLngLatDep": [
+    [
+     131.601,
+     34.574,
+     2
+    ],
+    [
+     131.45036,
+     34.48479,
+     2
+    ],
+    [
+     131.45036,
+     34.48479,
+     19
+    ],
+    [
+     131.601,
+     34.574,
+     19
+    ],
+    [
+     131.601,
+     34.574,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F019901",
+   "name": "栄谷断層",
+   "flt_id": "F019901_00001",
+   "lenKm": 17,
+   "widKm": 17,
+   "strikeDeg": 217.2,
+   "dipDeg": 70,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.158,
+    "lng": 131.895
+   },
+   "polygonLngLatDep": [
+    [
+     131.895,
+     34.158,
+     2
+    ],
+    [
+     131.78354,
+     34.03593,
+     2
+    ],
+    [
+     131.73332,
+     34.06762,
+     17.97477
+    ],
+    [
+     131.84478,
+     34.18969,
+     17.97477
+    ],
+    [
+     131.895,
+     34.158,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F020001",
+   "name": "黒瀬断層",
+   "flt_id": "F020001_00001",
+   "lenKm": 17,
+   "widKm": 17,
+   "strikeDeg": 234.9,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.399,
+    "lng": 132.784
+   },
+   "polygonLngLatDep": [
+    [
+     132.784,
+     34.399,
+     2
+    ],
+    [
+     132.63274,
+     34.31088,
+     2
+    ],
+    [
+     132.63274,
+     34.31088,
+     19
+    ],
+    [
+     132.784,
+     34.399,
+     19
+    ],
+    [
+     132.784,
+     34.399,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F020101",
+   "name": "中央構造線断層帯（金剛山地東縁区間）",
+   "flt_id": "F020101_00001",
+   "lenKm": 18,
+   "widKm": 18,
+   "strikeDeg": 176.8,
+   "dipDeg": 40,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.549,
+    "lng": 135.66
+   },
+   "polygonLngLatDep": [
+    [
+     135.66,
+     34.549,
+     2
+    ],
+    [
+     135.67095,
+     34.38699,
+     2
+    ],
+    [
+     135.52095,
+     34.38005,
+     13.57018
+    ],
+    [
+     135.51001,
+     34.54206,
+     13.57018
+    ],
+    [
+     135.66,
+     34.549,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F020102",
+   "name": "中央構造線断層帯（五条谷区間）",
+   "flt_id": "FM20102_00001",
+   "lenKm": 30,
+   "widKm": 18,
+   "strikeDeg": 249.5,
+   "dipDeg": 40,
+   "topDepthKm": 4,
+   "topCenter": {
+    "lat": 34.41,
+    "lng": 135.693
+   },
+   "polygonLngLatDep": [
+    [
+     135.693,
+     34.41,
+     4
+    ],
+    [
+     135.38736,
+     34.31529,
+     4
+    ],
+    [
+     135.33484,
+     34.43172,
+     15.57018
+    ],
+    [
+     135.64048,
+     34.52643,
+     15.57018
+    ],
+    [
+     135.693,
+     34.41,
+     4
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F020102",
+   "name": "中央構造線断層帯（五条谷区間）",
+   "flt_id": "FH20102_00001",
+   "lenKm": 34,
+   "widKm": 12,
+   "strikeDeg": 249.5,
+   "dipDeg": 90,
+   "topDepthKm": 4,
+   "topCenter": {
+    "lat": 34.396,
+    "lng": 135.722
+   },
+   "polygonLngLatDep": [
+    [
+     135.722,
+     34.396,
+     4
+    ],
+    [
+     135.37566,
+     34.28866,
+     4
+    ],
+    [
+     135.37566,
+     34.28866,
+     16
+    ],
+    [
+     135.722,
+     34.396,
+     16
+    ],
+    [
+     135.722,
+     34.396,
+     4
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F020103",
+   "name": "中央構造線断層帯（根来区間）",
+   "flt_id": "FH20103_00001",
+   "lenKm": 32,
+   "widKm": 12,
+   "strikeDeg": 258.1,
+   "dipDeg": 90,
+   "topDepthKm": 4,
+   "topCenter": {
+    "lat": 34.301,
+    "lng": 135.429
+   },
+   "polygonLngLatDep": [
+    [
+     135.429,
+     34.301,
+     4
+    ],
+    [
+     135.08886,
+     34.24152,
+     4
+    ],
+    [
+     135.08886,
+     34.24152,
+     16
+    ],
+    [
+     135.429,
+     34.301,
+     16
+    ],
+    [
+     135.429,
+     34.301,
+     4
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F020103",
+   "name": "中央構造線断層帯（根来区間）",
+   "flt_id": "FM20103_00001",
+   "lenKm": 28,
+   "widKm": 18,
+   "strikeDeg": 258.1,
+   "dipDeg": 40,
+   "topDepthKm": 4,
+   "topCenter": {
+    "lat": 34.34,
+    "lng": 135.397
+   },
+   "polygonLngLatDep": [
+    [
+     135.397,
+     34.34,
+     4
+    ],
+    [
+     135.09924,
+     34.28795,
+     4
+    ],
+    [
+     135.06834,
+     34.40958,
+     15.57018
+    ],
+    [
+     135.3661,
+     34.46163,
+     15.57018
+    ],
+    [
+     135.397,
+     34.34,
+     4
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F020104",
+   "name": "中央構造線断層帯（紀淡海峡－鳴門海峡区間）",
+   "flt_id": "FH20104_00001",
+   "lenKm": 46,
+   "widKm": 12,
+   "strikeDeg": 258.5,
+   "dipDeg": 90,
+   "topDepthKm": 4,
+   "topCenter": {
+    "lat": 34.248,
+    "lng": 135.119
+   },
+   "polygonLngLatDep": [
+    [
+     135.119,
+     34.248,
+     4
+    ],
+    [
+     134.62965,
+     34.16532,
+     4
+    ],
+    [
+     134.62965,
+     34.16532,
+     16
+    ],
+    [
+     135.119,
+     34.248,
+     16
+    ],
+    [
+     135.119,
+     34.248,
+     4
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F020104",
+   "name": "中央構造線断層帯（紀淡海峡－鳴門海峡区間）",
+   "flt_id": "FM20104_00001",
+   "lenKm": 44,
+   "widKm": 18,
+   "strikeDeg": 258.5,
+   "dipDeg": 40,
+   "topDepthKm": 4,
+   "topCenter": {
+    "lat": 34.289,
+    "lng": 135.099
+   },
+   "polygonLngLatDep": [
+    [
+     135.099,
+     34.289,
+     4
+    ],
+    [
+     134.6307,
+     34.20992,
+     4
+    ],
+    [
+     134.60084,
+     34.33173,
+     15.57018
+    ],
+    [
+     135.06914,
+     34.41081,
+     15.57018
+    ],
+    [
+     135.099,
+     34.289,
+     4
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F020105",
+   "name": "中央構造線断層帯（讃岐山脈南縁東部区間）",
+   "flt_id": "FM20105_00001",
+   "lenKm": 54,
+   "widKm": 18,
+   "strikeDeg": 257.3,
+   "dipDeg": 40,
+   "topDepthKm": 4,
+   "topCenter": {
+    "lat": 34.219,
+    "lng": 134.642
+   },
+   "polygonLngLatDep": [
+    [
+     134.642,
+     34.219,
+     4
+    ],
+    [
+     134.07032,
+     34.11198,
+     4
+    ],
+    [
+     134.03742,
+     34.23324,
+     15.57018
+    ],
+    [
+     134.6091,
+     34.34026,
+     15.57018
+    ],
+    [
+     134.642,
+     34.219,
+     4
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F020105",
+   "name": "中央構造線断層帯（讃岐山脈南縁東部区間）",
+   "flt_id": "FH20105_00001",
+   "lenKm": 56,
+   "widKm": 12,
+   "strikeDeg": 257.3,
+   "dipDeg": 90,
+   "topDepthKm": 4,
+   "topCenter": {
+    "lat": 34.179,
+    "lng": 134.664
+   },
+   "polygonLngLatDep": [
+    [
+     134.664,
+     34.179,
+     4
+    ],
+    [
+     134.07142,
+     34.06801,
+     4
+    ],
+    [
+     134.07142,
+     34.06801,
+     16
+    ],
+    [
+     134.664,
+     34.179,
+     16
+    ],
+    [
+     134.664,
+     34.179,
+     4
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F020106",
+   "name": "中央構造線断層帯（讃岐山脈南縁西部区間）",
+   "flt_id": "FM20106_00001",
+   "lenKm": 84,
+   "widKm": 18,
+   "strikeDeg": 255.8,
+   "dipDeg": 40,
+   "topDepthKm": 4,
+   "topCenter": {
+    "lat": 34.126,
+    "lng": 134.091
+   },
+   "polygonLngLatDep": [
+    [
+     134.091,
+     34.126,
+     4
+    ],
+    [
+     133.20824,
+     33.94024,
+     4
+    ],
+    [
+     133.17157,
+     34.06075,
+     15.57018
+    ],
+    [
+     134.05433,
+     34.24651,
+     15.57018
+    ],
+    [
+     134.091,
+     34.126,
+     4
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F020106",
+   "name": "中央構造線断層帯（讃岐山脈南縁西部区間）",
+   "flt_id": "FH20106_00001",
+   "lenKm": 86,
+   "widKm": 12,
+   "strikeDeg": 255.8,
+   "dipDeg": 90,
+   "topDepthKm": 4,
+   "topCenter": {
+    "lat": 34.086,
+    "lng": 134.114
+   },
+   "polygonLngLatDep": [
+    [
+     134.114,
+     34.086,
+     4
+    ],
+    [
+     133.21064,
+     33.89581,
+     4
+    ],
+    [
+     133.21064,
+     33.89581,
+     16
+    ],
+    [
+     134.114,
+     34.086,
+     16
+    ],
+    [
+     134.114,
+     34.086,
+     4
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F020107",
+   "name": "中央構造線断層帯（石鎚山脈北縁区間）",
+   "flt_id": "FM20107_00001",
+   "lenKm": 30,
+   "widKm": 18,
+   "strikeDeg": 253.9,
+   "dipDeg": 40,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 33.982,
+    "lng": 133.412
+   },
+   "polygonLngLatDep": [
+    [
+     133.412,
+     33.982,
+     2
+    ],
+    [
+     133.10007,
+     33.907,
+     2
+    ],
+    [
+     133.05869,
+     34.02643,
+     13.57018
+    ],
+    [
+     133.37062,
+     34.10144,
+     13.57018
+    ],
+    [
+     133.412,
+     33.982,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F020107",
+   "name": "中央構造線断層帯（石鎚山脈北縁区間）",
+   "flt_id": "FH20107_00001",
+   "lenKm": 34,
+   "widKm": 14,
+   "strikeDeg": 253.9,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 33.966,
+    "lng": 133.44
+   },
+   "polygonLngLatDep": [
+    [
+     133.44,
+     33.966,
+     2
+    ],
+    [
+     133.08655,
+     33.881,
+     2
+    ],
+    [
+     133.08655,
+     33.881,
+     16
+    ],
+    [
+     133.44,
+     33.966,
+     16
+    ],
+    [
+     133.44,
+     33.966,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F020108",
+   "name": "中央構造線断層帯（石鎚山脈北縁西部区間）",
+   "flt_id": "FM20108_00001",
+   "lenKm": 42,
+   "widKm": 18,
+   "strikeDeg": 248.7,
+   "dipDeg": 40,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 33.928,
+    "lng": 133.234
+   },
+   "polygonLngLatDep": [
+    [
+     133.234,
+     33.928,
+     2
+    ],
+    [
+     132.81079,
+     33.79046,
+     2
+    ],
+    [
+     132.75662,
+     33.90628,
+     13.57018
+    ],
+    [
+     133.17983,
+     34.04382,
+     13.57018
+    ],
+    [
+     133.234,
+     33.928,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F020108",
+   "name": "中央構造線断層帯（石鎚山脈北縁西部区間）",
+   "flt_id": "FH20108_00001",
+   "lenKm": 46,
+   "widKm": 14,
+   "strikeDeg": 248.7,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 33.934,
+    "lng": 133.255
+   },
+   "polygonLngLatDep": [
+    [
+     133.255,
+     33.934,
+     2
+    ],
+    [
+     132.79145,
+     33.78336,
+     2
+    ],
+    [
+     132.79145,
+     33.78336,
+     16
+    ],
+    [
+     133.255,
+     33.934,
+     16
+    ],
+    [
+     133.255,
+     33.934,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F020109",
+   "name": "中央構造線断層帯（伊予灘区間）",
+   "flt_id": "FM20109_00001",
+   "lenKm": 90,
+   "widKm": 18,
+   "strikeDeg": 240.7,
+   "dipDeg": 40,
+   "topDepthKm": 4,
+   "topCenter": {
+    "lat": 33.794,
+    "lng": 132.783
+   },
+   "polygonLngLatDep": [
+    [
+     132.783,
+     33.794,
+     4
+    ],
+    [
+     131.93548,
+     33.39691,
+     4
+    ],
+    [
+     131.86262,
+     33.50532,
+     15.57018
+    ],
+    [
+     132.71013,
+     33.90241,
+     15.57018
+    ],
+    [
+     132.783,
+     33.794,
+     4
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F020109",
+   "name": "中央構造線断層帯（伊予灘区間）",
+   "flt_id": "FH20109_00001",
+   "lenKm": 92,
+   "widKm": 12,
+   "strikeDeg": 240.7,
+   "dipDeg": 90,
+   "topDepthKm": 4,
+   "topCenter": {
+    "lat": 33.779,
+    "lng": 132.805
+   },
+   "polygonLngLatDep": [
+    [
+     132.805,
+     33.779,
+     4
+    ],
+    [
+     131.9388,
+     33.37309,
+     4
+    ],
+    [
+     131.9388,
+     33.37309,
+     16
+    ],
+    [
+     132.805,
+     33.779,
+     16
+    ],
+    [
+     132.805,
+     33.779,
+     4
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F020110",
+   "name": "中央構造線断層帯（豊予海峡−由布院区間）",
+   "flt_id": "FM20110_00001",
+   "lenKm": 36,
+   "widKm": 20,
+   "strikeDeg": 246.4,
+   "dipDeg": 40,
+   "topDepthKm": 4,
+   "topCenter": {
+    "lat": 33.382,
+    "lng": 131.963
+   },
+   "polygonLngLatDep": [
+    [
+     131.963,
+     33.382,
+     4
+    ],
+    [
+     131.60846,
+     33.25205,
+     4
+    ],
+    [
+     131.54254,
+     33.37864,
+     16.85575
+    ],
+    [
+     131.89708,
+     33.50858,
+     16.85575
+    ],
+    [
+     131.963,
+     33.382,
+     4
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F020110",
+   "name": "中央構造線断層帯（豊予海峡−由布院区間）",
+   "flt_id": "FM20110_00002",
+   "lenKm": 16,
+   "widKm": 12,
+   "strikeDeg": 290.3,
+   "dipDeg": 70,
+   "topDepthKm": 4,
+   "topCenter": {
+    "lat": 33.246,
+    "lng": 131.63
+   },
+   "polygonLngLatDep": [
+    [
+     131.63,
+     33.246,
+     4
+    ],
+    [
+     131.46898,
+     33.29605,
+     4
+    ],
+    [
+     131.48426,
+     33.33076,
+     15.27631
+    ],
+    [
+     131.64528,
+     33.28071,
+     15.27631
+    ],
+    [
+     131.63,
+     33.246,
+     4
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F020110",
+   "name": "中央構造線断層帯（豊予海峡−由布院区間）",
+   "flt_id": "FM20110_00003",
+   "lenKm": 14,
+   "widKm": 12,
+   "strikeDeg": 249.6,
+   "dipDeg": 70,
+   "topDepthKm": 4,
+   "topCenter": {
+    "lat": 33.296,
+    "lng": 131.459
+   },
+   "polygonLngLatDep": [
+    [
+     131.459,
+     33.296,
+     4
+    ],
+    [
+     131.31812,
+     33.252,
+     4
+    ],
+    [
+     131.30276,
+     33.28668,
+     15.27631
+    ],
+    [
+     131.44364,
+     33.33068,
+     15.27631
+    ],
+    [
+     131.459,
+     33.296,
+     4
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F020110",
+   "name": "中央構造線断層帯（豊予海峡−由布院区間）",
+   "flt_id": "FH20110_00001",
+   "lenKm": 36,
+   "widKm": 12,
+   "strikeDeg": 246.4,
+   "dipDeg": 90,
+   "topDepthKm": 4,
+   "topCenter": {
+    "lat": 33.362,
+    "lng": 131.974
+   },
+   "polygonLngLatDep": [
+    [
+     131.974,
+     33.362,
+     4
+    ],
+    [
+     131.61954,
+     33.23205,
+     4
+    ],
+    [
+     131.61954,
+     33.23205,
+     16
+    ],
+    [
+     131.974,
+     33.362,
+     16
+    ],
+    [
+     131.974,
+     33.362,
+     4
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F020110",
+   "name": "中央構造線断層帯（豊予海峡−由布院区間）",
+   "flt_id": "FH20110_00002",
+   "lenKm": 16,
+   "widKm": 12,
+   "strikeDeg": 290.3,
+   "dipDeg": 70,
+   "topDepthKm": 4,
+   "topCenter": {
+    "lat": 33.246,
+    "lng": 131.63
+   },
+   "polygonLngLatDep": [
+    [
+     131.63,
+     33.246,
+     4
+    ],
+    [
+     131.46898,
+     33.29605,
+     4
+    ],
+    [
+     131.48426,
+     33.33076,
+     15.27631
+    ],
+    [
+     131.64528,
+     33.28071,
+     15.27631
+    ],
+    [
+     131.63,
+     33.246,
+     4
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F020110",
+   "name": "中央構造線断層帯（豊予海峡−由布院区間）",
+   "flt_id": "FH20110_00003",
+   "lenKm": 14,
+   "widKm": 12,
+   "strikeDeg": 249.6,
+   "dipDeg": 70,
+   "topDepthKm": 4,
+   "topCenter": {
+    "lat": 33.296,
+    "lng": 131.459
+   },
+   "polygonLngLatDep": [
+    [
+     131.459,
+     33.296,
+     4
+    ],
+    [
+     131.31812,
+     33.252,
+     4
+    ],
+    [
+     131.30276,
+     33.28668,
+     15.27631
+    ],
+    [
+     131.44364,
+     33.33068,
+     15.27631
+    ],
+    [
+     131.459,
+     33.296,
+     4
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F022131",
+   "name": "長尾断層帯",
+   "flt_id": "F022131_00001",
+   "lenKm": 32,
+   "widKm": 18,
+   "strikeDeg": 87.1,
+   "dipDeg": 35,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.216,
+    "lng": 133.913
+   },
+   "polygonLngLatDep": [
+    [
+     133.913,
+     34.216,
+     2
+    ],
+    [
+     134.25981,
+     34.2306,
+     2
+    ],
+    [
+     134.26791,
+     34.09784,
+     12.32438
+    ],
+    [
+     133.9211,
+     34.08325,
+     12.32438
+    ],
+    [
+     133.913,
+     34.216,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F022231",
+   "name": "上法軍寺断層",
+   "flt_id": "F022231_00001",
+   "lenKm": 17,
+   "widKm": 17,
+   "strikeDeg": 286.8,
+   "dipDeg": 45,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.247,
+    "lng": 133.906
+   },
+   "polygonLngLatDep": [
+    [
+     133.906,
+     34.247,
+     2
+    ],
+    [
+     133.72933,
+     34.2913,
+     2
+    ],
+    [
+     133.76705,
+     34.39504,
+     14.02082
+    ],
+    [
+     133.94372,
+     34.35074,
+     14.02082
+    ],
+    [
+     133.906,
+     34.247,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F022331",
+   "name": "上浦－西月ノ宮断層",
+   "flt_id": "F022331_00001",
+   "lenKm": 19,
+   "widKm": 15,
+   "strikeDeg": 267.9,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 34.05,
+    "lng": 134.478
+   },
+   "polygonLngLatDep": [
+    [
+     134.478,
+     34.05,
+     2
+    ],
+    [
+     134.27236,
+     34.04372,
+     2
+    ],
+    [
+     134.27236,
+     34.04372,
+     17
+    ],
+    [
+     134.478,
+     34.05,
+     17
+    ],
+    [
+     134.478,
+     34.05,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  },
+  {
+   "code": "F022431",
+   "name": "綱附森断層",
+   "flt_id": "F022431_00001",
+   "lenKm": 19,
+   "widKm": 15,
+   "strikeDeg": 245.8,
+   "dipDeg": 90,
+   "topDepthKm": 2,
+   "topCenter": {
+    "lat": 33.837,
+    "lng": 134.028
+   },
+   "polygonLngLatDep": [
+    [
+     134.028,
+     33.837,
+     2
+    ],
+    [
+     133.84077,
+     33.76678,
+     2
+    ],
+    [
+     133.84077,
+     33.76678,
+     17
+    ],
+    [
+     134.028,
+     33.837,
+     17
+    ],
+    [
+     134.028,
+     33.837,
+     2
+    ]
+   ],
+   "selected": false,
+   "selectedStrict": false
+  }
+ ]
+}

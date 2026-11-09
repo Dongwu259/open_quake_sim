@@ -2968,11 +2968,18 @@ Physics.saParker2022Gal = function(periodKey, trt, mw, rrupKm, vs30, hypoDepthKm
 //  fixture/generator tampering.
 //
 //  Scope (documented limitations):
-//   * Base/global regional variants only (CY14 'CAL' — which is the base
-//     class —, CB14 SJ=false base table, ASK14 region=None California).
-//     The published regional aliases (CY14 JPN/ITA/WEN, CB14 HighQ/LowQ/Japan
-//     site, ASK14 CHN/JPN/TWN) are NOT wired; Italy keeps its BSSA14 lowQ
-//     branch only. Documented in the pack gmpeTree note.
+//   * Regional aliases (R-C batch 2026-11-08): implemented + fixture-locked
+//     for CY14 JPN/ITA/WEN (gjpit mag-window / gwn factors + JPN phi1jp
+//     site column), CB14 HighQ/LowQ (Dc20 overlay; JapanSite/SJ stays
+//     unwired — Japan routing byte-frozen) and ASK14 TWN/CHN/JPN (additive
+//     regional term at the 1180 reference + JPN phi s5/s6). Default args =
+//     base, byte-identical. ADOPTED-BY-MEASUREMENT into packs: taiwan ask14
+//     -> TWN (G-ADOPT passed: |bias| 0.300->0.202, rms 0.407->0.340 on the
+//     taiwan crustal region-obs subset; tools/data/nw2-alias-report.json).
+//     REJECTED-BY-MEASUREMENT: italy cy14 -> ITA (bias AND rms worsen).
+//     Reference-only (never adopted): cy14 JPN/WEN, ask14 CHN/JPN anywhere.
+//     CB14 HighQ/LowQ = user framework decision (NZ crustal data leans
+//     HighQ; frozen in the alias report). Japan aliases stay unwired.
 //   * No measured basin depths anywhere in the engine, so the basin terms
 //     take the hazardlib unmeasured-site defaults: CY14 dz1pt0 = z1 -
 //     z1mean(vs30) = 0 -> EXACTLY 0; ASK14 factor = ln(z1ref/z1ref) = 0 ->
@@ -3063,6 +3070,17 @@ Physics.CB2014_PAPER = {
   '10': { c0: -15.975, c1: 2.132, c2: 0.367, c3: -0.8, c4: -1.282, c5: -2.244, c6: 0.18, c7: 6.564, c8: 0.0, c9: 0.0, c10: 0.0, c11: -0.576, c12: -0.027, c13: 0.297, c14: 0.3506, c15: 0.174, c16: 0.621, c17: 0.0009, c18: 0.0099, c19: 0.00458, c20: 0.0, Dc20: 0.0, a2: 0.596, h1: 0.117, h2: 1.616, h3: -0.733, h5: -0.128, h6: -0.756, k1: 400.0, k2: 0.0, k3: 2.744, phi1: 0.441, phi2: 0.543, tau1: 0.466, tau2: 0.438, rho1pga: 0.111, rho2pga: 0.103, philnAF: 0.3, phiC: 0.237, rholny: 0.154 },
 };
 
+// CB14 HighQ/LowQ regional-branch overlays (R-C alias batch): hazardlib
+// CampbellBozorgnia2014{HighQ,LowQ} aliases carry a per-IMT Dc20 overlay on
+// the anelastic term (C.c20 + Dc20)*(rrup-80) — the ONLY difference from the
+// base/global COEFFS (frozen source campbell_bozorgnia_2014.py coeffs_high/
+// coeffs_low toml blocks, verbatim). The JapanSite/SJ aliases stay unwired
+// (Japan routing is byte-frozen; no measurement set). Keys follow the
+// engine's IMT naming (CB2014_SA_KEYS / 'pga' / 'pgv'); CAV/IA never evaluated.
+Physics.CB2014_DC20 = {
+  'HighQ': { 'pga': 0.0036, 'pgv': 0.0017, '0.01': 0.0036, '0.02': 0.0036, '0.03': 0.0037, '0.05': 0.0040, '0.075': 0.0039, '0.1': 0.0042, '0.15': 0.0042, '0.2': 0.0041, '0.25': 0.0036, '0.3': 0.0031, '0.4': 0.0028, '0.5': 0.0025, '0.75': 0.0016, '1': 0.0006 },
+  'LowQ': { 'pga': -0.0035, 'pgv': -0.0006, '0.01': -0.0035, '0.02': -0.0035, '0.03': -0.0034, '0.05': -0.0037, '0.075': -0.0037, '0.1': -0.0034, '0.15': -0.0030, '0.2': -0.0031, '0.25': -0.0033, '0.3': -0.0035, '0.4': -0.0034, '0.5': -0.0034, '0.75': -0.0032, '1': -0.0030, '1.5': -0.0019, '2': -0.0005 },
+};
 Physics.CB2014_SA_KEYS = ["0.01", "0.02", "0.03", "0.05", "0.075", "0.1", "0.15", "0.2", "0.25", "0.3", "0.4", "0.5", "0.75", "1", "1.5", "2", "3", "4", "5", "7.5", "10"];
 
 Physics.ASK2014_PAPER = {
@@ -3128,7 +3146,7 @@ function _cy2014CenteredZtor(mw, rake, ztor) {
                   : Math.pow(Math.max(2.673 - 1.136 * Math.max(mw - 4.970, 0), 0), 2);
   return ztor - meanZ;
 }
-function _cy2014LnRow(C, mw, rrup, rjb, rx, ztor, dipDeg, rake, vs30) {
+function _cy2014LnRow(C, mw, rrup, rjb, rx, ztor, dipDeg, rake, vs30, region) {
   var K = Physics.CY2014_CONSTS;
   var coshm = Math.cosh(2 * Math.max(mw - 4.5, 0));
   var Frv = (rake >= 30 && rake <= 150) ? 1 : 0;
@@ -3144,9 +3162,21 @@ function _cy2014LnRow(C, mw, rrup, rjb, rx, ztor, dipDeg, rake, vs30) {
     + (K.c11 + C.c11b / coshm) * cosDip2;
   // near-field geometric spreading
   var fG = K.c4 * Math.log(rrup + C.c5 * Math.cosh(C.c6 * Math.max(mw - C.chm, 0)));
-  // far-field distance scaling, region CAL (delta_g = 0)
+  // far-field distance scaling — region CAL base; the hazardlib
+  // get_far_field_distance_scaling overloads add per-region factors on the
+  // magnitude-dependent term f_rm = gamma*rrup ONLY (the c4a-c4 log part is
+  // f_r and stays untouched): JPN/ITA scale f_rm by gjpit inside 6<mag<6.9,
+  // WEN scales it by gwn unconditionally (R-C alias batch; unset region =
+  // CAL byte-identical).
   var gamma = C.cg1 + C.cg2 / Math.cosh(Math.max(mw - C.cg3, 0));
-  var fRm = (K.c4a - K.c4) * Math.log(Math.sqrt(rrup * rrup + K.crb * K.crb)) + gamma * rrup;
+  var fRmDist = (K.c4a - K.c4) * Math.log(Math.sqrt(rrup * rrup + K.crb * K.crb));
+  var fRmMag = gamma * rrup;
+  if (region === 'JPN' || region === 'ITA') {
+    if (mw > 6.0 && mw < 6.9) fRmMag *= C.gjpit;
+  } else if (region === 'WEN') {
+    fRmMag *= C.gwn;
+  }
+  var fRm = fRmDist + fRmMag;
   // hanging wall (use_hw = true); rx < 0 (footwall) contributes 0
   var fhw = 0;
   if (rx >= 0) {
@@ -3157,19 +3187,20 @@ function _cy2014LnRow(C, mw, rrup, rjb, rx, ztor, dipDeg, rake, vs30) {
   // directivity 0 (no rcdpp); delta_c1 off; basin identically 0 (unmeasured)
   var lnYref = C.c1 + fM + fSrc + fG + fRm + fhw;
   var yRef = Math.exp(lnYref);
-  // site (CAL branch): linear + nonlinear
-  var fLin = C.phi1 * Math.min(Math.log(vs30 / K.refVs), 0);
+  // site (CAL branch): linear + nonlinear — JPN swaps the linear coefficient
+  // to the phi1jp column (hazardlib get_linear_site_term region dispatch)
+  var fLin = (region === 'JPN' ? C.phi1jp : C.phi1) * Math.min(Math.log(vs30 / K.refVs), 0);
   var fNlScale = C.phi2 * (Math.exp(C.phi3 * (Math.min(vs30, K.refVs) - 360)) - Math.exp(C.phi3 * (K.refVs - 360)));
   var fNl = fNlScale * Math.log((yRef + C.phi4) / C.phi4);
   return { mean: lnYref + fLin + fNl, yRef: yRef, fNlScale: fNlScale };
 }
-function _cy2014MeanPair(C, CP, period, mw, rrup, rjb, rx, ztor, dipDeg, rake, vs30) {
-  var r = _cy2014LnRow(C, mw, rrup, rjb, rx, ztor, dipDeg, rake, vs30);
+function _cy2014MeanPair(C, CP, period, mw, rrup, rjb, rx, ztor, dipDeg, rake, vs30, region) {
+  var r = _cy2014LnRow(C, mw, rrup, rjb, rx, ztor, dipDeg, rake, vs30, region);
   var mean = r.mean;
   if (period != null && period <= 0.3) {
     // hazardlib compute(): predicted SA at T <= 0.3 s is raised to the PGA
     // mean when it falls below it (paper p.1144).
-    var rp = _cy2014LnRow(CP, mw, rrup, rjb, rx, ztor, dipDeg, rake, vs30);
+    var rp = _cy2014LnRow(CP, mw, rrup, rjb, rx, ztor, dipDeg, rake, vs30, region);
     if (mean < rp.mean) mean = rp.mean;
   }
   return { mean: mean, yRef: r.yRef, fNlScale: r.fNlScale };
@@ -3191,21 +3222,27 @@ function _cy2014Geom(g) {
            ztor: Math.max(0, g.ztor), dip: g.dip, rake: g.rake, vs30: g.vs30 };
 }
 /** Median ln ground motion. imt: 'pga' | 'pgv' | SA period key/number.
- *  geom: {rrup, rjb, rx, ztor, dip, rake, vs30} (km / deg / m/s). */
-Physics.cy2014Ln = function(imt, mw, geom) {
+ *  geom: {rrup, rjb, rx, ztor, dip, rake, vs30} (km / deg / m/s).
+ *  region (R-C alias batch, optional): 'JPN' | 'ITA' | 'WEN' — hazardlib
+ *  get_far_field_distance_scaling overload factors (gjpit mag-window 6-6.9 /
+ *  gwn) + the JPN phi1jp linear-site column; unset = CAL byte-identical.
+ *  Sigma is region-independent in hazardlib (no get_tau/get_phi/get_stddevs
+ *  overloads; the JPN basin sigma rides dz1pt0 = 0 unmeasured) -> cy2014SigmaLn
+ *  stays region-less by design. */
+Physics.cy2014Ln = function(imt, mw, geom, region) {
   var g = _cy2014Geom(geom);
   var CP = Physics.CY2014_PAPER.pga;
   if (imt === 'pga' || imt === 'pgv') {
-    return _cy2014MeanPair(Physics.CY2014_PAPER[imt], CP, null, mw, g.rrup, g.rjb, g.rx, g.ztor, g.dip, g.rake, g.vs30).mean;
+    return _cy2014MeanPair(Physics.CY2014_PAPER[imt], CP, null, mw, g.rrup, g.rjb, g.rx, g.ztor, g.dip, g.rake, g.vs30, region).mean;
   }
   var T = parseFloat(imt);
   if (!isFinite(T)) return null;
   var key = _nw2SaKey(Physics.CY2014_SA_KEYS, T);
-  if (key) return _cy2014MeanPair(Physics.CY2014_PAPER[key], CP, T, mw, g.rrup, g.rjb, g.rx, g.ztor, g.dip, g.rake, g.vs30).mean;
+  if (key) return _cy2014MeanPair(Physics.CY2014_PAPER[key], CP, T, mw, g.rrup, g.rjb, g.rx, g.ztor, g.dip, g.rake, g.vs30, region).mean;
   var br = _nw2SaBracket(Physics.CY2014_SA_KEYS, T);
   if (!br) return null;
-  var lo = _cy2014MeanPair(Physics.CY2014_PAPER[br.lo], CP, br.tLo, mw, g.rrup, g.rjb, g.rx, g.ztor, g.dip, g.rake, g.vs30).mean;
-  var hi = _cy2014MeanPair(Physics.CY2014_PAPER[br.hi], CP, br.tHi, mw, g.rrup, g.rjb, g.rx, g.ztor, g.dip, g.rake, g.vs30).mean;
+  var lo = _cy2014MeanPair(Physics.CY2014_PAPER[br.lo], CP, br.tLo, mw, g.rrup, g.rjb, g.rx, g.ztor, g.dip, g.rake, g.vs30, region).mean;
+  var hi = _cy2014MeanPair(Physics.CY2014_PAPER[br.hi], CP, br.tHi, mw, g.rrup, g.rjb, g.rx, g.ztor, g.dip, g.rake, g.vs30, region).mean;
   return _nw2LerpLn(lo, hi, br, T);
 };
 Physics.cy2014SigmaLn = function(imt, mw, geom) {
@@ -3230,16 +3267,16 @@ Physics.cy2014Sigma = function(imt, mw, geom) {
   return { tau: s.tau / _LN10, phi: s.phi / _LN10, sigmaT: s.sigma / _LN10 };
 };
 Physics.CY2014_G_TO_GAL = 980.665;
-Physics.pgaCy2014 = function(mw, geom) {
-  var pgaGal = Math.exp(Physics.cy2014Ln('pga', mw, geom)) * Physics.CY2014_G_TO_GAL;
+Physics.pgaCy2014 = function(mw, geom, region) {
+  var pgaGal = Math.exp(Physics.cy2014Ln('pga', mw, geom, region)) * Physics.CY2014_G_TO_GAL;
   return Physics.GMPE_PGA_SOFT_CAP * Math.tanh(pgaGal / Physics.GMPE_PGA_SOFT_CAP);
 };
-Physics.pgvCy2014 = function(mw, geom) {
-  var pgv = Math.exp(Physics.cy2014Ln('pgv', mw, geom));
+Physics.pgvCy2014 = function(mw, geom, region) {
+  var pgv = Math.exp(Physics.cy2014Ln('pgv', mw, geom, region));
   return Physics.GMPE_PGV_SOFT_CAP * Math.tanh(pgv / Physics.GMPE_PGV_SOFT_CAP);
 };
-Physics.saCy2014Gal = function(periodKey, mw, geom) {
-  var lnA = Physics.cy2014Ln(periodKey, mw, geom);
+Physics.saCy2014Gal = function(periodKey, mw, geom, region) {
+  var lnA = Physics.cy2014Ln(periodKey, mw, geom, region);
   if (lnA == null) return null;
   var saGal = Math.exp(lnA) * Physics.CY2014_G_TO_GAL;
   return Physics.GMPE_PGA_SOFT_CAP * Math.tanh(saGal / Physics.GMPE_PGA_SOFT_CAP);
@@ -3322,7 +3359,7 @@ function _cb2014Basin(C, vs30) {
   if (z > 3) return C.c16 * C.k3 * Math.exp(-0.75) * (1 - Math.exp(-0.25 * (z - 3)));
   return 0;
 }
-function _cb2014LnRow(C, mw, rrup, rjb, rx, ztor, dipDeg, rake, widthKm, hypoDepthKm, vs30, pgaRock, useSiteVs30) {
+function _cb2014LnRow(C, mw, rrup, rjb, rx, ztor, dipDeg, rake, widthKm, hypoDepthKm, vs30, pgaRock, useSiteVs30, dc20) {
   var fMag = _cb2014MagTerm(C, mw);
   var fGeom = (C.c5 + C.c6 * mw) * Math.log(Math.sqrt(rrup * rrup + C.c7 * C.c7));
   var fFlt = _cb2014Sof(C, mw, rake);
@@ -3335,19 +3372,19 @@ function _cb2014LnRow(C, mw, rrup, rjb, rx, ztor, dipDeg, rake, widthKm, hypoDep
   var fDip = 0;
   if (mw < 4.5) fDip = C.c19 * dipDeg;
   else if (mw <= 5.5) fDip = C.c19 * (5.5 - mw) * dipDeg;
-  var fAtn = rrup >= 80 ? (C.c20 + C.Dc20) * (rrup - 80) : 0;
+  var fAtn = rrup >= 80 ? (C.c20 + (dc20 != null ? dc20 : C.Dc20)) * (rrup - 80) : 0;
   return fMag + fGeom + fFlt + fHw + fSite + fBasin + fHyp + fDip + fAtn;
 }
-function _cb2014Pga1100(CP, mw, rrup, rjb, rx, ztor, dipDeg, rake, widthKm, hypoDepthKm) {
+function _cb2014Pga1100(CP, mw, rrup, rjb, rx, ztor, dipDeg, rake, widthKm, hypoDepthKm, dc20CP) {
   // mean PGA on the rock reference (Vs30 = 1100, basin at z_ref(1100))
-  return Math.exp(_cb2014LnRow(CP, mw, rrup, rjb, rx, ztor, dipDeg, rake, widthKm, hypoDepthKm, 1100, null, false));
+  return Math.exp(_cb2014LnRow(CP, mw, rrup, rjb, rx, ztor, dipDeg, rake, widthKm, hypoDepthKm, 1100, null, false, dc20CP));
 }
-function _cb2014MeanPair(C, CP, period, mw, g) {
-  var pga1100 = _cb2014Pga1100(CP, mw, g.rrup, g.rjb, g.rx, g.ztor, g.dip, g.rake, g.widthKm, g.hypoDepthKm);
-  var mean = _cb2014LnRow(C, mw, g.rrup, g.rjb, g.rx, g.ztor, g.dip, g.rake, g.widthKm, g.hypoDepthKm, g.vs30, pga1100, true);
+function _cb2014MeanPair(C, CP, period, mw, g, dc20, dc20CP) {
+  var pga1100 = _cb2014Pga1100(CP, mw, g.rrup, g.rjb, g.rx, g.ztor, g.dip, g.rake, g.widthKm, g.hypoDepthKm, dc20CP);
+  var mean = _cb2014LnRow(C, mw, g.rrup, g.rjb, g.rx, g.ztor, g.dip, g.rake, g.widthKm, g.hypoDepthKm, g.vs30, pga1100, true, dc20);
   if (period != null && period < 0.25) {
     // hazardlib compute(): SA at T < 0.25 s raised to the soil PGA when lower
-    var pgaSoil = _cb2014LnRow(CP, mw, g.rrup, g.rjb, g.rx, g.ztor, g.dip, g.rake, g.widthKm, g.hypoDepthKm, g.vs30, pga1100, true);
+    var pgaSoil = _cb2014LnRow(CP, mw, g.rrup, g.rjb, g.rx, g.ztor, g.dip, g.rake, g.widthKm, g.hypoDepthKm, g.vs30, pga1100, true, dc20);
     if (mean <= pgaSoil) mean = pgaSoil;
   }
   return { mean: mean, pga1100: pga1100 };
@@ -3391,24 +3428,35 @@ function _cb2014Geom(g) {
 /** Median ln ground motion (g for pga/SA, cm/s for pgv). geom: {mw, rrup,
  *  rjb, rx, ztor, dip, rake, vs30, widthKm?, hypoDepthKm?} — width/hypoDepth
  *  default to the paper's estimators (documented zbot 20 km). */
-Physics.cb2014Ln = function(imt, geom) {
+/** variant (R-C alias batch, optional): 'HighQ' | 'LowQ' — the hazardlib
+ *  CampbellBozorgnia2014{HighQ,LowQ} alias Dc20 overlay on the anelastic
+ *  term (mean path; sigma only via the rock-reference alpha). Unset/other =
+ *  base rows byte-identical (row Dc20 = 0). Keys missing from the overlay
+ *  table fall back to the base row value exactly like hazardlib. */
+function _cb2014Dc20For(variant, imt) {
+  if (!variant || variant === 'base') return null;
+  var t = Physics.CB2014_DC20[variant];
+  return (t && t[imt] != null) ? t[imt] : null;
+}
+Physics.cb2014Ln = function(imt, geom, variant) {
   var g = _cb2014Geom(geom);
   var CP = Physics.CB2014_PAPER.pga;
-  if (imt === 'pga' || imt === 'pgv') return _cb2014MeanPair(Physics.CB2014_PAPER[imt], CP, null, g.mw, g).mean;
+  var dCP = _cb2014Dc20For(variant, 'pga');
+  if (imt === 'pga' || imt === 'pgv') return _cb2014MeanPair(Physics.CB2014_PAPER[imt], CP, null, g.mw, g, _cb2014Dc20For(variant, imt), dCP).mean;
   var T = parseFloat(imt);
   if (!isFinite(T)) return null;
   var key = _nw2SaKey(Physics.CB2014_SA_KEYS, T);
-  if (key) return _cb2014MeanPair(Physics.CB2014_PAPER[key], CP, T, g.mw, g).mean;
+  if (key) return _cb2014MeanPair(Physics.CB2014_PAPER[key], CP, T, g.mw, g, _cb2014Dc20For(variant, key), dCP).mean;
   var br = _nw2SaBracket(Physics.CB2014_SA_KEYS, T);
   if (!br) return null;
-  var lo = _cb2014MeanPair(Physics.CB2014_PAPER[br.lo], CP, br.tLo, g.mw, g).mean;
-  var hi = _cb2014MeanPair(Physics.CB2014_PAPER[br.hi], CP, br.tHi, g.mw, g).mean;
+  var lo = _cb2014MeanPair(Physics.CB2014_PAPER[br.lo], CP, br.tLo, g.mw, g, _cb2014Dc20For(variant, br.lo), dCP).mean;
+  var hi = _cb2014MeanPair(Physics.CB2014_PAPER[br.hi], CP, br.tHi, g.mw, g, _cb2014Dc20For(variant, br.hi), dCP).mean;
   return _nw2LerpLn(lo, hi, br, T);
 };
-Physics.cb2014SigmaLn = function(imt, geom) {
+Physics.cb2014SigmaLn = function(imt, geom, variant) {
   var g = _cb2014Geom(geom);
   var CP = Physics.CB2014_PAPER.pga;
-  var pga1100 = _cb2014Pga1100(CP, g.mw, g.rrup, g.rjb, g.rx, g.ztor, g.dip, g.rake, g.widthKm, g.hypoDepthKm);
+  var pga1100 = _cb2014Pga1100(CP, g.mw, g.rrup, g.rjb, g.rx, g.ztor, g.dip, g.rake, g.widthKm, g.hypoDepthKm, _cb2014Dc20For(variant, 'pga'));
   if (imt === 'pga' || imt === 'pgv') return _cb2014SigmaRow(Physics.CB2014_PAPER[imt], CP, g.mw, g.vs30, pga1100);
   var T = parseFloat(imt);
   if (!isFinite(T)) return null;
@@ -3425,16 +3473,16 @@ Physics.cb2014Sigma = function(imt, geom) {
   return { tau: s.tau / _LN10, phi: s.phi / _LN10, sigmaT: s.sigma / _LN10 };
 };
 Physics.CB2014_G_TO_GAL = 980.665;
-Physics.pgaCb2014 = function(geom) {
-  var pgaGal = Math.exp(Physics.cb2014Ln('pga', geom)) * Physics.CB2014_G_TO_GAL;
+Physics.pgaCb2014 = function(geom, variant) {
+  var pgaGal = Math.exp(Physics.cb2014Ln('pga', geom, variant)) * Physics.CB2014_G_TO_GAL;
   return Physics.GMPE_PGA_SOFT_CAP * Math.tanh(pgaGal / Physics.GMPE_PGA_SOFT_CAP);
 };
-Physics.pgvCb2014 = function(geom) {
-  var pgv = Math.exp(Physics.cb2014Ln('pgv', geom));
+Physics.pgvCb2014 = function(geom, variant) {
+  var pgv = Math.exp(Physics.cb2014Ln('pgv', geom, variant));
   return Physics.GMPE_PGV_SOFT_CAP * Math.tanh(pgv / Physics.GMPE_PGV_SOFT_CAP);
 };
-Physics.saCb2014Gal = function(periodKey, geom) {
-  var lnA = Physics.cb2014Ln(periodKey, geom);
+Physics.saCb2014Gal = function(periodKey, geom, variant) {
+  var lnA = Physics.cb2014Ln(periodKey, geom, variant);
   if (lnA == null) return null;
   var saGal = Math.exp(lnA) * Physics.CB2014_G_TO_GAL;
   return Physics.GMPE_PGA_SOFT_CAP * Math.tanh(saGal / Physics.GMPE_PGA_SOFT_CAP);
@@ -3514,7 +3562,33 @@ function _ask2014Basin(vs30) {
   var factor = Math.log((z1ref + 0.01) / (z1ref + 0.01));
   return 0 * factor; // f2(vs30) * factor + adj(0); f2 irrelevant at factor 0
 }
-function _ask2014LnRow(C, period, mw, rrup, rx, ry0, ztor, dipDeg, rake, widthKm, vs30, sa1180, rockRef) {
+// hazardlib _get_regional_term (R-C alias batch): TWN/CHN/JPN additive
+// terms — evaluated at the 1180 m/s REFERENCE in the hazardlib mean equation
+// (both the rock and the site row carry it, because _get_sa_at_1180 is a
+// full mean evaluation at the reference). California/undefined = 0
+// (byte-identical base).
+function _ask2014Regional(C, period, rrup, region) {
+  if (!region || region === 'CAL') return 0;
+  if (region === 'TWN') {
+    var vs30star = Math.min(1180, _ask2014V1(period));
+    return C.a31 * Math.log(vs30star / C.vlin) + C.a25 * rrup;
+  }
+  if (region === 'CHN') return C.a28 * rrup;
+  if (region === 'JPN') {
+    // page 1043: linear interpolation of a36..a42 over the vs30 grid
+    // [150, 250, 350, 450, 600, 850, 1150, 2000], flat beyond both ends.
+    var x = 1180;
+    var xs = [150, 250, 350, 450, 600, 850, 1150, 2000];
+    var vs = [C.a36, C.a37, C.a38, C.a39, C.a40, C.a41, C.a42, C.a42];
+    if (x <= xs[0]) return vs[0] + C.a29 * rrup;
+    for (var i = 1; i < xs.length; i++) {
+      if (x <= xs[i]) return vs[i - 1] + (vs[i] - vs[i - 1]) * (x - xs[i - 1]) / (xs[i] - xs[i - 1]) + C.a29 * rrup;
+    }
+    return vs[vs.length - 1] + C.a29 * rrup;
+  }
+  return 0;
+}
+function _ask2014LnRow(C, period, mw, rrup, rx, ry0, ztor, dipDeg, rake, widthKm, vs30, sa1180, rockRef, region) {
   // rockRef: evaluate at Vs30 = 1180 with reference shaking 0 (the sa1180
   // construction of _get_sa_at_1180) — basin term stays 0 there as well.
   var v = rockRef ? 1180 : vs30;
@@ -3526,17 +3600,23 @@ function _ask2014LnRow(C, period, mw, rrup, rx, ry0, ztor, dipDeg, rake, widthKm
     + _ask2014FaultStyle(C, mw, rake)
     + 0 // aftershock f11: off (mainshock use)
     + _ask2014Basin(v)
-    + 0; // regional term: None (California base)
+    + _ask2014Regional(C, period, rrup, region);
 }
-function _ask2014MeanPair(C, period, mw, g) {
-  var sa1180 = Math.exp(_ask2014LnRow(C, period, mw, g.rrup, g.rx, g.ry0, g.ztor, g.dip, g.rake, g.widthKm, 1180, null, true));
-  return { mean: _ask2014LnRow(C, period, mw, g.rrup, g.rx, g.ry0, g.ztor, g.dip, g.rake, g.widthKm, g.vs30, sa1180, false), sa1180: sa1180 };
+function _ask2014MeanPair(C, period, mw, g, region) {
+  var sa1180 = Math.exp(_ask2014LnRow(C, period, mw, g.rrup, g.rx, g.ry0, g.ztor, g.dip, g.rake, g.widthKm, 1180, null, true, region));
+  return { mean: _ask2014LnRow(C, period, mw, g.rrup, g.rx, g.ry0, g.ztor, g.dip, g.rake, g.widthKm, g.vs30, sa1180, false, region), sa1180: sa1180 };
 }
-function _ask2014SigmaRow(C, period, mw, rrup, vs30, sa1180) {
+function _ask2014SigmaRow(C, period, mw, rrup, vs30, sa1180, region) {
   // vs30measured = false -> estimated pair s1e/s2e (regional grids)
   var phiAl = C.s1e + (C.s2e - C.s1e) / 2 * (mw - 4);
   if (mw < 4) phiAl = C.s1e;
   if (mw >= 6) phiAl = C.s2e;
+  if (region === 'JPN') {
+    // hazardlib _get_phi_al_regional_JPN (paper p.1046 eq. 26): pure
+    // distance piecewise on s5/s6 — no magnitude dependence; tau unchanged.
+    phiAl = rrup < 30 ? C.s5
+      : (rrup <= 80 ? C.s5 + (C.s6 - C.s5) / 50 * (rrup - 30) : C.s6);
+  }
   var tauAl = C.s3 + (C.s4 - C.s3) / 2 * (mw - 5);
   if (mw < 5) tauAl = C.s3;
   if (mw >= 7) tauAl = C.s4;
@@ -3559,24 +3639,27 @@ function _ask2014Geom(g) {
 /** Median ln ground motion (g for pga/SA, cm/s for pgv). geom: {mw, rrup,
  *  rx, ry0, ztor, dip, rake, vs30, widthKm?} — width defaults to the
  *  engine's W&C crustal width (ASK14 publishes none; documented). */
-Physics.ask2014Ln = function(imt, geom) {
+/** region (R-C alias batch, optional): 'TWN' | 'CHN' | 'JPN' — hazardlib
+ *  AbrahamsonEtAl2014Reg{CHN,JPN,TWN} aliases (additive regional term +
+ *  JPN intra-event phi). Unset = California base byte-identical. */
+Physics.ask2014Ln = function(imt, geom, region) {
   var g = _ask2014Geom(geom);
-  if (imt === 'pga' || imt === 'pgv') return _ask2014MeanPair(Physics.ASK2014_PAPER[imt], null, g.mw, g).mean;
+  if (imt === 'pga' || imt === 'pgv') return _ask2014MeanPair(Physics.ASK2014_PAPER[imt], null, g.mw, g, region).mean;
   var T = parseFloat(imt);
   if (!isFinite(T)) return null;
   var key = _nw2SaKey(Physics.ASK2014_SA_KEYS, T);
-  if (key) return _ask2014MeanPair(Physics.ASK2014_PAPER[key], T, g.mw, g).mean;
+  if (key) return _ask2014MeanPair(Physics.ASK2014_PAPER[key], T, g.mw, g, region).mean;
   var br = _nw2SaBracket(Physics.ASK2014_SA_KEYS, T);
   if (!br) return null;
-  var lo = _ask2014MeanPair(Physics.ASK2014_PAPER[br.lo], br.tLo, g.mw, g).mean;
-  var hi = _ask2014MeanPair(Physics.ASK2014_PAPER[br.hi], br.tHi, g.mw, g).mean;
+  var lo = _ask2014MeanPair(Physics.ASK2014_PAPER[br.lo], br.tLo, g.mw, g, region).mean;
+  var hi = _ask2014MeanPair(Physics.ASK2014_PAPER[br.hi], br.tHi, g.mw, g, region).mean;
   return _nw2LerpLn(lo, hi, br, T);
 };
-Physics.ask2014SigmaLn = function(imt, geom) {
+Physics.ask2014SigmaLn = function(imt, geom, region) {
   var g = _ask2014Geom(geom);
   function rowSig(C, period) {
-    var sa1180 = Math.exp(_ask2014LnRow(C, period, g.mw, g.rrup, g.rx, g.ry0, g.ztor, g.dip, g.rake, g.widthKm, 1180, null, true));
-    return _ask2014SigmaRow(C, period, g.mw, g.rrup, g.vs30, sa1180);
+    var sa1180 = Math.exp(_ask2014LnRow(C, period, g.mw, g.rrup, g.rx, g.ry0, g.ztor, g.dip, g.rake, g.widthKm, 1180, null, true, region));
+    return _ask2014SigmaRow(C, period, g.mw, g.rrup, g.vs30, sa1180, region);
   }
   if (imt === 'pga' || imt === 'pgv') return rowSig(Physics.ASK2014_PAPER[imt], null);
   var T = parseFloat(imt);
@@ -3593,16 +3676,16 @@ Physics.ask2014Sigma = function(imt, geom) {
   return { tau: s.tau / _LN10, phi: s.phi / _LN10, sigmaT: s.sigma / _LN10 };
 };
 Physics.ASK2014_G_TO_GAL = 980.665;
-Physics.pgaAsk2014 = function(geom) {
-  var pgaGal = Math.exp(Physics.ask2014Ln('pga', geom)) * Physics.ASK2014_G_TO_GAL;
+Physics.pgaAsk2014 = function(geom, region) {
+  var pgaGal = Math.exp(Physics.ask2014Ln('pga', geom, region)) * Physics.ASK2014_G_TO_GAL;
   return Physics.GMPE_PGA_SOFT_CAP * Math.tanh(pgaGal / Physics.GMPE_PGA_SOFT_CAP);
 };
-Physics.pgvAsk2014 = function(geom) {
-  var pgv = Math.exp(Physics.ask2014Ln('pgv', geom));
+Physics.pgvAsk2014 = function(geom, region) {
+  var pgv = Math.exp(Physics.ask2014Ln('pgv', geom, region));
   return Physics.GMPE_PGV_SOFT_CAP * Math.tanh(pgv / Physics.GMPE_PGV_SOFT_CAP);
 };
-Physics.saAsk2014Gal = function(periodKey, geom) {
-  var lnA = Physics.ask2014Ln(periodKey, geom);
+Physics.saAsk2014Gal = function(periodKey, geom, region) {
+  var lnA = Physics.ask2014Ln(periodKey, geom, region);
   if (lnA == null) return null;
   var saGal = Math.exp(lnA) * Physics.ASK2014_G_TO_GAL;
   return Physics.GMPE_PGA_SOFT_CAP * Math.tanh(saGal / Physics.GMPE_PGA_SOFT_CAP);
@@ -3870,6 +3953,43 @@ Physics.layeredTravelTime = function(horizontalKm, depthKm, phase, surfaceVeloci
 
 Physics.pTravelTime = function(horizontalKm, depthKm, surfaceVelocity, stationLat, stationLng) { return Physics.layeredTravelTime(horizontalKm,depthKm,'P',surfaceVelocity,stationLat,stationLng); };
 Physics.sTravelTime = function(horizontalKm, depthKm, surfaceVelocity, stationLat, stationLng) { return Physics.layeredTravelTime(horizontalKm,depthKm,'S',surfaceVelocity,stationLat,stationLng); };
+
+// Wavefront radius = inverse of layeredTravelTime in horizontalKm: the largest
+// X with travel(X) <= elapsed. Station activations ride the layered clock
+// (preComputeArrivals -> pTravelTime/sTravelTime over the same IASP91 stack,
+// head wave included), so wave rings drawn from the straight-ray
+// sqrt((v*t)^2 - d^2) formula used to sit tens of km INSIDE the discs they
+// gate — circles lit up ahead of the ring, worse with distance. Monotone in
+// horizontalKm (direct ray and head wave both grow with X), so a memo table +
+// binary search inverts it cheaply enough for the per-frame ring loop.
+Physics._wavefrontTables = {};
+Physics.WAVEFRONT_RADIUS_MAX_KM = 2600;
+Physics.wavefrontRadiusKm = function(phase, elapsedSec, depthKm, surfaceVelocity) {
+  elapsedSec = Number(elapsedSec) || 0;
+  if (!(elapsedSec > 0)) return 0;
+  depthKm = Math.max(0, Number(depthKm) || 0);
+  surfaceVelocity = Number(surfaceVelocity) || 0;
+  var key = (phase === 'S' ? 'S|' : 'P|') + depthKm.toFixed(2) + '|' + surfaceVelocity.toFixed(3);
+  var table = Physics._wavefrontTables[key];
+  if (!table) {
+    if (Object.keys(Physics._wavefrontTables).length > 96) Physics._wavefrontTables = {};
+    table = [];
+    var fn = phase === 'S' ? Physics.sTravelTime : Physics.pTravelTime;
+    for (var x = 0; x <= Physics.WAVEFRONT_RADIUS_MAX_KM; x += 2) table.push(fn(x, depthKm, surfaceVelocity));
+    Physics._wavefrontTables[key] = table;
+  }
+  var last = table.length - 1;
+  if (elapsedSec <= table[0]) return 0; // has not reached the surface yet
+  if (elapsedSec >= table[last]) {
+    // Past the table: keep growing with the tail slope (head-wave regime).
+    var tailSlope = last > 0 ? (table[last] - table[last - 1]) / 2 : 1; // s per km
+    return Physics.WAVEFRONT_RADIUS_MAX_KM + (elapsedSec - table[last]) / Math.max(tailSlope, 1e-9);
+  }
+  var lo = 0, hi = last;
+  while (hi - lo > 1) { var mid = (lo + hi) >> 1; if (table[mid] <= elapsedSec) lo = mid; else hi = mid; }
+  var seg = table[hi] - table[lo];
+  return lo * 2 + (seg > 0 ? (elapsedSec - table[lo]) / seg * 2 : 0);
+};
 
 /**
  * Official JMA instrumental-intensity workflow for three-component acceleration.
@@ -4338,12 +4458,18 @@ Physics._pshaBranchMotion = function(modelName, imt, srcType, mw, rRupKm, depthK
     // block). dip defaults to the crustal prior 60 deg.
     if (modelName === 'cy14' || modelName === 'cb14' || modelName === 'ask14') {
       var wT = imt.slice(3);
+      // R-C alias batch: the pack gmpeTree branch may freeze a regional
+      // alias in the variant slot (cy14 ITA/JPN/WEN, ask14 TWN/CHN/JPN,
+      // cb14 HighQ/LowQ). Only measured-gate-passing aliases are frozen
+      // into packs (taiwan ask14 -> TWN, 2026-11-08); others stay unset =
+      // base.
+      var wVar = (typeof variant === 'string' && variant) ? variant : undefined;
       var wGeom = Physics.nw2PointGeom(mw, rRupKm, depthKm, vs30, rake, null);
-      var wGal = modelName === 'cy14' ? Physics.saCy2014Gal(wT, mw, wGeom)
-        : (modelName === 'cb14' ? Physics.saCb2014Gal(wT, wGeom) : Physics.saAsk2014Gal(wT, wGeom));
+      var wGal = modelName === 'cy14' ? Physics.saCy2014Gal(wT, mw, wGeom, wVar)
+        : (modelName === 'cb14' ? Physics.saCb2014Gal(wT, wGeom, wVar) : Physics.saAsk2014Gal(wT, wGeom, wVar));
       if (wGal == null) return null;
       var wSig = modelName === 'cy14' ? Physics.cy2014Sigma(wT, mw, wGeom)
-        : (modelName === 'cb14' ? Physics.cb2014Sigma(wT, wGeom) : Physics.ask2014Sigma(wT, wGeom));
+        : (modelName === 'cb14' ? Physics.cb2014Sigma(wT, wGeom) : Physics.ask2014Sigma(wT, wGeom, wVar));
       if (!wSig) return null;
       return { median: wGal, sigmaLog10: wSig.sigmaT };
     }
@@ -4372,17 +4498,18 @@ Physics._pshaBranchMotion = function(modelName, imt, srcType, mw, rRupKm, depthK
     // (nw2PointGeom derives Rrup from the source depth; documented on the
     // model block).
     var wGeom2 = Physics.nw2PointGeom(mw, rRupKm, depthKm, vs30, rake, null);
+    var wVar2 = (typeof variant === 'string' && variant) ? variant : undefined; // R-C alias batch
     if (imt === 'pga') {
-      var wPga = modelName === 'cy14' ? Physics.pgaCy2014(mw, wGeom2)
-        : (modelName === 'cb14' ? Physics.pgaCb2014(wGeom2) : Physics.pgaAsk2014(wGeom2));
+      var wPga = modelName === 'cy14' ? Physics.pgaCy2014(mw, wGeom2, wVar2)
+        : (modelName === 'cb14' ? Physics.pgaCb2014(wGeom2, wVar2) : Physics.pgaAsk2014(wGeom2, wVar2));
       var wSigP = modelName === 'cy14' ? Physics.cy2014Sigma('pga', mw, wGeom2)
-        : (modelName === 'cb14' ? Physics.cb2014Sigma('pga', wGeom2) : Physics.ask2014Sigma('pga', wGeom2));
+        : (modelName === 'cb14' ? Physics.cb2014Sigma('pga', wGeom2) : Physics.ask2014Sigma('pga', wGeom2, wVar2));
       return { median: wPga, sigmaLog10: wSigP.sigmaT };
     }
-    var wPgv = modelName === 'cy14' ? Physics.pgvCy2014(mw, wGeom2)
-      : (modelName === 'cb14' ? Physics.pgvCb2014(wGeom2) : Physics.pgvAsk2014(wGeom2));
+    var wPgv = modelName === 'cy14' ? Physics.pgvCy2014(mw, wGeom2, wVar2)
+      : (modelName === 'cb14' ? Physics.pgvCb2014(wGeom2, wVar2) : Physics.pgvAsk2014(wGeom2, wVar2));
     var wSigV = modelName === 'cy14' ? Physics.cy2014Sigma('pgv', mw, wGeom2)
-      : (modelName === 'cb14' ? Physics.cb2014Sigma('pgv', wGeom2) : Physics.ask2014Sigma('pgv', wGeom2));
+      : (modelName === 'cb14' ? Physics.cb2014Sigma('pgv', wGeom2) : Physics.ask2014Sigma('pgv', wGeom2, wVar2));
     return { median: wPgv, sigmaLog10: wSigV.sigmaT };
   }
   if (modelName === 'zhao2006') {

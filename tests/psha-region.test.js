@@ -58,7 +58,7 @@ const FROZEN = {
   california: { cells: 1616, mainshocks: 685, rp475: 651.8, rp2500: 1094.5 },
   italy:      { cells: 4510, mainshocks: 577, rp475: 117.0, rp2500: 249.5 },
   chile:      { cells: 7940, mainshocks: 3376, rp475: 826.1, rp2500: 1950.1 },
-  taiwan:     { cells: 1218, mainshocks: 997, rp475: 502.3, rp2500: 1111.1 },
+  taiwan:     { cells: 1218, mainshocks: 997, rp475: 499.8, rp2500: 1108.6 }, // R-C alias batch (2026-11-08): ask14 -> TWN adopted, 502.3->499.8 / 1111.1->1108.6
   newzealand: { cells: 2765, mainshocks: 711, rp475: 387.3, rp2500: 1081.4 },
   ecuador:    { cells: 3387, mainshocks: 898, rp475: 300.5, rp2500: 629.7 }
 };
@@ -206,6 +206,11 @@ test('regional engine — uhs + deaggregate smoke at every regional city', () =>
 //   Santiago 0.2s 1827.1->1835.9 / 0.5s 1014.1->1017.2 / 1.0s 451.3->451.6
 //     (megathrust-dominated; the crustal fraction shift is small)
 //   Taipei 0.2s 1210.4->1233.3 / 0.5s 905.4->910.3 / 1.0s 455.4->456.3
+//   R-C alias batch (2026-11-08): taiwan ask14 branch -> TWN regional alias
+//   (G-ADOPT passed: |bias| 0.300->0.202, rms 0.407->0.340 on the taiwan
+//   crustal region-obs subset; tools/data/nw2-alias-report.json):
+//   RP475 502.3->499.8 / RP2500 1111.1->1108.6, UHS 0.2s 1233.3->1230.7 /
+//   0.5s 910.3->912.5 / 1.0s 456.3->456.5 (four-model tree, ask14 weight 0.25)
 //   Wellington 0.2s 889.3->889.4 / 0.5s 535.4->536.0 / 1.0s 244.7->245.4
 // PGA anchors (FROZEN.rp475/rp2500 above) re-based in the same batch. Japan
 // keeps the zhao collapse byte-identical (asserted below).
@@ -213,7 +218,7 @@ const FROZEN_UHS_475 = {
   california: { '0.20': 1600.6, '0.50': 1011.9, '1.00': 542.6 },
   italy:      { '0.20': 263.2, '0.50': 147.2, '1.00': 70.1 },
   chile:      { '0.20': 1835.9, '0.50': 1017.2, '1.00': 451.6 },
-  taiwan:     { '0.20': 1233.3, '0.50': 910.3, '1.00': 456.3 },
+  taiwan:     { '0.20': 1230.7, '0.50': 912.5, '1.00': 456.5 }, // R-C alias batch (2026-11-08): 1233.3->1230.7 / 910.3->912.5 / 456.3->456.5 (ask14 TWN)
   newzealand: { '0.20': 889.4, '0.50': 536.0, '1.00': 245.4 },
   // Ecuador batch (2026-10-14): Quito anchors from the first v2 pack build
   ecuador:    { '0.20': 736.3, '0.50': 462.7, '1.00': 203.6 }

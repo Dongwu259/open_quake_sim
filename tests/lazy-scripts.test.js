@@ -30,7 +30,7 @@ function sha1_6(file) {
 const LAZY_FILES = [
   'observed-fault-models.js', 'finite-fault.js', 'waveform-analysis.js',
   'moment-tensor.js', 'waveform-data.js', 'strong-motion-data.js',
-  'strong-motion-waveforms.js',
+  'strong-motion-waveforms.js', 'doctor.js',
 ];
 
 test('LAZY_SCRIPTS manifest carries current content hashes', () => {

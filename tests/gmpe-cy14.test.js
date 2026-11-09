@@ -31,6 +31,9 @@ function geomOf(p) {
            ztor: p[IX.ztor], dip: p[IX.dip], rake: p[IX.rake], vs30: p[IX.vs30] };
 }
 
+// R-C alias batch: 'reg-<REGION>' grid rows replay through the alias arg.
+const regionOf = (grid) => (grid && grid.indexOf('reg-') === 0) ? grid.slice(4) : undefined;
+
 // --- hand-transcribed spot cells (so a tampered fixture/generator cannot
 // silently bless wrong coefficients — the full table is ALSO locked
 // row-by-row against the fixture below) ------------------------------------
@@ -58,7 +61,7 @@ test('cy14 — coefficient table matches the hazardlib transcription', () => {
 });
 
 test('cy14 — fixture grid covers the structural boundaries', () => {
-  assert.strictEqual(fixture.points.length, 17856, 'frozen grid size');
+  assert.strictEqual(fixture.points.length, 18018, 'frozen grid size');
   const dips = new Set(), rakes = new Set(), vs30 = new Set(), ztor = new Set(), imts = new Set(), grids = new Set();
   for (const p of fixture.points) {
     dips.add(p[IX.dip]); rakes.add(p[IX.rake]); vs30.add(p[IX.vs30]);
@@ -69,13 +72,13 @@ test('cy14 — fixture grid covers the structural boundaries', () => {
   assert.ok(rakes.has(30) && rakes.has(150) && rakes.has(-30) && rakes.has(-150),
     'style-of-faulting boundary rakes pinned (CY14 windows are INCLUSIVE)');
   assert.strictEqual(imts.size, 26, 'all 26 IMT rows exercised');
-  assert.deepStrictEqual([...grids].sort(), ['core', 'hw', 'rakeBnd', 'sa'], 'grid families');
+  assert.deepStrictEqual([...grids].sort(), ['core', 'hw', 'rakeBnd', 'reg-ITA', 'reg-JPN', 'reg-WEN', 'sa'], 'grid families');
 });
 
 test('cy14 — medians reproduce the hazardlib reference at every fixture point', () => {
   let worst = 0, worstPoint = null;
   for (const p of fixture.points) {
-    const lnA = Physics.cy2014Ln(p[IX.imt], p[IX.mag], geomOf(p));
+    const lnA = Physics.cy2014Ln(p[IX.imt], p[IX.mag], geomOf(p), regionOf(p[IX.grid]));
     const d = Math.abs(lnA - p[IX.lnA]);
     if (d > worst) { worst = d; worstPoint = p; }
   }
@@ -87,6 +90,7 @@ test('cy14 — medians reproduce the hazardlib reference at every fixture point'
 test('cy14 — sigma/tau/phi reproduce hazardlib at every fixture point (ln units)', () => {
   let worst = 0, worstPoint = null;
   for (const p of fixture.points) {
+    if (p[IX.sigma] == null) continue; // regional mean-only rows (sigma region-independent)
     const s = Physics.cy2014SigmaLn(p[IX.imt], p[IX.mag], geomOf(p));
     const d = Math.abs(s.sigma - p[IX.sigma]) + Math.abs(s.tau - p[IX.tau]) + Math.abs(s.phi - p[IX.phi]);
     if (d > worst) { worst = d; worstPoint = p; }

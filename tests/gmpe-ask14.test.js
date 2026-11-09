@@ -31,6 +31,9 @@ function geomOf(p) {
            widthKm: p[IX.widthKm] == null ? undefined : p[IX.widthKm] };
 }
 
+// R-C alias batch: 'reg-<REGION>' grid rows replay through the region arg.
+const regionOf = (grid) => (grid && grid.indexOf('reg-') === 0) ? grid.slice(4) : undefined;
+
 // --- hand-transcribed spot cells (so a tampered fixture/generator cannot
 // silently bless wrong coefficients — the full table is ALSO locked
 // row-by-row against the fixture below) ------------------------------------
@@ -57,7 +60,7 @@ test('ask14 — coefficient table matches the hazardlib transcription', () => {
 });
 
 test('ask14 — fixture grid covers the structural boundaries', () => {
-  assert.strictEqual(fixture.points.length, 17800, 'frozen grid size');
+  assert.strictEqual(fixture.points.length, 17962, 'frozen grid size');
   const dips = new Set(), rakes = new Set(), vs30 = new Set(), imts = new Set(), grids = new Set(), ry0 = new Set();
   for (const p of fixture.points) {
     dips.add(p[IX.dip]); rakes.add(p[IX.rake]); vs30.add(p[IX.vs30]);
@@ -69,13 +72,13 @@ test('ask14 — fixture grid covers the structural boundaries', () => {
     'style-of-faulting boundary rakes pinned (STRICT windows)');
   assert.ok(ry0.has(3) && ry0.has(8), 'T5 along-strike taper pinned');
   assert.strictEqual(imts.size, 24, 'all 24 IMT rows exercised');
-  assert.deepStrictEqual([...grids].sort(), ['core', 'hw', 'rakeBnd', 'sa'], 'grid families');
+  assert.deepStrictEqual([...grids].sort(), ['core', 'hw', 'rakeBnd', 'reg-CHN', 'reg-JPN', 'reg-TWN', 'sa'], 'grid families');
 });
 
 test('ask14 — medians reproduce the hazardlib reference at every fixture point', () => {
   let worst = 0, worstPoint = null;
   for (const p of fixture.points) {
-    const lnA = Physics.ask2014Ln(p[IX.imt], geomOf(p));
+    const lnA = Physics.ask2014Ln(p[IX.imt], geomOf(p), regionOf(p[IX.grid]));
     const d = Math.abs(lnA - p[IX.lnA]);
     if (d > worst) { worst = d; worstPoint = p; }
   }
@@ -87,7 +90,8 @@ test('ask14 — medians reproduce the hazardlib reference at every fixture point
 test('ask14 — sigma/tau/phi reproduce hazardlib at every fixture point (ln units)', () => {
   let worst = 0, worstPoint = null;
   for (const p of fixture.points) {
-    const s = Physics.ask2014SigmaLn(p[IX.imt], geomOf(p));
+    if (p[IX.sigma] == null) continue; // regional mean-only rows (TWN/CHN)
+    const s = Physics.ask2014SigmaLn(p[IX.imt], geomOf(p), regionOf(p[IX.grid]));
     const d = Math.abs(s.sigma - p[IX.sigma]) + Math.abs(s.tau - p[IX.tau]) + Math.abs(s.phi - p[IX.phi]);
     if (d > worst) { worst = d; worstPoint = p; }
   }

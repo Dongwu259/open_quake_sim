@@ -45,6 +45,8 @@ const ROLES = {
   'jshis-comparison-report.json': { kind: 'scorecard', track: 'R8 external gate', gate: 'tests/jshis-comparison.test.js' },
   'jshis-decompose-report.json': { kind: 'scorecard', track: 'R8 rectification (eqcode decomposition)', gate: 'tests/jshis-decompose.test.js' },
   'erc-scenario-rate-review.json': { kind: 'review', track: 'R8 rectification (ERC primary-source scenario-rate review)', gate: 'tests/jshis-decompose.test.js' },
+  'jshis-capital-faults.json': { kind: 'fixture', track: 'R-A capital multigeo (J-SHIS fltinfo geometry freeze)', gate: 'tests/psha-capital-multigeo.test.js' },
+  'psha-capital-multigeo-report.json': { kind: 'experiment', track: 'R-A capital multigeo (measured-not-adopted)', gate: 'tests/psha-capital-multigeo.test.js' },
   'version-report.json': { kind: 'envelope', track: 'R7-5', gate: 'tuning-read audit' },
   'experiment-manifest.json': { kind: 'manifest', track: 'v6.0', gate: 'self' }
 };

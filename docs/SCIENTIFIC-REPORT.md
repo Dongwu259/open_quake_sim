@@ -105,10 +105,30 @@
 **② ERC 情景率一次文献复核**(总表算定基准日 2026-01-01,`ichiran.pdf` sha256 钉死):
 
 - **南海 3 模式 KEEP**:我方 1/117 与 ERC 均值 **117.4 年**逐位吻合(1361..1946 六事件五间隔);ERC 2025-09-26 改訂两法并列(発生間隔のみ BPT P30=20~50% / 滑り量依存 BPT 60~90%以上,70% 信用区间,防灾强调高值)——我方平稳率 + BPT 注册表的双框架处理与 ERC 语义一致;
-- **首都直下 KEEP-RATE + FIX-CITATION**:率 0.04013/yr 保持(官方标题口径 70%/30 年泊松反算;原始间隔 27.5 年直算 0.03636/yr 在 ERC 有效数字舍入内);**引用纠错**——正确一次文献是相模トラフ長期評価第二版(2014-04-25,ポアソン,平均 27.5 年),非模型原记的 2017-04-21,死链已换;模型重生成数值零漂移(锚全过)。残余=单几何集中度(ERC 70% 覆盖南関東多震源,我方钉单点),由 LND 臂实测(东京 0.725 低估,集中度未表现为高估),多几何摊分登记为后续候选批;
+- **首都直下 KEEP-RATE + FIX-CITATION**:率 0.04013/yr 保持(官方标题口径 70%/30 年泊松反算;原始间隔 27.5 年直算 0.03636/yr 在 ERC 有效数字舍入内);**引用纠错**——正确一次文献是相模トラフ長期評価第二版(2014-04-25,ポアソン,平均 27.5 年),非模型原记的 2017-04-21,死链已换;模型重生成数值零漂移(锚全过)。残余=单几何集中度(ERC 70% 覆盖南関東多震源,我方钉单点),由 LND 臂实测(东京 0.725 低估,集中度未表现为高估),多几何摊分登记为后续候选批(**2026-10-17 更正:「我方钉单点」不成立——该源实为 v1 起无几何的死源,详见 §3.5**);
 - **日本海沟 M9 DEFER**:ERC 时间依赖 30 年=ほぼ0%(2011 后経過率 0.02-0.03)→官方产品同样不承载,缺失非对官方差异;长程平稳入包(~1/600-1/1200/yr,2011 前参考栏 P30 4-6% 量级)是框架决策(平稳完备性 vs 官方 TD 对齐),留用户拍板。
 
 **残差结论更新**:1.83× 尾部分量在俯冲侧;率侧合规后,可归因残余=GMPE 侧(zhao PSV→PGV 代理、逻辑树近场行为)与情景几何——无率侧整改空间,继续对准 J-SHIS 调任何参数仍属红线。
+
+### 3.5 R-A 首都直下多几何摊分(2026-10-17):测量性否决——死源发现与复活过冲
+
+开放研究队列 R-A(HANDOVER-2 §4)。三个冻结件(`tools/fetch-jshis-capital-faults.js` → `jshis-capital-faults.json`;`tools/psha-capital-multigeo.js` → `psha-capital-multigeo-report.json`;7 锚 tripwire `tests/psha-capital-multigeo.test.js`):
+
+**① 死源发现(先于测量)**——shipped 模型的 `tokyoInland` 情景自 PSHA v1(2026-09-01)起**无 lat/lng、无 patches**,引擎点源兜底 `s.lat ?? 0` 把它钉在 (0,0) Null 岛——ERC 伞率 0.04013/yr 的首都 M7.3 特征源对全部场址贡献 ≈0。R8 的全部冻结锚(东京 901.9、LND ×0.725 等)都是在这个源缺席状态下测的,自洽;但 §3.4 登记的「单几何集中度残余」前提不成立(已就地更正)——真实前史是**复活**,注册问题改写为:把伞率摊到官方 J-SHIS 断层几何上能否把 LND 臂拉回平价。
+
+**② 数据面(J-SHIS fltinfo 通道,2026-10-17 实测全通)**——地震活動モデル情報 API `/map/api/pshm/Y2024/AVR/{ltecode}/fltinfo.geojson`(矩形断层面:top-center+strike/dip/len/wid/topDepth+3D 角点多边形);ltecode 枚举 `getLtecodeList.cgi?version=Y2024`(477 条=171 海域评价区+306 F 码活断层带)。预登记选择规则:独立段 F 码(A-F 组合后缀排除防双计)+ 多边形任一角点落入南関東域盒 lat∈[34.90,36.25]×lng∈[139.00,140.45] → **16 个断层面**(strict 敏感子盒 11 面),总迹长 **393.0 km**(立川/深谷 72 km/綾瀬川×2/三浦半島群×3/伊勢原/北伊豆/太田等),231 码全量拉取无选择性丢弃。
+
+**③ 预登记与测量**(假设+判定门先于首跑写入工具头;J-SHIS 侧曲线复用 R8 冻结报告逐字嵌入,离线同基):
+
+- 臂组:lndBaseline(死源原状)/ lndSingle(单几何复活,app.js 预设位 35.62/139.75/17 km)/ lndMulti(16 面 W1 迹长加权)/ lndMultiEqual(等权 W2)/ lndMultiStrict(strict 子盒)/ ttl 组;
+- **H-A0 过**(基线逐位复现 R8 六站 LND 比,引擎无漂移)→ 对比基础有效;
+- **东京 LND RP475**:J-SHIS 官方仅 **15.6 cm/s**;我方基线 11.3(×0.725)→ 单几何复活 **481.9 cm/s(×30.8)**、多几何摊分 **79.7 cm/s(×5.10)**(等权 ×5.06、strict ×5.73——对加权与子集选择稳健);
+- **判定:H-A2/H-A3/H-A4 否定**(nagoya LND 0.856→1.033 越过 0.10 门;×5.10 ≫ 1.30 上限;TTL 东京 1.585→1.911 越过 R8 结论保全门),H-A1/H-A5 过——**MEASURED-NOT-ADOPTED**,机械判决无人工覆盖。
+
+**④ 机制(数字自明)**——ERC 70%/30yr 伞率的语义是「南関東全域任意 M7 级事件」,**横跨地壳+板内+板缘**(关东下菲律宾海板片):官方 eqcode 分解把该类活动的大部记入 PPE(海溝型)臂,J-SHIS 的 LND 东京 RP475 才会低至 15.6 cm/s。把伞率全额当纯地壳特征源复活(无论单点还是 16 面摊分)等于把官方已在俯冲臂记账的率再在地壳臂记一遍——任何集中式处理都过冲 ≥×5。LND 臂东京 0.725 的欠估部分由此获得结构性解释,而非几何集中度。
+
+**⑤ 处置**——`tokyoInland` 条目**按测量保留无几何状态**(hazard 贡献 ≈0 与全部冻结锚一致;复活已被门否决),包内 provenance/limitations 落地披露死源事实与 R-A 指针(cells/scenarios 字节不动,东京 901.9 等锚零漂移;研究清单 sha256 同步刷新);R8「残差在俯冲侧」结论完好(TTL 东京 1.585↔PPE 1.587 的重合不被破坏,复活才会破坏它)。重开条件:只有当官方按 eqcode 公布 M7 级首都活动的**分类率分解**时,按类摊分复活才可重新立项。
+
 
 ---
 
@@ -431,6 +451,8 @@ CS v4 线关闭两项:P-SV fullTensor 序列(v12 解冻条件触发,QD series �
 | `tools/data/jshis-comparison-report.json` | `node tools/fetch-jshis-comparison.js` | tests/jshis-comparison.test.js |
 | `tools/data/jshis-decompose-report.json`(eqcode 分解:PPE/LND 分量对照+H1-H3 判定) | `node tools/jshis-decompose.js`(`--offline` 复用嵌入曲线) | tests/jshis-decompose.test.js |
 | `tools/data/erc-scenario-rate-review.json`(ERC 一次文献情景率复核) | 手工冻结(数字出自 ichiran 总表 2026-01-01/南海手引き/相模トラフ第二版,sha256 钉死) | tests/jshis-decompose.test.js |
+| `tools/data/jshis-capital-faults.json`(R-A:231 F 码全量拉取,16 面南関東选择+strict 子盒) | `node tools/fetch-jshis-capital-faults.js --write`(选择规则预登记在工具头) | tests/psha-capital-multigeo.test.js |
+| `tools/data/psha-capital-multigeo-report.json`(R-A:死源发现+多几何复活测量,H-A0..A5 机械判决=NOT-ADOPTED) | `node tools/psha-capital-multigeo.js --write`(假设+门预登记在先;离线复用 R8 嵌入曲线) | tests/psha-capital-multigeo.test.js |
 | `tools/data/psha-attribution-report.json` | `node tools/psha-attribution.js` | tests/psha-attribution.test.js |
 | `tools/data/strong-motion-report.json` | `node tools/scorecard-strong-motion.js` | tests/strong-motion*.test.js |
 | `tools/data/dynamic-rupture-report.json` | `node tools/dynamic-rupture/run-experiment.js` | tests/dynamic-rupture*.test.js |

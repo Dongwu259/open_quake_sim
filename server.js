@@ -1796,6 +1796,27 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+// GET /api/doctor — asset inventory for the client doctor panel.
+if (reqPath === '/api/doctor' && req.method === 'GET') {
+  const ip = _reqIp;
+  const now = Date.now();
+  let bucket = _doctorRateBuckets[ip];
+  if (!bucket || now > bucket.reset) bucket = _doctorRateBuckets[ip] = { count: 0, reset: now + 60000 };
+  bucket.count++;
+  if (bucket.count > 30) {
+    res.writeHead(429, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ ok: false, error: 'Too many requests. Try again later.' }));
+    return;
+  }
+  _doctorReport(_doctorRoots(), (report) => {
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' });
+    res.end(JSON.stringify(report));
+  });
+  return;
+}
+
+
+
   // ---- Admin API ----
   // POST /api/admin/login
   if (reqPath === '/api/admin/login' && req.method === 'POST') {
@@ -4404,6 +4425,170 @@ function _proxyTtsSynthesis(clientReq, res, text, voice) {
     upstreamReq.destroy();
   });
 }
+// ---- Doctor: deployment asset inventory (audio / map basemap / data packages)
+// Disk truth for the client doctor panel (settings -> resource diagnostics):
+// what actually exists on THIS server. Everything reported here is HEAD-
+// probeable one file at a time anyway, so the inventory itself is public;
+// 30/min/IP just keeps an enumerator from hammering the disk, and the sha256
+// sweep is memoised per (path, mtime, size) so repeated polls cost a stat, not
+// a re-hash of ~50 MB of frozen data.
+
+// 22 required alert/shindo sounds (same list as tools/validate-audio-assets.js)
+const DOCTOR_REQUIRED_SOUNDS = [
+  'EEW1', 'EEW2', 'EEW_alert', 'EEW_canceled', 'PGA1', 'PGA2',
+  'Shindo0', 'Shindo1', 'Shindo2', 'Shindo1_alert', 'Shindo2_alert',
+  'Shindo3_alert', 'Shindo4_alert', 'Shindo5m_alert', 'Shindo5p_alert',
+  'Shindo6m_alert', 'Shindo6p_alert', 'Shindo7_alert',
+  'Tsunami_1', 'Tsunami_2', 'Tsunami_3', 'Tsunami_lifted',
+];
+// CSIS 12-level lazy sounds (tools/generate-intensity12-sounds.js)
+const DOCTOR_INTENSITY12 = ['1','2','3','4','5','6','7','8','9','10','11','12'];
+// Bulletin concatenation fragments (tools/bulletin-builder.js getFragmentCatalog
+// semantics + the shindo short words); English has no ph_hour/ph_min.
+function doctorBulletinFragmentNames(lang) {
+  const names = [];
+  for (let i = 0; i < 100; i++) names.push('num_' + String(i).padStart(2, '0'));
+  for (let i = 1; i <= 47; i++) names.push('pref_' + String(i).padStart(2, '0'));
+  names.push('int_0','int_1','int_2','int_3','int_4','int_5m','int_5p','int_6m','int_6p','int_7');
+  if (lang === 'en') {
+    names.push('ph_intro1','ph_intro2','ph_mag','ph_depth','ph_km','ph_decimal',
+      'ph_tsu_major','ph_tsu_warning','ph_tsu_advisory','ph_affected');
+  } else {
+    names.push('ph_hour','ph_min','ph_intro1','ph_intro2','ph_mag','ph_depth','ph_km','ph_decimal',
+      'ph_tsu_major','ph_tsu_warning','ph_tsu_advisory','ph_affected');
+  }
+  names.push('1','2','3','4','5-','5+','6-','6+','7','foreign');
+  return names;
+}
+// Offline vector basemap set (loadJapanGeoJSON + regionEnsureGlobalBase)
+const DOCTOR_BASEMAP_FILES = [
+  'coastline_10m.json', 'japan_prefectures.geojson', 'jma_subareas.json',
+  'world-coastline-10m.json', 'world-land-10m.json',
+];
+// terrainPromises row files (app.js lazy terrain loads)
+const DOCTOR_TERRAIN_FILES = [
+  'bathymetry.json', 'vs30.json', 'jma_tsunami_forecast_areas.json',
+  'research_data_manifest.json', 'historical_tsunami_observations.json',
+  'jivsm-bedrock.json', 'sb-spectral-ratio.json', 'jayaram2011-rho.json', 'jivsm-columns.json',
+];
+const DOCTOR_REGIONS = ['california', 'italy', 'chile', 'taiwan', 'newzealand', 'ecuador'];
+
+let _doctorTestRoots = null; // { sounds, public } override for hermetic tests
+let _doctorShaCache = {};      // absPath -> { m: mtimeMs, s: size, h: hex }
+const _doctorRateBuckets = {};
+
+function _doctorRoots() {
+  return _doctorTestRoots || { sounds: SOUNDS, public: PUBLIC };
+}
+
+function _doctorSha256(file, cb) {
+  const st = fs.statSync(file);
+  const hit = _doctorShaCache[file];
+  if (hit && hit.m === st.mtimeMs && hit.s === st.size) { cb(hit.h); return; }
+  const hash = CRYPTO.createHash('sha256');
+  const stream = fs.createReadStream(file);
+  stream.on('data', (c) => hash.update(c));
+  stream.on('error', () => cb(null));
+  stream.on('end', () => {
+    const hex = hash.digest('hex');
+    _doctorShaCache[file] = { m: st.mtimeMs, s: st.size, h: hex };
+    cb(hex);
+  });
+}
+
+// Inventory builder — async (sha256 sweep), callback style to stay
+// dependency-free. `roots` lets tests point every scan at a temp tree.
+function _doctorReport(roots, done) {
+  const geojsonDir = path.join(roots.public, 'geojson');
+  const out = {
+    status: 'ok',
+    audio: {},
+    map: { offlineVector: [], localTiles: { installed: false, note: 'optional layer (download-tiles.js)' } },
+    packages: { terrain: [], regions: [], faultModelIndex: false },
+    manifest: { resources: [], checked: 0 },
+    time: new Date().toISOString(),
+  };
+  const degraded = () => { out.status = 'degraded'; };
+
+  // 1) Audio: required + CSIS 12-level + bulletin fragments, per language.
+  const langs = ['jp', 'en', 'zh'];
+  const fragmentJobs = []; // [absPath, slot]
+  langs.forEach((lang) => {
+    const dir = path.join(roots.sounds, lang);
+    const reqMissing = [], i12Missing = [], fragMissing = [];
+    DOCTOR_REQUIRED_SOUNDS.forEach((n) => { if (!fs.existsSync(path.join(dir, n + '.wav'))) reqMissing.push(n + '.wav'); });
+    DOCTOR_INTENSITY12.forEach((n) => { if (!fs.existsSync(path.join(dir, 'Intensity' + n + '.wav'))) i12Missing.push('Intensity' + n + '.wav'); });
+    doctorBulletinFragmentNames(lang).forEach((n) => {
+      const rel = 'info/female/' + n + '.wav';
+      if (!fs.existsSync(path.join(dir, rel))) fragMissing.push(rel);
+    });
+    if (reqMissing.length) degraded(); // alert sounds are core UX
+    out.audio[lang] = {
+      required: { total: DOCTOR_REQUIRED_SOUNDS.length, missing: reqMissing },
+      intensity12: { total: DOCTOR_INTENSITY12.length, missing: i12Missing },
+      bulletinFragments: { total: doctorBulletinFragmentNames(lang).length, missing: fragMissing },
+    };
+  });
+
+  // 2) Map: offline vector basemap + optional local tile package.
+  DOCTOR_BASEMAP_FILES.forEach((f) => {
+    const ok = fs.existsSync(path.join(geojsonDir, f));
+    if (!ok) degraded();
+    out.map.offlineVector.push({ file: f, ok: ok });
+  });
+  try {
+    const tileDir = path.join(roots.public, 'tiles', 'osm');
+    out.map.localTiles.installed = fs.existsSync(tileDir) &&
+      fs.readdirSync(tileDir, { withFileTypes: true }).some((e) => e.isDirectory());
+  } catch (e) { /* stays false -> optional */ }
+
+  // 3) Data packages: terrain rows + region packs + fault-model registry.
+  DOCTOR_TERRAIN_FILES.forEach((f) => {
+    const ok = fs.existsSync(path.join(geojsonDir, f));
+    if (!ok) degraded();
+    out.packages.terrain.push({ file: f, ok: ok });
+  });
+  DOCTOR_REGIONS.forEach((rid) => {
+    const pack = fs.existsSync(path.join(geojsonDir, 'region-' + rid + '.json'));
+    const stations = fs.existsSync(path.join(geojsonDir, 'region-stations-' + rid + '.json'));
+    const areas = fs.existsSync(path.join(geojsonDir, 'region-areas-' + rid + '.json'));
+    const vs30 = fs.existsSync(path.join(geojsonDir, 'region-vs30-' + rid + '.json'));
+    if (!pack || !stations) degraded();
+    out.packages.regions.push({ region: rid, pack: pack, stations: stations, areas: areas, vs30: vs30 });
+  });
+  out.packages.faultModelIndex = fs.existsSync(path.join(geojsonDir, 'fault-models', 'index.json'));
+  if (!out.packages.faultModelIndex) degraded();
+
+  // 4) research_data_manifest sha256 reconciliation (ready resources only).
+  let manifest = null;
+  try {
+    manifest = JSON.parse(fs.readFileSync(path.join(geojsonDir, 'research_data_manifest.json'), 'utf8'));
+  } catch (e) { degraded(); out.manifest.error = 'manifest unreadable'; }
+  if (manifest && Array.isArray(manifest.resources)) {
+    const jobs = manifest.resources.filter((r) => r.path && r.sha256);
+    out.manifest.checked = jobs.length;
+    let left = jobs.length;
+    if (!left) { done(out); return; }
+    jobs.forEach((r) => {
+      const abs = path.join(roots.public, r.path);
+      if (!fs.existsSync(abs)) {
+        degraded();
+        out.manifest.resources.push({ id: r.id, path: r.path, exists: false, sha256Ok: false });
+        if (!--left) done(out);
+        return;
+      }
+      _doctorSha256(abs, (hex) => {
+        const ok = hex === r.sha256;
+        if (!ok) degraded();
+        out.manifest.resources.push({ id: r.id, path: r.path, exists: true, sha256Ok: ok });
+        if (!--left) done(out);
+      });
+    });
+  } else {
+    done(out);
+  }
+}
+
 process.on('SIGTERM', gracefulShutdown);
 process.on('SIGINT', gracefulShutdown);
 
@@ -4446,5 +4631,15 @@ module.exports._test = {
     return WAVEFORM_UPSTREAM + '?net=' + meta.net + '&sta=' + meta.sta + '&loc=' + meta.loc +
       '&cha=' + meta.cha + '&starttime=' + iso(endMs - windowSec * 1000) + '&endtime=' + iso(endMs);
   },
-  exportRateLimitReset: function() { _exportRateLimit = {}; }
+  exportRateLimitReset: function() { _exportRateLimit = {}; },
+  // doctor inventory test hooks: point every scan at a temp tree, call the
+  // builder directly, and reset the sha256 memo between tests
+  doctorReport: function(roots, cb) { _doctorReport(roots, cb); },
+  doctorSetRoots: function(roots) { _doctorTestRoots = roots; },
+  doctorReset: function() { _doctorTestRoots = null; _doctorShaCache = {}; },
+  doctorFragmentNames: doctorBulletinFragmentNames,
+  doctorLists: function() {
+    return { required: DOCTOR_REQUIRED_SOUNDS, intensity12: DOCTOR_INTENSITY12,
+             basemap: DOCTOR_BASEMAP_FILES, terrain: DOCTOR_TERRAIN_FILES, regions: DOCTOR_REGIONS };
+  }
 };

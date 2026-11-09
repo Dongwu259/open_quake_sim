@@ -395,7 +395,7 @@ function main() {
       sourceType: 'crustal', depthKm: 17,
       strikeDeg: 135, dipDeg: 60, rakeDeg: 120,
       provenance: {
-        geometry: 'app.js PRESETS.tokyoInland (hypothetical capital-inland M7.3 class)',
+        geometry: 'geometry-free since v1 (UNINTENTIONAL omission — the entry never carried lat/lng or patches, so the engine point-scenario fallback parks it at (0,0) and it contributes ~zero hazard; discovered 2026-10-17). R-A (2026-10-17) measured revival over official J-SHIS fltinfo geometries (16 planes, umbrella rate conserved, pre-registered gates): tokyo LND RP475 ratio 0.725 -> x5.097 multi-geometry / x30.8 single-geometry — REFUTED (H-A2/H-A3/H-A4), entry retained geometry-free BY MEASUREMENT, see tools/data/psha-capital-multigeo-report.json + tools/data/jshis-capital-faults.json',
         rate: 'Earthquake Research Committee, Long-term evaluation of seismic activity along the Sagami Trough, 2nd edition (2014-04-25): M7-class southern-Kanto earthquakes, mean recurrence 27.5 yr, Poisson process -> 70% within 30 years; lambda=-ln(1-0.70)/30 (primary-interval value 1/27.5=0.03636/yr is within ERC 1-significant-figure rounding of the headline 70%; rate kept at the headline back-conversion, citation corrected 2026-10-13 — the 2017-04-21 attribution was a provenance error, review: tools/data/erc-scenario-rate-review.json)',
         sourceUrl: 'https://www.jishin.go.jp/resource/column/kohyo_sum_kohyo_sum/',
         accessed: 'figure is public record; page reachable via proxy only from this network (2026-09-01)'
@@ -576,6 +576,7 @@ function main() {
       catalog: 'tools/data/psha/comcat-' + REGION + '.json (USGS ComCat, public domain)',
       limitations: IS_JAPAN ? [
         'simplified self-computed model — NOT the official J-SHIS/ERC source model (external comparison frozen in tools/data/jshis-comparison-report.json + psha-attribution-report.json)',
+        'capital M7.3 scenario entry is geometry-free BY MEASUREMENT (R-A 2026-10-17): reviving the ERC umbrella rate over official J-SHIS fltinfo geometries over-predicts the J-SHIS LND arm at Tokyo x5.1 (single geometry x30.8; pre-registered gates H-A2/A3/A4 failed) — the umbrella semantically spans crustal+slab+interface M7-class activity which the official eqcode partition carries mostly in its subduction component; the dead entry contributes ~zero hazard and all frozen J-SHIS anchors (R8) bake that state in (tools/data/psha-capital-multigeo-report.json)',
         'v2 Nankai scenarios use POISSON long-run rates (ERC plain-interval BPT set, 1/117 yr total, 4/1/1 mode split) — the ERC time-dependent 60-90%+/30yr view is intentionally not Poisson-converted; Japan-trench M9-class recurrence still carried by no scenario (Sanriku long-RP hazard underestimated)',
         'gridded GR truncated at class Mmax without renormalisation',
         'class-level rake simplification (interplate reverse 90, others neutral); gridded Rrup via equal-area circular patch at hypocentre depth',

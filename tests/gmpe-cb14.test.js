@@ -35,6 +35,9 @@ function geomOf(p) {
            hypoDepthKm: p[IX.hypoDepthKm] == null ? undefined : p[IX.hypoDepthKm] };
 }
 
+// R-C alias batch: 'reg-<VARIANT>' grid rows replay through the variant arg.
+const regionOf = (grid) => (grid && grid.indexOf('reg-') === 0) ? grid.slice(4) : undefined;
+
 // --- hand-transcribed spot cells (so a tampered fixture/generator cannot
 // silently bless wrong coefficients — the full table is ALSO locked
 // row-by-row against the fixture below) ------------------------------------
@@ -65,7 +68,7 @@ test('cb14 — coefficient table matches the hazardlib transcription', () => {
 });
 
 test('cb14 — fixture grid covers the structural boundaries', () => {
-  assert.strictEqual(fixture.points.length, 17532, 'frozen grid size');
+  assert.strictEqual(fixture.points.length, 17604, 'frozen grid size');
   const dips = new Set(), rakes = new Set(), rrup = new Set(), ztor = new Set(), imts = new Set(), grids = new Set();
   for (const p of fixture.points) {
     dips.add(p[IX.dip]); rakes.add(p[IX.rake]); rrup.add(p[IX.rrup]);
@@ -76,13 +79,13 @@ test('cb14 — fixture grid covers the structural boundaries', () => {
   assert.ok(rakes.has(30) && rakes.has(150) && rakes.has(-30) && rakes.has(-150),
     'style-of-faulting boundary rakes pinned (CB14 windows are STRICT)');
   assert.strictEqual(imts.size, 23, 'all 23 carried IMT rows exercised');
-  assert.deepStrictEqual([...grids].sort(), ['core', 'hw', 'rakeBnd', 'sa'], 'grid families');
+  assert.deepStrictEqual([...grids].sort(), ['core', 'hw', 'rakeBnd', 'reg-HighQ', 'reg-LowQ', 'sa'], 'grid families');
 });
 
 test('cb14 — medians reproduce the hazardlib reference at every fixture point', () => {
   let worst = 0, worstPoint = null;
   for (const p of fixture.points) {
-    const lnA = Physics.cb2014Ln(p[IX.imt], geomOf(p));
+    const lnA = Physics.cb2014Ln(p[IX.imt], geomOf(p), regionOf(p[IX.grid]));
     const d = Math.abs(lnA - p[IX.lnA]);
     if (d > worst) { worst = d; worstPoint = p; }
   }
@@ -94,7 +97,8 @@ test('cb14 — medians reproduce the hazardlib reference at every fixture point'
 test('cb14 — sigma/tau/phi reproduce hazardlib at every fixture point (ln units)', () => {
   let worst = 0, worstPoint = null;
   for (const p of fixture.points) {
-    const s = Physics.cb2014SigmaLn(p[IX.imt], geomOf(p));
+    if (p[IX.sigma] == null) continue; // regional mean-only rows
+    const s = Physics.cb2014SigmaLn(p[IX.imt], geomOf(p), regionOf(p[IX.grid]));
     const d = Math.abs(s.sigma - p[IX.sigma]) + Math.abs(s.tau - p[IX.tau]) + Math.abs(s.phi - p[IX.phi]);
     if (d > worst) { worst = d; worstPoint = p; }
   }

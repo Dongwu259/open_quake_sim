@@ -1,7 +1,7 @@
 {
   "schema": "quake-sim-frozen-drift-report-v1",
-  "generatedAt": "2026-10-01T03:15:11.726Z",
-  "month": "2026-10",
+  "generatedAt": "2026-11-08T14:44:12.792Z",
+  "month": "2026-11",
   "sources": [
     {
       "id": "jma-shindo-db",
@@ -10,17 +10,17 @@
       "upstream": "https://www.data.jma.go.jp/eqdb/data/shindo/",
       "upstreamReachable": true,
       "drift": {
-        "upstreamChanged": true,
+        "upstreamChanged": false,
         "checks": [],
         "before": {
-          "bytes": 474432
+          "bytes": 476561
         },
         "after": {
           "bytes": 476561
         },
-        "countsChanged": true
+        "countsChanged": false
       },
-      "snapshotWritten": "tools\\data\\frozen\\2026-10\\jma-shindo-db.json"
+      "snapshotWritten": "tools\\data\\frozen\\2026-11\\jma-shindo-db.json"
     },
     {
       "id": "usgs-shakemap",
@@ -29,10 +29,10 @@
       "upstream": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&limit=1&orderby=time",
       "upstreamReachable": true,
       "drift": {
-        "upstreamChanged": true,
+        "upstreamChanged": false,
         "checks": [],
         "before": {
-          "events": 13,
+          "events": 19,
           "observations": 0,
           "forecastAreas": 0
         },
@@ -41,9 +41,9 @@
           "observations": 0,
           "forecastAreas": 0
         },
-        "countsChanged": true
+        "countsChanged": false
       },
-      "snapshotWritten": "tools\\data\\frozen\\2026-10\\usgs-shakemap.json"
+      "snapshotWritten": "tools\\data\\frozen\\2026-11\\usgs-shakemap.json"
     },
     {
       "id": "ncei-tsunami-observations",
@@ -52,23 +52,23 @@
       "upstream": "https://www.data.jma.go.jp/eqev/data/gaikyo/",
       "upstreamReachable": true,
       "drift": {
-        "upstreamChanged": true,
+        "upstreamChanged": false,
         "checks": [],
         "before": {
-          "events": 3,
-          "observations": 10,
-          "forecastAreas": 16
+          "events": 5,
+          "observations": 55,
+          "forecastAreas": 25
         },
         "after": {
           "events": 5,
           "observations": 55,
           "forecastAreas": 25
         },
-        "countsChanged": true
+        "countsChanged": false
       },
-      "snapshotWritten": "tools\\data\\frozen\\2026-10\\ncei-tsunami-observations.json"
+      "snapshotWritten": "tools\\data\\frozen\\2026-11\\ncei-tsunami-observations.json"
     }
   ],
   "note": "reachability probes gate upstream refresh; per-event re-import stays a reviewed manual step (see AGENTS.md R7-1)",
-  "previousGeneratedAt": "2026-08-31T16:35:16.086Z"
+  "previousGeneratedAt": "2026-10-01T03:15:11.726Z"
 }

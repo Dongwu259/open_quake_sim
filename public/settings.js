@@ -203,6 +203,28 @@
       }
     });
 
+    // Resource diagnostics: the doctor panel lives in its own lazy module —
+    // first open pulls doctor.js via the LAZY_SCRIPTS manifest, then hands
+    // over to Doctor.openModal (which runs the check itself).
+    var doctorBtn = el('btn-doctor-open');
+    if (doctorBtn) doctorBtn.addEventListener('click', function() {
+      function openDoctor() {
+        if (window.Doctor && window.Doctor.openModal) window.Doctor.openModal();
+        else if (typeof setStatus === 'function') setStatus('doctor.entry_load_fail');
+      }
+      if (window.Doctor) { openDoctor(); return; }
+      doctorBtn.disabled = true;
+      var ensure = (typeof window._ensureScript === 'function') ? window._ensureScript('Doctor', 'doctor') : Promise.reject(new Error('no loader'));
+      ensure.then(function(loaded) {
+        doctorBtn.disabled = false;
+        if (loaded) openDoctor();
+        else if (typeof setStatus === 'function') setStatus('doctor.entry_load_fail');
+      }).catch(function() {
+        doctorBtn.disabled = false;
+        if (typeof setStatus === 'function') setStatus('doctor.entry_load_fail');
+      });
+    });
+
     return true;
   }
 

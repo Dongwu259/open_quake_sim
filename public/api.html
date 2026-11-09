@@ -68,7 +68,7 @@ details summary:hover{color:#f1c40f}
 <div class="toc">
   <strong>目录</strong>
   <ul>
-    <li><a href="#quick">快速参考（全部 51 个端点）</a></li>
+    <li><a href="#quick">快速参考（全部 52 个端点）</a></li>
     <li><a href="#errors">错误码规范</a></li>
     <li><a href="#auth">认证与速率限制</a></li>
     <li><a href="#cors">CORS 跨域</a></li>
@@ -124,6 +124,7 @@ details summary:hover{color:#f1c40f}
 <tr><td><span class="method post">POST</span></td><td><code>/api/v1/simulation/complete</code></td><td>API Key</td><td>无</td><td>触发 simulation.complete webhook</td></tr>
 <tr><td><span class="method get">GET</span></td><td><code>/api/v1/counter</code></td><td>无</td><td>1次/秒/IP</td><td>访问计数</td></tr>
 <tr><td><span class="method get">GET</span></td><td><code>/health</code></td><td>无</td><td>无</td><td>健康检查（实时源状态 + 运行时长）</td></tr>
+<tr><td><span class="method get">GET</span></td><td><code>/api/doctor</code></td><td>无</td><td>30次/分钟/IP</td><td>资源诊断清单（音频 / 地图 / 数据包完整性）</td></tr>
 <tr><td><span class="method post">POST</span></td><td><code>/api/v1/test/earthquake</code></td><td>API Key</td><td>10次/分钟/IP</td><td>注入测试地震事件</td></tr>
 <tr><td><span class="method post">POST</span></td><td><code>/api/v1/test/eew</code></td><td>API Key</td><td>10次/分钟/IP</td><td>注入测试 EEW 帧（调试）</td></tr>
 <tr><td><span class="method post">POST</span></td><td><code>/api/v1/dev/register</code></td><td>无</td><td>3次/小时/IP</td><td>注册开发者账号</td></tr>
@@ -892,6 +893,13 @@ Content-Type: application/json
   <pre><code>{"count": 12345, "totalUptime": 867251}</code></pre>
 </div>
 
+<div class="endpoint nonbreaking">
+  <span class="method get">GET</span><span class="path">/api/doctor</span>
+  <span class="tag rate">30次/分钟/IP</span>
+  <p>资源诊断清单：设置页「资源诊断」面板的数据源。返回服务器磁盘上的音频清单（每语言 22 个必需警报音 + CSIS 12 级懒加载音 + 公报拼接分片）、离线矢量底图文件、可选本地瓦片包、地形/区域数据包存在性，以及 research_data_manifest 的 sha256 对账结果。<code>status</code> 在必需项缺失或哈希过期时为 <code>degraded</code>；公报分片与 12 级音为提示级（Docker 部署有意裁剪 <code>info/female/</code>）。</p>
+  <pre><code>{"status": "ok", "audio": {"ja": {"required": {"total": 22, "missing": []}, ...}}, "map": {"offlineVector": [...]}, "packages": {...}, "manifest": {"checked": 18, "resources": [...]}}</code></pre>
+</div>
+
 <!-- ============ TEST ============ -->
 <h2 id="test">测试 API</h2>
 
@@ -1328,7 +1336,7 @@ curl "http://localhost:3000/api/v1/waveform?station=MAJO&hours=2"</code></pre>
 })();
 </script>
 
-<p style="margin-top:40px;color:var(--text-secondary);font-size:.8em">Earthquake Simulator Pro v6.6 · API 文档 · TTS powered by edge-tts (Microsoft Neural TTS)</p>
+<p style="margin-top:40px;color:var(--text-secondary);font-size:.8em">Earthquake Simulator Pro v7.0 · API 文档 · TTS powered by edge-tts (Microsoft Neural TTS)</p>
 
 </body>
 </html>

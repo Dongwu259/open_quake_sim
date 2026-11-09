@@ -4859,8 +4859,13 @@ function simLoop(timestamp) {
     if (evElapsed < 0) evElapsed = 0;
     ev.pTravel = evElapsed * PW(evDp);
     ev.sTravel = evElapsed * SW(evDp);
-    ev.pRadius = ev.pTravel > evDp ? Math.sqrt(ev.pTravel * ev.pTravel - evDp * evDp) : 0;
-    ev.sRadius = ev.sTravel > evDp ? Math.sqrt(ev.sTravel * ev.sTravel - evDp * evDp) : 0;
+    // Ring radius rides the SAME layered-IASP91 clock as station activations
+    // (preComputeArrivals -> pTravelTime/sTravelTime, head wave included).
+    // The old straight-ray sqrt((v·t)²−d²) put the drawn ring up to ~50 km
+    // inside the discs it gates — stations lit up ahead of the wavefront.
+    // pTravel/sTravel keep the straight-ray meaning for surface-reach gates.
+    ev.pRadius = Physics.wavefrontRadiusKm('P', evElapsed, evDp, cfgGet('pWaveSpeed'));
+    ev.sRadius = Physics.wavefrontRadiusKm('S', evElapsed, evDp, cfgGet('sWaveSpeed'));
     // Remember the ring size at retirement so camera fits stop growing with it
     if (ev._retirePRadius == null && _eventWavesRetired(ev)) ev._retirePRadius = ev.pRadius || 0;
     // Tsunami radius per event (ocean epicenters only, depth-dependent speed)
@@ -5078,8 +5083,12 @@ function simLoop(timestamp) {
       }
       var jitterId = c.id != null ? c.id : (c.name || (c.lat + ',' + c.lng));
       var jitterRandom = Research.randomAt(cfgGet('randomSeed'), 'station-jitter:' + jitterId, curSec);
-      c.jitterOffset += (jitterRandom - 0.5) * 2 * 0.08 * c.peakPga; c.jitterOffset *= 0.5;
-      var mj = 0.12 * c.peakPga; c.jitterOffset = Math.max(-mj, Math.min(mj, c.jitterOffset)); c.lastJitterSec = curSec;
+      // Scale the live jitter by the envelope value (c.pga), not the final
+      // peak: during the P phase c.pga is capped at 66 gal but 0.08×peak of a
+      // 1000-gal station let displayPga read shindo 5+ before the S arrival.
+      // At/after the S peak c.pga ≈ peakPga, so peak-phase texture is kept.
+      c.jitterOffset += (jitterRandom - 0.5) * 2 * 0.08 * c.pga; c.jitterOffset *= 0.5;
+      var mj = 0.12 * c.pga; c.jitterOffset = Math.max(-mj, Math.min(mj, c.jitterOffset)); c.lastJitterSec = curSec;
       c.displayPga = Math.max(0, c.pga + c.jitterOffset);
       var ci = calcJmaIntensity(c.displayPga, c.pgv); c.shindo = Physics.intensityToShindo(ci); c.intensity = ci;
     }
@@ -6771,7 +6780,17 @@ function _updateLivePrefLayer() {
       layer.setStyle({ fillOpacity: 0, color: 'transparent', weight: 0 });
     } else {
       var fill = SHINDO_FILL[sh] || '#888';
-      layer.setStyle({ fillColor: fill, fillOpacity: _shindoFillAlpha(sh, true), color: fill, weight: 1.2, opacity: 0.35 });
+      // Observed style only where the OBSERVED book has actually reached this
+      // level (books update above: pref at the curPrefShindos merge, area/
+      // region in the obsBook guard). The old unconditional observed style
+      // flipped forecast-only areas to "measured" the moment any area changed
+      // — fill showing "observed" where the wave had not arrived yet.
+      var obsSh = Physics.shindoNum(src.observed[pid] || 0);
+      if (obsSh >= Physics.shindoNum(sh)) {
+        layer.setStyle({ fillColor: fill, fillOpacity: _shindoFillAlpha(sh, true), color: fill, weight: 1.2, opacity: 0.35 });
+      } else {
+        layer.setStyle({ fillColor: fill, fillOpacity: _shindoFillAlpha(sh, false), color: fill, weight: 1, opacity: 0.3 });
+      }
       if (src.mode === 'area') _uncertaintyStyle(layer, pid);
     }
   });
@@ -11117,7 +11136,7 @@ var ScenarioManager = (function(){
       if (isFinite(+a.lat) && isFinite(+a.lng)) { e.lat = +a.lat; e.lng = +a.lng; }
       return e;
     });
-    return { schema:Research.SCENARIO_SCHEMA,name:name || tr('scn.untitled'),version:2,appVersion:'v6.6',
+    return { schema:Research.SCENARIO_SCHEMA,name:name || tr('scn.untitled'),version:2,appVersion:'v7.0',
              seed:Research.normalizeSeed(cfgGet('randomSeed')),events:events,flags:flags,config:JSON.parse(JSON.stringify(CFG)),
              faultOpts:FiniteFaultEditor.getState(),manualAftershocks:manAs,display:_researchDisplayState(),dataVersions:versions.data,modelVersions:versions.model,
              experiment:_currentExperiment,created:(function(){try{return new Date().toISOString();}catch(e){return '';}})() };

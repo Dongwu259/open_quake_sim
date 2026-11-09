@@ -296,7 +296,7 @@ function checkDocumentation() {
     const notice = context.I18N[language]['formulas.notice_text'] || '';
     check(notice.length > 20, `${language} scientific disclaimer is missing`);
   }
-  check(/v6\.6/.test(json('public/manifest.json').description || ''), 'manifest version is not v6.6');
+  check(/v7\.0/.test(json('public/manifest.json').description || ''), 'manifest version is not v7.0');
   check(json('package.json').version === '7.0.0', 'package version is not the 7.0.0 release');
   check(json('public/openapi.json').info.version === '7.0.0', 'openapi version is not the 7.0.0 release');
   // v5.2 presenter (live/recording) mode wiring
