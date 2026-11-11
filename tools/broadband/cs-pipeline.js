@@ -31,7 +31,7 @@ const hybrid = require('./hybrid.js');
 const Physics = require('../../public/physics.js');
 
 const ROOT = path.join(__dirname, '..', '..');
-const OUT = path.join(ROOT, 'tools', 'data', 'cs-pipeline-report.json');
+const OUT = path.join(ROOT, (process.argv.find(a => a.startsWith('--out=')) || '').slice('--out='.length) || 'tools/data/cs-pipeline-report.json');
 const CAL_OUT = path.join(ROOT, 'tools', 'data', 'cs-repair-calibration.json');
 
 // ---- frozen scope (pre-registered BEFORE the first run) -----------------
@@ -978,6 +978,15 @@ function runKappaScenario(cases, cal, periods, bedrockGrid, kcFile) {
 }
 
 function main() {
+  // --anchor=T overrides the preregistered anchor period (default 1.0 s,
+  // byte-compat; used by the multi-anchor study tools/broadband/cs-multi-anchor.js).
+  // The override lands in the emitted report's preRegistered block verbatim.
+  const anchorArg = (process.argv.find(a => a.startsWith('--anchor=')) || '').slice('--anchor='.length);
+  if (anchorArg) {
+    const t = +anchorArg;
+    if (!(t > 0) || !ZHAO_KEY[t]) throw new Error('unsupported anchor period ' + anchorArg + ' (ZHAO_KEY has no row)');
+    PRE_REG.anchorPeriodSec = t;
+  }
   const write = process.argv.includes('--write');
   const doFit = process.argv.includes('--fit');
   const model = loadJson(path.join(ROOT, 'public', 'geojson', 'psha-source-model.json'));

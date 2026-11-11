@@ -207,4 +207,6 @@
    }
   }
  }
+,
+ "decision": "NOT-ADOPTED - user framework decision 2026-11-09: the hypothetical Japan-Trench M9 source stays OUT of the shipped model (production package byte-unchanged; rationale frozen in tools/build-psha-source-model.js provenance.limitations and HANDOVER-2)"
 }

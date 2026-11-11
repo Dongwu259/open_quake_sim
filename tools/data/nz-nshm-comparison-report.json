@@ -1,0 +1,239 @@
+{
+ "schema": "quake-sim-nz-nshm-comparison-v1",
+ "frozenAt": "2026-11-09",
+ "preregistration": "see tools/scorecard-nz-nshm.js header (frozen 2026-11-10, before first scoring run)",
+ "official": {
+  "endpoint": "https://nshm-api.gns.cri.nz/kororaa-app-api/graphql",
+  "hazardModel": "NSHM_v1.0.4",
+  "aggregate": "mean",
+  "vs30": 600,
+  "resolution": 0.1,
+  "fetchedAt": "2026-11-09T16:30:51.242Z",
+  "viewerKeySha256_12": "d3fdecc37611"
+ },
+ "metric": "ours/official RP-im ratio (PGA + SA(1.0), RP475/RP2500), identical inversion both sides",
+ "sites": {
+  "WLG": {
+   "name": "Wellington",
+   "officialKey": "-41.300~174.780",
+   "lat": -41.3,
+   "lng": 174.78,
+   "official": {
+    "pga": {
+     "rp475": 856.107,
+     "rp2500": 1748.4
+    },
+    "sa10": {
+     "rp475": 670.597,
+     "rp2500": 1413.21
+    }
+   },
+   "ours": {
+    "pga": {
+     "rp475": 387.853,
+     "rp2500": 1082.46
+    },
+    "sa10": {
+     "rp475": 245.523,
+     "rp2500": 650.032
+    }
+   },
+   "ratio": {
+    "pga": {
+     "rp475": 0.453042,
+     "rp2500": 0.619112
+    },
+    "sa10": {
+     "rp475": 0.366126,
+     "rp2500": 0.459969
+    }
+   }
+  },
+  "AKL": {
+   "name": "Auckland",
+   "officialKey": "-36.870~174.770",
+   "lat": -36.87,
+   "lng": 174.77,
+   "official": {
+    "pga": {
+     "rp475": 95.4722,
+     "rp2500": 219.119
+    },
+    "sa10": {
+     "rp475": 90.7105,
+     "rp2500": 201.826
+    }
+   },
+   "ours": {
+    "pga": {
+     "rp475": 76.4426,
+     "rp2500": 160.376
+    },
+    "sa10": {
+     "rp475": 76.7511,
+     "rp2500": 160.23
+    }
+   },
+   "ratio": {
+    "pga": {
+     "rp475": 0.800679,
+     "rp2500": 0.731916
+    },
+    "sa10": {
+     "rp475": 0.846111,
+     "rp2500": 0.7939
+    }
+   }
+  },
+  "CHC": {
+   "name": "Christchurch",
+   "officialKey": "-43.530~172.630",
+   "lat": -43.53,
+   "lng": 172.63,
+   "official": {
+    "pga": {
+     "rp475": 351.244,
+     "rp2500": 678.892
+    },
+    "sa10": {
+     "rp475": 268.21,
+     "rp2500": 566.292
+    }
+   },
+   "ours": {
+    "pga": {
+     "rp475": 694.894,
+     "rp2500": 1152.73
+    },
+    "sa10": {
+     "rp475": 498.336,
+     "rp2500": 995.042
+    }
+   },
+   "ratio": {
+    "pga": {
+     "rp475": 1.97838,
+     "rp2500": 1.69797
+    },
+    "sa10": {
+     "rp475": 1.85801,
+     "rp2500": 1.75712
+    }
+   }
+  },
+  "NSN": {
+   "name": "Nelson",
+   "officialKey": "-41.270~173.280",
+   "lat": -41.27,
+   "lng": 173.28,
+   "official": {
+    "pga": {
+     "rp475": 419.759,
+     "rp2500": 866.927
+    },
+    "sa10": {
+     "rp475": 350.559,
+     "rp2500": 735.104
+    }
+   },
+   "ours": {
+    "pga": {
+     "rp475": 264.888,
+     "rp2500": 769.9
+    },
+    "sa10": {
+     "rp475": 174.934,
+     "rp2500": 469.779
+    }
+   },
+   "ratio": {
+    "pga": {
+     "rp475": 0.631047,
+     "rp2500": 0.88808
+    },
+    "sa10": {
+     "rp475": 0.499016,
+     "rp2500": 0.639065
+    }
+   }
+  },
+  "ZQN": {
+   "name": "Queenstown",
+   "officialKey": "-45.020~168.690",
+   "lat": -45.02,
+   "lng": 168.69,
+   "official": {
+    "pga": {
+     "rp475": 350.549,
+     "rp2500": 694.725
+    },
+    "sa10": {
+     "rp475": 315.334,
+     "rp2500": 648.692
+    }
+   },
+   "ours": {
+    "pga": {
+     "rp475": 266.914,
+     "rp2500": 606.702
+    },
+    "sa10": {
+     "rp475": 169.758,
+     "rp2500": 433.355
+    }
+   },
+   "ratio": {
+    "pga": {
+     "rp475": 0.761419,
+     "rp2500": 0.873297
+    },
+    "sa10": {
+     "rp475": 0.538343,
+     "rp2500": 0.668044
+    }
+   }
+  },
+  "IVC": {
+   "name": "Invercargill",
+   "officialKey": "-46.430~168.360",
+   "lat": -46.43,
+   "lng": 168.36,
+   "official": {
+    "pga": {
+     "rp475": 248.637,
+     "rp2500": 485.28
+    },
+    "sa10": {
+     "rp475": 228.861,
+     "rp2500": 461.126
+    }
+   },
+   "ours": {
+    "pga": {
+     "rp475": 84.0583,
+     "rp2500": 275.887
+    },
+    "sa10": {
+     "rp475": 78.8993,
+     "rp2500": 227.765
+    }
+   },
+   "ratio": {
+    "pga": {
+     "rp475": 0.338077,
+     "rp2500": 0.568511
+    },
+    "sa10": {
+     "rp475": 0.344748,
+     "rp2500": 0.493933
+    }
+   }
+  }
+ },
+ "note": "MEASUREMENT ONLY — no calibration, no pack change; structural (source-model form) gap vs the official national model, NOT a GMPE validation",
+ "hypotheses": {
+  "H1_wlg_underestimate_pga_rp475": true,
+  "H2_akl_smallest_gap_of_six_pga_rp475": true,
+  "H3_wlg_gap_grows_with_rp": false
+ }
+}

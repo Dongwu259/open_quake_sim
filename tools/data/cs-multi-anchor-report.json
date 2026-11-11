@@ -1,0 +1,92 @@
+{
+ "schema": "quake-sim-cs-multi-anchor-v1",
+ "frozenAt": "2026-11-09",
+ "preregistration": "see tools/broadband/cs-multi-anchor.js header (frozen 2026-11-10, before first run)",
+ "reference": "tools/data/cs-pipeline-report.json (shipped T*=1.0 freeze, untouched)",
+ "anchors": {
+  "1.0": {
+   "anchorPeriodSec": 1,
+   "bands": {
+    "0.1-0.5s": {
+     "hybrid": 0.776,
+     "brune": 0.614,
+     "pass": false
+    },
+    "0.5-2s": {
+     "hybrid": 0.432,
+     "brune": 0.607,
+     "pass": false
+    },
+    "2-5s": {
+     "hybrid": 0.574,
+     "brune": 1.327,
+     "pass": false
+    }
+   },
+   "anchorExactPass": true,
+   "lpImprovement": 0.753,
+   "lpImprovementPass": true,
+   "containment": 0.385,
+   "pgaDeltaHybridMinusBrune": 0.125
+  },
+  "0.5": {
+   "anchorPeriodSec": 0.5,
+   "bands": {
+    "0.1-0.5s": {
+     "hybrid": 0.496,
+     "brune": 0.479,
+     "pass": false
+    },
+    "0.5-2s": {
+     "hybrid": 0.491,
+     "brune": 0.758,
+     "pass": false
+    },
+    "2-5s": {
+     "hybrid": 0.64,
+     "brune": 1.375,
+     "pass": false
+    }
+   },
+   "anchorExactPass": true,
+   "lpImprovement": 0.735,
+   "lpImprovementPass": true,
+   "containment": 0.641,
+   "pgaDeltaHybridMinusBrune": -0.03
+  },
+  "2.0": {
+   "anchorPeriodSec": 2,
+   "bands": {
+    "0.1-0.5s": {
+     "hybrid": 1.323,
+     "brune": 0.744,
+     "pass": false
+    },
+    "0.5-2s": {
+     "hybrid": 0.722,
+     "brune": 0.426,
+     "pass": false
+    },
+    "2-5s": {
+     "hybrid": 0.579,
+     "brune": 0.782,
+     "pass": false
+    }
+   },
+   "anchorExactPass": true,
+   "lpImprovement": 0.203,
+   "lpImprovementPass": true,
+   "containment": 0.385,
+   "pgaDeltaHybridMinusBrune": 0.49
+  }
+ },
+ "hypotheses": {
+  "HA_shortBandFailAtAllAnchors": true,
+  "HB_dwImprovementAt2s": true,
+  "HC_midBandT05": {
+   "t05": 0.491,
+   "t10": 0.432
+  }
+ },
+ "note": "STUDY FREEZE — shipped pipeline report (T*=1.0) untouched; anchor runs live in .cache; nothing adopted"
+}

@@ -55,11 +55,11 @@ const SITES = {
 // variant SA/SA_N (northern South America, PEER 2020/03 §4.3.4); Quito
 // anchors frozen from the v2 pack as built.
 const FROZEN = {
-  california: { cells: 1616, mainshocks: 685, rp475: 651.8, rp2500: 1094.5 },
-  italy:      { cells: 4510, mainshocks: 577, rp475: 117.0, rp2500: 249.5 },
+  california: { cells: 1616, mainshocks: 685, rp475: 651.8, rp2500: 1094.5 }, // R-C tail (2026-11-10): CB14 HighQ/LowQ pair — RP anchors byte-stable
+  italy:      { cells: 4510, mainshocks: 577, rp475: 117.1, rp2500: 249.6 }, // R-C tail (2026-11-10): 117.0->117.1 / 249.5->249.6 (CB14 HighQ/LowQ pair)
   chile:      { cells: 7940, mainshocks: 3376, rp475: 826.1, rp2500: 1950.1 },
   taiwan:     { cells: 1218, mainshocks: 997, rp475: 499.8, rp2500: 1108.6 }, // R-C alias batch (2026-11-08): ask14 -> TWN adopted, 502.3->499.8 / 1111.1->1108.6
-  newzealand: { cells: 2765, mainshocks: 711, rp475: 387.3, rp2500: 1081.4 },
+  newzealand: { cells: 2765, mainshocks: 711, rp475: 387.3, rp2500: 1081.4 }, // R-C tail (2026-11-09): CB14 HighQ/LowQ split — RP anchors byte-stable (near-symmetric Dc20 pair, cb14 weight 0.25, gate rrup>80km)
   ecuador:    { cells: 3387, mainshocks: 898, rp475: 300.5, rp2500: 629.7 }
 };
 
@@ -80,10 +80,25 @@ test('regional packs — structure: schema v2 (california v3), region, grid-only
     assert.deepEqual(m.scenarios, [], rid + ' scenarios must be empty (honest absent)');
     const gt = m.gmpeTree;
     // v7.x: crustal = four-model NGA-West2 tree at equal 0.25 (BSSA14 keeps
-    // the regional Dc3 variant; CY14/CB14/ASK14 base forms)
-    assert.ok(gt && Array.isArray(gt.crustal) && gt.crustal.length === 4, rid + ' gmpeTree crustal 4-branch');
-    assert.deepEqual(gt.crustal.map(b => b.model), ['bssa14', 'cy14', 'cb14', 'ask14'], rid + ' crustal tree models');
-    for (const b of gt.crustal) assert.equal(b.weight, 0.25, rid + ' ' + b.model + ' weight 0.25');
+    // the regional Dc3 variant; CY14/CB14/ASK14 base forms).
+    // R-C tail (2026-11-09 NZ / 2026-11-10 CA+IT, user framework decisions):
+    // newzealand+california+italy split CB14 into HighQ/LowQ epistemic
+    // branches at 0.125 each (per-IMT Dc20 overlay, active only beyond rrup
+    // 80 km; the near-symmetric pair keeps central estimates — anchors moved
+    // <=0.2 gal). taiwan keeps the single base branch (base arm already
+    // best-fitting there: bias -0.038 vs HighQ +0.010/LowQ -0.084).
+    const FIVE_BRANCH = ['newzealand', 'california', 'italy'];
+    if (FIVE_BRANCH.includes(rid)) {
+      assert.ok(gt && Array.isArray(gt.crustal) && gt.crustal.length === 5, rid + ' gmpeTree crustal 5-branch');
+      assert.deepEqual(gt.crustal.map(b => b.model), ['bssa14', 'cy14', 'cb14', 'cb14', 'ask14'], rid + ' crustal tree models');
+      assert.deepEqual(gt.crustal.map(b => b.weight), [0.25, 0.25, 0.125, 0.125, 0.25], rid + ' crustal weights');
+      assert.deepEqual(gt.crustal.map(b => b.variant),
+        [rid === 'italy' ? 'lowQ' : 'base', undefined, 'HighQ', 'LowQ', undefined], rid + ' crustal variants');
+    } else {
+      assert.ok(gt && Array.isArray(gt.crustal) && gt.crustal.length === 4, rid + ' gmpeTree crustal 4-branch');
+      assert.deepEqual(gt.crustal.map(b => b.model), ['bssa14', 'cy14', 'cb14', 'ask14'], rid + ' crustal tree models');
+      for (const b of gt.crustal) assert.equal(b.weight, 0.25, rid + ' ' + b.model + ' weight 0.25');
+    }
     assert.equal(gt.crustal[0].variant, rid === 'italy' ? 'lowQ' : 'base', rid + ' BSSA14 variant');
     // v6.8: subduction classes single-branch NGA-Sub with the frozen
     // region/saturation pair (PEER 2020/03 §4.3.4 assignments)
@@ -157,7 +172,10 @@ test('regional engine — gmpeTree consumption: crustal four-model NGA-West2 tre
   for (const rid of REGIONS) {
     const m = loadModel(rid);
     const hz = Physics.hazardCurve(m, SITES[rid], 'pga', { years: 50 });
-    assert.deepEqual(hz.diagnostics.branchSets, [['bssa14', 'cy14', 'cb14', 'ask14'], ['ngasub'], ['ngasub']], rid + ' branch sets');
+    const wantCrustal = ['newzealand', 'california', 'italy'].includes(rid)
+      ? ['bssa14', 'cy14', 'cb14', 'cb14', 'ask14']  // R-C tail: CB14 HighQ/LowQ epistemic pair
+      : ['bssa14', 'cy14', 'cb14', 'ask14'];
+    assert.deepEqual(hz.diagnostics.branchSets, [wantCrustal, ['ngasub'], ['ngasub']], rid + ' branch sets');
     assert.ok(hz.diagnostics.nCellsUsed > 100, rid + ' cells used');
     // monotonic non-increasing exceedance rates
     for (let i = 1; i < hz.meanRate.length; i++) assert.ok(hz.meanRate[i] <= hz.meanRate[i - 1] + 1e-12, rid + ' monotonic');
@@ -215,11 +233,11 @@ test('regional engine — uhs + deaggregate smoke at every regional city', () =>
 // PGA anchors (FROZEN.rp475/rp2500 above) re-based in the same batch. Japan
 // keeps the zhao collapse byte-identical (asserted below).
 const FROZEN_UHS_475 = {
-  california: { '0.20': 1600.6, '0.50': 1011.9, '1.00': 542.6 },
-  italy:      { '0.20': 263.2, '0.50': 147.2, '1.00': 70.1 },
+  california: { '0.20': 1600.6, '0.50': 1011.9, '1.00': 542.4 }, // R-C tail (2026-11-10): 542.6->542.4 (CB14 HighQ/LowQ)
+  italy:      { '0.20': 263.6, '0.50': 147.7, '1.00': 69.5 }, // R-C tail (2026-11-10): 263.2->263.6 / 147.2->147.7 / 70.1->69.5 (CB14 HighQ/LowQ)
   chile:      { '0.20': 1835.9, '0.50': 1017.2, '1.00': 451.6 },
   taiwan:     { '0.20': 1230.7, '0.50': 912.5, '1.00': 456.5 }, // R-C alias batch (2026-11-08): 1233.3->1230.7 / 910.3->912.5 / 456.3->456.5 (ask14 TWN)
-  newzealand: { '0.20': 889.4, '0.50': 536.0, '1.00': 245.4 },
+  newzealand: { '0.20': 889.4, '0.50': 536.1, '1.00': 245.4 }, // R-C tail (2026-11-09): 536.0->536.1 (CB14 HighQ/LowQ log-mean leans a hair above base)
   // Ecuador batch (2026-10-14): Quito anchors from the first v2 pack build
   ecuador:    { '0.20': 736.3, '0.50': 462.7, '1.00': 203.6 }
 };
@@ -251,8 +269,9 @@ test('regional engine — bssa14 branch motion: finite median + positive sigma (
   // hazardlib source) — the crustal SA tree branch no longer collapses to
   // zhao2006; regional spectral periods now follow the pack gmpeTree.
   // v7.x: the crustal SA tree has all four NGA-West2 branches.
+  // R-C tail (2026-11-10): california carries the CB14 HighQ/LowQ pair.
   const sa = Physics._pshaBranchesFor('crustal', 'sa:0.50', loadModel('california'));
-  assert.deepEqual(sa.map(b => b.model), ['bssa14', 'cy14', 'cb14', 'ask14']);
+  assert.deepEqual(sa.map(b => b.model), ['bssa14', 'cy14', 'cb14', 'cb14', 'ask14']);
   assert.equal(sa[0].variant, 'base');
   const saMo = Physics._pshaBranchMotion('bssa14', 'sa:0.50', 'crustal', 7.0, 30, 10, 600, 0, sa[0].variant);
   assert.ok(saMo && saMo.median > 0 && isFinite(saMo.median), 'crustal SA branch motion finite');

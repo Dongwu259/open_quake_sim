@@ -1,0 +1,164 @@
+{
+ "schema": "quake-sim-nz-chc-attribution-v1",
+ "frozenAt": "2026-11-09",
+ "preregistration": "see tools/scorecard-nz-chc-attribution.js header (frozen 2026-11-10, before first run)",
+ "removed": {
+  "n": 25,
+  "cutoffIso": "2009-09-04T00:00:00.000Z",
+  "box": {
+   "minLat": -44,
+   "maxLat": -43,
+   "minLng": 171.4,
+   "maxLng": 173.3
+  },
+  "magRange": [
+   5,
+   7
+  ],
+  "dateRange": [
+   "2010-09-03T16:35:47.770Z",
+   "2016-02-14T00:13:44.040Z"
+  ]
+ },
+ "variantBuild": {
+  "completeness": {
+   "chosen": {
+    "mc": 5,
+    "start": 1980,
+    "count": 554,
+    "cv": 0.07464344505027597,
+    "decadeRates": [
+     11.1,
+     11.5,
+     12.6,
+     13.4
+    ],
+    "passes": true
+   },
+   "rule": "pre-registered: max in-window count among CV<=0.25; else min CV among count>=200"
+  },
+  "cells": 2756,
+  "bValues": {
+   "crustal": 0.8976299322012474,
+   "interplate": 0.8885183472972824,
+   "intraslab": 1.4120021405413081
+  }
+ },
+ "gates": {
+  "G1_chc_direction": true,
+  "G2_chc_attribution_sufficient": false,
+  "G3_specificity_wlg": true,
+  "G3_specificity_akl_ivc": true
+ },
+ "sites": {
+  "WLG": {
+   "variant": {
+    "rp475": 388.591,
+    "rp2500": 1083.51
+   },
+   "ratio": {
+    "rp475": 0.453906,
+    "rp2500": 0.619712
+   },
+   "shippedRatio": {
+    "rp475": 0.453042,
+    "rp2500": 0.619112
+   },
+   "delta": {
+    "rp475": 0.000863516,
+    "rp2500": 0.000600323
+   }
+  },
+  "AKL": {
+   "variant": {
+    "rp475": 77.4202,
+    "rp2500": 161.968
+   },
+   "ratio": {
+    "rp475": 0.810919,
+    "rp2500": 0.739179
+   },
+   "shippedRatio": {
+    "rp475": 0.800679,
+    "rp2500": 0.731916
+   },
+   "delta": {
+    "rp475": 0.0102402,
+    "rp2500": 0.0072627
+   }
+  },
+  "CHC": {
+   "variant": {
+    "rp475": 213.03,
+    "rp2500": 433.544
+   },
+   "ratio": {
+    "rp475": 0.606503,
+    "rp2500": 0.638605
+   },
+   "shippedRatio": {
+    "rp475": 1.97838,
+    "rp2500": 1.69797
+   },
+   "delta": {
+    "rp475": -1.37188,
+    "rp2500": -1.05937
+   }
+  },
+  "NSN": {
+   "variant": {
+    "rp475": 265.971,
+    "rp2500": 771.634
+   },
+   "ratio": {
+    "rp475": 0.633627,
+    "rp2500": 0.89008
+   },
+   "shippedRatio": {
+    "rp475": 0.631047,
+    "rp2500": 0.88808
+   },
+   "delta": {
+    "rp475": 0.00257997,
+    "rp2500": 0.00199963
+   }
+  },
+  "ZQN": {
+   "variant": {
+    "rp475": 272.275,
+    "rp2500": 613.06
+   },
+   "ratio": {
+    "rp475": 0.776711,
+    "rp2500": 0.882449
+   },
+   "shippedRatio": {
+    "rp475": 0.761419,
+    "rp2500": 0.873297
+   },
+   "delta": {
+    "rp475": 0.0152917,
+    "rp2500": 0.00915218
+   }
+  },
+  "IVC": {
+   "variant": {
+    "rp475": 84.2706,
+    "rp2500": 276.263
+   },
+   "ratio": {
+    "rp475": 0.338931,
+    "rp2500": 0.569287
+   },
+   "shippedRatio": {
+    "rp475": 0.338077,
+    "rp2500": 0.568511
+   },
+   "delta": {
+    "rp475": 0.000853556,
+    "rp2500": 0.000776115
+   }
+  }
+ },
+ "note": "MEASUREMENT ONLY — variant pack stays in .cache, shipped pack byte-unchanged; verdicts recorded, nothing retuned"
+}

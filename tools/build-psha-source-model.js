@@ -78,10 +78,23 @@ if (!IS_JAPAN && !REGION_CONFIGS[REGION]) {
 }
 const RCFG = IS_JAPAN ? null : REGION_CONFIGS[REGION];
 
-const CATALOG = path.join(ROOT, 'tools/data/psha/comcat-' + REGION + '.json');
+// R-C tail (2026-11-09 NZ / 2026-11-10 CA+IT, user framework decisions):
+// adopted regions split CB14 into HighQ/LowQ epistemic branches at 0.125
+// each; per-region decision provenance (stats from the frozen R-C
+// measurement) is composed verbatim so rebuilds are byte-identical to
+// the shipped packs. taiwan keeps the single base branch (base arm
+// already best-fitting there).
+const CB14_PAIR_REGIONS = {
+  newzealand: { date: '2026-11-09', tag: 'NZ', stats: 'HighQ arm bias +0.019/rms 0.422 vs base -0.132/0.470 vs LowQ -0.279/0.593' },
+  california: { date: '2026-11-10', tag: 'CA', stats: 'HighQ arm bias +0.216/rms 0.433 vs base +0.122/0.402 vs LowQ +0.029/0.432' },
+  italy: { date: '2026-11-10', tag: 'IT', stats: 'HighQ arm bias +0.222/rms 0.393 vs base +0.150/0.367 vs LowQ +0.080/0.380' },
+};
+const cbPair = CB14_PAIR_REGIONS[REGION];
+
+const CATALOG = path.join(ROOT, (process.argv.find(a => a.startsWith('--catalog=')) || '').slice('--catalog='.length) || ('tools/data/psha/comcat-' + REGION + '.json'));
 const PLATES = path.join(ROOT, 'public/geojson/plates.json');
-const OUT_MODEL = path.join(ROOT, IS_JAPAN ? 'public/geojson/psha-source-model.json' : 'public/geojson/psha-source-model-' + REGION + '.json');
-const OUT_REPORT = path.join(ROOT, IS_JAPAN ? 'tools/data/psha-source-model-report.json' : 'tools/data/psha-source-model-report-' + REGION + '.json');
+const OUT_MODEL = path.join(ROOT, (process.argv.find(a => a.startsWith('--out=')) || '').slice('--out='.length) || (IS_JAPAN ? 'public/geojson/psha-source-model.json' : 'public/geojson/psha-source-model-' + REGION + '.json'));
+const OUT_REPORT = path.join(ROOT, (process.argv.find(a => a.startsWith('--report-out=')) || '').slice('--report-out='.length) || (IS_JAPAN ? 'tools/data/psha-source-model-report.json' : 'tools/data/psha-source-model-report-' + REGION + '.json'));
 
 // --- frozen parameters -------------------------------------------------
 const GRID_DEG = 0.25;
@@ -578,6 +591,7 @@ function main() {
         'simplified self-computed model — NOT the official J-SHIS/ERC source model (external comparison frozen in tools/data/jshis-comparison-report.json + psha-attribution-report.json)',
         'capital M7.3 scenario entry is geometry-free BY MEASUREMENT (R-A 2026-10-17): reviving the ERC umbrella rate over official J-SHIS fltinfo geometries over-predicts the J-SHIS LND arm at Tokyo x5.1 (single geometry x30.8; pre-registered gates H-A2/A3/A4 failed) — the umbrella semantically spans crustal+slab+interface M7-class activity which the official eqcode partition carries mostly in its subduction component; the dead entry contributes ~zero hazard and all frozen J-SHIS anchors (R8) bake that state in (tools/data/psha-capital-multigeo-report.json)',
         'v2 Nankai scenarios use POISSON long-run rates (ERC plain-interval BPT set, 1/117 yr total, 4/1/1 mode split) — the ERC time-dependent 60-90%+/30yr view is intentionally not Poisson-converted; Japan-trench M9-class recurrence still carried by no scenario (Sanriku long-RP hazard underestimated)',
+        'Japan-trench M9-class stationary source stays OUT of the model BY DECISION (R-B 2026-11-09, user framework call after the frozen measurement tools/data/jtrench-m9-report.json): the GR-cells form is PPE-near-neutral (1.457->1.478) and the characteristic-patch form worsens the sendai PPE 1.457->1.639, while RP475 shifts are negligible (sendai-only +0.3-0.5%); official ERC products carry no time-dependent Japan-trench M9 either (30-yr ~0%) — do not "completeness-fix" this absence without re-running tools/scorecard-jtrench-m9.js',
         'gridded GR truncated at class Mmax without renormalisation',
         'class-level rake simplification (interplate reverse 90, others neutral); gridded Rrup via equal-area circular patch at hypocentre depth',
         'GMPE modelBias deliberately NOT applied (LOEO evidence: it does not generalise held-out)',
@@ -587,13 +601,21 @@ function main() {
         'the two budgets are NOT harmonised at the RELM polygon seam (a rate discontinuity across the boundary is possible — visible in tools/data/ucerf3-reconcile-report.json closure rows)',
         'characteristic-source geometry is a patch-point proxy (trace points at upper depth + downdip projection at lower depth, <=80 patches/parent); distance metric Rjb (min horizontal offset to patch points); rupture-level UCERF3 detail is aggregated to parent-section characteristic MFDs (0.1-mag bins) — sub-section association within a rupture is not modelled',
         'UCERF3-TD batch B: every characteristic source carries bpt.lastEventYear from UCERF3_OpenIntervals_ver11.xls (Field et al. 2015, BSSA 105(2A); opensha-ucerf3, sha256-pinned) — 65 parents per FM have a date-of-last-event constraint (aggregated at parent granularity, NOT the official rupture-level combination), the rest are explicit null = historic-open-interval treatment (T_H = currentYear - 1875); the time-dependent engine applies the official Table-1 aperiodicity blend (Low/Mid/High 0.1/0.4/0.3 + Poisson 0.2) per charMfd bin — UCERF3-TD participation probabilities are reproduced at parent granularity, not rupture level',
-        'crustal class uses the four-model NGA-West2 logic tree at equal weight 0.25 (v7.x; BSSA14 with the frozen regional Dc3 variant + Chiou & Youngs 2014 + Campbell & Bozorgnia 2014 + Abrahamson et al. 2014 base forms — USGS 2014 NSHM convention; si-midorikawa/kanno2006 are Japan-calibrated and never validated in this region); interplate/intraslab use NGA-Sub (Parker et al. 2022) with the frozen region/saturation pair (v6.8; the v6.7 scorecard\'s -0.55 log10 Chile bias was measured under zhao2006 — the re-measured value under NGA-Sub is in tools/data/region-obs-report.json)',
+        (cbPair
+          ? 'crustal class uses the four-model NGA-West2 logic tree with CB14 split into HighQ/LowQ epistemic branches at 0.125 each (v7.x tree, CB14 branch pair = user framework decision ' + cbPair.date + ' per the R-C measurement tools/data/nw2-alias-report.json; '
+          : 'crustal class uses the four-model NGA-West2 logic tree at equal weight 0.25 (v7.x; '
+        ) + 'BSSA14 with the frozen regional Dc3 variant + Chiou & Youngs 2014 + Campbell & Bozorgnia 2014 + Abrahamson et al. 2014 base forms — USGS 2014 NSHM convention; si-midorikawa/kanno2006 are Japan-calibrated and never validated in this region); interplate/intraslab use NGA-Sub (Parker et al. 2022) with the frozen region/saturation pair (v6.8; the v6.7 scorecard\'s -0.55 log10 Chile bias was measured under zhao2006 — the re-measured value under NGA-Sub is in tools/data/region-obs-report.json)',
         'crustal SA/UHS periods follow the same four-model NGA-West2 tree (all branches carry full transcribed SA tables; CY14/CB14/ASK14 tables since v7.x); subduction SA periods use NGA-Sub (full table; periods missing from a table are log-period interpolated between its rows) — regional spectral shapes remain uncalibrated against observations',
         'GMPE modelBias deliberately NOT applied; adaptive top-hat smoothing edge effects uncorrected (apron only)'
       ] : [
-        'simplified self-computed REGIONAL model — NOT an official regional hazard model (no USGS NSHM/SHARE/EQAFE/NZ NSHM/T-REA comparison performed; no external gate exists for the regional packs)',
+        'simplified self-computed REGIONAL model — NOT an official regional hazard model (' + (REGION === 'newzealand'
+          ? 'NZ NSHM comparison EXECUTED 2026-11-10 — first external absolute gate for any regional pack (official NSHM_v1.0.4 mean curves, vs30 600: Wellington RP475 PGA ours/official 0.453x structural underestimate — no megathrust/characteristic sources; Christchurch 1.978x OVERestimate — the 2010-2011 Canterbury sequence inflates the ComCat-window declustered rates; report tools/data/nz-nshm-comparison-report.json, preregistered H1/H2 pass H3 falsified; USGS NSHM/SHARE/EQAFE/T-REA still unperformed)'
+          : 'no USGS NSHM/SHARE/EQAFE/NZ NSHM/T-REA comparison performed; no external gate exists for the regional packs') + ')',
         'NO scenario/characteristic sources — grid-only GR; published regional fault-source recurrence rates (e.g. UCERF3, NSHM2022) are not curated into the pack, so long-RP hazard near known major faults is underestimated',
-        'crustal class uses the four-model NGA-West2 logic tree at equal weight 0.25 (v7.x; BSSA14 with the frozen regional Dc3 variant + Chiou & Youngs 2014 + Campbell & Bozorgnia 2014 + Abrahamson et al. 2014 base forms — USGS 2014 NSHM convention; si-midorikawa/kanno2006 are Japan-calibrated and never validated in this region); interplate/intraslab use NGA-Sub (Parker et al. 2022) with the frozen region/saturation pair (v6.8; the v6.7 scorecard\'s -0.55 log10 Chile bias was measured under zhao2006 — the re-measured value under NGA-Sub is in tools/data/region-obs-report.json)',
+        (cbPair
+          ? 'crustal class uses the four-model NGA-West2 logic tree with CB14 split into HighQ/LowQ epistemic branches at 0.125 each (v7.x tree, CB14 branch pair = user framework decision ' + cbPair.date + ' per the R-C measurement tools/data/nw2-alias-report.json; '
+          : 'crustal class uses the four-model NGA-West2 logic tree at equal weight 0.25 (v7.x; '
+        ) + 'BSSA14 with the frozen regional Dc3 variant + Chiou & Youngs 2014 + Campbell & Bozorgnia 2014 + Abrahamson et al. 2014 base forms — USGS 2014 NSHM convention; si-midorikawa/kanno2006 are Japan-calibrated and never validated in this region); interplate/intraslab use NGA-Sub (Parker et al. 2022) with the frozen region/saturation pair (v6.8; the v6.7 scorecard\'s -0.55 log10 Chile bias was measured under zhao2006 — the re-measured value under NGA-Sub is in tools/data/region-obs-report.json)',
         'crustal SA/UHS periods follow the same four-model NGA-West2 tree (all branches carry full transcribed SA tables; CY14/CB14/ASK14 tables since v7.x); subduction SA periods use NGA-Sub (full table; periods missing from a table are log-period interpolated between its rows) — regional spectral shapes remain uncalibrated against observations',
         'gridded GR truncated at class Mmax without renormalisation; regional Mmax values are coarse public-record conventions (see REGION_CONFIGS in tools/build-psha-source-model.js), not official maxima',
         'class-level rake simplification (interplate reverse 90, others neutral); gridded Rrup via equal-area circular patch at hypocentre depth; BSSA14 Rrup is read as Rjb (horizontal proxy)',
@@ -644,7 +666,13 @@ function main() {
       ecuador: { region: 'SA', sat: 'SA_N' }
     }[REGION];
     model.gmpeTree = {
-      crustal: [
+      crustal: cbPair ? [
+        { model: 'bssa14', weight: 0.25, variant: REGION === 'italy' ? 'lowQ' : 'base' },
+        { model: 'cy14', weight: 0.25 },
+        { model: 'cb14', weight: 0.125, variant: 'HighQ' },
+        { model: 'cb14', weight: 0.125, variant: 'LowQ' },
+        { model: 'ask14', weight: 0.25 }
+      ] : [
         { model: 'bssa14', weight: 0.25, variant: REGION === 'italy' ? 'lowQ' : 'base' },
         { model: 'cy14', weight: 0.25 },
         { model: 'cb14', weight: 0.25 },
@@ -652,7 +680,13 @@ function main() {
       ],
       interplate: [{ model: 'ngasub', weight: 1, variant: NGASUB_VARIANT }],
       intraslab: [{ model: 'ngasub', weight: 1, variant: NGASUB_VARIANT }],
-      note: 'regional tree: crustal = four-model NGA-West2 logic tree at equal 0.25 (USGS 2014 NSHM convention; BSSA14 keeps its regional Dc3 variant, CY14/CB14/ASK14 base forms), subduction classes = single-branch NGA-Sub (Parker 2022) with the frozen region/saturation pair; all branches SA-capable (off-grid periods interpolate)'
+      note: (cbPair
+        ? 'regional tree: crustal = four-model NGA-West2 logic tree with CB14 split into HighQ/LowQ epistemic branches '
+          + '(BSSA14 keeps its regional Dc3 variant, CY14 base, CB14 HighQ/LowQ at 0.125 each, ASK14 base — USGS 2014 NSHM convention; '
+          + 'CB14 Q-regime branch pair = user framework decision ' + cbPair.date + ' per the R-C frozen measurement tools/data/nw2-alias-report.json: '
+          + cbPair.tag + ' ' + cbPair.stats + ')'
+        : 'regional tree: crustal = four-model NGA-West2 logic tree at equal 0.25 (USGS 2014 NSHM convention; BSSA14 keeps its regional Dc3 variant, CY14/CB14/ASK14 base forms)')
+        + ', subduction classes = single-branch NGA-Sub (Parker 2022) with the frozen region/saturation pair; all branches SA-capable (off-grid periods interpolate)'
     };
   }
   fs.writeFileSync(OUT_MODEL, JSON.stringify(model));

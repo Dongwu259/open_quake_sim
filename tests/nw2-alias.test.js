@@ -43,6 +43,27 @@ test('pack wiring: taiwan ask14 carries TWN, italy cy14 carries no alias', () =>
   assert.match(tw.gmpeTree.note, /R-C measurement gate/);
 });
 
+test('R-C tail (2026-11-09 NZ / 2026-11-10 CA+IT): CB14 HighQ/LowQ frozen as PSHA-tree epistemic branches', () => {
+  for (const rid of ['newzealand', 'california', 'italy']) {
+    const pack = JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'psha-source-model-' + rid + '.json'), 'utf8'));
+    const cb = pack.gmpeTree.crustal.filter((b) => b.model === 'cb14');
+    assert.deepEqual(cb.map((b) => b.variant), ['HighQ', 'LowQ'], rid);
+    assert.deepEqual(cb.map((b) => b.weight), [0.125, 0.125], rid);
+    assert.match(pack.gmpeTree.note, /user framework decision 2026-11-(09|10)/, rid + ' note carries the decision');
+  }
+  // taiwan stays single-branch: base arm already best-fitting there
+  const tw = JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'psha-source-model-taiwan.json'), 'utf8'));
+  assert.equal(tw.gmpeTree.crustal.filter((b) => b.model === 'cb14').length, 1);
+  // both branch motions alive and distinct; the near-symmetric Dc20 pair keeps
+  // the equal-weight geometric mean within a few % of base at distance
+  // (RP anchors moved <=0.2 gal across the three adopted regions)
+  const g = { mw: 6.5, rrup: 150, rjb: 150, rx: 150, ry0: 0, ztor: 5, dip: 60, rake: 0, vs30: 600 };
+  const base = Physics.pgaCb2014(g), hq = Physics.pgaCb2014(g, 'HighQ'), lq = Physics.pgaCb2014(g, 'LowQ');
+  assert.ok(hq > base && lq < base, 'branches straddle base beyond the 80 km gate');
+  const mix = Math.sqrt(hq * lq);
+  assert.ok(Math.abs(mix - base) / base < 0.05, 'equal-weight mixture near base (' + mix + ' vs ' + base + ')');
+});
+
 test('alias plumbing: TWN branch motion shifts taiwan crustal medians; base byte-stable', () => {
   const g = { mw: 6.5, rrup: 60, rjb: 60, rx: 60, ry0: 0, ztor: 8, dip: 60, rake: 90, vs30: 600 };
   const base = Physics.pgaAsk2014(g);
