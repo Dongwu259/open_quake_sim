@@ -942,6 +942,7 @@ function regionActivate(pack) {
     _regionInstallGlobalBase();
     var row = document.getElementById('region-row');
     if (row) row.style.display = '';
+    _regionCapRender(pack.id);
     _regionProgressShow(80, 'Swapping region stations · 切换区域测站');
     // reset first (it re-centers on the Japan home view), then jump to the region.
     // fitBounds, not flyToBounds: the bundled Leaflet build's fly animation never
@@ -971,6 +972,8 @@ function regionDeactivate() {
   map.fitBounds([[30.0, 128.0], [45.3, 145.5]], { padding: [4, 4] });
   var row = document.getElementById('region-row');
   if (row) row.style.display = 'none';
+  var capPanel = document.getElementById('region-cap-panel');
+  if (capPanel) capPanel.style.display = 'none';
   if (REGION_STATE.realStations) _regionUnloadRealStations();
   _regionUnloadAreas();
   // Swap the tsunami forecast-area registry back to the JMA 66 areas — the
@@ -1147,6 +1150,12 @@ function _regionLoadRealStations(pack) {
             .replace('{m}', pkg.stations.length - vs30Applied)
         : t('region.st_note').replace('{n}', pkg.stations.length);
     }
+    if (REGION_STATE.active === rid) {
+      _regionCapSet(rid, 'stations', String(pkg.stations.length) + ' (' + t('region.cap_live_note') + ')');
+      _regionCapSet(rid, 'vs30', (vs30Applied > 0)
+        ? vs30Applied + '/' + pkg.stations.length + ' (' + ((vs30.provenance && (vs30.provenance.label || vs30.provenance.source)) || vs30Token) + ')'
+        : t('region.cap_none'));
+    }
     if (typeof drawFrame === 'function') drawFrame();
   }).catch(function (e) {
     console.error('region stations load failed:', e);
@@ -1154,6 +1163,10 @@ function _regionLoadRealStations(pack) {
     REGION_STATE.realStations = null;
     var note = document.getElementById('region-st-note');
     if (note) { note.style.display = ''; note.textContent = t('region.st_fail'); }
+    if (REGION_STATE.active === rid) {
+      _regionCapSet(rid, 'stations', t('region.st_fail'));
+      _regionCapSet(rid, 'vs30', t('region.cap_none'));
+    }
   });
 }
 function _regionUnloadRealStations() {
@@ -1162,6 +1175,48 @@ function _regionUnloadRealStations() {
   if (note) { note.style.display = 'none'; note.textContent = ''; }
   if (typeof Renderer !== 'undefined' && Renderer.invalidateCaches) Renderer.invalidateCaches();
   if (typeof drawFrame === 'function') drawFrame();
+}
+
+// -- Region capability card (batch D 2026-11-12): honest per-region summary
+//    of what this region pack carries, surfaced from the same provenance the
+//    loading notes already use. Absent rows render as 缺席 — never blank.
+function _regionCapSet(rid, key, value) {
+  var el = document.getElementById('region-cap-' + key);
+  if (el) el.textContent = t('region.cap_' + key) + ': ' + value;
+}
+
+function _regionCapRender(rid) {
+  var panel = document.getElementById('region-cap-panel');
+  if (!panel) return;
+  if (!REGION_STATE.active || REGION_STATE.active !== rid) { panel.style.display = 'none'; return; }
+  var pack = REGION_STATE.pack || {};
+  var presets = (pack.presets || []).length;
+  var comcat = (pack.presets || []).filter(function(p) { return p && p.source && String(p.source).indexOf('comcat') !== -1; }).length;
+  var bathy = (REGIONAL_BATHY || []).some(function(b) { return b.region === rid; });
+  var body = document.getElementById('region-cap-body');
+  if (body) {
+    body.innerHTML =
+      '<div id="region-cap-presets"></div>' +
+      '<div id="region-cap-stations"></div>' +
+      '<div id="region-cap-vs30"></div>' +
+      '<div id="region-cap-psha"></div>' +
+      '<div id="region-cap-tsunami"></div>';
+  }
+  _regionCapSet(rid, 'presets', presets + (comcat ? ' (ComCat ' + comcat + ')' : ''));
+  _regionCapSet(rid, 'stations', String((pack.stations || []).length) + ' (' + t('region.cap_seed_note') + ')');
+  _regionCapSet(rid, 'vs30', t('region.cap_loading'));
+  _regionCapSet(rid, 'tsunami', bathy ? t('region.cap_ok') : t('region.cap_none'));
+  // PSHA pack existence: honest HEAD probe (the card itself gates on the same fetch)
+  fetch('geojson/psha-source-model-' + rid + '.json', { method: 'HEAD' })
+    .then(function(r) {
+      if (REGION_STATE.active !== rid) return;
+      _regionCapSet(rid, 'psha', r.ok ? t('region.cap_ok') : t('region.cap_none'));
+    })
+    .catch(function() {
+      if (REGION_STATE.active !== rid) return;
+      _regionCapSet(rid, 'psha', t('region.cap_none'));
+    });
+  panel.style.display = '';
 }
 
 // -- Fixed station network generation --
@@ -11751,6 +11806,7 @@ function _pshaSyncTimedToggle() {
   } catch (e) { /* DOM optional */ }
 }
 var _lastUhsExport = null;
+var _lastPshaHazardExport = null; // batch C 2026-11-12: hazard-curve CSV stash
 
 function _loadPshaSourceModel() {
   if (_pshaSourceModel !== null) return;
@@ -11927,6 +11983,14 @@ function drawPshaHazard() {
       (m89 ? ('  P(' + hz.timeDependent.horizonYears + 'y|M8.9)=' +
       Math.round(m89.conditionalProb * 100) + '%') : ''), 34, 22);
   }
+  // stash for the CSV export (batch C 2026-11-12, spectrum/UHS precedent)
+  _lastPshaHazardExport = {
+    imt: hz.imt, rp: res.rp, timeDependent: !!(res.td && hz.timeDependent),
+    imLevelsGal: hz.imLevels.slice(),
+    rateMean: hz.meanRate.slice(),
+    rateE: hz.ensemble ? hz.ensemble.map(function(c) { return Array.prototype.slice.call(c); }) : null,
+    prob50y: hz.poissonProb ? hz.poissonProb.slice() : null,
+  };
 }
 
 function drawPshaUhs() {
@@ -12132,6 +12196,26 @@ document.querySelectorAll('.chart-download').forEach(function(btn) {
       var ua = document.createElement('a'); ua.href = URL.createObjectURL(ublob);
       ua.download = 'quake-sim-uhs-rp' + ux.rp + '-vs30-' + ux.vs30 + '-site-' + ux.site.replace(',', 'x') + '.csv'; ua.click();
       setTimeout(function() { URL.revokeObjectURL(ua.href); }, 5000);
+      return;
+    } catch (e) { /* fall through to PNG */ }
+  }
+  if (btn.dataset.canvas === 'psha-hazard-canvas' && _lastPshaHazardExport && _lastPshaHazardExport.imLevelsGal.length) {
+    try {
+      var hx = _lastPshaHazardExport;
+      var hrows = ['im_gal,rate_mean_annual,prob_exceed_50y'];
+      for (var he = 1; he <= (hx.rateE ? hx.rateE.length : 0); he++) hrows[0] += ',rate_e' + he;
+      if (hx.timeDependent) hrows[0] += ',time_dependent';
+      for (var hi2 = 0; hi2 < hx.imLevelsGal.length; hi2++) {
+        var hrow = [hx.imLevelsGal[hi2].toFixed(2), hx.rateMean[hi2].toExponential(4)];
+        hrow.push(hx.prob50y ? hx.prob50y[hi2].toExponential(4) : '');
+        for (var he2 = 0; he2 < (hx.rateE ? hx.rateE.length : 0); he2++) hrow.push(hx.rateE[he2][hi2].toExponential(4));
+        if (hx.timeDependent) hrow.push('1');
+        hrows.push(hrow.join(','));
+      }
+      var hblob = new Blob([hrows.join('\n')], { type: 'text/csv' });
+      var ha = document.createElement('a'); ha.href = URL.createObjectURL(hblob);
+      ha.download = 'quake-sim-hazard-' + hx.imt + '-rp' + hx.rp + (hx.timeDependent ? '-td' : '') + '.csv'; ha.click();
+      setTimeout(function() { URL.revokeObjectURL(ha.href); }, 5000);
       return;
     } catch (e) { /* fall through to PNG */ }
   }

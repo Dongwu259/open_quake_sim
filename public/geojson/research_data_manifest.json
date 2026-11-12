@@ -227,7 +227,7 @@
    "sourceUrl": "https://earthquake.usgs.gov/fdsnws/event/1/",
    "license": "USGS public domain (ComCat); UCERF3 blocks CC BY 4.0 (Zenodo DOI 10.5281/zenodo.5519802)",
    "releaseDate": "2026-10-12",
-   "sha256": "4ad958d2df53a0c3656e9f0272cf8c988b14c00e43117dceaa44e7d5d97e7a65",
+   "sha256": "c5e4fdfe9e80111baa150cf7f808258d2129f18973b51c944f4c176eff68ada9",
    "crs": "EPSG:4326",
    "resolution": "0.25 degree gridded sources (apron) + UCERF3 RELM 0.1° grid MFD nodes + parent-section characteristic fault sources",
    "processing": "tools/fetch-comcat-japan.js --region=california + tools/build-psha-source-model.js --region=california (same pipeline as the Japan model; regional Mmax conventions + Physics.REGIONAL_SUBDUCTION_LINES trench classification; regional gmpeTree: crustal four-model NGA-West2 tree with CB14 split into HighQ/LowQ epistemic branches at 0.125 each (BSSA14 + CY14 + CB14 HighQ/LowQ + ASK14; branch pair = user framework decision 2026-11-10 per the R-C measurement tools/data/nw2-alias-report.json), subduction NGA-Sub (Parker 2022, frozen region/saturation pair, v6.8); UCERF3 v3 swap 2026-10-12: schema quake-sim-psha-source-v3, artifacts tools/data/ucerf3-sections-california.json + ucerf3-grid-mfd.json). UCERF3-TD batch B (2026-10-12): every characteristic source carries bpt.lastEventYear (tools/data/ucerf3-td-sections-california.json; OpenSHA UCERF3_OpenIntervals_ver11.xls sha256 4cae78f9…; Field et al. 2015 Table-1 blend in the TD engine) — bptReady:true"
@@ -242,7 +242,7 @@
    "sourceUrl": "https://earthquake.usgs.gov/fdsnws/event/1/",
    "license": "USGS public domain (ComCat)",
    "releaseDate": "2026-10-01",
-   "sha256": "c736e8c8ca009e46aedeca59ce3611d9aa9fa07c254a85c424abf2c67b6379d1",
+   "sha256": "7b0706e08719179445587c432331c8643a0fa3b13d2c4926c4b38a73bcfc5236",
    "crs": "EPSG:4326",
    "resolution": "0.25 degree gridded sources",
    "processing": "tools/fetch-comcat-japan.js --region=italy + tools/build-psha-source-model.js --region=italy (same pipeline as the Japan model; regional Mmax conventions + Physics.REGIONAL_SUBDUCTION_LINES trench classification; regional gmpeTree: crustal four-model NGA-West2 tree with CB14 split into HighQ/LowQ epistemic branches at 0.125 each (BSSA14 + CY14 + CB14 HighQ/LowQ + ASK14; branch pair = user framework decision 2026-11-10 per the R-C measurement tools/data/nw2-alias-report.json), subduction NGA-Sub (Parker 2022, frozen region/saturation pair, v6.8)); simplified self-computed model, NOT an official regional hazard model"
@@ -257,7 +257,7 @@
    "sourceUrl": "https://earthquake.usgs.gov/fdsnws/event/1/",
    "license": "USGS public domain (ComCat)",
    "releaseDate": "2026-10-01",
-   "sha256": "125635c6b4752d483c4684d4246312fd08646b8e4d6432831d677aaa1bd8afcb",
+   "sha256": "502551942d4386f58b1c5693958901b78939c3cf2565037aa1e1e8c2e62bd8dd",
    "crs": "EPSG:4326",
    "resolution": "0.25 degree gridded sources",
    "processing": "tools/fetch-comcat-japan.js --region=chile + tools/build-psha-source-model.js --region=chile (same pipeline as the Japan model; regional Mmax conventions + Physics.REGIONAL_SUBDUCTION_LINES trench classification; regional gmpeTree: crustal four-model NGA-West2 tree at equal 0.25 (BSSA14 + CY14 + CB14 + ASK14, v7.x), subduction NGA-Sub (Parker 2022, frozen region/saturation pair, v6.8)); simplified self-computed model, NOT an official regional hazard model"
@@ -272,7 +272,7 @@
    "sourceUrl": "https://earthquake.usgs.gov/fdsnws/event/1/",
    "license": "USGS public domain (ComCat)",
    "releaseDate": "2026-10-01",
-   "sha256": "801af39385d2a542406e6b8d2e0f3005de8a21be5bb1a93de2126aa7f48d9a6c",
+   "sha256": "a674b6d72044dbb8600b0dceae82ae2f10823d8ec36723d053f604bd2a02bcc7",
    "crs": "EPSG:4326",
    "resolution": "0.25 degree gridded sources",
    "processing": "tools/fetch-comcat-japan.js --region=taiwan + tools/build-psha-source-model.js --region=taiwan (same pipeline as the Japan model; regional Mmax conventions + Physics.REGIONAL_SUBDUCTION_LINES trench classification; regional gmpeTree: crustal four-model NGA-West2 tree at equal 0.25 (BSSA14 + CY14 + CB14 + ASK14, v7.x), subduction NGA-Sub (Parker 2022, frozen region/saturation pair, v6.8)); simplified self-computed model, NOT an official regional hazard model"
@@ -287,7 +287,7 @@
    "sourceUrl": "https://earthquake.usgs.gov/fdsnws/event/1/",
    "license": "USGS public domain (ComCat)",
    "releaseDate": "2026-10-01",
-   "sha256": "13540383076bdd1ad71d0e1d8239e08cc0ec804a84ba8154f9701aa5fc8f4de5",
+   "sha256": "d5f714b4763f7014c2c07a05dd8d8a96bc8cbe235ad3a7d107814be79aeaa66e",
    "crs": "EPSG:4326",
    "resolution": "0.25 degree gridded sources",
    "processing": "tools/fetch-comcat-japan.js --region=newzealand + tools/build-psha-source-model.js --region=newzealand (same pipeline as the Japan model; regional Mmax conventions + Physics.REGIONAL_SUBDUCTION_LINES trench classification; regional gmpeTree: crustal four-model NGA-West2 tree with CB14 split into HighQ/LowQ epistemic branches at 0.125 each (BSSA14 + CY14 + CB14 HighQ/LowQ + ASK14; branch pair = user framework decision 2026-11-09 per the R-C measurement tools/data/nw2-alias-report.json), subduction NGA-Sub (Parker 2022, frozen region/saturation pair, v6.8)); simplified self-computed model, NOT an official regional hazard model"
@@ -302,7 +302,7 @@
    "sourceUrl": "https://earthquake.usgs.gov/fdsnws/event/1/",
    "license": "USGS public domain (ComCat)",
    "releaseDate": "2026-10-14",
-   "sha256": "f86aa8c3710538aff0c2d144cf8e1ceca7d87fa7f1d37e773534a1c11399c37c",
+   "sha256": "41b753b45ab3b5046eafe27303d086a2ddeae4d094c71c059c9888615ef27a93",
    "crs": "EPSG:4326",
    "resolution": "0.25 degree gridded sources",
    "processing": "tools/fetch-comcat-japan.js --region=ecuador + tools/build-psha-source-model.js --region=ecuador (same pipeline as the Japan model; regional Mmax conventions + Physics.REGIONAL_SUBDUCTION_LINES trench classification; regional gmpeTree: crustal four-model NGA-West2 tree at equal 0.25 (BSSA14 + CY14 + CB14 + ASK14, v7.x), subduction NGA-Sub (Parker 2022, SA/SA_N northern-South-America pair, v6.8+)); simplified self-computed model, NOT an official regional hazard model"

@@ -146,6 +146,43 @@
     return sec.items.filter(function(i) { return !i.ok && !i.advisory && i.refetch; }).map(function(i) { return i.refetch; });
   }
 
+  // Regeneration commands for a section — ONLY tools that actually exist in
+  // the repo and build a listed file (no invented commands; packages/manifest
+  // are multi-step pipelines with no single honest command).
+  function regenCommands(sectionId) {
+    if (sectionId === 'audio') return ['node tools/gen-bulletin-sounds.js', 'node tools/generate-intensity12-sounds.js'];
+    if (sectionId === 'map') return ['python tools/build-world-land.py', 'python tools/build-jma-subareas.py'];
+    return [];
+  }
+
+  // One-shot paste-ready summary for bug reports (pure, node-testable).
+  function buildSummaryText(summary, client, meta) {
+    var lines = ['== doctor diagnostic =='];
+    meta = meta || {};
+    lines.push('time: ' + new Date().toISOString());
+    if (meta.url) lines.push('url: ' + meta.url);
+    if (meta.userAgent) lines.push('ua: ' + meta.userAgent);
+    if (meta.language) lines.push('lang: ' + meta.language);
+    if (summary) {
+      lines.push('server status: ' + summary.status + (summary.bad ? ' (' + summary.bad + ' missing)' : ''));
+      summary.sections.forEach(function(sec) {
+        var miss = sec.items.filter(function(i) { return !i.ok; });
+        if (!miss.length) return;
+        lines.push('[' + sec.id + '] missing ' + miss.length + (sec.advisory ? ' (advisory)' : ''));
+        miss.slice(0, 20).forEach(function(i) { lines.push('  - ' + i.name); });
+        if (miss.length > 20) lines.push('  ... +' + (miss.length - 20));
+      });
+    } else {
+      lines.push('server status: unavailable (fetch failed)');
+    }
+    if (client) {
+      var bad = (client.lazy || []).filter(function(l) { return !l.ok; });
+      lines.push('lazy scripts failed: ' + bad.length + (bad.length ? ': ' + bad.map(function(l) { return l.key; }).join(', ') : ''));
+      lines.push('sw caches: ' + ((client.swCaches || []).join(', ') || '(none)'));
+    }
+    return lines.join('\n');
+  }
+
   // ---- browser side -------------------------------------------------------
   function _t(key) {
     if (typeof t === 'function') return t(key);
@@ -207,6 +244,27 @@
     });
   }
 
+  function _copyText(text, statusEl) {
+    function done() { if (statusEl) statusEl.textContent = _t('doctor.copied'); }
+    function fail() { if (statusEl) statusEl.textContent = _t('doctor.copy_fail'); }
+    function fallback() {
+      try {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        var ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        if (ok) done(); else fail();
+      } catch (e) { fail(); }
+    }
+    if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, fallback);
+    } else fallback();
+  }
+
   function _sectionHtml(sec) {
     var dot = sec.severity === 'bad' ? '#e94560' : (sec.advisory ? '#d9a441' : '#2e9e5b');
     var titleKey = { audio: 'doctor.section_audio', map: 'doctor.section_map', packages: 'doctor.section_packages', manifest: 'doctor.section_manifest', sw: 'doctor.client_probe' }[sec.id] || sec.id;
@@ -222,6 +280,10 @@
       if (plan.length) {
         html += '<div style="margin:6px 0;"><button class="rt-mini-btn doctor-refetch" data-sec="' + sec.id + '" type="button">' + _esc(_t('doctor.refetch')) + '</button> <span class="settings-note doctor-sec-status"></span></div>';
       }
+    }
+    var cmds = regenCommands(sec.id);
+    if (cmds.length) {
+      html += '<div style="margin:6px 0;"><button class="rt-mini-btn doctor-copy-cmd" data-sec="' + sec.id + '" type="button">' + _esc(_t('doctor.copy_cmd')) + '</button> <code class="settings-note" style="word-break:break-all;">' + _esc(cmds.join(' ; ')) + '</code></div>';
     }
     var rows = sec.items.filter(function(i) { return !i.ok; });
     if (!rows.length) {
@@ -260,6 +322,12 @@
     _statusNote();
     Array.prototype.forEach.call(box.querySelectorAll('.doctor-refetch'), function(btn) {
       btn.addEventListener('click', function() { _refetchSection(btn.getAttribute('data-sec'), btn); });
+    });
+    Array.prototype.forEach.call(box.querySelectorAll('.doctor-copy-cmd'), function(btn) {
+      btn.addEventListener('click', function() {
+        var sec = btn.getAttribute('data-sec');
+        _copyText(regenCommands(sec).join('\n'), btn.parentElement.querySelector('.doctor-sec-status'));
+      });
     });
   }
 
@@ -334,6 +402,11 @@
       });
       var rerun = document.getElementById('btn-doctor-refresh');
       if (rerun) rerun.addEventListener('click', function() { runCheck().catch(function() {}); });
+      var copyBtn = document.getElementById('btn-doctor-copy');
+      if (copyBtn) copyBtn.addEventListener('click', function() {
+        var meta = { url: location.href, userAgent: navigator.userAgent, language: navigator.language };
+        _copyText(buildSummaryText(_state.summary, _state.client, meta), document.getElementById('doctor-action-status'));
+      });
       var purge = document.getElementById('btn-doctor-purge');
       if (purge) purge.addEventListener('click', function() {
         purgeRuntimeCaches().then(function(n) {
@@ -356,6 +429,8 @@
     buildFragmentNames: buildFragmentNames,
     summarize: summarize,
     buildRefetchPlan: buildRefetchPlan,
+    regenCommands: regenCommands,
+    buildSummaryText: buildSummaryText,
     runCheck: runCheck,
     openModal: openModal,
   };

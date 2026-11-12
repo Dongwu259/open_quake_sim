@@ -103,6 +103,46 @@ test('buildRefetchPlan only plans non-advisory missing items', () => {
   assert.deepEqual(Doctor.buildRefetchPlan(summary, 'nope'), []);
 });
 
+test('regenCommands: only verified in-repo builders, packages stay honest-empty', () => {
+  const audio = Doctor.regenCommands('audio');
+  const map = Doctor.regenCommands('map');
+  assert.ok(audio.join(' ').includes('tools/gen-bulletin-sounds.js'), 'audio bulletin tool');
+  assert.ok(audio.join(' ').includes('tools/generate-intensity12-sounds.js'), 'audio i12 tool');
+  assert.ok(map.join(' ').includes('tools/build-world-land.py'), 'map world-land tool');
+  assert.ok(map.join(' ').includes('tools/build-jma-subareas.py'), 'map subareas tool');
+  assert.deepEqual(Doctor.regenCommands('packages'), []);
+  assert.deepEqual(Doctor.regenCommands('manifest'), []);
+  // every referenced tool exists on disk (anti-drift tripwire)
+  for (const cmd of audio.concat(map)) {
+    const tool = cmd.split(' ').slice(2).join(' ');
+    assert.ok(fs.existsSync(path.join(__dirname, '..', tool)), 'tool exists: ' + tool);
+  }
+});
+
+test('buildSummaryText: paste-ready shape, missing-name cap at 20', () => {
+  const summary = {
+    status: 'degraded', bad: 25,
+    sections: [{ id: 'audio', items: Array.from({ length: 25 }, (_, i) => ({ name: 'snd' + i, ok: false })) },
+               { id: 'map', items: [{ name: 'coast', ok: true }] }],
+  };
+  const client = { lazy: [{ key: 'doctor', url: 'doctor.js', ok: false }, { key: 'finite-fault', url: 'ff.js', ok: true }], swCaches: ['qs-cache-a-runtime'] };
+  const text = Doctor.buildSummaryText(summary, client, { url: 'http://x/', userAgent: 'UA-test', language: 'zh' });
+  assert.match(text, /^== doctor diagnostic ==\ntime: /);
+  assert.match(text, /url: http:\/\/x\//);
+  assert.match(text, /ua: UA-test/);
+  assert.match(text, /lang: zh/);
+  assert.match(text, /server status: degraded \(25 missing\)/);
+  assert.match(text, /\[audio\] missing 25/);
+  assert.match(text, /- snd19/);
+  assert.match(text, /\.\.\. \+5/, 'cap at 20 names');
+  assert.ok(!/- snd20/.test(text), 'names beyond 20 suppressed');
+  assert.match(text, /lazy scripts failed: 1: doctor/);
+  assert.match(text, /sw caches: qs-cache-a-runtime/);
+  // no-summary and no-client degrade honestly
+  const bare = Doctor.buildSummaryText(null, null, {});
+  assert.match(bare, /server status: unavailable/);
+});
+
 // ================================================================
 //  Hermetic server inventory (temp tree via _test hooks)
 // ================================================================

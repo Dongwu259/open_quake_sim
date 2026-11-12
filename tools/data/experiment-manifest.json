@@ -1,6 +1,6 @@
 {
  "schema": "quake-sim-experiment-manifest-v1",
- "generated": "2026-11-09T17:37:24.393Z",
+ "generated": "2026-11-12T16:53:40.895Z",
  "identityRule": "qsx1-<sha256[:16] of file bytes>; manifest excluded from its own listing",
  "entries": [
   {
@@ -19,7 +19,7 @@
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-11-09T17:37:24.093Z"
+   "mtime": "2026-11-12T16:53:40.543Z"
   },
   {
    "id": "qsx1-c2f5892ba9d0c58f",
@@ -37,7 +37,7 @@
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-11-09T17:37:24.096Z"
+   "mtime": "2026-11-12T16:53:40.550Z"
   },
   {
    "id": "qsx1-47654bd24604b25a",
@@ -478,7 +478,7 @@
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-11-09T17:37:24.111Z"
+   "mtime": "2026-11-12T16:53:40.558Z"
   },
   {
    "id": "qsx1-228c17a0c7536365",
@@ -577,7 +577,7 @@
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-11-09T17:37:24.119Z"
+   "mtime": "2026-11-12T16:53:40.571Z"
   },
   {
    "id": "qsx1-997155606d66c6d7",
@@ -595,7 +595,7 @@
    "kind": "fixture",
    "track": "v6.7 NGA-West2",
    "gate": "tests/gmpe-bssa14.test.js",
-   "mtime": "2026-11-09T17:37:24.143Z"
+   "mtime": "2026-11-12T16:53:40.596Z"
   },
   {
    "id": "qsx1-8a2ff4c46477f049",
@@ -631,7 +631,7 @@
    "kind": "fixture",
    "track": "R0-3",
    "gate": "tests/gmpe-benchmarks.test.js",
-   "mtime": "2026-11-09T17:37:24.158Z"
+   "mtime": "2026-11-12T16:53:40.617Z"
   },
   {
    "id": "qsx1-bf7231c8999bc8e5",
@@ -640,7 +640,7 @@
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-11-09T17:37:24.166Z"
+   "mtime": "2026-11-12T16:53:40.617Z"
   },
   {
    "id": "qsx1-2b7cc0c30bd9088c",
@@ -751,58 +751,58 @@
    "mtime": "2026-11-08T14:36:55.610Z"
   },
   {
-   "id": "qsx1-628766de2b281018",
+   "id": "qsx1-ab250076188842a2",
    "name": "psha-source-model-report-california.json",
    "bytes": 7090,
    "kind": "source-model",
    "track": "v6.7 regional PSHA",
    "gate": "tests/psha-region.test.js",
-   "mtime": "2026-11-09T17:14:23.795Z"
+   "mtime": "2026-11-12T16:48:17.831Z"
   },
   {
-   "id": "qsx1-3fc11cd7f4fa040c",
+   "id": "qsx1-c38dd16ea26f7e5b",
    "name": "psha-source-model-report-chile.json",
    "bytes": 6350,
    "kind": "source-model",
    "track": "v6.7 regional PSHA",
    "gate": "tests/psha-region.test.js",
-   "mtime": "2026-10-13T09:47:42.741Z"
+   "mtime": "2026-11-12T16:48:17.836Z"
   },
   {
-   "id": "qsx1-f547fe2110a4e989",
+   "id": "qsx1-84339b5ec81ae54a",
    "name": "psha-source-model-report-ecuador.json",
    "bytes": 6301,
    "kind": "source-model",
    "track": "v6.7 regional PSHA (ecuador 2026-10-14)",
    "gate": "tests/psha-region.test.js",
-   "mtime": "2026-10-15T15:45:08.964Z"
+   "mtime": "2026-11-12T16:48:17.836Z"
   },
   {
-   "id": "qsx1-04b753f6cce3e6ab",
+   "id": "qsx1-b617047a02ca93c6",
    "name": "psha-source-model-report-italy.json",
    "bytes": 6233,
    "kind": "source-model",
    "track": "v6.7 regional PSHA",
    "gate": "tests/psha-region.test.js",
-   "mtime": "2026-11-09T17:14:23.802Z"
+   "mtime": "2026-11-12T16:48:17.836Z"
   },
   {
-   "id": "qsx1-a70f1d6f1e350548",
+   "id": "qsx1-943e2ad1c05383b4",
    "name": "psha-source-model-report-newzealand.json",
    "bytes": 6274,
    "kind": "source-model",
    "track": "v6.7 regional PSHA",
    "gate": "tests/psha-region.test.js",
-   "mtime": "2026-11-09T17:14:23.804Z"
+   "mtime": "2026-11-12T16:48:17.843Z"
   },
   {
-   "id": "qsx1-62ec1f777463cb3d",
+   "id": "qsx1-99cd66c91e13e2b5",
    "name": "psha-source-model-report-taiwan.json",
    "bytes": 6276,
    "kind": "source-model",
    "track": "v6.7 regional PSHA",
    "gate": "tests/psha-region.test.js",
-   "mtime": "2026-10-13T09:47:42.805Z"
+   "mtime": "2026-11-12T16:48:17.848Z"
   },
   {
    "id": "qsx1-6301ad8515eae6a2",
@@ -874,7 +874,7 @@
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-11-09T17:37:24.175Z"
+   "mtime": "2026-11-12T16:53:40.661Z"
   },
   {
    "id": "qsx1-366276b0b3c534f7",
@@ -910,7 +910,7 @@
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-11-09T17:37:24.175Z"
+   "mtime": "2026-11-12T16:53:40.663Z"
   },
   {
    "id": "qsx1-7bc3f861bd4a0a1e",
@@ -946,7 +946,7 @@
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-11-09T17:37:24.181Z"
+   "mtime": "2026-11-12T16:53:40.666Z"
   },
   {
    "id": "qsx1-bbaac4f5cba7266d",
@@ -973,7 +973,7 @@
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-11-09T17:37:24.184Z"
+   "mtime": "2026-11-12T16:53:40.671Z"
   },
   {
    "id": "qsx1-53e62f0b81c94ef0",
@@ -1010,6 +1010,15 @@
    "track": "UCERF3-TD batch A",
    "gate": "tests/ucerf3-td.test.js",
    "mtime": "2026-10-12T07:53:26.434Z"
+  },
+  {
+   "id": "qsx1-e8001c59660e8746",
+   "name": "usgs-nshm-comparison-report.json",
+   "bytes": 2091,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-11-12T16:53:40.678Z"
   },
   {
    "id": "qsx1-cfb32ea050c345ab",

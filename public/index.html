@@ -27,7 +27,7 @@
 <link rel="stylesheet" href="leaflet/leaflet.css?v=f885c4">
 <link rel="stylesheet" href="style.css?v=c6f65a">
 <link rel="preload" href="leaflet/leaflet.js?v=5a640f" as="script">
-<link rel="preload" href="app.js?v=c3eb99" as="script">
+<link rel="preload" href="app.js?v=a40f78" as="script">
 <link rel="preload" href="style.css?v=c6f65a" as="style">
 <link rel="preload" href="config.js?v=42c183" as="script">
 <link rel="preload" href="physics.js?v=b52589" as="script">
@@ -162,6 +162,7 @@
           <div class="disclosure-body switch-list">
             <label class="switch-row"><input type="checkbox" id="global-mode"><span class="switch-ui"></span><span data-i18n="region.mode">全球模式</span><span class="test-badge" data-i18n="region.test_badge">测试</span></label>
             <div class="switch-row" id="region-row" style="display:none"><span data-i18n="region.label">试点区域</span><select id="region-select" class="rt-select"><option value="california" data-i18n="region.california">加州</option></select><span class="test-badge" data-i18n="region.test_badge">测试</span></div>
+            <details id="region-cap-panel" style="display:none" class="sidebar-disclosure"><summary data-i18n="region.cap_title">区域能力</summary><div id="region-cap-body" style="font-size:.72em;color:var(--text-secondary);line-height:1.45;padding:2px 0 4px 30px"></div></details>
             <label class="switch-row"><input type="checkbox" id="tsunami-enable" checked><span class="switch-ui"></span><span data-i18n="tsunami.enable">启用海啸</span></label>
             <label class="switch-row" id="bathy-row" style="display:none"><input type="checkbox" id="bathy-enable"><span class="switch-ui"></span><span data-i18n="bathy.show">海底地形</span></label>
             <label class="switch-row"><input type="checkbox" id="vs30-enable"><span class="switch-ui"></span><span data-i18n="vs30.show">Vs30 场地分布</span></label>
@@ -754,7 +755,7 @@
 <script src="research.js?v=3ee192"></script>
 <script src="data-catalog.js?v=bee20f"></script>
 <script src="grid-package.js?v=865d26"></script>
-<script src="i18n.js?v=a261e0"></script>
+<script src="i18n.js?v=e54883"></script>
 <script src="dc3d.js?v=2865dd"></script>
 <script src="physics.js?v=b52589"></script>
 <script src="tsunami-solver-host.js?v=2432a8"></script>
@@ -822,17 +823,55 @@ window.LAZY_SCRIPTS = {
   'waveform-data': 'waveform-data.js?v=27c01f',
   'strong-motion-data': 'strong-motion-data.js?v=f345d3',
   'strong-motion-waveforms': 'strong-motion-waveforms.js?v=4ab568',
-  'doctor': 'doctor.js?v=291f0f'
+  'doctor': 'doctor.js?v=5b0019'
 };
 // Resolve a lazy module by its browser global; resolves false when the
 // manifest lacks the key or the load fails (callers keep honest degrades).
+// Load failures also arm the one-shot resource-diagnostics banner
+// (doctor 联动批 2026-11-12) — the user gets a direct path to the doctor
+// panel instead of a silent degrade.
+var _lazyFailShown = false;
+window._lazyFailNotice = function(key) {
+  if (_lazyFailShown) return;
+  _lazyFailShown = true;
+  function tr(k, fb) { return (typeof t === 'function') ? t(k) : fb; }
+  var bar = document.createElement('div');
+  bar.id = 'lazy-fail-banner';
+  bar.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:2600;background:#2a0f12;color:#ffd9dc;border:1px solid #e94560;border-radius:10px;padding:10px 14px;font-size:13px;display:flex;gap:10px;align-items:center;max-width:92vw;box-shadow:0 6px 24px rgba(0,0,0,0.4);';
+  var span = document.createElement('span');
+  span.textContent = tr('doctor.lazy_fail_text', 'Some resources failed to load') + ' (' + key + ')';
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'rt-mini-btn';
+  btn.textContent = tr('doctor.lazy_fail_open', 'Open resource diagnostics');
+  btn.addEventListener('click', function() {
+    bar.remove();
+    window._ensureScript('Doctor', 'doctor').then(function(ok) {
+      if (ok && typeof window.Doctor !== 'undefined' && window.Doctor.openModal) window.Doctor.openModal();
+    });
+  });
+  var x = document.createElement('button');
+  x.type = 'button';
+  x.className = 'help-close';
+  x.textContent = '×';
+  x.setAttribute('aria-label', 'close');
+  x.addEventListener('click', function() { bar.remove(); });
+  bar.appendChild(span);
+  bar.appendChild(btn);
+  bar.appendChild(x);
+  (document.body || document.documentElement).appendChild(bar);
+};
 window._ensureScript = function(globalName, key) {
   if (typeof window[globalName] !== 'undefined') return Promise.resolve(true);
   var url = window.LAZY_SCRIPTS && window.LAZY_SCRIPTS[key];
   if (!url) return Promise.resolve(false);
   return window._loadScript(url)
-    .then(function() { return typeof window[globalName] !== 'undefined'; })
-    .catch(function() { return false; });
+    .then(function() {
+      var ok = typeof window[globalName] !== 'undefined';
+      if (!ok) window._lazyFailNotice(key);
+      return ok;
+    })
+    .catch(function() { window._lazyFailNotice(key); return false; });
 };
 </script>
 <div id="promo-overlay" class="promo-overlay" role="dialog" aria-modal="true" aria-labelledby="promo-title">
@@ -946,7 +985,7 @@ window._ensureScript = function(globalName, key) {
   </div>
 </div>
 <script src="settings.js?v=f85b22"></script>
-<script src="app.js?v=c3eb99"></script>
+<script src="app.js?v=a40f78"></script>
 <script src="aftershock.js?v=e29837"></script>
 <script src="rt-data.js?v=6780e5"></script>
 <script src="rt-kmoni.js?v=b581c5"></script>
@@ -1025,6 +1064,7 @@ window._ensureScript = function(globalName, key) {
       <div class="settings-row">
         <button id="btn-doctor-refresh" class="rt-mini-btn" type="button" data-i18n="doctor.rerun">重新检查</button>
         <button id="btn-doctor-purge" class="rt-mini-btn" type="button" data-i18n="doctor.purge">清理浏览器运行时缓存</button>
+        <button id="btn-doctor-copy" class="rt-mini-btn" type="button" data-i18n="doctor.copy_summary">复制诊断摘要</button>
         <span id="doctor-action-status" class="settings-note"></span>
       </div>
       <p class="settings-note" data-i18n="doctor.note">诊断结果来自服务器磁盘清单与本浏览器缓存探测;服务器磁盘缺失的文件无法由浏览器拉取,需在部署机重新生成。</p>

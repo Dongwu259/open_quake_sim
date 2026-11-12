@@ -1,7 +1,7 @@
 {
   "schema": "quake-sim-psha-source-model-report-v1",
   "region": "ecuador",
-  "generatedAt": "2026-10-14T16:39:10.412Z",
+  "generatedAt": "2026-11-12T16:36:36.683Z",
   "catalogCount": 1092,
   "classCounts": {
     "crustal": 298,

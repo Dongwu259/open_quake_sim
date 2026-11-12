@@ -1,0 +1,91 @@
+{
+ "schema": "quake-sim-usgs-nshm-comparison-v1",
+ "frozenAt": "2026-11-12",
+ "preregistration": "see tools/scorecard-usgs-nshm.js header (frozen 2026-11-12, before first scoring run)",
+ "official": {
+  "endpoint": "https://earthquake.usgs.gov/ws/nshmp/conus-2023.R2/static/hazard",
+  "edition": "STATIC_CONUS_2023_R2 (2023.R2 Conterminous U.S. NSHM, static service)",
+  "siteClass": "BC",
+  "fetchedAt": "2026-11-12T16:23:01.434Z"
+ },
+ "metric": "ours/official RP-im ratio (PGA + SA(1.0), RP475/RP2500), identical inversion both sides, BC 760 m/s both sides",
+ "sites": {
+  "LA": {
+   "name": "Los Angeles",
+   "official": {
+    "pga": {
+     "rp475": 436.698,
+     "rp2500": 861.237
+    },
+    "sa10": {
+     "rp475": 319.12,
+     "rp2500": 698.667
+    }
+   },
+   "ours": {
+    "pga": {
+     "rp475": 608.975,
+     "rp2500": 1034.36
+    },
+    "sa10": {
+     "rp475": 427.131,
+     "rp2500": 789.367
+    }
+   },
+   "ratio": {
+    "pga": {
+     "rp475": 1.3945,
+     "rp2500": 1.20101
+    },
+    "sa10": {
+     "rp475": 1.33846,
+     "rp2500": 1.12982
+    }
+   }
+  },
+  "SF": {
+   "name": "San Francisco",
+   "official": {
+    "pga": {
+     "rp475": 464.986,
+     "rp2500": 798.525
+    },
+    "sa10": {
+     "rp475": 337.858,
+     "rp2500": 654.02
+    }
+   },
+   "ours": {
+    "pga": {
+     "rp475": 628.205,
+     "rp2500": 1043.32
+    },
+    "sa10": {
+     "rp475": 467.646,
+     "rp2500": 843.704
+    }
+   },
+   "ratio": {
+    "pga": {
+     "rp475": 1.35102,
+     "rp2500": 1.30657
+    },
+    "sa10": {
+     "rp475": 1.38415,
+     "rp2500": 1.29003
+    }
+   }
+  }
+ },
+ "note": "MEASUREMENT ONLY — no calibration, no pack change; structural (source-model form + vintage) gap vs the official current model, NOT a GMPE validation",
+ "hypotheses": {
+  "H1_ucerf3_lineage_LA_pga_rp475": true,
+  "H2_systematic_same_sign": true,
+  "H3_broadband_LA": true,
+  "H3_broadband_SF": true
+ },
+ "findings": [
+  "LA RP475 PGA ratio 1.394; SF 1.351 — the shipped UCERF3-derived pack vs the official 2023 NSHM at the BC reference class",
+  "SA(1.0) vs PGA ratio gap: LA -0.018 dex; SF 0.011 dex"
+ ]
+}
