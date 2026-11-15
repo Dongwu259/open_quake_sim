@@ -1,0 +1,692 @@
+{
+ "schema": "quake-sim-nz-epistemic-width-v1",
+ "frozenAt": "2026-11-15",
+ "preregistration": "see tools/scorecard-nz-epistemic-width.js header (frozen 2026-11-16, before first successful run)",
+ "official": {
+  "endpoint": "https://nshm-api.gns.cri.nz/kororaa-app-api/graphql",
+  "hazardModel": "NSHM_v1.0.4",
+  "aggregates": [
+   "mean",
+   "0.1",
+   "0.9"
+  ],
+  "vs30": 600
+ },
+ "metric": "IM-space epistemic width: official log10(IM_P90/IM_P10) vs our log10(single-branch-collapse max/min) at RP-im",
+ "conservatism": "our per-branch min/max BOUNDS are wider than any P10-P90 band for the same tree — narrower bounds imply understatement a fortiori",
+ "engineNote": "hazardCurve ensemble sets only accumulate branch indices < 3 (v6.1-era design) — registered as a future engine-fix candidate, not changed in this measurement-only batch",
+ "sites": {
+  "WLG": {
+   "officialKey": "-41.300~174.780",
+   "official": {
+    "pga": {
+     "rp475": {
+      "imP10": 492.87,
+      "imMean": 856.107,
+      "imP90": 1219.77,
+      "width": 0.393545
+     },
+     "rp2500": {
+      "imP10": 945.753,
+      "imMean": 1748.4,
+      "imP90": 2363.42,
+      "width": 0.397763
+     }
+    },
+    "sa10": {
+     "rp475": {
+      "imP10": 420.106,
+      "imMean": 670.597,
+      "imP90": 921.024,
+      "width": 0.340912
+     },
+     "rp2500": {
+      "imP10": 871.174,
+      "imMean": 1413.21,
+      "imP90": 1886.73,
+      "width": 0.335605
+     }
+    }
+   },
+   "ours": {
+    "pga": {
+     "rp475": {
+      "imMin": 387.807,
+      "imMax": 387.952,
+      "ourMeanIm": 387.853,
+      "offMeanIm": 856.107,
+      "width": 0.00016274
+     },
+     "rp2500": {
+      "imMin": 1082.46,
+      "imMax": 1082.46,
+      "ourMeanIm": 1082.46,
+      "offMeanIm": 1748.4,
+      "width": 0.00000246422
+     }
+    },
+    "sa10": {
+     "rp475": {
+      "imMin": 244.8,
+      "imMax": 246.799,
+      "ourMeanIm": 245.523,
+      "offMeanIm": 670.597,
+      "width": 0.00353215
+     },
+     "rp2500": {
+      "imMin": 649.916,
+      "imMax": 650.293,
+      "ourMeanIm": 650.032,
+      "offMeanIm": 1413.21,
+      "width": 0.000251583
+     }
+    }
+   },
+   "branchLabels": [
+    "bssa14:base",
+    "cy14",
+    "cb14:HighQ",
+    "cb14:LowQ",
+    "ask14"
+   ],
+   "branchImsGal": {
+    "rp475": [
+     244.8,
+     245.189,
+     245.637,
+     244.928,
+     246.799
+    ],
+    "rp2500": [
+     649.916,
+     649.959,
+     649.986,
+     649.935,
+     650.293
+    ]
+   }
+  },
+  "AKL": {
+   "officialKey": "-36.870~174.770",
+   "official": {
+    "pga": {
+     "rp475": {
+      "imP10": 51.1765,
+      "imMean": 95.4722,
+      "imP90": 140.351,
+      "width": 0.438145
+     },
+     "rp2500": {
+      "imP10": 114.826,
+      "imMean": 219.119,
+      "imP90": 316.63,
+      "width": 0.440512
+     }
+    },
+    "sa10": {
+     "rp475": {
+      "imP10": 60.34,
+      "imMean": 90.7105,
+      "imP90": 119.36,
+      "width": 0.296252
+     },
+     "rp2500": {
+      "imP10": 129.055,
+      "imMean": 201.826,
+      "imP90": 268.028,
+      "width": 0.317406
+     }
+    }
+   },
+   "ours": {
+    "pga": {
+     "rp475": {
+      "imMin": 69.1944,
+      "imMax": 83.0928,
+      "ourMeanIm": 76.4426,
+      "offMeanIm": 95.4722,
+      "width": 0.0794924
+     },
+     "rp2500": {
+      "imMin": 148.159,
+      "imMax": 172.33,
+      "ourMeanIm": 160.376,
+      "offMeanIm": 219.119,
+      "width": 0.0656327
+     }
+    },
+    "sa10": {
+     "rp475": {
+      "imMin": 66.3812,
+      "imMax": 85.7798,
+      "ourMeanIm": 76.7511,
+      "offMeanIm": 90.7105,
+      "width": 0.11134
+     },
+     "rp2500": {
+      "imMin": 140.394,
+      "imMax": 178.9,
+      "ourMeanIm": 160.23,
+      "offMeanIm": 201.826,
+      "width": 0.105261
+     }
+    }
+   },
+   "branchLabels": [
+    "bssa14:base",
+    "cy14",
+    "cb14:HighQ",
+    "cb14:LowQ",
+    "ask14"
+   ],
+   "branchImsGal": {
+    "rp475": [
+     66.3812,
+     73.9096,
+     85.6547,
+     73.4376,
+     85.7798
+    ],
+    "rp2500": [
+     140.394,
+     153.75,
+     170.012,
+     156.226,
+     178.9
+    ]
+   }
+  },
+  "CHC": {
+   "officialKey": "-43.530~172.630",
+   "official": {
+    "pga": {
+     "rp475": {
+      "imP10": 192.818,
+      "imMean": 351.244,
+      "imP90": 513.562,
+      "width": 0.425444
+     },
+     "rp2500": {
+      "imP10": 365.217,
+      "imMean": 678.892,
+      "imP90": 963.785,
+      "width": 0.421429
+     }
+    },
+    "sa10": {
+     "rp475": {
+      "imP10": 163.407,
+      "imMean": 268.21,
+      "imP90": 378.239,
+      "width": 0.364495
+     },
+     "rp2500": {
+      "imP10": 333.41,
+      "imMean": 566.292,
+      "imP90": 800.235,
+      "width": 0.380239
+     }
+    }
+   },
+   "ours": {
+    "pga": {
+     "rp475": {
+      "imMin": 630.817,
+      "imMax": 764.028,
+      "ourMeanIm": 694.894,
+      "offMeanIm": 351.244,
+      "width": 0.0832056
+     },
+     "rp2500": {
+      "imMin": 1028.36,
+      "imMax": 1288.94,
+      "ourMeanIm": 1152.73,
+      "offMeanIm": 678.892,
+      "width": 0.0980871
+     }
+    },
+    "sa10": {
+     "rp475": {
+      "imMin": 424.45,
+      "imMax": 565.781,
+      "ourMeanIm": 498.336,
+      "offMeanIm": 268.21,
+      "width": 0.124822
+     },
+     "rp2500": {
+      "imMin": 841.028,
+      "imMax": 1134.42,
+      "ourMeanIm": 995.042,
+      "offMeanIm": 566.292,
+      "width": 0.129963
+     }
+    }
+   },
+   "branchLabels": [
+    "bssa14:base",
+    "cy14",
+    "cb14:HighQ",
+    "cb14:LowQ",
+    "ask14"
+   ],
+   "branchImsGal": {
+    "rp475": [
+     515.083,
+     481.245,
+     565.781,
+     565.719,
+     424.45
+    ],
+    "rp2500": [
+     1047.37,
+     928.978,
+     1134.42,
+     1134.41,
+     841.028
+    ]
+   }
+  },
+  "NSN": {
+   "officialKey": "-41.270~173.280",
+   "official": {
+    "pga": {
+     "rp475": {
+      "imP10": 263.098,
+      "imMean": 419.759,
+      "imP90": 564.71,
+      "width": 0.331708
+     },
+     "rp2500": {
+      "imP10": 518.076,
+      "imMean": 866.927,
+      "imP90": 1182.61,
+      "width": 0.358448
+     }
+    },
+    "sa10": {
+     "rp475": {
+      "imP10": 235.94,
+      "imMean": 350.559,
+      "imP90": 460.939,
+      "width": 0.290842
+     },
+     "rp2500": {
+      "imP10": 487.388,
+      "imMean": 735.104,
+      "imP90": 964.017,
+      "width": 0.29621
+     }
+    }
+   },
+   "ours": {
+    "pga": {
+     "rp475": {
+      "imMin": 261.635,
+      "imMax": 270.115,
+      "ourMeanIm": 264.888,
+      "offMeanIm": 419.759,
+      "width": 0.0138538
+     },
+     "rp2500": {
+      "imMin": 768.543,
+      "imMax": 772.88,
+      "ourMeanIm": 769.9,
+      "offMeanIm": 866.927,
+      "width": 0.00244405
+     }
+    },
+    "sa10": {
+     "rp475": {
+      "imMin": 169.452,
+      "imMax": 180.504,
+      "ourMeanIm": 174.934,
+      "offMeanIm": 350.559,
+      "width": 0.0274394
+     },
+     "rp2500": {
+      "imMin": 466.066,
+      "imMax": 474.074,
+      "ourMeanIm": 469.779,
+      "offMeanIm": 735.104,
+      "width": 0.00739896
+     }
+    }
+   },
+   "branchLabels": [
+    "bssa14:base",
+    "cy14",
+    "cb14:HighQ",
+    "cb14:LowQ",
+    "ask14"
+   ],
+   "branchImsGal": {
+    "rp475": [
+     169.452,
+     174.444,
+     176.343,
+     173.375,
+     180.504
+    ],
+    "rp2500": [
+     466.066,
+     469.391,
+     469.716,
+     469.175,
+     474.074
+    ]
+   }
+  },
+  "ZQN": {
+   "officialKey": "-45.020~168.690",
+   "official": {
+    "pga": {
+     "rp475": {
+      "imP10": 214.112,
+      "imMean": 350.549,
+      "imP90": 478.67,
+      "width": 0.349394
+     },
+     "rp2500": {
+      "imP10": 420.454,
+      "imMean": 694.725,
+      "imP90": 910.064,
+      "width": 0.335353
+     }
+    },
+    "sa10": {
+     "rp475": {
+      "imP10": 192.752,
+      "imMean": 315.334,
+      "imP90": 440.07,
+      "width": 0.358522
+     },
+     "rp2500": {
+      "imP10": 394.83,
+      "imMean": 648.692,
+      "imP90": 888.733,
+      "width": 0.352362
+     }
+    }
+   },
+   "ours": {
+    "pga": {
+     "rp475": {
+      "imMin": 247.071,
+      "imMax": 289.208,
+      "ourMeanIm": 266.914,
+      "offMeanIm": 350.549,
+      "width": 0.0683891
+     },
+     "rp2500": {
+      "imMin": 576.054,
+      "imMax": 653.426,
+      "ourMeanIm": 606.702,
+      "offMeanIm": 694.725,
+      "width": 0.0547332
+     }
+    },
+    "sa10": {
+     "rp475": {
+      "imMin": 153.863,
+      "imMax": 188.627,
+      "ourMeanIm": 169.758,
+      "offMeanIm": 315.334,
+      "width": 0.0884711
+     },
+     "rp2500": {
+      "imMin": 415.008,
+      "imMax": 476.658,
+      "ourMeanIm": 433.355,
+      "offMeanIm": 648.692,
+      "width": 0.0601502
+     }
+    }
+   },
+   "branchLabels": [
+    "bssa14:base",
+    "cy14",
+    "cb14:HighQ",
+    "cb14:LowQ",
+    "ask14"
+   ],
+   "branchImsGal": {
+    "rp475": [
+     153.863,
+     167.02,
+     188.627,
+     186.687,
+     168.888
+    ],
+    "rp2500": [
+     415.63,
+     424.285,
+     476.658,
+     476.172,
+     415.008
+    ]
+   }
+  },
+  "IVC": {
+   "officialKey": "-46.430~168.360",
+   "official": {
+    "pga": {
+     "rp475": {
+      "imP10": 149.336,
+      "imMean": 248.637,
+      "imP90": 334.469,
+      "width": 0.350192
+     },
+     "rp2500": {
+      "imP10": 299.616,
+      "imMean": 485.28,
+      "imP90": 638.534,
+      "width": 0.32862
+     }
+    },
+    "sa10": {
+     "rp475": {
+      "imP10": 138.646,
+      "imMean": 228.861,
+      "imP90": 307.142,
+      "width": 0.345432
+     },
+     "rp2500": {
+      "imP10": 282.561,
+      "imMean": 461.126,
+      "imP90": 589.187,
+      "width": 0.31914
+     }
+    }
+   },
+   "ours": {
+    "pga": {
+     "rp475": {
+      "imMin": 82.5478,
+      "imMax": 85.8729,
+      "ourMeanIm": 84.0583,
+      "offMeanIm": 248.637,
+      "width": 0.0171503
+     },
+     "rp2500": {
+      "imMin": 275.487,
+      "imMax": 276.497,
+      "ourMeanIm": 275.887,
+      "offMeanIm": 485.28,
+      "width": 0.0015889
+     }
+    },
+    "sa10": {
+     "rp475": {
+      "imMin": 74.8962,
+      "imMax": 83.6714,
+      "ourMeanIm": 78.8993,
+      "offMeanIm": 228.861,
+      "width": 0.0481173
+     },
+     "rp2500": {
+      "imMin": 224.898,
+      "imMax": 232.092,
+      "ourMeanIm": 227.765,
+      "offMeanIm": 461.126,
+      "width": 0.0136763
+     }
+    }
+   },
+   "branchLabels": [
+    "bssa14:base",
+    "cy14",
+    "cb14:HighQ",
+    "cb14:LowQ",
+    "ask14"
+   ],
+   "branchImsGal": {
+    "rp475": [
+     74.8962,
+     76.9493,
+     83.6714,
+     76.0274,
+     83.2184
+    ],
+    "rp2500": [
+     224.898,
+     226.196,
+     229.066,
+     225.95,
+     232.092
+    ]
+   }
+  }
+ },
+ "widths": {
+  "WLG|pga|rp475": {
+   "off": 0.393545,
+   "ours": 0.00016274,
+   "meanRatio": 0.453042
+  },
+  "WLG|pga|rp2500": {
+   "off": 0.397763,
+   "ours": 0.00000246422,
+   "meanRatio": 0.619112
+  },
+  "WLG|sa10|rp475": {
+   "off": 0.340912,
+   "ours": 0.00353215,
+   "meanRatio": 0.366126
+  },
+  "WLG|sa10|rp2500": {
+   "off": 0.335605,
+   "ours": 0.000251583,
+   "meanRatio": 0.459969
+  },
+  "AKL|pga|rp475": {
+   "off": 0.438145,
+   "ours": 0.0794924,
+   "meanRatio": 0.800679
+  },
+  "AKL|pga|rp2500": {
+   "off": 0.440512,
+   "ours": 0.0656327,
+   "meanRatio": 0.731916
+  },
+  "AKL|sa10|rp475": {
+   "off": 0.296252,
+   "ours": 0.11134,
+   "meanRatio": 0.846111
+  },
+  "AKL|sa10|rp2500": {
+   "off": 0.317406,
+   "ours": 0.105261,
+   "meanRatio": 0.7939
+  },
+  "CHC|pga|rp475": {
+   "off": 0.425444,
+   "ours": 0.0832056,
+   "meanRatio": 1.97838
+  },
+  "CHC|pga|rp2500": {
+   "off": 0.421429,
+   "ours": 0.0980871,
+   "meanRatio": 1.69797
+  },
+  "CHC|sa10|rp475": {
+   "off": 0.364495,
+   "ours": 0.124822,
+   "meanRatio": 1.85801
+  },
+  "CHC|sa10|rp2500": {
+   "off": 0.380239,
+   "ours": 0.129963,
+   "meanRatio": 1.75712
+  },
+  "NSN|pga|rp475": {
+   "off": 0.331708,
+   "ours": 0.0138538,
+   "meanRatio": 0.631047
+  },
+  "NSN|pga|rp2500": {
+   "off": 0.358448,
+   "ours": 0.00244405,
+   "meanRatio": 0.88808
+  },
+  "NSN|sa10|rp475": {
+   "off": 0.290842,
+   "ours": 0.0274394,
+   "meanRatio": 0.499016
+  },
+  "NSN|sa10|rp2500": {
+   "off": 0.29621,
+   "ours": 0.00739896,
+   "meanRatio": 0.639065
+  },
+  "ZQN|pga|rp475": {
+   "off": 0.349394,
+   "ours": 0.0683891,
+   "meanRatio": 0.761419
+  },
+  "ZQN|pga|rp2500": {
+   "off": 0.335353,
+   "ours": 0.0547332,
+   "meanRatio": 0.873297
+  },
+  "ZQN|sa10|rp475": {
+   "off": 0.358522,
+   "ours": 0.0884711,
+   "meanRatio": 0.538343
+  },
+  "ZQN|sa10|rp2500": {
+   "off": 0.352362,
+   "ours": 0.0601502,
+   "meanRatio": 0.668044
+  },
+  "IVC|pga|rp475": {
+   "off": 0.350192,
+   "ours": 0.0171503,
+   "meanRatio": 0.338077
+  },
+  "IVC|pga|rp2500": {
+   "off": 0.32862,
+   "ours": 0.0015889,
+   "meanRatio": 0.568511
+  },
+  "IVC|sa10|rp475": {
+   "off": 0.345432,
+   "ours": 0.0481173,
+   "meanRatio": 0.344748
+  },
+  "IVC|sa10|rp2500": {
+   "off": 0.31914,
+   "ours": 0.0136763,
+   "meanRatio": 0.493933
+  }
+ },
+ "note": "MEASUREMENT ONLY — no calibration, no pack change; quantifies the structural gap between our 5-branch approximation and the official epistemic tree",
+ "hypotheses": {
+  "H1_understated_spread_wlg_pga_rp475": true,
+  "H2_central_containment_wlg_pga_rp475": false,
+  "H3_broadband_sa10": true
+ },
+ "findings": [
+  "width comparison at RP475 PGA (ours log10 max/min vs official log10 P90/P10): WLG 0.000/0.394, AKL 0.079/0.438, CHC 0.083/0.425, NSN 0.014/0.332, ZQN 0.068/0.349, IVC 0.017/0.350",
+  "our mean vs official mean at WLG RP475 PGA: ratio 0.453; official band [P10 492.9 .. P90 1219.8 gal] vs our mean 387.9 gal"
+ ]
+}

@@ -30,9 +30,9 @@ keywords:
   - simulation
 license: MIT
 doi: 10.5281/zenodo.23418061
-version: 7.0.0
+version: 7.1.0
 date-released: '2026-10-16'
-commit: v7.0.0
+commit: v7.1.0
 identifiers:
   - description: Concept DOI (cites all versions)
     identifier: '10.5281/zenodo.22828696'

@@ -1,0 +1,56 @@
+{
+ "schema": "quake-sim-canterbury-etas-validation-v1",
+ "frozenAt": "2026-11-15",
+ "preregistration": "see tools/scorecard-canterbury-etas.js header (frozen 2026-11-16, before first run)",
+ "law": {
+  "productivityLog10": 0.809,
+  "prodScale": 41.4954,
+  "nPredM4_90d": 829.908,
+  "asyB": 0.9,
+  "asyP": 1.1,
+  "mMaxLaw": 6.5,
+  "fracM5": 0.120949,
+  "nPredM5_90d": 100.377
+ },
+ "observed": {
+  "box": {
+   "minLat": -44,
+   "maxLat": -43,
+   "minLng": 171.4,
+   "maxLng": 173.3
+  },
+  "mainshock": {
+   "time": "2010-09-03T16:35:47.770Z",
+   "mag": 7
+  },
+  "aftershocksM5": 24,
+  "windows": {
+   "30d": 3,
+   "90d": 4,
+   "720d": 23,
+   "full": 24
+  },
+  "outliving720d": [
+   {
+    "time": "2016-02-14T00:13:44.040Z",
+    "mag": 5.8,
+    "place": "12 km ENE of Christchurch, New Zealand"
+   }
+  ],
+  "magRange": [
+   5,
+   6.1
+  ]
+ },
+ "hypotheses": {
+  "H1_transferability_90d_x3band": false,
+  "H2_sequence_outlives_720d_window": true
+ },
+ "ratioPredOverObs90d": 25.0942,
+ "note": "MEASUREMENT ONLY — the law and config are unchanged; single-parent Omori comparison vs multi-parent ETAS reality (frozen caveat)",
+ "findings": [
+  "the Japan-calibrated law predicts 100.4 aftershocks M>=5 in 90 d after the M7.0; observed 4 — ratio 25.09 (H1 FALSIFIED: outside the declared x3 band)",
+  "the sequence outlives the 720-d simulated window by 1 event(s), latest 2016-02-14 (H2 PASS)",
+  "the 2011-02-22 Christchurch event (catalog M6.1, published figure M6.3) at +172 d is itself a parent — multi-parent ETAS reality vs the single-parent law comparison (frozen caveat)"
+ ]
+}

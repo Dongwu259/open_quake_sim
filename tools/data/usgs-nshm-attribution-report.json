@@ -1,0 +1,289 @@
+{
+ "schema": "quake-sim-usgs-nshm-attribution-v1",
+ "frozenAt": "2026-11-15",
+ "preregistration": "see tools/scorecard-usgs-nshm-attribute.js header (frozen 2026-11-16, before first run)",
+ "official": {
+  "endpoint": "https://earthquake.usgs.gov/ws/nshmp/conus-2023.R2/static/hazard",
+  "edition": "STATIC_CONUS_2023_R2 (2023.R2 Conterminous U.S. NSHM, static service)",
+  "siteClass": "BC"
+ },
+ "metric": "ratio ours/official per arm at RP-im; k = uniform source-rate factor matching official at the level",
+ "arms": {
+  "FULL": {
+   "LA": {
+    "pga": {
+     "rp475": 1.3945,
+     "rp2500": 1.20101
+    },
+    "sa10": {
+     "rp475": 1.33846,
+     "rp2500": 1.12982
+    }
+   },
+   "SF": {
+    "pga": {
+     "rp475": 1.35102,
+     "rp2500": 1.30657
+    },
+    "sa10": {
+     "rp475": 1.38415,
+     "rp2500": 1.29003
+    }
+   }
+  },
+  "CHAR_ONLY": {
+   "LA": {
+    "pga": {
+     "rp475": 1.21664,
+     "rp2500": 1.10614
+    },
+    "sa10": {
+     "rp475": 1.2807,
+     "rp2500": 1.09843
+    }
+   },
+   "SF": {
+    "pga": {
+     "rp475": 1.25848,
+     "rp2500": 1.24276
+    },
+    "sa10": {
+     "rp475": 1.35609,
+     "rp2500": 1.2738
+    }
+   }
+  },
+  "GRID_ONLY": {
+   "LA": {
+    "pga": {
+     "rp475": 0.884371,
+     "rp2500": 0.803457
+    },
+    "sa10": {
+     "rp475": 0.513629,
+     "rp2500": 0.4792
+    }
+   },
+   "SF": {
+    "pga": {
+     "rp475": 0.723807,
+     "rp2500": 0.773458
+    },
+    "sa10": {
+     "rp475": 0.388592,
+     "rp2500": 0.419397
+    }
+   }
+  },
+  "APRON_ONLY": {
+   "LA": {
+    "pga": {
+     "rp475": 0.0200422,
+     "rp2500": 0.0241855
+    },
+    "sa10": {
+     "rp475": 0.0427265,
+     "rp2500": 0.0444805
+    }
+   },
+   "SF": {
+    "pga": {
+     "rp475": 0.0213041,
+     "rp2500": 0.0296079
+    },
+    "sa10": {
+     "rp475": 0.0452104,
+     "rp2500": 0.0519435
+    }
+   }
+  },
+  "NO_APRON": {
+   "LA": {
+    "pga": {
+     "rp475": 1.3945,
+     "rp2500": 1.20101
+    },
+    "sa10": {
+     "rp475": 1.33844,
+     "rp2500": 1.12981
+    }
+   },
+   "SF": {
+    "pga": {
+     "rp475": 1.35102,
+     "rp2500": 1.30657
+    },
+    "sa10": {
+     "rp475": 1.38413,
+     "rp2500": 1.29002
+    }
+   }
+  },
+  "GMM_bssa14": {
+   "LA": {
+    "pga": {
+     "rp475": 1.25743,
+     "rp2500": 1.09186
+    },
+    "sa10": {
+     "rp475": 1.17208,
+     "rp2500": 1.05774
+    }
+   },
+   "SF": {
+    "pga": {
+     "rp475": 1.10475,
+     "rp2500": 1.03498
+    },
+    "sa10": {
+     "rp475": 1.09823,
+     "rp2500": 1.00252
+    }
+   }
+  },
+  "GMM_cy14": {
+   "LA": {
+    "pga": {
+     "rp475": 1.25012,
+     "rp2500": 1.04354
+    },
+    "sa10": {
+     "rp475": 1.26173,
+     "rp2500": 1.04967
+    }
+   },
+   "SF": {
+    "pga": {
+     "rp475": 1.22616,
+     "rp2500": 1.13925
+    },
+    "sa10": {
+     "rp475": 1.32983,
+     "rp2500": 1.22579
+    }
+   }
+  },
+  "GMM_cb14_base": {
+   "LA": {
+    "pga": {
+     "rp475": 1.44254,
+     "rp2500": 1.23066
+    },
+    "sa10": {
+     "rp475": 1.43824,
+     "rp2500": 1.23816
+    }
+   },
+   "SF": {
+    "pga": {
+     "rp475": 1.32942,
+     "rp2500": 1.22159
+    },
+    "sa10": {
+     "rp475": 1.4603,
+     "rp2500": 1.32933
+    }
+   }
+  },
+  "GMM_cb14_HighQ": {
+   "LA": {
+    "pga": {
+     "rp475": 1.44298,
+     "rp2500": 1.23071
+    },
+    "sa10": {
+     "rp475": 1.4393,
+     "rp2500": 1.23832
+    }
+   },
+   "SF": {
+    "pga": {
+     "rp475": 1.32947,
+     "rp2500": 1.2216
+    },
+    "sa10": {
+     "rp475": 1.4605,
+     "rp2500": 1.32935
+    }
+   }
+  },
+  "GMM_cb14_LowQ": {
+   "LA": {
+    "pga": {
+     "rp475": 1.44228,
+     "rp2500": 1.23064
+    },
+    "sa10": {
+     "rp475": 1.43461,
+     "rp2500": 1.23761
+    }
+   },
+   "SF": {
+    "pga": {
+     "rp475": 1.3294,
+     "rp2500": 1.22159
+    },
+    "sa10": {
+     "rp475": 1.45979,
+     "rp2500": 1.32924
+    }
+   }
+  },
+  "GMM_ask14": {
+   "LA": {
+    "pga": {
+     "rp475": 1.59139,
+     "rp2500": 1.38129
+    },
+    "sa10": {
+     "rp475": 1.44247,
+     "rp2500": 1.1532
+    }
+   },
+   "SF": {
+    "pga": {
+     "rp475": 1.69166,
+     "rp2500": 1.66258
+    },
+    "sa10": {
+     "rp475": 1.60749,
+     "rp2500": 1.51019
+    }
+   }
+  }
+ },
+ "rateFactorK": {
+  "LA": {
+   "pga": {
+    "levelGal": 436.698,
+    "k": 0.43453
+   },
+   "sa10": {
+    "levelGal": 319.12,
+    "k": 0.515238
+   }
+  },
+  "SF": {
+   "pga": {
+    "levelGal": 464.986,
+    "k": 0.444882
+   },
+   "sa10": {
+    "levelGal": 337.858,
+    "k": 0.474408
+   }
+  }
+ },
+ "note": "MEASUREMENT ONLY — no calibration, no pack change; the 2023 official GMMs are not transcribed, GMM arms bound OUR tree spread",
+ "hypotheses": {
+  "H1_gap_outside_our_gmm_spread": false,
+  "H2_apron_minor_at_LA": true,
+  "H2_apron_minor_at_SF": true,
+  "H3_k_consistent_LA_SF": true
+ },
+ "findings": [
+  "source-composition arms at LA RP475 PGA: FULL=1.394, CHAR_ONLY=1.217, GRID_ONLY=0.884, APRON_ONLY=0.020, NO_APRON=1.394",
+  "GMM-collapse spread at LA RP475 PGA: min 1.250 max 1.591 vs official ratio 1.394",
+  "uniform rate factor k to match official at LA RP475: PGA 0.435, SA1.0 0.515 (SF: 0.445 / 0.474)"
+ ]
+}

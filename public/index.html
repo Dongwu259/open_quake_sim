@@ -5,15 +5,15 @@
 <script>/* align <html lang> with the saved language before first paint (applyLanguage keeps it in sync afterwards) */try{var __l=localStorage.getItem('qs-lang');if(__l==='ja'||__l==='en'||__l==='zh')document.documentElement.lang=__l;}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0a0e1a">
-<meta name="description" content="Earthquake Simulator Pro v7.0，面向日本并含全球六区域的可复现地震与海啸情景模拟器。包含多种GMPE、矩守恒有限断层、JMA逐站独立验证、非线性浅水方程、科研结果对比和SREV式实时TTS。">
+<meta name="description" content="Earthquake Simulator Pro v7.1，面向日本并含全球六区域的可复现地震与海啸情景模拟器。包含多种GMPE、矩守恒有限断层、JMA逐站独立验证、非线性浅水方程、科研结果对比和SREV式实时TTS。">
 <meta name="keywords" content="earthquake simulator,地震模拟,震度,地震波,日本地震,GMPE,Shindo,JMA">
-<meta property="og:title" content="Earthquake Simulator Pro v7.0 — 地震与海啸情景模拟">
+<meta property="og:title" content="Earthquake Simulator Pro v7.1 — 地震与海啸情景模拟">
 <meta property="og:description" content="Web-based earthquake simulation for Japan. Real physics engine with 6 GMPE models, finite fault editor, TTS bulletin broadcast, and real-time monitoring from 5 data sources.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://quake-sim.example.com/">
 <meta property="og:image" content="https://quake-sim.example.com/og-image.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Earthquake Simulator Pro v7.0">
+<meta name="twitter:title" content="Earthquake Simulator Pro v7.1">
 <meta name="twitter:description" content="Real-time earthquake wave propagation simulator for Japan. 6 GMPE, TTS bulletin, PWA offline.">
 <meta name="twitter:image" content="https://quake-sim.example.com/og-image.png">
 <link rel="canonical" href="https://quake-sim.example.com/">
@@ -21,13 +21,13 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="QuakeSim">
-<link rel="manifest" href="manifest.json?v=a4b6fa">
+<link rel="manifest" href="manifest.json?v=81a867">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
-<title>日本地震模拟器 v7.0 | Earthquake Simulator Pro</title>
+<title>日本地震模拟器 v7.1 | Earthquake Simulator Pro</title>
 <link rel="stylesheet" href="leaflet/leaflet.css?v=f885c4">
 <link rel="stylesheet" href="style.css?v=c6f65a">
 <link rel="preload" href="leaflet/leaflet.js?v=5a640f" as="script">
-<link rel="preload" href="app.js?v=a40f78" as="script">
+<link rel="preload" href="app.js?v=fd94b6" as="script">
 <link rel="preload" href="style.css?v=c6f65a" as="style">
 <link rel="preload" href="config.js?v=42c183" as="script">
 <link rel="preload" href="physics.js?v=b52589" as="script">
@@ -37,7 +37,7 @@
 <div id="app" role="application" aria-label="Earthquake Simulator">
   <div id="sidebar" role="complementary" aria-label="控制面板">
     <div id="sidebar-header">
-      <h1 data-i18n="app.title">日本地震模拟器 v7.0</h1>
+      <h1 data-i18n="app.title">日本地震模拟器 v7.1</h1>
       <div id="build-ver" style="font-size:.65em;color:var(--text-secondary);opacity:.5;margin-top:-2px" data-sw="sw.js=v578102">(······)</div>
       <button id="btn-report-page" class="report-entry-btn" type="button" data-i18n="report.entry_btn">📋 体验报告</button>
       <button id="btn-help" class="help-link" type="button" data-i18n="help.title">使用帮助</button>
@@ -755,7 +755,7 @@
 <script src="research.js?v=3ee192"></script>
 <script src="data-catalog.js?v=bee20f"></script>
 <script src="grid-package.js?v=865d26"></script>
-<script src="i18n.js?v=e54883"></script>
+<script src="i18n.js?v=d24cc3"></script>
 <script src="dc3d.js?v=2865dd"></script>
 <script src="physics.js?v=b52589"></script>
 <script src="tsunami-solver-host.js?v=2432a8"></script>
@@ -894,8 +894,8 @@ window._ensureScript = function(globalName, key) {
     </button>
     <button id="btn-promo-whatsnew" class="promo-whatsnew-btn" type="button">
       <span class="promo-whatsnew-spark" aria-hidden="true">✨</span>
-      <span data-i18n="promo.whatsnew_entry">看看 v7.0 更新了什么</span>
-      <span class="promo-whatsnew-badge">v7.0</span>
+      <span data-i18n="promo.whatsnew_entry">看看 v7.1 更新了什么</span>
+      <span class="promo-whatsnew-badge">v7.1</span>
     </button>
     <a class="promo-github-btn" href="https://github.com/Dongwu259/open_quake_sim" target="_blank" rel="noopener noreferrer" data-i18n-aria="promo.github_aria" aria-label="GitHub">
       <svg class="promo-github-logo" viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" focusable="false"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
@@ -932,7 +932,7 @@ window._ensureScript = function(globalName, key) {
         <span class="wn-epi"></span>
       </div>
       <div class="whatsnew-hero-copy">
-        <h2 id="whatsnew-title" data-i18n="whatsnew.title">v7.0 更新</h2>
+        <h2 id="whatsnew-title" data-i18n="whatsnew.title">v7.1 更新</h2>
         <p data-i18n="whatsnew.subtitle">全球六区域 × NGA-West2/NGA-Sub 五模型 × UCERF3 时间依赖 PSHA</p>
       </div>
       <div class="wn-waves" aria-hidden="true"><span></span><span></span></div>
@@ -985,7 +985,7 @@ window._ensureScript = function(globalName, key) {
   </div>
 </div>
 <script src="settings.js?v=f85b22"></script>
-<script src="app.js?v=a40f78"></script>
+<script src="app.js?v=fd94b6"></script>
 <script src="aftershock.js?v=e29837"></script>
 <script src="rt-data.js?v=6780e5"></script>
 <script src="rt-kmoni.js?v=b581c5"></script>
@@ -1118,6 +1118,26 @@ window._ensureScript = function(globalName, key) {
       <h3 data-i18n="help.share">📎 URL分享</h3>
       <p data-i18n="help.share_text">点击Start按钮旁的🔗按钮可复制当前模拟的完整URL链接。将链接分享给他人，对方打开后自动加载相同的震中、震级、深度等参数。支持参数：lat/lng（震中）、mag（震级）、depth（深度）、strike（走向）、dip（倾角）、preset（预设场景）、lang（语言）、detect（检测模式）、aftershock（余震）、tsunami（海啸）。</p>
       <hr style="border-color:var(--border);margin:12px 0">
+
+      <h3 data-i18n="help.v71_release">━━ v7.1 更新 ━━</h3>
+
+      <h3 data-i18n="help.v71_wave_t">波圈波前时钟统一</h3>
+      <p data-i18n="help.v71_wave_d">修复震度圆圈先于波圈出现:波圈半径改为与台站点亮同一分层走时模型的逆函数,旧恒速直射线曾让台站领先最多 54 km;有限断层破裂前沿同步对齐。</p>
+
+      <h3 data-i18n="help.v71_doctor_t">资源诊断</h3>
+      <p data-i18n="help.v71_doctor_d">设置→资源诊断:服务器磁盘清单(警报音/底图/区域包/数据 sha256)+浏览器缓存探测,缺失项可二次拉取;懒加载失败自动弹出诊断入口,诊断摘要一键复制便于报障。</p>
+
+      <h3 data-i18n="help.v71_gate_t">区域包外部门</h3>
+      <p data-i18n="help.v71_gate_d">区域 PSHA 包首次获得绝对对照:新西兰 vs 官方 NSHM 2022(惠灵顿 0.453× 低估/克赖斯特彻奇 1.978× 高估,Canterbury 归因 ~70%),加州 vs 官方 USGS 2023.R2(LA 1.395×/SF 1.351×,率年代差 ×0.44)。测量非标定。</p>
+
+      <h3 data-i18n="help.v71_width_t">认知宽度验证</h3>
+      <p data-i18n="help.v71_width_d">官方 P10/P90 分位曲线首次对照:我方逻辑树把认知展宽低估 5-40×;惠灵顿均值低于官方最悲观分支——区域包的展宽来自完整断层源集合。</p>
+
+      <h3 data-i18n="help.v71_tree_t">CB14 认知双支与区域别名</h3>
+      <p data-i18n="help.v71_tree_d">CB14 HighQ/LowQ 各 0.125 进入新西兰/加州/意大利 PSHA 树(中心估计近不动,树展宽=认知表达);台湾 ASK14→TWN 区域别名按测量采纳。</p>
+
+      <h3 data-i18n="help.v71_ux_t">区域能力卡与导出</h3>
+      <p data-i18n="help.v71_ux_d">侧栏新增区域能力卡(预设/台站/Vs30/PSHA 包/海啸网格,缺席如实显示);PSHA 危险曲线 CSV 导出;懒加载失败诊断横幅;移动端×暗色全面板审计 24 组合 0 findings。</p>
 
       <h3 data-i18n="help.v70_release">━━ v7.0 更新 ━━</h3>
 
