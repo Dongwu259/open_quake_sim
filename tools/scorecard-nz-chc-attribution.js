@@ -38,6 +38,18 @@
 // residual is frozen honestly for future work.
 // ============================================================================
 
+// ── 2026-11-19 re-measurement amendment (disclosed BEFORE the re-run) ────
+// The PSHA point-source distance convention changed to the finite-rupture
+// sub-fault lattice (Physics._pshaPointRuptures; preregistration frozen in
+// tests/psha-point-rupture.test.js BEFORE the first measurement run — the
+// legacy equal-area sphere proxy collapsed giant plate-boundary cells to
+// its 0.1 km floor and ate depth into the far-side subtraction). This
+// report's OUR-side numbers are re-measured under the new convention and
+// re-frozen; the official / J-SHIS side stays byte-unchanged (embedded
+// --offline curves or locally frozen extraction artifacts). Verdicts are
+// re-judged mechanically by the same preregistered gates — frozen as
+// measured, never hand-set.
+// ──────────────────────────────────────────────────────────────────────────
 const fs = require('fs');
 const path = require('path');
 const Physics = require('../public/physics.js');

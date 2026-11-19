@@ -84,7 +84,7 @@ test('JMA-hypocenter mode is the default and cites repo sources per event',()=>{
   for(const e of rep.events){
     const ph=e.predictionHypocenter;
     assert.equal(ph.mode,'jma',e.eventId);
-    assert.ok(/^public\/(geojson\/observed\.json#|app\.js PRESETS\.)/.test(ph.source),e.eventId+' source: '+ph.source);
+    assert.ok(/^public\/(geojson\/observed\.json#|presets-catalog\.js#)/.test(ph.source),e.eventId+' source: '+ph.source);
     assert.ok(ph.depthKm>0&&isFinite(ph.lat)&&isFinite(ph.lng)&&isFinite(ph.mw),e.eventId+' jma hypo');
     // The frozen USGS event metadata stays attached for provenance.
     const frozen=OBS.events.find(x=>x.eventId===e.eventId);
@@ -97,11 +97,11 @@ test('JMA-hypocenter mode is the default and cites repo sources per event',()=>{
   assert.equal(jma.tokachi2003.depthKm,obsJson.tokachi2003.depth); // 42 km JMA vs 27 USGS
   assert.equal(jma.tokachi2003.mw,obsJson.tokachi2003.mw);
   assert.equal(jma.tohoku2011.depthKm,obsJson.tohoku.depth);
-  const appSrc=fs.readFileSync('public/app.js','utf8');
-  const m=appSrc.match(/fukushima2022:\{lat:([\d.]+),lng:([\d.]+),mag:([\d.]+),depth:([\d.]+)/);
-  assert.ok(m,'PRESETS.fukushima2022 parseable');
-  assert.equal(jma.fukushima2022.depthKm,Number(m[4])); // 63 km JMA vs 41 USGS
-  assert.equal(jma.fukushima2022.mw,Number(m[3]));
+  // 2026-11-17 CLI batch: presets live in public/presets-catalog.js now
+  const PRESET_CATALOG=require('../public/presets-catalog.js');
+  assert.ok(PRESET_CATALOG.fukushima2022,'PRESETS.fukushima2022 present');
+  assert.equal(jma.fukushima2022.depthKm,PRESET_CATALOG.fukushima2022.depth); // 63 km JMA vs 41 USGS
+  assert.equal(jma.fukushima2022.mw,PRESET_CATALOG.fukushima2022.mag);
   Physics.setGmpeCalibration(null);
 });
 

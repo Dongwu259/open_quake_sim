@@ -1,6 +1,6 @@
 {
  "schema": "quake-sim-nz-epistemic-width-v1",
- "frozenAt": "2026-11-15",
+ "frozenAt": "2026-11-18",
  "preregistration": "see tools/scorecard-nz-epistemic-width.js header (frozen 2026-11-16, before first successful run)",
  "official": {
   "endpoint": "https://nshm-api.gns.cri.nz/kororaa-app-api/graphql",
@@ -51,34 +51,34 @@
    "ours": {
     "pga": {
      "rp475": {
-      "imMin": 387.807,
-      "imMax": 387.952,
-      "ourMeanIm": 387.853,
+      "imMin": 218.679,
+      "imMax": 219.01,
+      "ourMeanIm": 218.798,
       "offMeanIm": 856.107,
-      "width": 0.00016274
+      "width": 0.000656829
      },
      "rp2500": {
-      "imMin": 1082.46,
-      "imMax": 1082.46,
-      "ourMeanIm": 1082.46,
+      "imMin": 459.606,
+      "imMax": 459.748,
+      "ourMeanIm": 459.649,
       "offMeanIm": 1748.4,
-      "width": 0.00000246422
+      "width": 0.000133531
      }
     },
     "sa10": {
      "rp475": {
-      "imMin": 244.8,
-      "imMax": 246.799,
-      "ourMeanIm": 245.523,
+      "imMin": 154.129,
+      "imMax": 157.317,
+      "ourMeanIm": 155.381,
       "offMeanIm": 670.597,
-      "width": 0.00353215
+      "width": 0.00889173
      },
      "rp2500": {
-      "imMin": 649.916,
-      "imMax": 650.293,
-      "ourMeanIm": 650.032,
+      "imMin": 326.765,
+      "imMax": 328.997,
+      "ourMeanIm": 327.528,
       "offMeanIm": 1413.21,
-      "width": 0.000251583
+      "width": 0.00295554
      }
     }
    },
@@ -91,18 +91,18 @@
    ],
    "branchImsGal": {
     "rp475": [
-     244.8,
-     245.189,
-     245.637,
-     244.928,
-     246.799
+     154.129,
+     154.798,
+     156.136,
+     154.292,
+     157.317
     ],
     "rp2500": [
-     649.916,
-     649.959,
-     649.986,
-     649.935,
-     650.293
+     326.765,
+     327.108,
+     327.558,
+     326.884,
+     328.997
     ]
    }
   },
@@ -141,34 +141,34 @@
    "ours": {
     "pga": {
      "rp475": {
-      "imMin": 69.1944,
-      "imMax": 83.0928,
-      "ourMeanIm": 76.4426,
+      "imMin": 59.2205,
+      "imMax": 73.4579,
+      "ourMeanIm": 65.8462,
       "offMeanIm": 95.4722,
-      "width": 0.0794924
+      "width": 0.093566
      },
      "rp2500": {
-      "imMin": 148.159,
-      "imMax": 172.33,
-      "ourMeanIm": 160.376,
+      "imMin": 117.431,
+      "imMax": 139.908,
+      "ourMeanIm": 129.3,
       "offMeanIm": 219.119,
-      "width": 0.0656327
+      "width": 0.0760579
      }
     },
     "sa10": {
      "rp475": {
-      "imMin": 66.3812,
-      "imMax": 85.7798,
-      "ourMeanIm": 76.7511,
+      "imMin": 56.554,
+      "imMax": 75.8889,
+      "ourMeanIm": 66.0569,
       "offMeanIm": 90.7105,
-      "width": 0.11134
+      "width": 0.127715
      },
      "rp2500": {
-      "imMin": 140.394,
-      "imMax": 178.9,
-      "ourMeanIm": 160.23,
+      "imMin": 108.081,
+      "imMax": 146.514,
+      "ourMeanIm": 128.319,
       "offMeanIm": 201.826,
-      "width": 0.105261
+      "width": 0.132128
      }
     }
    },
@@ -181,18 +181,18 @@
    ],
    "branchImsGal": {
     "rp475": [
-     66.3812,
-     73.9096,
-     85.6547,
-     73.4376,
-     85.7798
+     56.554,
+     63.1876,
+     75.8889,
+     62.4151,
+     74.0827
     ],
     "rp2500": [
-     140.394,
-     153.75,
-     170.012,
-     156.226,
-     178.9
+     108.081,
+     120.989,
+     141.284,
+     122.913,
+     146.514
     ]
    }
   },
@@ -231,34 +231,34 @@
    "ours": {
     "pga": {
      "rp475": {
-      "imMin": 630.817,
-      "imMax": 764.028,
-      "ourMeanIm": 694.894,
+      "imMin": 526.185,
+      "imMax": 643.514,
+      "ourMeanIm": 569.005,
       "offMeanIm": 351.244,
-      "width": 0.0832056
+      "width": 0.0874199
      },
      "rp2500": {
-      "imMin": 1028.36,
-      "imMax": 1288.94,
-      "ourMeanIm": 1152.73,
+      "imMin": 820.594,
+      "imMax": 1058.07,
+      "ourMeanIm": 907.782,
       "offMeanIm": 678.892,
-      "width": 0.0980871
+      "width": 0.110387
      }
     },
     "sa10": {
      "rp475": {
-      "imMin": 424.45,
-      "imMax": 565.781,
-      "ourMeanIm": 498.336,
+      "imMin": 344.689,
+      "imMax": 438.669,
+      "ourMeanIm": 378.887,
       "offMeanIm": 268.21,
-      "width": 0.124822
+      "width": 0.10471
      },
      "rp2500": {
-      "imMin": 841.028,
-      "imMax": 1134.42,
-      "ourMeanIm": 995.042,
+      "imMin": 644.109,
+      "imMax": 834.526,
+      "ourMeanIm": 707.31,
       "offMeanIm": 566.292,
-      "width": 0.129963
+      "width": 0.11248
      }
     }
    },
@@ -271,18 +271,18 @@
    ],
    "branchImsGal": {
     "rp475": [
-     515.083,
-     481.245,
-     565.781,
-     565.719,
-     424.45
+     349.617,
+     374.775,
+     438.669,
+     438.499,
+     344.689
     ],
     "rp2500": [
-     1047.37,
-     928.978,
-     1134.42,
-     1134.41,
-     841.028
+     644.109,
+     680.567,
+     834.526,
+     834.476,
+     655.082
     ]
    }
   },
@@ -321,34 +321,34 @@
    "ours": {
     "pga": {
      "rp475": {
-      "imMin": 261.635,
-      "imMax": 270.115,
-      "ourMeanIm": 264.888,
+      "imMin": 178.355,
+      "imMax": 186.715,
+      "ourMeanIm": 181.848,
       "offMeanIm": 419.759,
-      "width": 0.0138538
+      "width": 0.0198933
      },
      "rp2500": {
-      "imMin": 768.543,
-      "imMax": 772.88,
-      "ourMeanIm": 769.9,
+      "imMin": 385.741,
+      "imMax": 395.945,
+      "ourMeanIm": 389.31,
       "offMeanIm": 866.927,
-      "width": 0.00244405
+      "width": 0.0113394
      }
     },
     "sa10": {
      "rp475": {
-      "imMin": 169.452,
-      "imMax": 180.504,
-      "ourMeanIm": 174.934,
+      "imMin": 121.701,
+      "imMax": 132.942,
+      "ourMeanIm": 127.396,
       "offMeanIm": 350.559,
-      "width": 0.0274394
+      "width": 0.0383681
      },
      "rp2500": {
-      "imMin": 466.066,
-      "imMax": 474.074,
-      "ourMeanIm": 469.779,
+      "imMin": 264.475,
+      "imMax": 279.411,
+      "ourMeanIm": 271.551,
       "offMeanIm": 735.104,
-      "width": 0.00739896
+      "width": 0.0238592
      }
     }
    },
@@ -361,18 +361,18 @@
    ],
    "branchImsGal": {
     "rp475": [
-     169.452,
-     174.444,
-     176.343,
-     173.375,
-     180.504
+     121.701,
+     126.719,
+     130.091,
+     125.458,
+     132.942
     ],
     "rp2500": [
-     466.066,
-     469.391,
-     469.716,
-     469.175,
-     474.074
+     264.475,
+     270.521,
+     272.542,
+     269.948,
+     279.411
     ]
    }
   },
@@ -411,34 +411,34 @@
    "ours": {
     "pga": {
      "rp475": {
-      "imMin": 247.071,
-      "imMax": 289.208,
-      "ourMeanIm": 266.914,
+      "imMin": 204.023,
+      "imMax": 243.071,
+      "ourMeanIm": 222.676,
       "offMeanIm": 350.549,
-      "width": 0.0683891
+      "width": 0.0760549
      },
      "rp2500": {
-      "imMin": 576.054,
-      "imMax": 653.426,
-      "ourMeanIm": 606.702,
+      "imMin": 386.574,
+      "imMax": 476.341,
+      "ourMeanIm": 428.921,
       "offMeanIm": 694.725,
-      "width": 0.0547332
+      "width": 0.0906852
      }
     },
     "sa10": {
      "rp475": {
-      "imMin": 153.863,
-      "imMax": 188.627,
-      "ourMeanIm": 169.758,
+      "imMin": 124.022,
+      "imMax": 157.235,
+      "ourMeanIm": 139.682,
       "offMeanIm": 315.334,
-      "width": 0.0884711
+      "width": 0.103051
      },
      "rp2500": {
-      "imMin": 415.008,
-      "imMax": 476.658,
-      "ourMeanIm": 433.355,
+      "imMin": 270.363,
+      "imMax": 343.518,
+      "ourMeanIm": 303.706,
       "offMeanIm": 648.692,
-      "width": 0.0601502
+      "width": 0.104003
      }
     }
    },
@@ -451,18 +451,18 @@
    ],
    "branchImsGal": {
     "rp475": [
-     153.863,
-     167.02,
-     188.627,
-     186.687,
-     168.888
+     124.022,
+     137.005,
+     157.235,
+     154.579,
+     140.36
     ],
     "rp2500": [
-     415.63,
-     424.285,
-     476.658,
-     476.172,
-     415.008
+     270.363,
+     296.604,
+     343.518,
+     342.236,
+     300.548
     ]
    }
   },
@@ -501,34 +501,34 @@
    "ours": {
     "pga": {
      "rp475": {
-      "imMin": 82.5478,
-      "imMax": 85.8729,
-      "ourMeanIm": 84.0583,
+      "imMin": 61.1223,
+      "imMax": 65.1924,
+      "ourMeanIm": 62.6909,
       "offMeanIm": 248.637,
-      "width": 0.0171503
+      "width": 0.0279974
      },
      "rp2500": {
-      "imMin": 275.487,
-      "imMax": 276.497,
-      "ourMeanIm": 275.887,
+      "imMin": 142.784,
+      "imMax": 145.67,
+      "ourMeanIm": 144.226,
       "offMeanIm": 485.28,
-      "width": 0.0015889
+      "width": 0.00869104
      }
     },
     "sa10": {
      "rp475": {
-      "imMin": 74.8962,
-      "imMax": 83.6714,
-      "ourMeanIm": 78.8993,
+      "imMin": 57.6179,
+      "imMax": 67.1474,
+      "ourMeanIm": 61.3897,
       "offMeanIm": 228.861,
-      "width": 0.0481173
+      "width": 0.0664716
      },
      "rp2500": {
-      "imMin": 224.898,
-      "imMax": 232.092,
-      "ourMeanIm": 227.765,
+      "imMin": 129.652,
+      "imMax": 141.981,
+      "ourMeanIm": 135.221,
       "offMeanIm": 461.126,
-      "width": 0.0136763
+      "width": 0.0394488
      }
     }
    },
@@ -541,18 +541,18 @@
    ],
    "branchImsGal": {
     "rp475": [
-     74.8962,
-     76.9493,
-     83.6714,
-     76.0274,
-     83.2184
+     57.6179,
+     59.2817,
+     67.1474,
+     58.2594,
+     65.1429
     ],
     "rp2500": [
-     224.898,
-     226.196,
-     229.066,
-     225.95,
-     232.092
+     129.652,
+     132.316,
+     139.878,
+     131.588,
+     141.981
     ]
    }
   }
@@ -560,123 +560,123 @@
  "widths": {
   "WLG|pga|rp475": {
    "off": 0.393545,
-   "ours": 0.00016274,
-   "meanRatio": 0.453042
+   "ours": 0.000656829,
+   "meanRatio": 0.255574
   },
   "WLG|pga|rp2500": {
    "off": 0.397763,
-   "ours": 0.00000246422,
-   "meanRatio": 0.619112
+   "ours": 0.000133531,
+   "meanRatio": 0.262896
   },
   "WLG|sa10|rp475": {
    "off": 0.340912,
-   "ours": 0.00353215,
-   "meanRatio": 0.366126
+   "ours": 0.00889173,
+   "meanRatio": 0.231706
   },
   "WLG|sa10|rp2500": {
    "off": 0.335605,
-   "ours": 0.000251583,
-   "meanRatio": 0.459969
+   "ours": 0.00295554,
+   "meanRatio": 0.231762
   },
   "AKL|pga|rp475": {
    "off": 0.438145,
-   "ours": 0.0794924,
-   "meanRatio": 0.800679
+   "ours": 0.093566,
+   "meanRatio": 0.68969
   },
   "AKL|pga|rp2500": {
    "off": 0.440512,
-   "ours": 0.0656327,
-   "meanRatio": 0.731916
+   "ours": 0.0760579,
+   "meanRatio": 0.590092
   },
   "AKL|sa10|rp475": {
    "off": 0.296252,
-   "ours": 0.11134,
-   "meanRatio": 0.846111
+   "ours": 0.127715,
+   "meanRatio": 0.728216
   },
   "AKL|sa10|rp2500": {
    "off": 0.317406,
-   "ours": 0.105261,
-   "meanRatio": 0.7939
+   "ours": 0.132128,
+   "meanRatio": 0.635788
   },
   "CHC|pga|rp475": {
    "off": 0.425444,
-   "ours": 0.0832056,
-   "meanRatio": 1.97838
+   "ours": 0.0874199,
+   "meanRatio": 1.61997
   },
   "CHC|pga|rp2500": {
    "off": 0.421429,
-   "ours": 0.0980871,
-   "meanRatio": 1.69797
+   "ours": 0.110387,
+   "meanRatio": 1.33715
   },
   "CHC|sa10|rp475": {
    "off": 0.364495,
-   "ours": 0.124822,
-   "meanRatio": 1.85801
+   "ours": 0.10471,
+   "meanRatio": 1.41265
   },
   "CHC|sa10|rp2500": {
    "off": 0.380239,
-   "ours": 0.129963,
-   "meanRatio": 1.75712
+   "ours": 0.11248,
+   "meanRatio": 1.24902
   },
   "NSN|pga|rp475": {
    "off": 0.331708,
-   "ours": 0.0138538,
-   "meanRatio": 0.631047
+   "ours": 0.0198933,
+   "meanRatio": 0.433221
   },
   "NSN|pga|rp2500": {
    "off": 0.358448,
-   "ours": 0.00244405,
-   "meanRatio": 0.88808
+   "ours": 0.0113394,
+   "meanRatio": 0.449069
   },
   "NSN|sa10|rp475": {
    "off": 0.290842,
-   "ours": 0.0274394,
-   "meanRatio": 0.499016
+   "ours": 0.0383681,
+   "meanRatio": 0.363409
   },
   "NSN|sa10|rp2500": {
    "off": 0.29621,
-   "ours": 0.00739896,
-   "meanRatio": 0.639065
+   "ours": 0.0238592,
+   "meanRatio": 0.369405
   },
   "ZQN|pga|rp475": {
    "off": 0.349394,
-   "ours": 0.0683891,
-   "meanRatio": 0.761419
+   "ours": 0.0760549,
+   "meanRatio": 0.63522
   },
   "ZQN|pga|rp2500": {
    "off": 0.335353,
-   "ours": 0.0547332,
-   "meanRatio": 0.873297
+   "ours": 0.0906852,
+   "meanRatio": 0.617396
   },
   "ZQN|sa10|rp475": {
    "off": 0.358522,
-   "ours": 0.0884711,
-   "meanRatio": 0.538343
+   "ours": 0.103051,
+   "meanRatio": 0.442963
   },
   "ZQN|sa10|rp2500": {
    "off": 0.352362,
-   "ours": 0.0601502,
-   "meanRatio": 0.668044
+   "ours": 0.104003,
+   "meanRatio": 0.468182
   },
   "IVC|pga|rp475": {
    "off": 0.350192,
-   "ours": 0.0171503,
-   "meanRatio": 0.338077
+   "ours": 0.0279974,
+   "meanRatio": 0.252139
   },
   "IVC|pga|rp2500": {
    "off": 0.32862,
-   "ours": 0.0015889,
-   "meanRatio": 0.568511
+   "ours": 0.00869104,
+   "meanRatio": 0.297201
   },
   "IVC|sa10|rp475": {
    "off": 0.345432,
-   "ours": 0.0481173,
-   "meanRatio": 0.344748
+   "ours": 0.0664716,
+   "meanRatio": 0.26824
   },
   "IVC|sa10|rp2500": {
    "off": 0.31914,
-   "ours": 0.0136763,
-   "meanRatio": 0.493933
+   "ours": 0.0394488,
+   "meanRatio": 0.293241
   }
  },
  "note": "MEASUREMENT ONLY — no calibration, no pack change; quantifies the structural gap between our 5-branch approximation and the official epistemic tree",
@@ -686,7 +686,7 @@
   "H3_broadband_sa10": true
  },
  "findings": [
-  "width comparison at RP475 PGA (ours log10 max/min vs official log10 P90/P10): WLG 0.000/0.394, AKL 0.079/0.438, CHC 0.083/0.425, NSN 0.014/0.332, ZQN 0.068/0.349, IVC 0.017/0.350",
-  "our mean vs official mean at WLG RP475 PGA: ratio 0.453; official band [P10 492.9 .. P90 1219.8 gal] vs our mean 387.9 gal"
+  "width comparison at RP475 PGA (ours log10 max/min vs official log10 P90/P10): WLG 0.001/0.394, AKL 0.094/0.438, CHC 0.087/0.425, NSN 0.020/0.332, ZQN 0.076/0.349, IVC 0.028/0.350",
+  "our mean vs official mean at WLG RP475 PGA: ratio 0.256; official band [P10 492.9 .. P90 1219.8 gal] vs our mean 218.8 gal"
  ]
 }

@@ -2,7 +2,7 @@
 //  QuakeSim Service Worker — PWA shell (v5.6, cache-first)
 //  Bump CACHE_VERSION when changing SW behavior to purge old caches.
 // ============================================================
-var CACHE_VERSION = 'qs-cache-v578102';
+var CACHE_VERSION = 'qs-cache-v595277';
 var CORE_CACHE    = CACHE_VERSION + '-core';
 
 // v4.2: Slim precache — app shell + critical JS/CSS only.
@@ -20,6 +20,7 @@ var PRECACHE_URLS = [
   'geojson/report-demo.json',  // v6.2 report demo snapshot (~40KB)
   'style.css',
   'app.js',
+  'presets-catalog.js',
   'physics.js',
   'dc3d.js',
   'sim-utils.js',

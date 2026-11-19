@@ -4572,11 +4572,73 @@ Physics._pshaBranchesFor = function(srcType, imt, sourceModel) {
   return Physics.logicTreeBranches(srcType);
 };
 
-/** Equal-area circular-patch Rrup proxy for a gridded/point source. */
+/** Equal-area circular-patch Rrup proxy for a gridded/point source.
+ *  LEGACY (kept byte-identical for the broadband pipeline and as the
+ *  documented contrast): `max(hyp − rEq, 0.1)` models the rupture as a
+ *  sphere of the equal-area radius centred on the hypocenter — it eats the
+ *  depth into the subtraction and collapses giant plate-boundary cells
+ *  (interplate M9 → rEq ≈ 192 km) to the 0.1 km floor. PSHA engines moved
+ *  to _pshaPointRuptures (2026-11-18 preregistration). */
 Physics._pshaPointRrup = function(hypDistKm, mw, srcType) {
   var dims = Physics.faultDimensions(mw, srcType);
   var rEq = Math.sqrt(dims.area / Math.PI);
   return Math.max(hypDistKm - rEq, 0.1);
+};
+
+/** Point → finite-rupture PSHA distance convention (2026-11-18 巨源距离代理
+ *  整改, preregistered in tests/psha-point-rupture.test.js BEFORE the first
+ *  measurement run). A gridded/point source of magnitude `mag` centred at
+ *  (srcLat, srcLng, depthKm) is represented by an nL×nW lattice of equal
+ *  sub-fault discs tiling the faultDimensions L×W median rectangle
+ *  (Wells & Coppersmith 1994 / Strasser et al. 2010 — the same relations the
+ *  finite-fault pipeline uses), centred on the node with the long axis
+ *  frozen N-S: area sources carry no strike information, so the orientation
+ *  is a deterministic convention, not geology (documented limitation). Each
+ *  sub-fault disc sits at the node depth with radius rSub = sqrt(A/(nL·nW·π))
+ *  and Rrup_i = max(sqrt(max(dH_i − rSub, 0)² + depthKm²), 0.1 km) — the
+ *  depth survives as the near-field floor (the legacy sphere proxy collapsed
+ *  giant cells to 0.1 km). Discretisation target = the pack cell footprint
+ *  (grid.deg, default 0.25°) capped at PSHA_SUBFAULT_MAX sub-faults; rates
+ *  split exactly equally (shares sum to 1 → total rate conserved).
+ *  cb(rRupKm, rateShare, subLat, subLng) fires once per sub-fault. */
+Physics.PSHA_SUBFAULT_MAX = 16;
+Physics._pshaPointRuptures = function(sourceModel, siteLat, siteLng, srcLat, srcLng, depthKm, mag, srcType, cb) {
+  var dims = Physics.faultDimensions(mag, srcType);
+  var deg = (sourceModel && sourceModel.grid && sourceModel.grid.deg) ? sourceModel.grid.deg : 0.25;
+  var cosLat = Math.max(0.05, Math.cos(srcLat * Math.PI / 180));
+  var refArea = deg * deg * Physics.EARTH_R * Physics.EARTH_R * (Math.PI / 180) * (Math.PI / 180) * cosLat;
+  var K = Math.max(1, Math.min(Physics.PSHA_SUBFAULT_MAX, Math.ceil(dims.area / refArea)));
+  if (K === 1) {
+    // rupture fits the cell footprint — one disc of the full area at the node
+    var rSub1 = Math.sqrt(dims.area / Math.PI);
+    var dH1 = Physics.haversineDist(siteLat, siteLng, srcLat, srcLng);
+    var inPlane1 = Math.max(dH1 - rSub1, 0);
+    var rRup1 = Math.sqrt(inPlane1 * inPlane1 + depthKm * depthKm);
+    cb(Math.max(rRup1, 0.1), 1, srcLat, srcLng);
+    return;
+  }
+  var nL = Math.max(1, Math.ceil(Math.sqrt(K * dims.L / dims.W)));
+  var nW = Math.max(1, Math.ceil(K / nL));
+  while (nL * nW > Physics.PSHA_SUBFAULT_MAX) {
+    if (nL >= nW && nL > 1) nL--; else if (nW > 1) nW--; else break;
+  }
+  var nSub = nL * nW;
+  var rSub = Math.sqrt(dims.area / (nSub * Math.PI));
+  var share = 1 / nSub;
+  var kmPerDeg = Physics.EARTH_R * Math.PI / 180;
+  var kmPerLngDeg = kmPerDeg * cosLat;
+  for (var iL = 0; iL < nL; iL++) {
+    var dy = ((iL + 0.5) / nL - 0.5) * dims.L; // N-S offset, +north
+    for (var iW = 0; iW < nW; iW++) {
+      var dx = ((iW + 0.5) / nW - 0.5) * dims.W; // E-W offset, +east
+      var sLat = srcLat + dy / kmPerDeg;
+      var sLng = srcLng + dx / kmPerLngDeg;
+      var dH = Physics.haversineDist(siteLat, siteLng, sLat, sLng);
+      var inPlane = Math.max(dH - rSub, 0);
+      var rRup = Math.sqrt(inPlane * inPlane + depthKm * depthKm);
+      cb(Math.max(rRup, 0.1), share, sLat, sLng);
+    }
+  }
 };
 
 /** v3-pack extra source blocks (UCERF3 batch B, 2026-10-12):
@@ -4602,12 +4664,16 @@ Physics._pshaV3SourcesEach = function(sourceModel, site, maxDistKm, cb, opts) {
       var hd = Physics.haversineDist(site.lat, site.lng, n.lat, n.lng);
       if (hd > maxDistKm) continue;
       var dep = n.depthKm != null ? n.depthKm : 6;
-      var hyp = Math.sqrt(hd * hd + dep * dep);
       var cls = n.srcType || 'crustal';
       for (var bi = 0; bi < n.mfd.length; bi++) {
         var rate = n.mfd[bi][1];
         if (!(rate > 0)) continue;
-        cb(cls, n.mfd[bi][0], Physics._pshaPointRrup(hyp, n.mfd[bi][0], cls), dep, rate, n.lat, n.lng);
+        // finite-rupture convention (2026-11-18): rate split exactly across
+        // the magnitude's sub-fault lattice
+        Physics._pshaPointRuptures(sourceModel, site.lat, site.lng, n.lat, n.lng, dep, n.mfd[bi][0], cls,
+          function (rup, share, sLat, sLng) {
+            cb(cls, n.mfd[bi][0], rup, dep, rate * share, sLat, sLng);
+          });
       }
       used.grid++;
     }
@@ -4652,9 +4718,10 @@ Physics._pshaV3SourcesEach = function(sourceModel, site, maxDistKm, cb, opts) {
  *  options: {imLevels?, vs30?=600, maxDistKm?=500, mStep?=0.1, years?=50}.
  *  Returns {imLevels, meanRate, ensemble, poissonProb, diagnostics} where
  *  meanRate[i] is the mean annual exceedance rate of imLevels[i], ensemble
- *  is the 3-branch-set hazard (index-aligned with GMPE_LOGIC_TREE rank;
- *  single-branch imts repeat the mean curve), poissonProb is P(exceed in
- *  `years`) for the mean curve. */
+ *  is the branch-set hazard (index-aligned with GMPE_LOGIC_TREE rank; set
+ *  width = the widest class tree, floor 3; ranks beyond a class's own tree
+ *  carry that class's mean; single-model imts repeat the mean curve),
+ *  poissonProb is P(exceed in `years`) for the mean curve. */
 Physics.hazardCurve = function(sourceModel, site, imt, options) {
   options = options || {};
   var isSa = imt.slice(0, 3) === 'sa:';
@@ -4673,7 +4740,28 @@ Physics.hazardCurve = function(sourceModel, site, imt, options) {
   }
   var nIm = imLevels.length;
   var meanRate = new Array(nIm).fill(0);
-  var nBranchSets = 3;
+  // Ensemble set width = the widest GMPE logic-tree branch list across the
+  // classes actually present in the model (floor 3 = the v6.1 three-branch
+  // design, so Japan and legacy single-branch trees keep their output shape
+  // bit-exactly). v7.x regional crustal trees carry five branches
+  // (BSSA14/CY14/CB14-HighQ/CB14-LowQ/ASK14) — before 2026-11-16 the sets
+  // were hard-coded at 3 and ranks 3/4 were silently dropped.
+  var classSeen = {};
+  var probeSrcs = sourceModel.cells || [];
+  for (var pc0 = 0; pc0 < probeSrcs.length; pc0++) classSeen[probeSrcs[pc0].srcType] = 1;
+  probeSrcs = sourceModel.scenarios || [];
+  for (var pc1 = 0; pc1 < probeSrcs.length; pc1++) classSeen[probeSrcs[pc1].sourceType || 'crustal'] = 1;
+  probeSrcs = sourceModel.gridMfdSources || [];
+  for (var pc2 = 0; pc2 < probeSrcs.length; pc2++) classSeen[probeSrcs[pc2].srcType || 'crustal'] = 1;
+  probeSrcs = sourceModel.characteristicSources || [];
+  for (var pc3 = 0; pc3 < probeSrcs.length; pc3++) classSeen[probeSrcs[pc3].srcType || 'crustal'] = 1;
+  if (Object.keys(classSeen).length === 0) classSeen.crustal = 1; // degenerate model
+  var probedMax = 1;
+  for (var clsSeen in classSeen) {
+    var lCls = Physics._pshaBranchesFor(clsSeen, imtKey, sourceModel).length;
+    if (lCls > probedMax) probedMax = lCls;
+  }
+  var nBranchSets = probedMax < 3 ? 3 : probedMax;
   var ensemble = [];
   for (var bs = 0; bs < nBranchSets; bs++) ensemble.push(new Array(nIm).fill(0));
   var logIm = imLevels.map(function(v) { return Math.log10(v); });
@@ -4681,9 +4769,11 @@ Physics.hazardCurve = function(sourceModel, site, imt, options) {
   var mc = sourceModel.mc, mMin = sourceModel.mMin != null ? sourceModel.mMin : 5.0;
   var nCells = 0, nBins = 0;
 
+  var clsMeanRow = new Array(nIm).fill(0);
   function accumulate(srcType, mag, rRupKm, depthKm, rate) {
     var branches = Physics._pshaBranchesFor(srcType, imtKey, sourceModel);
     var rake = Physics.PSHA_CLASS_RAKE[srcType] || 0;
+    for (var iiC = 0; iiC < nIm; iiC++) clsMeanRow[iiC] = 0;
     for (var bi = 0; bi < branches.length; bi++) {
       var motion = Physics._pshaBranchMotion(branches[bi].model, imtKey, srcType, mag, rRupKm, depthKm, vs30, rake, branches[bi].variant);
       if (!motion || !(motion.median > 0)) continue;
@@ -4699,12 +4789,20 @@ Physics.hazardCurve = function(sourceModel, site, imt, options) {
         // mean curve: logic-tree-weighted mix of the branch CCDFs;
         // ensemble set k: branch rank k carries the FULL rate within its set.
         meanRate[ii] += branches[bi].weight * rate * p;
+        clsMeanRow[ii] += branches[bi].weight * rate * p;
         if (bi < nBranchSets) ensemble[bi][ii] += rate * p;
       }
     }
+    // ranks beyond this class's tree carry the class mean — a 1-branch
+    // subduction tree keeps every epistemic member fully subscribed instead
+    // of vanishing from sets 1+ (old behaviour dropped the class entirely).
+    for (var kE = branches.length; kE < nBranchSets; kE++) {
+      for (var iiE = 0; iiE < nIm; iiE++) ensemble[kE][iiE] += clsMeanRow[iiE];
+    }
   }
 
-  // gridded cells
+  // gridded cells — each bin enumerates its finite-rupture sub-faults
+  // (_pshaPointRuptures, 2026-11-18 巨源距离代理整改; rate split exactly)
   var cells = sourceModel.cells || [];
   for (var ci = 0; ci < cells.length; ci++) {
     var c = cells[ci];
@@ -4714,7 +4812,6 @@ Physics.hazardCurve = function(sourceModel, site, imt, options) {
     var b = sourceModel.bValues[c.srcType];
     var mMax = (sourceModel.mMaxByClass || {})[c.srcType] || 7.5;
     if (!(b > 0) || !(c.rateMc > 0)) continue;
-    var hypDist = Math.sqrt(hd * hd + c.depthKm * c.depthKm);
     var mLo = Math.ceil(mMin / mStep - 1e-9) * mStep;
     for (var m = mLo; m <= mMax + 1e-9; m += mStep) {
       // incremental rate of bin [m, m+mStep) from the GR survival function
@@ -4722,12 +4819,15 @@ Physics.hazardCurve = function(sourceModel, site, imt, options) {
       if (!(lam > 1e-9)) continue;
       nBins++;
       var mm = Math.min(m + mStep / 2, mMax);
-      var rRup = Physics._pshaPointRrup(hypDist, mm, c.srcType);
-      accumulate(c.srcType, mm, rRup, c.depthKm, lam);
+      Physics._pshaPointRuptures(sourceModel, site.lat, site.lng, c.lat, c.lng, c.depthKm, mm, c.srcType,
+        function (rup, share) {
+          accumulate(c.srcType, mm, rup, c.depthKm, lam * share);
+        });
     }
   }
 
-  // scenario sources
+  // scenario sources — patch scenarios keep the min-3D-point convention;
+  // point scenarios sub-fault their finite rupture (2026-11-18 convention)
   var scenUsed = 0;
   var scenarios = sourceModel.scenarios || [];
   for (var si = 0; si < scenarios.length; si++) {
@@ -4740,22 +4840,30 @@ Physics.hazardCurve = function(sourceModel, site, imt, options) {
         var d3 = Math.sqrt(Math.pow(Physics.haversineDist(site.lat, site.lng, p[0], p[1]), 2) + p[2] * p[2]);
         if (d3 < rRupS) rRupS = d3;
       }
+      scenUsed++;
+      accumulate(s.sourceType || 'crustal', s.mw, Math.max(rRupS, 0.1), depthS, s.ratePerYear);
     } else {
       depthS = s.depthKm != null ? s.depthKm : 15;
-      var hdS = Physics.haversineDist(site.lat, site.lng, s.lat != null ? s.lat : 0, s.lng != null ? s.lng : 0);
-      rRupS = Physics._pshaPointRrup(Math.sqrt(hdS * hdS + depthS * depthS), s.mw, s.sourceType || 'crustal');
+      scenUsed++;
+      var srcClsS = s.sourceType || 'crustal';
+      Physics._pshaPointRuptures(sourceModel, site.lat, site.lng, s.lat != null ? s.lat : 0, s.lng != null ? s.lng : 0,
+        depthS, s.mw, srcClsS,
+        function (rup, share) {
+          accumulate(srcClsS, s.mw, rup, depthS, s.ratePerYear * share);
+        });
     }
-    scenUsed++;
-    accumulate(s.sourceType || 'crustal', s.mw, Math.max(rRupS, 0.1), depthS, s.ratePerYear);
   }
 
   // v3 packs (UCERF3 batch B): grid MFD nodes + characteristic sources
   var v3Used = Physics._pshaV3SourcesEach(sourceModel, site, maxDistKm, accumulate);
 
   var poissonProb = meanRate.map(function(r) { return Physics.poissonExceedProb(r, years); });
-  if (isSa) {
-    // single-model imt: the branch-set ensemble is degenerate — repeat the
-    // mean curve so downstream fractile code stays well-defined.
+  if (isSa && probedMax <= 1) {
+    // single-model imt (Japan zhao collapse): the branch-set ensemble is
+    // degenerate — repeat the mean curve so downstream fractile code stays
+    // well-defined. Regional SA-capable trees keep their real branch sets
+    // (before 2026-11-16 this repeat unconditionally overwrote sets 1+ and
+    // corrupted the regional SA ensemble down to set 0).
     for (var rep = 1; rep < nBranchSets; rep++) {
       for (var ri = 0; ri < nIm; ri++) ensemble[rep][ri] = ensemble[0][ri];
     }
@@ -4767,10 +4875,11 @@ Physics.hazardCurve = function(sourceModel, site, imt, options) {
       nCellsUsed: nCells, nMagnitudeBins: nBins, nScenarios: scenUsed,
       nGridMfdUsed: v3Used.grid, nCharUsed: v3Used.char,
       mStep: mStep, maxDistKm: maxDistKm, vs30: vs30,
-      singleModel: isSa,
+      singleModel: isSa && probedMax <= 1,
       branchSets: ['crustal', 'interplate', 'intraslab'].map(function(cls) {
         return Physics._pshaBranchesFor(cls, imtKey, sourceModel).map(function(b) { return b.model; });
-      })
+      }),
+      branchSetCount: nBranchSets
     }
   };
 };
@@ -4872,24 +4981,31 @@ Physics.hazardCurveTimeDependent = function(sourceModel, site, imt, options) {
     var b = sourceModel.bValues[c.srcType];
     var mMax = (sourceModel.mMaxByClass || {})[c.srcType] || 7.5;
     if (!(b > 0) || !(c.rateMc > 0)) continue;
-    var hypDist = Math.sqrt(hd * hd + c.depthKm * c.depthKm);
     var mLo = Math.ceil(mMin / mStep - 1e-9) * mStep;
     for (var m = mLo; m <= mMax + 1e-9; m += mStep) {
       var lam = c.rateMc * (Math.pow(10, -b * (m - mc)) - Math.pow(10, -b * (m + mStep - mc)));
       if (!(lam > 1e-9)) continue;
       nBins++;
       var mm = Math.min(m + mStep / 2, mMax);
-      var rRup = Physics._pshaPointRrup(hypDist, mm, c.srcType);
-      accumulate(c.srcType, mm, rRup, c.depthKm, lam);
+      // finite-rupture convention (2026-11-18): rate split exactly across
+      // the magnitude's sub-fault lattice
+      Physics._pshaPointRuptures(sourceModel, site.lat, site.lng, c.lat, c.lng, c.depthKm, mm, c.srcType,
+        function (rup, share) {
+          accumulate(c.srcType, mm, rup, c.depthKm, lam * share);
+        });
     }
   }
 
   // --- scenarios: BPT renewal sources vs plain Poisson sources ---
+  // patch scenarios keep the min-3D-point convention; point scenarios
+  // sub-fault their finite rupture (2026-11-18 convention) — plain point
+  // sources accumulate per sub-fault, BPT point sources take the nearest
+  // sub-fault distance (no such source ships today; frozen for determinism).
   var bptUsed = [];
   var scenarios = sourceModel.scenarios || [];
   for (var si = 0; si < scenarios.length; si++) {
     var s = scenarios[si];
-    var rRupS, depthS;
+    var rRupS, depthS, pointSubs = null;
     if (s.patches && s.patches.length) {
       rRupS = Infinity; depthS = s.depthKm != null ? s.depthKm : 0;
       for (var pi = 0; pi < s.patches.length; pi++) {
@@ -4897,17 +5013,32 @@ Physics.hazardCurveTimeDependent = function(sourceModel, site, imt, options) {
         var d3 = Math.sqrt(Math.pow(Physics.haversineDist(site.lat, site.lng, pp[0], pp[1]), 2) + pp[2] * pp[2]);
         if (d3 < rRupS) rRupS = d3;
       }
+      rRupS = Math.max(rRupS, 0.1);
     } else {
       depthS = s.depthKm != null ? s.depthKm : 15;
-      var hdS = Physics.haversineDist(site.lat, site.lng, s.lat != null ? s.lat : 0, s.lng != null ? s.lng : 0);
-      rRupS = Physics._pshaPointRrup(Math.sqrt(hdS * hdS + depthS * depthS), s.mw, s.sourceType || 'crustal');
+      pointSubs = [];
+      Physics._pshaPointRuptures(sourceModel, site.lat, site.lng, s.lat != null ? s.lat : 0, s.lng != null ? s.lng : 0,
+        depthS, s.mw, s.sourceType || 'crustal',
+        function (rup, share) { pointSubs.push({ rRup: rup, share: share }); });
     }
-    rRupS = Math.max(rRupS, 0.1);
     var bptCfg = s.bpt || Physics.PSHA_BPT_SOURCES[s.id] || null;
     var isBpt = !!(bptCfg && (options.elapsedYears != null || bptCfg.lastEventYear != null || bptCfg.elapsedYears != null));
-    if (!isBpt) {
-      accumulate(s.sourceType || 'crustal', s.mw, rRupS, depthS, s.ratePerYear);
+    if (!pointSubs) {
+      if (!isBpt) {
+        accumulate(s.sourceType || 'crustal', s.mw, rRupS, depthS, s.ratePerYear);
+        continue;
+      }
+    } else if (!isBpt) {
+      var clsPt = s.sourceType || 'crustal';
+      for (var psi = 0; psi < pointSubs.length; psi++) {
+        accumulate(clsPt, s.mw, pointSubs[psi].rRup, depthS, s.ratePerYear * pointSubs[psi].share);
+      }
       continue;
+    } else {
+      rRupS = Infinity;
+      for (var pmi = 0; pmi < pointSubs.length; pmi++) {
+        if (pointSubs[pmi].rRup < rRupS) rRupS = pointSubs[pmi].rRup;
+      }
     }
     var muYears = bptCfg.muYears;
     var alpha = globalAlpha != null ? globalAlpha : (bptCfg.alpha != null ? bptCfg.alpha : 0.24);
@@ -5182,14 +5313,17 @@ Physics.deaggregate = function(sourceModel, site, imt, options) {
     var b = sourceModel.bValues[c.srcType];
     var mMax = (sourceModel.mMaxByClass || {})[c.srcType] || 7.5;
     if (!(b > 0) || !(c.rateMc > 0)) continue;
-    var hypDist = Math.sqrt(hd * hd + c.depthKm * c.depthKm);
     var mLo = Math.ceil(mMin / mStep - 1e-9) * mStep;
     for (var m = mLo; m <= mMax + 1e-9; m += mStep) {
       var lam = c.rateMc * (Math.pow(10, -b * (m - mc)) - Math.pow(10, -b * (m + mStep - mc)));
       if (!(lam > 1e-9)) continue;
       var mm = Math.min(m + mStep / 2, mMax);
-      var rRup = Physics._pshaPointRrup(hypDist, mm, c.srcType);
-      accumulate(c.srcType, mm, rRup, c.depthKm, lam, c.lat, c.lng);
+      // finite-rupture convention (2026-11-18): each sub-fault lands in its
+      // own distance bin with its exact rate share
+      Physics._pshaPointRuptures(sourceModel, site.lat, site.lng, c.lat, c.lng, c.depthKm, mm, c.srcType,
+        function (rup, share, sLat, sLng) {
+          accumulate(c.srcType, mm, rup, c.depthKm, lam * share, sLat, sLng);
+        });
     }
   }
 
@@ -5206,14 +5340,18 @@ Physics.deaggregate = function(sourceModel, site, imt, options) {
         var d3 = Math.sqrt(Math.pow(Physics.haversineDist(site.lat, site.lng, p[0], p[1]), 2) + p[2] * p[2]);
         if (d3 < rRupS) { rRupS = d3; slat = p[0]; slng = p[1]; }
       }
+      scenUsed++;
+      accumulate(s.sourceType || 'crustal', s.mw, Math.max(rRupS, 0.1), depthS, s.ratePerYear, slat, slng);
     } else {
       depthS = s.depthKm != null ? s.depthKm : 15;
       slat = s.lat != null ? s.lat : 0; slng = s.lng != null ? s.lng : 0;
-      var hdS = Physics.haversineDist(site.lat, site.lng, slat, slng);
-      rRupS = Physics._pshaPointRrup(Math.sqrt(hdS * hdS + depthS * depthS), s.mw, s.sourceType || 'crustal');
+      scenUsed++;
+      var clsS2 = s.sourceType || 'crustal';
+      Physics._pshaPointRuptures(sourceModel, site.lat, site.lng, slat, slng, depthS, s.mw, clsS2,
+        function (rup, share, s2lat, s2lng) {
+          accumulate(clsS2, s.mw, rup, depthS, s.ratePerYear * share, s2lat, s2lng);
+        });
     }
-    scenUsed++;
-    accumulate(s.sourceType || 'crustal', s.mw, Math.max(rRupS, 0.1), depthS, s.ratePerYear, slat, slng);
   }
 
   // v3 packs (UCERF3 batch B): grid MFD nodes + characteristic sources

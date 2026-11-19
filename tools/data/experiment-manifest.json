@@ -1,6 +1,6 @@
 {
  "schema": "quake-sim-experiment-manifest-v1",
- "generated": "2026-11-16T02:49:21.927Z",
+ "generated": "2026-11-19T17:16:22.769Z",
  "identityRule": "qsx1-<sha256[:16] of file bytes>; manifest excluded from its own listing",
  "entries": [
   {
@@ -661,31 +661,31 @@
    "mtime": "2026-11-08T14:36:55.607Z"
   },
   {
-   "id": "qsx1-4c0fe41eae711485",
+   "id": "qsx1-2bb1585725f10209",
    "name": "jshis-comparison-report.json",
-   "bytes": 38097,
+   "bytes": 38135,
    "kind": "scorecard",
    "track": "R8 external gate",
    "gate": "tests/jshis-comparison.test.js",
-   "mtime": "2026-09-09T21:01:29.372Z"
+   "mtime": "2026-11-19T17:04:19.679Z"
   },
   {
-   "id": "qsx1-d5ca84dd5a028daf",
+   "id": "qsx1-f6e7abc3c61ec6b3",
    "name": "jshis-decompose-report.json",
-   "bytes": 67834,
+   "bytes": 67575,
    "kind": "scorecard",
    "track": "R8 rectification (eqcode decomposition)",
    "gate": "tests/jshis-decompose.test.js",
-   "mtime": "2026-10-15T15:43:58.056Z"
+   "mtime": "2026-11-19T17:04:19.801Z"
   },
   {
-   "id": "qsx1-1ffa57d44b6823ba",
+   "id": "qsx1-ecd4d3c797fdcc9a",
    "name": "jtrench-m9-report.json",
-   "bytes": 5331,
+   "bytes": 5079,
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-11-09T15:53:39.601Z"
+   "mtime": "2026-11-19T17:04:19.914Z"
   },
   {
    "id": "qsx1-4f0a3b6bf344fcd4",
@@ -715,67 +715,76 @@
    "mtime": "2026-09-03T16:26:19.052Z"
   },
   {
-   "id": "qsx1-a43199ac4ce830a3",
+   "id": "qsx1-496d338f00384939",
    "name": "nw2-alias-report.json",
    "bytes": 5069,
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-11-08T15:35:32.827Z"
+   "mtime": "2026-11-19T17:04:20.153Z"
   },
   {
-   "id": "qsx1-4b0ab092f1e195e7",
+   "id": "qsx1-6f8f70910377886d",
    "name": "nz-chc-attribution-report.json",
-   "bytes": 2961,
+   "bytes": 2966,
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-11-09T17:14:23.795Z"
+   "mtime": "2026-11-19T17:04:20.276Z"
   },
   {
-   "id": "qsx1-b618bd12e0f0b9db",
+   "id": "qsx1-226dd16a0644bb4c",
+   "name": "nz-deagg-mode-comparison-report.json",
+   "bytes": 8136,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-11-19T17:04:20.390Z"
+  },
+  {
+   "id": "qsx1-39c0418b0d57d8ad",
    "name": "nz-epistemic-width-report.json",
-   "bytes": 13238,
+   "bytes": 13232,
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-11-15T17:17:24.133Z"
+   "mtime": "2026-11-19T17:04:20.513Z"
   },
   {
-   "id": "qsx1-0e550e33954e1ab5",
+   "id": "qsx1-76a22e8938ec68fb",
    "name": "nz-megathrust-sensitivity-report.json",
-   "bytes": 8892,
+   "bytes": 8896,
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-11-15T17:17:24.133Z"
+   "mtime": "2026-11-19T17:04:20.630Z"
   },
   {
-   "id": "qsx1-42723c11bd67bea2",
+   "id": "qsx1-3ccef18a689a2e81",
    "name": "nz-nshm-comparison-report.json",
-   "bytes": 4296,
+   "bytes": 5209,
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-11-09T16:41:02.058Z"
+   "mtime": "2026-11-19T17:04:20.744Z"
   },
   {
-   "id": "qsx1-8e77c43480fa7967",
+   "id": "qsx1-68d48a2e76f81e9b",
    "name": "psha-attribution-report.json",
-   "bytes": 32476,
+   "bytes": 32442,
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-09-05T01:32:02.397Z"
+   "mtime": "2026-11-19T17:04:20.869Z"
   },
   {
-   "id": "qsx1-ab631c1022784161",
+   "id": "qsx1-122823a39cae5554",
    "name": "psha-capital-multigeo-report.json",
-   "bytes": 17903,
+   "bytes": 18569,
    "kind": "experiment",
    "track": "R-A capital multigeo (measured-not-adopted)",
    "gate": "tests/psha-capital-multigeo.test.js",
-   "mtime": "2026-11-08T14:36:55.610Z"
+   "mtime": "2026-11-19T17:04:20.981Z"
   },
   {
    "id": "qsx1-ab250076188842a2",
@@ -913,6 +922,15 @@
    "mtime": "2026-09-09T21:01:29.443Z"
   },
   {
+   "id": "qsx1-2cbf24d41b1c2a70",
+   "name": "sh-branch-diagnosis-report.json",
+   "bytes": 5253,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-11-19T17:04:21.093Z"
+  },
+  {
    "id": "qsx1-b8438e14075fc9b9",
    "name": "shake91-benchmark-case.json",
    "bytes": 2408,
@@ -1039,22 +1057,31 @@
    "mtime": "2026-10-12T07:53:26.434Z"
   },
   {
-   "id": "qsx1-4e9eb966bc4ca3e1",
+   "id": "qsx1-ca62155b88edb880",
    "name": "usgs-nshm-attribution-report.json",
-   "bytes": 4976,
+   "bytes": 4977,
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-11-15T17:17:24.184Z"
+   "mtime": "2026-11-19T17:04:21.206Z"
   },
   {
-   "id": "qsx1-e8001c59660e8746",
+   "id": "qsx1-d200bbdadb91fe49",
    "name": "usgs-nshm-comparison-report.json",
-   "bytes": 2091,
+   "bytes": 2089,
    "kind": "report",
    "track": null,
    "gate": null,
-   "mtime": "2026-11-12T16:53:40.678Z"
+   "mtime": "2026-11-19T17:04:21.332Z"
+  },
+  {
+   "id": "qsx1-9d98c24e7c988488",
+   "name": "usgs-nshm-uhs-spectral-report.json",
+   "bytes": 3719,
+   "kind": "report",
+   "track": null,
+   "gate": null,
+   "mtime": "2026-11-19T17:04:21.436Z"
   },
   {
    "id": "qsx1-cfb32ea050c345ab",

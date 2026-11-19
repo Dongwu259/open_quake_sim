@@ -37,17 +37,20 @@ test('jshis-decompose — J-SHIS component curves are exhaustive (TTL = PPE unio
 
 test('jshis-decompose — frozen per-arm RP475 ratios (the residual is subduction-carried)', () => {
   assert.equal(r.aggregate.nSites, 6);
+  // 2026-11-19 巨源距离代理整改 re-freeze (--offline J-SHIS curves verbatim,
+  // ours recomputed under the finite-rupture convention): median 1.827->1.823,
+  // verdicts unchanged (H1 SUPPORTED / H2 REFUTED / H3 SUPPORTED)
   assert.deepEqual(r.aggregate.rp475RatioMedianByArm, {
-    ttl: 1.827, ppeEquiv: 1.827, ppeEquivNoSlab: 1.825, lndEquiv: 0.852, ppeEquivTd: 4.538
+    ttl: 1.823, ppeEquiv: 1.823, ppeEquivNoSlab: 1.822, lndEquiv: 0.762, ppeEquivTd: 4.532
   });
   // per-site locks
   const want = {
-    tokyo: { ttl: 1.585, ppe: 1.587, lnd: 0.725 },
-    osaka: { ttl: 3.313, ppe: 3.692, lnd: 0.58 },
-    sendai: { ttl: 1.458, ppe: 1.457, lnd: 1.015 },
-    kochi: { ttl: 1.827, ppe: 1.827, lnd: 0.523 },
-    nagoya: { ttl: 1.793, ppe: 1.784, lnd: 0.856 },
-    fukuoka: { ttl: 4.227, ppe: 6.099, lnd: 0.852 }
+    tokyo: { ttl: 1.151, ppe: 1.151, lnd: 0.701 },
+    osaka: { ttl: 3.271, ppe: 3.662, lnd: 0.539 },
+    sendai: { ttl: 1.048, ppe: 1.048, lnd: 0.945 },
+    kochi: { ttl: 1.823, ppe: 1.823, lnd: 0.511 },
+    nagoya: { ttl: 1.765, ppe: 1.768, lnd: 0.812 },
+    fukuoka: { ttl: 4.098, ppe: 6.074, lnd: 0.762 }
   };
   for (const s of r.sites) {
     assert.equal(s.arms.ttl.returnPeriods['475'].ratioOursOverJshis, want[s.site.id].ttl, s.site.id + ' ttl');
@@ -63,17 +66,20 @@ test('jshis-decompose — frozen per-arm RP475 ratios (the residual is subductio
 test('jshis-decompose — pre-registered hypothesis verdicts locked', () => {
   // H1: tail overprediction at kochi/osaka is PPE-carried
   assert.equal(r.hypotheses.H1.verdict, 'SUPPORTED');
-  // H2: REFUTED — sendai PPE over-predicts (1.457), no subduction deficit;
-  // consistent with ERC carrying the Japan-Trench M9 class at ~0% (30 y)
+  // H2: REFUTED — sendai PPE over-predicts (1.048 under the 2026-11-19
+  // convention, was 1.457), no subduction deficit; consistent with ERC
+  // carrying the Japan-Trench M9 class at ~0% (30 y)
   assert.equal(r.hypotheses.H2.verdict, 'REFUTED');
   assert.ok(r.hypotheses.H2.measured.sendai.ppe > 1);
-  // H3: Vs30 ladder bounded (max 19.7% over 400..800 — the bedrock-basis
-  // confound cannot explain the residual)
+  // H3: Vs30 ladder bounded (max 20.0% over 400..800 under the 2026-11-19
+  // convention, was 19.7% — the bedrock-basis confound cannot explain the
+  // residual)
   assert.equal(r.hypotheses.H3.verdict, 'SUPPORTED');
-  assert.equal(r.hypotheses.H3.measured.maxRelativeDeviationAcrossSites, 0.197);
+  assert.equal(r.hypotheses.H3.measured.maxRelativeDeviationAcrossSites, 0.2);
   // mid-band: crustal side under-predicts, PPE TD flip reproduced
+  // (2026-11-19 re-freeze)
   assert.deepEqual(r.aggregate.midBandMedianLog10RateRatioByArm, {
-    ttl: 0.422, ppeEquiv: 0.293, ppeEquivNoSlab: 0.204, lndEquiv: -0.146, ppeEquivTd: 0.671
+    ttl: 0.113, ppeEquiv: 0.074, ppeEquivNoSlab: -0.046, lndEquiv: -0.299, ppeEquivTd: 0.587
   });
 });
 

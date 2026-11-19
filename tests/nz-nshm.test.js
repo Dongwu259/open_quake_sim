@@ -38,11 +38,12 @@ test('preregistered verdicts frozen: H1/H2 pass, H3 falsified as measured', () =
 
 test('headline ratios byte-frozen (Wellington underestimate, Christchurch overestimate)', () => {
   const wlg = report.sites.WLG, chc = report.sites.CHC, akl = report.sites.AKL;
-  assert.ok(Math.abs(wlg.ratio.pga.rp475 - 0.453) < 0.001, 'WLG rp475 ' + wlg.ratio.pga.rp475);
-  assert.ok(Math.abs(wlg.ratio.pga.rp2500 - 0.619) < 0.001, 'WLG rp2500 ' + wlg.ratio.pga.rp2500);
-  assert.ok(Math.abs(akl.ratio.pga.rp475 - 0.801) < 0.001, 'AKL rp475 ' + akl.ratio.pga.rp475);
-  assert.ok(Math.abs(chc.ratio.pga.rp475 - 1.978) < 0.001, 'CHC rp475 ' + chc.ratio.pga.rp475);
-  assert.ok(Math.abs(wlg.ratio.sa10.rp475 - 0.366) < 0.001, 'WLG sa10 rp475 ' + wlg.ratio.sa10.rp475);
+  // 2026-11-19 convention re-freeze (finite-rupture lattice): 0.453->0.2556 etc.
+  assert.ok(Math.abs(wlg.ratio.pga.rp475 - 0.255574) < 0.001, 'WLG rp475 ' + wlg.ratio.pga.rp475);
+  assert.ok(Math.abs(wlg.ratio.pga.rp2500 - 0.262896) < 0.001, 'WLG rp2500 ' + wlg.ratio.pga.rp2500);
+  assert.ok(Math.abs(akl.ratio.pga.rp475 - 0.68969) < 0.001, 'AKL rp475 ' + akl.ratio.pga.rp475);
+  assert.ok(Math.abs(chc.ratio.pga.rp475 - 1.61997) < 0.001, 'CHC rp475 ' + chc.ratio.pga.rp475);
+  assert.ok(Math.abs(wlg.ratio.sa10.rp475 - 0.231706) < 0.001, 'WLG sa10 rp475 ' + wlg.ratio.sa10.rp475);
   // every site carries both RPs on both IMTs, all positive
   for (const [sid, v] of Object.entries(report.sites)) {
     for (const imt of ['pga', 'sa10']) {

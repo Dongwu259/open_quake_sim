@@ -1,15 +1,15 @@
 {
  "schema": "quake-sim-psha-capital-multigeo-v1",
- "generatedAt": "2026-10-17T15:03:55.344Z",
+ "generatedAt": "2026-11-18T16:30:06.878Z",
  "preRegistered": {
   "note": "hypotheses H-A0..H-A5, the arm set, the weighting design and the adoption rule were written into tools/psha-capital-multigeo.js BEFORE the first measured run; verdicts and the adoption decision are computed mechanically. Frozen MEASUREMENT, not a calibration input (data-honesty rule).",
   "discovery": "shipped tokyoInland scenario carried no geometry since v1 — engine fallback (s.lat ?? 0) = Null Island, ~zero contribution; R8 LND ratios were measured with the capital source absent",
   "hypotheses": {
-   "H-A0": "lndBaseline reproduces the R8 frozen LND RP475 ratios within 0.010 at all six sites",
-   "H-A1": "lndMulti RP475 ratio at tokyo strictly above the R8 baseline 0.725",
-   "H-A2": "|ratio_lndMulti(s) - ratio_R8(s)| < 0.10 at each non-capital site",
-   "H-A3": "0.725 < ratio_lndMulti(tokyo) <= 1.30 (parity target; >1.30 = overshoot blocks adoption)",
-   "H-A4": "ttlMulti tokyo <= 1.585x1.10; ttlMulti kochi/osaka within 0.020 of R8 frozen (1.827/3.313)",
+   "H-A0": "lndBaseline reproduces the CURRENT frozen LND RP475 ratios (jshis-decompose 2026-11-19 convention re-run) within 0.010 at all six sites — R8 columns kept as history (2026-11-19 amendment, disclosed before the re-run)",
+   "H-A1": "lndMulti RP475 ratio at tokyo strictly above the current baseline (R8 0.725 / current 0.701)",
+   "H-A2": "|ratio_lndMulti(s) - currentBaseline(s)| < 0.10 at each non-capital site",
+   "H-A3": "currentBaseline < ratio_lndMulti(tokyo) <= 1.30 (parity target; >1.30 = overshoot blocks adoption)",
+   "H-A4": "ttlMulti tokyo <= ttlBaseline(tokyo)x1.10; ttlMulti kochi/osaka within 0.020 of the current ttl ratios",
    "H-A5": "|lndMulti - lndMultiEqual| / lndMulti < 0.15 at tokyo (weighting robustness)"
   }
  },
@@ -31,106 +31,118 @@
  ],
  "hypotheses": {
   "H-A0": {
-   "registered": "lndBaseline reproduces the R8 frozen LND RP475 ratios within 0.010 at all six sites",
+   "registered": "lndBaseline reproduces the CURRENT frozen LND RP475 ratios (jshis-decompose 2026-11-19 convention re-run) within 0.010 at all six sites — R8 columns kept as history (2026-11-19 amendment, disclosed before the re-run)",
    "measured": [
     {
      "site": "tokyo",
      "r8": 0.725,
-     "now": 0.725
+     "current": 0.701,
+     "now": 0.701
     },
     {
      "site": "osaka",
      "r8": 0.58,
-     "now": 0.58
+     "current": 0.539,
+     "now": 0.539
     },
     {
      "site": "sendai",
      "r8": 1.015,
-     "now": 1.015
+     "current": 0.945,
+     "now": 0.945
     },
     {
      "site": "kochi",
      "r8": 0.523,
-     "now": 0.523
+     "current": 0.511,
+     "now": 0.511
     },
     {
      "site": "nagoya",
      "r8": 0.856,
-     "now": 0.856
+     "current": 0.812,
+     "now": 0.812
     },
     {
      "site": "fukuoka",
      "r8": 0.852,
-     "now": 0.852
+     "current": 0.762,
+     "now": 0.762
     }
    ],
    "verdict": "SUPPORTED"
   },
   "H-A1": {
-   "registered": "lndMulti RP475 ratio at tokyo strictly above the R8 baseline 0.725",
+   "registered": "lndMulti RP475 ratio at tokyo strictly above the current baseline (R8 0.725 / current 0.701)",
    "measured": {
-    "tokyoBaseline": 0.725,
-    "tokyoMulti": 5.097
+    "tokyoBaseline": 0.701,
+    "tokyoMulti": 5.095
    },
    "verdict": "SUPPORTED"
   },
   "H-A2": {
-   "registered": "|ratio_lndMulti(s) - ratio_R8(s)| < 0.10 at each non-capital site",
+   "registered": "|ratio_lndMulti(s) - currentBaseline(s)| < 0.10 at each non-capital site",
    "measured": [
     {
      "site": "osaka",
      "r8": 0.58,
-     "multi": 0.591,
-     "delta": 0.011
+     "current": 0.539,
+     "multi": 0.552,
+     "delta": 0.013
     },
     {
      "site": "sendai",
      "r8": 1.015,
-     "multi": 1.043,
-     "delta": 0.028
+     "current": 0.945,
+     "multi": 0.976,
+     "delta": 0.031
     },
     {
      "site": "kochi",
      "r8": 0.523,
-     "multi": 0.529,
+     "current": 0.511,
+     "multi": 0.517,
      "delta": 0.006
     },
     {
      "site": "nagoya",
      "r8": 0.856,
-     "multi": 1.033,
-     "delta": 0.177
+     "current": 0.812,
+     "multi": 0.996,
+     "delta": 0.184
     },
     {
      "site": "fukuoka",
      "r8": 0.852,
-     "multi": 0.852,
+     "current": 0.762,
+     "multi": 0.762,
      "delta": 0
     }
    ],
    "verdict": "REFUTED"
   },
   "H-A3": {
-   "registered": "0.725 < ratio_lndMulti(tokyo) <= 1.30 (parity target; >1.30 = overshoot blocks adoption)",
+   "registered": "currentBaseline < ratio_lndMulti(tokyo) <= 1.30 (parity target; >1.30 = overshoot blocks adoption)",
    "measured": {
-    "tokyoMulti": 5.097
+    "tokyoBaseline": 0.701,
+    "tokyoMulti": 5.095
    },
    "verdict": "REFUTED"
   },
   "H-A4": {
-   "registered": "ttlMulti tokyo <= 1.585x1.10; ttlMulti kochi/osaka within 0.020 of R8 frozen (1.827/3.313)",
+   "registered": "ttlMulti tokyo <= ttlBaseline(tokyo)x1.10; ttlMulti kochi/osaka within 0.020 of the current ttl ratios",
    "measured": {
     "tokyo": {
-     "r8": 1.585,
-     "multi": 1.911
+     "baseline": 1.151,
+     "multi": 1.609
     },
     "kochi": {
-     "r8": 1.827,
-     "multi": 1.827
+     "baseline": 1.823,
+     "multi": 1.823
     },
     "osaka": {
-     "r8": 3.313,
-     "multi": 3.313
+     "baseline": 3.271,
+     "multi": 3.271
     }
    },
    "verdict": "REFUTED"
@@ -138,9 +150,9 @@
   "H-A5": {
    "registered": "|lndMulti - lndMultiEqual| / lndMulti < 0.15 at tokyo (weighting robustness)",
    "measured": {
-    "multi": 5.097,
-    "equal": 5.055,
-    "relDiff": 0.008240141259564586
+    "multi": 5.095,
+    "equal": 5.053,
+    "relDiff": 0.00824337585868495
    },
    "verdict": "SUPPORTED"
   }
@@ -155,11 +167,11 @@
   ]
  },
  "diagnostics": {
-  "lndSingleTokyo": 30.805,
-  "lndMultiStrictTokyo": 5.725,
+  "lndSingleTokyo": 9.569,
+  "lndMultiStrictTokyo": 5.723,
   "lndArmMedian": {
-   "baseline": 0.852,
-   "multi": 1.033
+   "baseline": 0.762,
+   "multi": 0.976
   }
  },
  "sites": [
@@ -173,85 +185,85 @@
     "lndBaseline": {
      "475": {
       "jshisPgvCmS": 15.6,
-      "oursPgvCmS": 11.3,
-      "ratioOursOverJshis": 0.725
+      "oursPgvCmS": 11,
+      "ratioOursOverJshis": 0.701
      },
      "2500": {
       "jshisPgvCmS": 28.6,
-      "oursPgvCmS": 22.9,
-      "ratioOursOverJshis": 0.803
+      "oursPgvCmS": 21.8,
+      "ratioOursOverJshis": 0.763
      }
     },
     "lndSingle": {
      "475": {
       "jshisPgvCmS": 15.6,
-      "oursPgvCmS": 481.9,
-      "ratioOursOverJshis": 30.805
+      "oursPgvCmS": 149.7,
+      "ratioOursOverJshis": 9.569
      },
      "2500": {
       "jshisPgvCmS": 28.6,
-      "oursPgvCmS": 825,
-      "ratioOursOverJshis": 28.88
+      "oursPgvCmS": 257.9,
+      "ratioOursOverJshis": 9.03
      }
     },
     "lndMulti": {
      "475": {
       "jshisPgvCmS": 15.6,
       "oursPgvCmS": 79.7,
-      "ratioOursOverJshis": 5.097
+      "ratioOursOverJshis": 5.095
      },
      "2500": {
       "jshisPgvCmS": 28.6,
       "oursPgvCmS": 146.8,
-      "ratioOursOverJshis": 5.14
+      "ratioOursOverJshis": 5.139
      }
     },
     "lndMultiEqual": {
      "475": {
       "jshisPgvCmS": 15.6,
-      "oursPgvCmS": 79.1,
-      "ratioOursOverJshis": 5.055
+      "oursPgvCmS": 79,
+      "ratioOursOverJshis": 5.053
      },
      "2500": {
       "jshisPgvCmS": 28.6,
-      "oursPgvCmS": 147.7,
-      "ratioOursOverJshis": 5.169
+      "oursPgvCmS": 147.6,
+      "ratioOursOverJshis": 5.168
      }
     },
     "lndMultiStrict": {
      "475": {
       "jshisPgvCmS": 15.6,
-      "oursPgvCmS": 89.6,
-      "ratioOursOverJshis": 5.725
+      "oursPgvCmS": 89.5,
+      "ratioOursOverJshis": 5.723
      },
      "2500": {
       "jshisPgvCmS": 28.6,
-      "oursPgvCmS": 161.5,
+      "oursPgvCmS": 161.4,
       "ratioOursOverJshis": 5.652
      }
     },
     "ttlBaseline": {
      "475": {
       "jshisPgvCmS": 65.2,
-      "oursPgvCmS": 103.3,
-      "ratioOursOverJshis": 1.585
+      "oursPgvCmS": 75,
+      "ratioOursOverJshis": 1.151
      },
      "2500": {
       "jshisPgvCmS": 95,
-      "oursPgvCmS": 222.7,
-      "ratioOursOverJshis": 2.345
+      "oursPgvCmS": 157.9,
+      "ratioOursOverJshis": 1.663
      }
     },
     "ttlMulti": {
      "475": {
       "jshisPgvCmS": 65.2,
-      "oursPgvCmS": 124.6,
-      "ratioOursOverJshis": 1.911
+      "oursPgvCmS": 104.9,
+      "ratioOursOverJshis": 1.609
      },
      "2500": {
       "jshisPgvCmS": 95,
-      "oursPgvCmS": 241.9,
-      "ratioOursOverJshis": 2.547
+      "oursPgvCmS": 192.2,
+      "ratioOursOverJshis": 2.024
      }
     }
    }
@@ -266,85 +278,85 @@
     "lndBaseline": {
      "475": {
       "jshisPgvCmS": 26.6,
-      "oursPgvCmS": 15.4,
-      "ratioOursOverJshis": 0.58
+      "oursPgvCmS": 14.3,
+      "ratioOursOverJshis": 0.539
      },
      "2500": {
       "jshisPgvCmS": 81.8,
-      "oursPgvCmS": 39.6,
-      "ratioOursOverJshis": 0.484
+      "oursPgvCmS": 33.3,
+      "ratioOursOverJshis": 0.408
      }
     },
     "lndSingle": {
      "475": {
       "jshisPgvCmS": 26.6,
-      "oursPgvCmS": 15.6,
-      "ratioOursOverJshis": 0.586
+      "oursPgvCmS": 14.5,
+      "ratioOursOverJshis": 0.546
      },
      "2500": {
       "jshisPgvCmS": 81.8,
-      "oursPgvCmS": 39.6,
-      "ratioOursOverJshis": 0.484
+      "oursPgvCmS": 33.3,
+      "ratioOursOverJshis": 0.408
      }
     },
     "lndMulti": {
      "475": {
       "jshisPgvCmS": 26.6,
-      "oursPgvCmS": 15.7,
-      "ratioOursOverJshis": 0.591
+      "oursPgvCmS": 14.7,
+      "ratioOursOverJshis": 0.552
      },
      "2500": {
       "jshisPgvCmS": 81.8,
-      "oursPgvCmS": 39.6,
-      "ratioOursOverJshis": 0.485
+      "oursPgvCmS": 33.4,
+      "ratioOursOverJshis": 0.408
      }
     },
     "lndMultiEqual": {
      "475": {
       "jshisPgvCmS": 26.6,
-      "oursPgvCmS": 15.7,
-      "ratioOursOverJshis": 0.591
+      "oursPgvCmS": 14.7,
+      "ratioOursOverJshis": 0.552
      },
      "2500": {
       "jshisPgvCmS": 81.8,
-      "oursPgvCmS": 39.6,
-      "ratioOursOverJshis": 0.485
+      "oursPgvCmS": 33.4,
+      "ratioOursOverJshis": 0.408
      }
     },
     "lndMultiStrict": {
      "475": {
       "jshisPgvCmS": 26.6,
-      "oursPgvCmS": 15.7,
-      "ratioOursOverJshis": 0.588
+      "oursPgvCmS": 14.6,
+      "ratioOursOverJshis": 0.549
      },
      "2500": {
       "jshisPgvCmS": 81.8,
-      "oursPgvCmS": 39.6,
-      "ratioOursOverJshis": 0.485
+      "oursPgvCmS": 33.4,
+      "ratioOursOverJshis": 0.408
      }
     },
     "ttlBaseline": {
      "475": {
       "jshisPgvCmS": 52.2,
-      "oursPgvCmS": 173.1,
-      "ratioOursOverJshis": 3.313
+      "oursPgvCmS": 170.9,
+      "ratioOursOverJshis": 3.271
      },
      "2500": {
       "jshisPgvCmS": 87.4,
-      "oursPgvCmS": 431.3,
-      "ratioOursOverJshis": 4.937
+      "oursPgvCmS": 428.5,
+      "ratioOursOverJshis": 4.905
      }
     },
     "ttlMulti": {
      "475": {
       "jshisPgvCmS": 52.2,
-      "oursPgvCmS": 173.1,
-      "ratioOursOverJshis": 3.313
+      "oursPgvCmS": 170.9,
+      "ratioOursOverJshis": 3.271
      },
      "2500": {
       "jshisPgvCmS": 87.4,
-      "oursPgvCmS": 431.3,
-      "ratioOursOverJshis": 4.937
+      "oursPgvCmS": 428.5,
+      "ratioOursOverJshis": 4.905
      }
     }
    }
@@ -359,85 +371,85 @@
     "lndBaseline": {
      "475": {
       "jshisPgvCmS": 17.4,
-      "oursPgvCmS": 17.7,
-      "ratioOursOverJshis": 1.015
+      "oursPgvCmS": 16.4,
+      "ratioOursOverJshis": 0.945
      },
      "2500": {
       "jshisPgvCmS": 39.7,
-      "oursPgvCmS": 43.1,
-      "ratioOursOverJshis": 1.084
+      "oursPgvCmS": 36.3,
+      "ratioOursOverJshis": 0.915
      }
     },
     "lndSingle": {
      "475": {
       "jshisPgvCmS": 17.4,
-      "oursPgvCmS": 18.3,
-      "ratioOursOverJshis": 1.053
+      "oursPgvCmS": 17.1,
+      "ratioOursOverJshis": 0.983
      },
      "2500": {
       "jshisPgvCmS": 39.7,
-      "oursPgvCmS": 43.2,
-      "ratioOursOverJshis": 1.088
+      "oursPgvCmS": 36.5,
+      "ratioOursOverJshis": 0.92
      }
     },
     "lndMulti": {
      "475": {
       "jshisPgvCmS": 17.4,
-      "oursPgvCmS": 18.1,
-      "ratioOursOverJshis": 1.043
+      "oursPgvCmS": 17,
+      "ratioOursOverJshis": 0.976
      },
      "2500": {
       "jshisPgvCmS": 39.7,
-      "oursPgvCmS": 43.2,
-      "ratioOursOverJshis": 1.087
+      "oursPgvCmS": 36.5,
+      "ratioOursOverJshis": 0.919
      }
     },
     "lndMultiEqual": {
      "475": {
       "jshisPgvCmS": 17.4,
-      "oursPgvCmS": 18.1,
-      "ratioOursOverJshis": 1.04
+      "oursPgvCmS": 16.9,
+      "ratioOursOverJshis": 0.973
      },
      "2500": {
       "jshisPgvCmS": 39.7,
-      "oursPgvCmS": 43.1,
-      "ratioOursOverJshis": 1.086
+      "oursPgvCmS": 36.5,
+      "ratioOursOverJshis": 0.918
      }
     },
     "lndMultiStrict": {
      "475": {
       "jshisPgvCmS": 17.4,
-      "oursPgvCmS": 18.2,
-      "ratioOursOverJshis": 1.045
+      "oursPgvCmS": 17,
+      "ratioOursOverJshis": 0.979
      },
      "2500": {
       "jshisPgvCmS": 39.7,
-      "oursPgvCmS": 43.2,
-      "ratioOursOverJshis": 1.087
+      "oursPgvCmS": 36.5,
+      "ratioOursOverJshis": 0.919
      }
     },
     "ttlBaseline": {
      "475": {
       "jshisPgvCmS": 44.2,
-      "oursPgvCmS": 64.5,
-      "ratioOursOverJshis": 1.458
+      "oursPgvCmS": 46.4,
+      "ratioOursOverJshis": 1.048
      },
      "2500": {
       "jshisPgvCmS": 67.6,
-      "oursPgvCmS": 141.9,
-      "ratioOursOverJshis": 2.099
+      "oursPgvCmS": 84,
+      "ratioOursOverJshis": 1.241
      }
     },
     "ttlMulti": {
      "475": {
       "jshisPgvCmS": 44.2,
-      "oursPgvCmS": 64.5,
-      "ratioOursOverJshis": 1.458
+      "oursPgvCmS": 46.4,
+      "ratioOursOverJshis": 1.049
      },
      "2500": {
       "jshisPgvCmS": 67.6,
-      "oursPgvCmS": 141.9,
-      "ratioOursOverJshis": 2.099
+      "oursPgvCmS": 84,
+      "ratioOursOverJshis": 1.242
      }
     }
    }
@@ -452,85 +464,85 @@
     "lndBaseline": {
      "475": {
       "jshisPgvCmS": 12.7,
-      "oursPgvCmS": 6.6,
-      "ratioOursOverJshis": 0.523
+      "oursPgvCmS": 6.5,
+      "ratioOursOverJshis": 0.511
      },
      "2500": {
       "jshisPgvCmS": 24.3,
-      "oursPgvCmS": 13.5,
-      "ratioOursOverJshis": 0.554
+      "oursPgvCmS": 13,
+      "ratioOursOverJshis": 0.535
      }
     },
     "lndSingle": {
      "475": {
       "jshisPgvCmS": 12.7,
-      "oursPgvCmS": 6.7,
-      "ratioOursOverJshis": 0.526
+      "oursPgvCmS": 6.5,
+      "ratioOursOverJshis": 0.514
      },
      "2500": {
       "jshisPgvCmS": 24.3,
-      "oursPgvCmS": 13.5,
-      "ratioOursOverJshis": 0.554
+      "oursPgvCmS": 13,
+      "ratioOursOverJshis": 0.535
      }
     },
     "lndMulti": {
      "475": {
       "jshisPgvCmS": 12.7,
-      "oursPgvCmS": 6.7,
-      "ratioOursOverJshis": 0.529
+      "oursPgvCmS": 6.5,
+      "ratioOursOverJshis": 0.517
      },
      "2500": {
       "jshisPgvCmS": 24.3,
-      "oursPgvCmS": 13.5,
-      "ratioOursOverJshis": 0.554
+      "oursPgvCmS": 13,
+      "ratioOursOverJshis": 0.536
      }
     },
     "lndMultiEqual": {
      "475": {
       "jshisPgvCmS": 12.7,
-      "oursPgvCmS": 6.7,
-      "ratioOursOverJshis": 0.529
+      "oursPgvCmS": 6.5,
+      "ratioOursOverJshis": 0.517
      },
      "2500": {
       "jshisPgvCmS": 24.3,
-      "oursPgvCmS": 13.5,
-      "ratioOursOverJshis": 0.554
+      "oursPgvCmS": 13,
+      "ratioOursOverJshis": 0.536
      }
     },
     "lndMultiStrict": {
      "475": {
       "jshisPgvCmS": 12.7,
-      "oursPgvCmS": 6.7,
-      "ratioOursOverJshis": 0.527
+      "oursPgvCmS": 6.5,
+      "ratioOursOverJshis": 0.516
      },
      "2500": {
       "jshisPgvCmS": 24.3,
-      "oursPgvCmS": 13.5,
-      "ratioOursOverJshis": 0.554
+      "oursPgvCmS": 13,
+      "ratioOursOverJshis": 0.536
      }
     },
     "ttlBaseline": {
      "475": {
       "jshisPgvCmS": 118.2,
-      "oursPgvCmS": 216,
-      "ratioOursOverJshis": 1.827
+      "oursPgvCmS": 215.5,
+      "ratioOursOverJshis": 1.823
      },
      "2500": {
       "jshisPgvCmS": 151.9,
-      "oursPgvCmS": 545.1,
-      "ratioOursOverJshis": 3.589
+      "oursPgvCmS": 544.3,
+      "ratioOursOverJshis": 3.584
      }
     },
     "ttlMulti": {
      "475": {
       "jshisPgvCmS": 118.2,
-      "oursPgvCmS": 216,
-      "ratioOursOverJshis": 1.827
+      "oursPgvCmS": 215.5,
+      "ratioOursOverJshis": 1.823
      },
      "2500": {
       "jshisPgvCmS": 151.9,
-      "oursPgvCmS": 545.1,
-      "ratioOursOverJshis": 3.589
+      "oursPgvCmS": 544.3,
+      "ratioOursOverJshis": 3.584
      }
     }
    }
@@ -545,85 +557,85 @@
     "lndBaseline": {
      "475": {
       "jshisPgvCmS": 17.9,
-      "oursPgvCmS": 15.4,
-      "ratioOursOverJshis": 0.856
+      "oursPgvCmS": 14.6,
+      "ratioOursOverJshis": 0.812
      },
      "2500": {
       "jshisPgvCmS": 35.4,
-      "oursPgvCmS": 36,
-      "ratioOursOverJshis": 1.017
+      "oursPgvCmS": 31.9,
+      "ratioOursOverJshis": 0.902
      }
     },
     "lndSingle": {
      "475": {
       "jshisPgvCmS": 17.9,
-      "oursPgvCmS": 17.5,
-      "ratioOursOverJshis": 0.977
+      "oursPgvCmS": 16.4,
+      "ratioOursOverJshis": 0.916
      },
      "2500": {
       "jshisPgvCmS": 35.4,
-      "oursPgvCmS": 37,
-      "ratioOursOverJshis": 1.046
+      "oursPgvCmS": 32.9,
+      "ratioOursOverJshis": 0.93
      }
     },
     "lndMulti": {
      "475": {
       "jshisPgvCmS": 17.9,
-      "oursPgvCmS": 18.5,
-      "ratioOursOverJshis": 1.033
+      "oursPgvCmS": 17.9,
+      "ratioOursOverJshis": 0.996
      },
      "2500": {
       "jshisPgvCmS": 35.4,
-      "oursPgvCmS": 38,
-      "ratioOursOverJshis": 1.074
+      "oursPgvCmS": 34.4,
+      "ratioOursOverJshis": 0.973
      }
     },
     "lndMultiEqual": {
      "475": {
       "jshisPgvCmS": 17.9,
-      "oursPgvCmS": 18.5,
-      "ratioOursOverJshis": 1.034
+      "oursPgvCmS": 17.9,
+      "ratioOursOverJshis": 0.997
      },
      "2500": {
       "jshisPgvCmS": 35.4,
-      "oursPgvCmS": 38,
-      "ratioOursOverJshis": 1.075
+      "oursPgvCmS": 34.4,
+      "ratioOursOverJshis": 0.974
      }
     },
     "lndMultiStrict": {
      "475": {
       "jshisPgvCmS": 17.9,
-      "oursPgvCmS": 18,
-      "ratioOursOverJshis": 1.004
+      "oursPgvCmS": 17.3,
+      "ratioOursOverJshis": 0.966
      },
      "2500": {
       "jshisPgvCmS": 35.4,
-      "oursPgvCmS": 37.4,
-      "ratioOursOverJshis": 1.058
+      "oursPgvCmS": 33.8,
+      "ratioOursOverJshis": 0.955
      }
     },
     "ttlBaseline": {
      "475": {
       "jshisPgvCmS": 74.1,
-      "oursPgvCmS": 132.7,
-      "ratioOursOverJshis": 1.793
+      "oursPgvCmS": 130.7,
+      "ratioOursOverJshis": 1.765
      },
      "2500": {
       "jshisPgvCmS": 103.6,
-      "oursPgvCmS": 342,
-      "ratioOursOverJshis": 3.302
+      "oursPgvCmS": 338.9,
+      "ratioOursOverJshis": 3.273
      }
     },
     "ttlMulti": {
      "475": {
       "jshisPgvCmS": 74.1,
-      "oursPgvCmS": 132.8,
-      "ratioOursOverJshis": 1.793
+      "oursPgvCmS": 130.7,
+      "ratioOursOverJshis": 1.765
      },
      "2500": {
       "jshisPgvCmS": 103.6,
-      "oursPgvCmS": 342,
-      "ratioOursOverJshis": 3.302
+      "oursPgvCmS": 338.9,
+      "ratioOursOverJshis": 3.273
      }
     }
    }
@@ -638,85 +650,85 @@
     "lndBaseline": {
      "475": {
       "jshisPgvCmS": 22.4,
-      "oursPgvCmS": 19.1,
-      "ratioOursOverJshis": 0.852
+      "oursPgvCmS": 17.1,
+      "ratioOursOverJshis": 0.762
      },
      "2500": {
       "jshisPgvCmS": 72.3,
-      "oursPgvCmS": 51.5,
-      "ratioOursOverJshis": 0.711
+      "oursPgvCmS": 40.1,
+      "ratioOursOverJshis": 0.555
      }
     },
     "lndSingle": {
      "475": {
       "jshisPgvCmS": 22.4,
-      "oursPgvCmS": 19.1,
-      "ratioOursOverJshis": 0.852
+      "oursPgvCmS": 17.1,
+      "ratioOursOverJshis": 0.762
      },
      "2500": {
       "jshisPgvCmS": 72.3,
-      "oursPgvCmS": 51.5,
-      "ratioOursOverJshis": 0.711
+      "oursPgvCmS": 40.1,
+      "ratioOursOverJshis": 0.555
      }
     },
     "lndMulti": {
      "475": {
       "jshisPgvCmS": 22.4,
-      "oursPgvCmS": 19.1,
-      "ratioOursOverJshis": 0.852
+      "oursPgvCmS": 17.1,
+      "ratioOursOverJshis": 0.762
      },
      "2500": {
       "jshisPgvCmS": 72.3,
-      "oursPgvCmS": 51.5,
-      "ratioOursOverJshis": 0.711
+      "oursPgvCmS": 40.1,
+      "ratioOursOverJshis": 0.555
      }
     },
     "lndMultiEqual": {
      "475": {
       "jshisPgvCmS": 22.4,
-      "oursPgvCmS": 19.1,
-      "ratioOursOverJshis": 0.852
+      "oursPgvCmS": 17.1,
+      "ratioOursOverJshis": 0.762
      },
      "2500": {
       "jshisPgvCmS": 72.3,
-      "oursPgvCmS": 51.5,
-      "ratioOursOverJshis": 0.711
+      "oursPgvCmS": 40.1,
+      "ratioOursOverJshis": 0.555
      }
     },
     "lndMultiStrict": {
      "475": {
       "jshisPgvCmS": 22.4,
-      "oursPgvCmS": 19.1,
-      "ratioOursOverJshis": 0.852
+      "oursPgvCmS": 17.1,
+      "ratioOursOverJshis": 0.762
      },
      "2500": {
       "jshisPgvCmS": 72.3,
-      "oursPgvCmS": 51.5,
-      "ratioOursOverJshis": 0.711
+      "oursPgvCmS": 40.1,
+      "ratioOursOverJshis": 0.555
      }
     },
     "ttlBaseline": {
      "475": {
       "jshisPgvCmS": 26.1,
-      "oursPgvCmS": 110.4,
-      "ratioOursOverJshis": 4.227
+      "oursPgvCmS": 107,
+      "ratioOursOverJshis": 4.098
      },
      "2500": {
       "jshisPgvCmS": 72.4,
-      "oursPgvCmS": 291.4,
-      "ratioOursOverJshis": 4.023
+      "oursPgvCmS": 287.7,
+      "ratioOursOverJshis": 3.972
      }
     },
     "ttlMulti": {
      "475": {
       "jshisPgvCmS": 26.1,
-      "oursPgvCmS": 110.4,
-      "ratioOursOverJshis": 4.227
+      "oursPgvCmS": 107,
+      "ratioOursOverJshis": 4.098
      },
      "2500": {
       "jshisPgvCmS": 72.4,
-      "oursPgvCmS": 291.4,
-      "ratioOursOverJshis": 4.023
+      "oursPgvCmS": 287.7,
+      "ratioOursOverJshis": 3.972
      }
     }
    }

@@ -80,6 +80,18 @@
 //    - This report is a frozen MEASUREMENT, not a calibration input
 //      (data-honesty rule, SCIENTIFIC-REPORT §3.2).
 // =====================================================================
+// ── 2026-11-19 re-measurement amendment (disclosed BEFORE the re-run) ────
+// The PSHA point-source distance convention changed to the finite-rupture
+// sub-fault lattice (Physics._pshaPointRuptures; preregistration frozen in
+// tests/psha-point-rupture.test.js BEFORE the first measurement run — the
+// legacy equal-area sphere proxy collapsed giant plate-boundary cells to
+// its 0.1 km floor and ate depth into the far-side subtraction). This
+// report's OUR-side numbers are re-measured under the new convention and
+// re-frozen; the official / J-SHIS side stays byte-unchanged (embedded
+// --offline curves or locally frozen extraction artifacts). Verdicts are
+// re-judged mechanically by the same preregistered gates — frozen as
+// measured, never hand-set.
+// ──────────────────────────────────────────────────────────────────────────
 const fs = require('fs');
 const path = require('path');
 const Physics = require('../public/physics.js');
@@ -91,6 +103,20 @@ const OUT = path.join(ROOT, 'tools', 'data', 'psha-capital-multigeo-report.json'
 const UMBRELLA_RATE = 0.04013; // -ln(1-0.70)/30, ERC Sagami-trough 2nd ed. headline
 const R8_LND = { tokyo: 0.725, osaka: 0.580, sendai: 1.015, kochi: 0.523, nagoya: 0.856, fukuoka: 0.852 };
 const R8_TTL = { tokyo: 1.585, kochi: 1.827, osaka: 3.313 };
+// 2026-11-19 amendment (disclosed BEFORE this re-run): the finite-rupture
+// convention (tests/psha-point-rupture.test.js) moved the engine's LND/TTL
+// baseline itself, so the R8-frozen constants can no longer serve as the
+// reproduction reference. The gates re-reference the CURRENT frozen
+// jshis-decompose report (same batch, same engine) — cross-tool reproduction,
+// same tolerances; the R8 columns stay in the measured rows as history.
+function refRatiosFromDecompose(reportPath, arm) {
+  const rep = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+  const out = {};
+  for (const s of rep.sites) out[s.site.id] = s.arms[arm].returnPeriods['475'].ratioOursOverJshis;
+  return out;
+}
+const CUR_LND = refRatiosFromDecompose(R8, 'lndEquiv');
+const CUR_TTL = refRatiosFromDecompose(R8, 'ttl');
 const PATCH_SPACING_KM = 4;
 
 // ---- geometry: bilinear patch sampling on the fltinfo corner quad ----
@@ -217,29 +243,29 @@ function main() {
   const farSites = ['osaka', 'sendai', 'kochi', 'nagoya', 'fukuoka'];
   const hypotheses = {
     'H-A0': {
-      registered: 'lndBaseline reproduces the R8 frozen LND RP475 ratios within 0.010 at all six sites',
-      measured: Object.keys(R8_LND).map((s) => ({ site: s, r8: R8_LND[s], now: r475(s, 'lndBaseline') })),
-      verdict: Object.keys(R8_LND).every((s) => within(r475(s, 'lndBaseline'), R8_LND[s], 0.010)) ? 'SUPPORTED' : 'REFUTED'
+      registered: 'lndBaseline reproduces the CURRENT frozen LND RP475 ratios (jshis-decompose 2026-11-19 convention re-run) within 0.010 at all six sites — R8 columns kept as history (2026-11-19 amendment, disclosed before the re-run)',
+      measured: Object.keys(CUR_LND).map((s) => ({ site: s, r8: R8_LND[s], current: CUR_LND[s], now: r475(s, 'lndBaseline') })),
+      verdict: Object.keys(CUR_LND).every((s) => within(r475(s, 'lndBaseline'), CUR_LND[s], 0.010)) ? 'SUPPORTED' : 'REFUTED'
     },
     'H-A1': {
-      registered: 'lndMulti RP475 ratio at tokyo strictly above the R8 baseline 0.725',
+      registered: 'lndMulti RP475 ratio at tokyo strictly above the current baseline (R8 0.725 / current ' + CUR_LND.tokyo + ')',
       measured: { tokyoBaseline: r475('tokyo', 'lndBaseline'), tokyoMulti: r475('tokyo', 'lndMulti') },
-      verdict: r475('tokyo', 'lndMulti') > R8_LND.tokyo ? 'SUPPORTED' : 'REFUTED'
+      verdict: r475('tokyo', 'lndMulti') > CUR_LND.tokyo ? 'SUPPORTED' : 'REFUTED'
     },
     'H-A2': {
-      registered: '|ratio_lndMulti(s) - ratio_R8(s)| < 0.10 at each non-capital site',
-      measured: farSites.map((s) => ({ site: s, r8: R8_LND[s], multi: r475(s, 'lndMulti'), delta: +(r475(s, 'lndMulti') - R8_LND[s]).toFixed(3) })),
-      verdict: farSites.every((s) => within(r475(s, 'lndMulti'), R8_LND[s], 0.10)) ? 'SUPPORTED' : 'REFUTED'
+      registered: '|ratio_lndMulti(s) - currentBaseline(s)| < 0.10 at each non-capital site',
+      measured: farSites.map((s) => ({ site: s, r8: R8_LND[s], current: CUR_LND[s], multi: r475(s, 'lndMulti'), delta: +(r475(s, 'lndMulti') - CUR_LND[s]).toFixed(3) })),
+      verdict: farSites.every((s) => within(r475(s, 'lndMulti'), CUR_LND[s], 0.10)) ? 'SUPPORTED' : 'REFUTED'
     },
     'H-A3': {
-      registered: '0.725 < ratio_lndMulti(tokyo) <= 1.30 (parity target; >1.30 = overshoot blocks adoption)',
-      measured: { tokyoMulti: r475('tokyo', 'lndMulti') },
-      verdict: (r475('tokyo', 'lndMulti') > R8_LND.tokyo && r475('tokyo', 'lndMulti') <= 1.30) ? 'SUPPORTED' : 'REFUTED'
+      registered: 'currentBaseline < ratio_lndMulti(tokyo) <= 1.30 (parity target; >1.30 = overshoot blocks adoption)',
+      measured: { tokyoBaseline: CUR_LND.tokyo, tokyoMulti: r475('tokyo', 'lndMulti') },
+      verdict: (r475('tokyo', 'lndMulti') > CUR_LND.tokyo && r475('tokyo', 'lndMulti') <= 1.30) ? 'SUPPORTED' : 'REFUTED'
     },
     'H-A4': {
-      registered: 'ttlMulti tokyo <= 1.585x1.10; ttlMulti kochi/osaka within 0.020 of R8 frozen (1.827/3.313)',
-      measured: { tokyo: { r8: R8_TTL.tokyo, multi: r475('tokyo', 'ttlMulti') }, kochi: { r8: R8_TTL.kochi, multi: r475('kochi', 'ttlMulti') }, osaka: { r8: R8_TTL.osaka, multi: r475('osaka', 'ttlMulti') } },
-      verdict: (r475('tokyo', 'ttlMulti') <= R8_TTL.tokyo * 1.10 && within(r475('kochi', 'ttlMulti'), R8_TTL.kochi, 0.020) && within(r475('osaka', 'ttlMulti'), R8_TTL.osaka, 0.020)) ? 'SUPPORTED' : 'REFUTED'
+      registered: 'ttlMulti tokyo <= ttlBaseline(tokyo)x1.10; ttlMulti kochi/osaka within 0.020 of the current ttl ratios',
+      measured: { tokyo: { baseline: CUR_TTL.tokyo, multi: r475('tokyo', 'ttlMulti') }, kochi: { baseline: CUR_TTL.kochi, multi: r475('kochi', 'ttlMulti') }, osaka: { baseline: CUR_TTL.osaka, multi: r475('osaka', 'ttlMulti') } },
+      verdict: (r475('tokyo', 'ttlMulti') <= CUR_TTL.tokyo * 1.10 && within(r475('kochi', 'ttlMulti'), CUR_TTL.kochi, 0.020) && within(r475('osaka', 'ttlMulti'), CUR_TTL.osaka, 0.020)) ? 'SUPPORTED' : 'REFUTED'
     },
     'H-A5': {
       registered: '|lndMulti - lndMultiEqual| / lndMulti < 0.15 at tokyo (weighting robustness)',

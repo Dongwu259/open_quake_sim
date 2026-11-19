@@ -1,6 +1,6 @@
 {
  "schema": "quake-sim-usgs-nshm-comparison-v1",
- "frozenAt": "2026-11-12",
+ "frozenAt": "2026-11-18",
  "preregistration": "see tools/scorecard-usgs-nshm.js header (frozen 2026-11-12, before first scoring run)",
  "official": {
   "endpoint": "https://earthquake.usgs.gov/ws/nshmp/conus-2023.R2/static/hazard",
@@ -24,22 +24,22 @@
    },
    "ours": {
     "pga": {
-     "rp475": 608.975,
-     "rp2500": 1034.36
+     "rp475": 585.724,
+     "rp2500": 1000.35
     },
     "sa10": {
-     "rp475": 427.131,
-     "rp2500": 789.367
+     "rp475": 421.44,
+     "rp2500": 779.861
     }
    },
    "ratio": {
     "pga": {
-     "rp475": 1.3945,
-     "rp2500": 1.20101
+     "rp475": 1.34126,
+     "rp2500": 1.16153
     },
     "sa10": {
-     "rp475": 1.33846,
-     "rp2500": 1.12982
+     "rp475": 1.32063,
+     "rp2500": 1.11621
     }
    }
   },
@@ -57,22 +57,22 @@
    },
    "ours": {
     "pga": {
-     "rp475": 628.205,
-     "rp2500": 1043.32
+     "rp475": 613.959,
+     "rp2500": 1019.78
     },
     "sa10": {
-     "rp475": 467.646,
-     "rp2500": 843.704
+     "rp475": 464.218,
+     "rp2500": 838.554
     }
    },
    "ratio": {
     "pga": {
-     "rp475": 1.35102,
-     "rp2500": 1.30657
+     "rp475": 1.32038,
+     "rp2500": 1.27708
     },
     "sa10": {
-     "rp475": 1.38415,
-     "rp2500": 1.29003
+     "rp475": 1.374,
+     "rp2500": 1.28215
     }
    }
   }
@@ -85,7 +85,7 @@
   "H3_broadband_SF": true
  },
  "findings": [
-  "LA RP475 PGA ratio 1.394; SF 1.351 — the shipped UCERF3-derived pack vs the official 2023 NSHM at the BC reference class",
-  "SA(1.0) vs PGA ratio gap: LA -0.018 dex; SF 0.011 dex"
+  "LA RP475 PGA ratio 1.341; SF 1.320 — the shipped UCERF3-derived pack vs the official 2023 NSHM at the BC reference class",
+  "SA(1.0) vs PGA ratio gap: LA -0.007 dex; SF 0.017 dex"
  ]
 }

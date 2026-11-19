@@ -1,0 +1,354 @@
+{
+ "schema": "quake-sim-nz-nshm-disagg-modes-v1",
+ "fetchedAt": "2026-11-16T17:15:20.435Z",
+ "endpoint": "https://nshm-api.gns.cri.nz/kororaa-app-api/graphql",
+ "reportBase": "https://",
+ "model": "NSHM_v1.0.4",
+ "imt": "PGA",
+ "vs30": 750,
+ "poes": [
+  0.1,
+  0.02
+ ],
+ "vs30Note": "reports ship only for [200,275,300,400,750]; 750 chosen and applied on BOTH sides (scorecard) — declared deviation from the v7.1 curve gate (600/600)",
+ "extractionNote": "regex extraction of the report HTML text layer (ground motion / mean source / mode mag-dist / mode mag-dist-eps); TRT contributions are raster-only — full source-class decomposition stays NOT-OPENED on this channel",
+ "sites": {
+  "akl": {
+   "code": "AKL",
+   "name": "Auckland",
+   "lat": -36.87,
+   "lng": 174.77,
+   "byPoe": {
+    "0.02": {
+     "invTimeYears": 50,
+     "returnPeriod": 2475,
+     "reportUrl": "https://nshm-static-reports.gns.cri.nz/openquake/DATA/NSHM_v1.0.4/akl-750-pga-2/",
+     "extracted": {
+      "groundMotionG": 0.202,
+      "meanSource": {
+       "distKm": 29,
+       "mag": 6.3,
+       "eps": 1.4
+      },
+      "modeMagDist": {
+       "mag": 6.9,
+       "distKm": 25,
+       "contribPct": 4.4
+      },
+      "modeMagDistEps": {
+       "mag": 6.9,
+       "distKm": 25,
+       "eps": 1.2,
+       "contribPct": 1.32
+      }
+     }
+    },
+    "0.1": {
+     "invTimeYears": 50,
+     "returnPeriod": 475,
+     "reportUrl": "https://nshm-static-reports.gns.cri.nz/openquake/DATA/NSHM_v1.0.4/akl-750-pga-10/",
+     "extracted": {
+      "groundMotionG": 0.0875,
+      "meanSource": {
+       "distKm": 47,
+       "mag": 6.2,
+       "eps": 1.1
+      },
+      "modeMagDist": {
+       "mag": 6.9,
+       "distKm": 25,
+       "contribPct": 2.85
+      },
+      "modeMagDistEps": {
+       "mag": 5.1,
+       "distKm": 12.5,
+       "eps": 0.8,
+       "contribPct": 0.75
+      }
+     }
+    }
+   }
+  },
+  "chc": {
+   "code": "CHC",
+   "name": "Christchurch",
+   "lat": -43.53,
+   "lng": 172.63,
+   "byPoe": {
+    "0.02": {
+     "invTimeYears": 50,
+     "returnPeriod": 2475,
+     "reportUrl": "https://nshm-static-reports.gns.cri.nz/openquake/DATA/NSHM_v1.0.4/chc-750-pga-2/",
+     "extracted": {
+      "groundMotionG": 0.632,
+      "meanSource": {
+       "distKm": 22,
+       "mag": 6.5,
+       "eps": 1.7
+      },
+      "modeMagDist": {
+       "mag": 6.7,
+       "distKm": 7.5,
+       "contribPct": 4.38
+      },
+      "modeMagDistEps": {
+       "mag": 6.7,
+       "distKm": 7.5,
+       "eps": 1.2,
+       "contribPct": 1.19
+      }
+     }
+    },
+    "0.1": {
+     "invTimeYears": 50,
+     "returnPeriod": 475,
+     "reportUrl": "https://nshm-static-reports.gns.cri.nz/openquake/DATA/NSHM_v1.0.4/chc-750-pga-10/",
+     "extracted": {
+      "groundMotionG": 0.326,
+      "meanSource": {
+       "distKm": 29,
+       "mag": 6.4,
+       "eps": 1.4
+      },
+      "modeMagDist": {
+       "mag": 5.3,
+       "distKm": 7.5,
+       "contribPct": 3.12
+      },
+      "modeMagDistEps": {
+       "mag": 5.3,
+       "distKm": 7.5,
+       "eps": 1.2,
+       "contribPct": 1.01
+      }
+     }
+    }
+   }
+  },
+  "ivc": {
+   "code": "IVC",
+   "name": "Invercargill",
+   "lat": -46.43,
+   "lng": 168.36,
+   "byPoe": {
+    "0.02": {
+     "invTimeYears": 50,
+     "returnPeriod": 2475,
+     "reportUrl": "https://nshm-static-reports.gns.cri.nz/openquake/DATA/NSHM_v1.0.4/ivc-750-pga-2/",
+     "extracted": {
+      "groundMotionG": 0.451,
+      "meanSource": {
+       "distKm": 61,
+       "mag": 7.1,
+       "eps": 1.8
+      },
+      "modeMagDist": {
+       "mag": 8.7,
+       "distKm": 120,
+       "contribPct": 8.35
+      },
+      "modeMagDistEps": {
+       "mag": 8.7,
+       "distKm": 120,
+       "eps": 1.8,
+       "contribPct": 3.42
+      }
+     }
+    },
+    "0.1": {
+     "invTimeYears": 50,
+     "returnPeriod": 475,
+     "reportUrl": "https://nshm-static-reports.gns.cri.nz/openquake/DATA/NSHM_v1.0.4/ivc-750-pga-10/",
+     "extracted": {
+      "groundMotionG": 0.231,
+      "meanSource": {
+       "distKm": 71,
+       "mag": 7,
+       "eps": 1.5
+      },
+      "modeMagDist": {
+       "mag": 8.7,
+       "distKm": 120,
+       "contribPct": 7.63
+      },
+      "modeMagDistEps": {
+       "mag": 8.7,
+       "distKm": 120,
+       "eps": 1.2,
+       "contribPct": 2.4
+      }
+     }
+    }
+   }
+  },
+  "nsn": {
+   "code": "NSN",
+   "name": "Nelson",
+   "lat": -41.27,
+   "lng": 173.28,
+   "byPoe": {
+    "0.02": {
+     "invTimeYears": 50,
+     "returnPeriod": 2475,
+     "reportUrl": "https://nshm-static-reports.gns.cri.nz/openquake/DATA/NSHM_v1.0.4/nsn-750-pga-2/",
+     "extracted": {
+      "groundMotionG": 0.83,
+      "meanSource": {
+       "distKm": 76,
+       "mag": 7.7,
+       "eps": 1.7
+      },
+      "modeMagDist": {
+       "mag": 8.1,
+       "distKm": 70,
+       "contribPct": 6.09
+      },
+      "modeMagDistEps": {
+       "mag": 8.5,
+       "distKm": 70,
+       "eps": 1.8,
+       "contribPct": 1.6
+      }
+     }
+    },
+    "0.1": {
+     "invTimeYears": 50,
+     "returnPeriod": 475,
+     "reportUrl": "https://nshm-static-reports.gns.cri.nz/openquake/DATA/NSHM_v1.0.4/nsn-750-pga-10/",
+     "extracted": {
+      "groundMotionG": 0.396,
+      "meanSource": {
+       "distKm": 83,
+       "mag": 7.5,
+       "eps": 1.4
+      },
+      "modeMagDist": {
+       "mag": 8.1,
+       "distKm": 70,
+       "contribPct": 5.85
+      },
+      "modeMagDistEps": {
+       "mag": 8.1,
+       "distKm": 70,
+       "eps": 1.2,
+       "contribPct": 1.66
+      }
+     }
+    }
+   }
+  },
+  "wlg": {
+   "code": "WLG",
+   "name": "Wellington",
+   "lat": -41.3,
+   "lng": 174.78,
+   "byPoe": {
+    "0.02": {
+     "invTimeYears": 50,
+     "returnPeriod": 2475,
+     "reportUrl": "https://nshm-static-reports.gns.cri.nz/openquake/DATA/NSHM_v1.0.4/wlg-750-pga-2/",
+     "extracted": {
+      "groundMotionG": 1.74,
+      "meanSource": {
+       "distKm": 31,
+       "mag": 8,
+       "eps": 1.9
+      },
+      "modeMagDist": {
+       "mag": 8.1,
+       "distKm": 25,
+       "contribPct": 13.57
+      },
+      "modeMagDistEps": {
+       "mag": 8.1,
+       "distKm": 25,
+       "eps": 1.8,
+       "contribPct": 4.33
+      }
+     }
+    },
+    "0.1": {
+     "invTimeYears": 50,
+     "returnPeriod": 475,
+     "reportUrl": "https://nshm-static-reports.gns.cri.nz/openquake/DATA/NSHM_v1.0.4/wlg-750-pga-10/",
+     "extracted": {
+      "groundMotionG": 0.829,
+      "meanSource": {
+       "distKm": 33,
+       "mag": 7.9,
+       "eps": 1.4
+      },
+      "modeMagDist": {
+       "mag": 8.1,
+       "distKm": 25,
+       "contribPct": 11.14
+      },
+      "modeMagDistEps": {
+       "mag": 8.1,
+       "distKm": 25,
+       "eps": 1.2,
+       "contribPct": 3.12
+      }
+     }
+    }
+   }
+  },
+  "zqn": {
+   "code": "ZQN",
+   "name": "Queenstown",
+   "lat": -45.02,
+   "lng": 168.69,
+   "byPoe": {
+    "0.02": {
+     "invTimeYears": 50,
+     "returnPeriod": 2475,
+     "reportUrl": "https://nshm-static-reports.gns.cri.nz/openquake/DATA/NSHM_v1.0.4/zqn-750-pga-2/",
+     "extracted": {
+      "groundMotionG": 0.656,
+      "meanSource": {
+       "distKm": 60,
+       "mag": 7.7,
+       "eps": 1.8
+      },
+      "modeMagDist": {
+       "mag": 8.7,
+       "distKm": 70,
+       "contribPct": 11.86
+      },
+      "modeMagDistEps": {
+       "mag": 8.7,
+       "distKm": 70,
+       "eps": 1.2,
+       "contribPct": 4.14
+      }
+     }
+    },
+    "0.1": {
+     "invTimeYears": 50,
+     "returnPeriod": 475,
+     "reportUrl": "https://nshm-static-reports.gns.cri.nz/openquake/DATA/NSHM_v1.0.4/zqn-750-pga-10/",
+     "extracted": {
+      "groundMotionG": 0.328,
+      "meanSource": {
+       "distKm": 63,
+       "mag": 7.5,
+       "eps": 1.5
+      },
+      "modeMagDist": {
+       "mag": 8.7,
+       "distKm": 70,
+       "contribPct": 8.4
+      },
+      "modeMagDistEps": {
+       "mag": 8.7,
+       "distKm": 70,
+       "eps": 0.8,
+       "contribPct": 2.39
+      }
+     }
+    }
+   }
+  }
+ },
+ "note": " | returnPeriod field recomputed with the correct POE->RP mapping (fetch artifact field was 1/poe, wrong)"
+}

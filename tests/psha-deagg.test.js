@@ -23,8 +23,9 @@ function tinyModel() {
 
 const SITE = { lat: 35.0, lng: 135.0, vs30: 600 };
 
-/** Independent deaggregation re-derivation: same GR bins / Rrup proxy /
- *  branch mix / CCDF helper, but its own bin-keying and accumulation.
+/** Independent deaggregation re-derivation: same GR bins / finite-rupture
+ *  sub-fault lattice (2026-11-18 convention) / branch mix / CCDF helper, but
+ *  its own bin-keying and accumulation.
  *  Returns a flat list of {srcType, mag, rRupKm, depthKm, rate, eps, lat, lng}. */
 function closedFormContribs(model, site, imt, imTarget) {
   const out = [];
@@ -42,29 +43,30 @@ function closedFormContribs(model, site, imt, imTarget) {
     const hd = Physics.haversineDist(site.lat, site.lng, c.lat, c.lng);
     const b = model.bValues[c.srcType];
     const mMax = model.mMaxByClass[c.srcType];
-    const hyp = Math.sqrt(hd * hd + c.depthKm * c.depthKm);
     for (let m = model.mMin; m <= mMax + 1e-9; m += 0.1) {
       const lam = c.rateMc * (Math.pow(10, -b * (m - model.mc)) - Math.pow(10, -b * (m + 0.1 - model.mc)));
       if (!(lam > 1e-9)) continue;
       const mm = Math.min(m + 0.05, mMax);
-      push(c.srcType, mm, Physics._pshaPointRrup(hyp, mm, c.srcType), c.depthKm, lam, c.lat, c.lng);
+      Physics._pshaPointRuptures(model, site.lat, site.lng, c.lat, c.lng, c.depthKm, mm, c.srcType, (rup, share, sLat, sLng) => {
+        push(c.srcType, mm, rup, c.depthKm, lam * share, sLat, sLng);
+      });
     }
   }
   for (const s of model.scenarios || []) {
-    let rRup, depth, slat, slng;
     if (s.patches && s.patches.length) {
-      rRup = Infinity; depth = s.depthKm != null ? s.depthKm : 0;
+      let rRup = Infinity, depth = s.depthKm != null ? s.depthKm : 0, slat = 0, slng = 0;
       for (const p of s.patches) {
         const d3 = Math.sqrt(Math.pow(Physics.haversineDist(site.lat, site.lng, p[0], p[1]), 2) + p[2] * p[2]);
         if (d3 < rRup) { rRup = d3; slat = p[0]; slng = p[1]; }
       }
+      push(s.sourceType || 'crustal', s.mw, Math.max(rRup, 0.1), depth, s.ratePerYear, slat, slng);
     } else {
-      depth = s.depthKm != null ? s.depthKm : 15;
-      slat = s.lat || 0; slng = s.lng || 0;
-      const hd = Physics.haversineDist(site.lat, site.lng, slat, slng);
-      rRup = Physics._pshaPointRrup(Math.sqrt(hd * hd + depth * depth), s.mw, s.sourceType || 'crustal');
+      const depth = s.depthKm != null ? s.depthKm : 15;
+      const slat = s.lat || 0, slng = s.lng || 0;
+      Physics._pshaPointRuptures(model, site.lat, site.lng, slat, slng, depth, s.mw, s.sourceType || 'crustal', (rup, share, s2lat, s2lng) => {
+        push(s.sourceType || 'crustal', s.mw, rup, depth, s.ratePerYear * share, s2lat, s2lng);
+      });
     }
-    push(s.sourceType || 'crustal', s.mw, Math.max(rRup, 0.1), depth, s.ratePerYear, slat, slng);
   }
   return out;
 }

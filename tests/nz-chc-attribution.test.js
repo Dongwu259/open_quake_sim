@@ -32,10 +32,11 @@ test('preregistered verdicts frozen: G1/G3 pass, G2 fails as measured', () => {
   assert.equal(report.gates.G3_specificity_akl_ivc, true);
 });
 
-test('headline ratios byte-frozen: swarm carries ~70% of the CHC gap, edit is local', () => {
+test('headline ratios byte-frozen: swarm carries ~66% of the CHC gap, edit is local (2026-11-19 convention re-freeze)', () => {
   const chc = report.sites.CHC, wlg = report.sites.WLG;
-  assert.ok(Math.abs(chc.ratio.rp475 - 0.607) < 0.001, 'CHC variant ratio ' + chc.ratio.rp475);
-  assert.ok(Math.abs(chc.delta.rp475 + 1.372) < 0.001, 'CHC delta ' + chc.delta.rp475);
+  // 2026-11-19 re-freeze: variant ratio 0.607 -> 0.544062, delta -1.372 -> -1.07591 (shipped CHC 1.978 -> 1.61997 under the finite-rupture convention)
+  assert.ok(Math.abs(chc.ratio.rp475 - 0.544062) < 0.001, 'CHC variant ratio ' + chc.ratio.rp475);
+  assert.ok(Math.abs(chc.delta.rp475 + 1.07591) < 0.001, 'CHC delta ' + chc.delta.rp475);
   assert.ok(Math.abs(wlg.delta.rp475) < 0.005, 'WLG must not move (' + wlg.delta.rp475 + ')');
   for (const sid of ['AKL', 'NSN', 'ZQN', 'IVC']) {
     assert.ok(Math.abs(report.sites[sid].delta.rp475) <= 0.05, sid + ' delta ' + report.sites[sid].delta.rp475);

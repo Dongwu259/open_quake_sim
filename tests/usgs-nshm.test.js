@@ -35,10 +35,11 @@ test('preregistered verdicts frozen: H1/H2/H3 all pass as measured', () => {
 
 test('headline ratios byte-frozen: pack sits ~1.35-1.40x above official 2023', () => {
   const la = report.sites.LA, sf = report.sites.SF;
-  assert.ok(Math.abs(la.ratio.pga.rp475 - 1.395) < 0.001, 'LA rp475 ' + la.ratio.pga.rp475);
-  assert.ok(Math.abs(sf.ratio.pga.rp475 - 1.351) < 0.001, 'SF rp475 ' + sf.ratio.pga.rp475);
-  assert.ok(Math.abs(la.ratio.pga.rp2500 - 1.201) < 0.001, 'LA rp2500 (gap narrows)');
-  assert.ok(Math.abs(sf.ratio.sa10.rp475 - 1.384) < 0.001, 'SF sa10 rp475');
+  // 2026-11-19 convention re-freeze: 1.395->1.34126 / 1.351->1.32038
+  assert.ok(Math.abs(la.ratio.pga.rp475 - 1.34126) < 0.001, 'LA rp475 ' + la.ratio.pga.rp475);
+  assert.ok(Math.abs(sf.ratio.pga.rp475 - 1.32038) < 0.001, 'SF rp475 ' + sf.ratio.pga.rp475);
+  assert.ok(Math.abs(la.ratio.pga.rp2500 - 1.16153) < 0.001, 'LA rp2500 (gap narrows)');
+  assert.ok(Math.abs(sf.ratio.sa10.rp475 - 1.374) < 0.001, 'SF sa10 rp475');
   for (const [sid, v] of Object.entries(report.sites)) {
     for (const imt of ['pga', 'sa10']) {
       for (const rp of ['rp475', 'rp2500']) {

@@ -1,0 +1,154 @@
+{
+ "schema": "quake-sim-usgs-nshm-uhs-spectral-v1",
+ "frozenAt": "2026-11-18",
+ "preregistration": "see tools/scorecard-usgs-nshm-uhs.js header (frozen 2026-11-16, before first run; known v7.1 anchors declared)",
+ "officialArtifact": "tools/data/usgsnshm/nshm-conus-2023r2-uhs-curves.json",
+ "officialShaNote": "fetched 2026-11-16, sha256 50a04c619e24",
+ "rp": 475,
+ "vs30": 760,
+ "periods": [
+  "PGA",
+  "0.10",
+  "0.20",
+  "0.50",
+  "1.00",
+  "2.00",
+  "3.00",
+  "5.00"
+ ],
+ "hypotheses": {
+  "H1_pureRate_spread_le_0p15dex": true,
+  "H2_spectralShape_le_0p10dex": true,
+  "H3_anchorDrift_le_0p15dex": true
+ },
+ "sites": {
+  "LA": {
+   "name": "Los Angeles",
+   "lat": 34.05,
+   "lng": -118.24,
+   "ratioByPeriod": {
+    "PGA": 1.34126,
+    "0.10": 1.31236,
+    "0.20": 1.35595,
+    "0.50": 1.34177,
+    "1.00": 1.32063,
+    "2.00": 1.26086,
+    "3.00": 1.24712,
+    "5.00": 1.23051
+   },
+   "ratioSpreadDex": 0.0421585,
+   "shapeDiffDexByPeriod": {
+    "PGA": 0,
+    "0.10": -0.00945733,
+    "0.20": 0.00473269,
+    "0.50": 0.000166043,
+    "1.00": -0.00673043,
+    "2.00": -0.0268446,
+    "3.00": -0.0316018,
+    "5.00": -0.0374279
+   },
+   "driftDexByPeriod": {
+    "PGA": -0.00000144977,
+    "0.10": -0.00945877,
+    "0.20": 0.00473125,
+    "0.50": 0.000164593,
+    "1.00": -0.00673188,
+    "2.00": -0.026846,
+    "3.00": -0.0316032,
+    "5.00": -0.0374294
+   },
+   "oursGalByPeriod": {
+    "PGA": 585.7237,
+    "0.10": 1274.7769,
+    "0.20": 1389.1094,
+    "0.50": 802.46097,
+    "1.00": 421.43965,
+    "2.00": 184.90541,
+    "3.00": 112.75018,
+    "5.00": 60.899872
+   },
+   "officialGalByPeriod": {
+    "PGA": 436.69807,
+    "0.10": 971.35949,
+    "0.20": 1024.4535,
+    "0.50": 598.0622,
+    "1.00": 319.1202,
+    "2.00": 146.65021,
+    "3.00": 90.408133,
+    "5.00": 49.491749
+   },
+   "hypotheses": {
+    "H1_spread_le_0p15": true,
+    "H2_shape_le_0p10": true,
+    "H3_drift_le_0p15": true
+   }
+  },
+  "SF": {
+   "name": "San Francisco",
+   "lat": 37.7749,
+   "lng": -122.4194,
+   "ratioByPeriod": {
+    "PGA": 1.32038,
+    "0.10": 1.29226,
+    "0.20": 1.34471,
+    "0.50": 1.34934,
+    "1.00": 1.374,
+    "2.00": 1.32688,
+    "3.00": 1.28403,
+    "5.00": 1.19659
+   },
+   "ratioSpreadDex": 0.0600414,
+   "shapeDiffDexByPeriod": {
+    "PGA": 0,
+    "0.10": -0.00935063,
+    "0.20": 0.00792895,
+    "0.50": 0.00942234,
+    "1.00": 0.0172876,
+    "2.00": 0.00213247,
+    "3.00": -0.0121257,
+    "5.00": -0.0427537
+   },
+   "driftDexByPeriod": {
+    "PGA": 6.41176e-7,
+    "0.10": -0.00934999,
+    "0.20": 0.00792959,
+    "0.50": 0.00942298,
+    "1.00": 0.0172883,
+    "2.00": 0.00213311,
+    "3.00": -0.0121251,
+    "5.00": -0.042753
+   },
+   "oursGalByPeriod": {
+    "PGA": 613.9588,
+    "0.10": 1321.6208,
+    "0.20": 1459.5474,
+    "0.50": 864.70007,
+    "1.00": 464.21803,
+    "2.00": 209.34539,
+    "3.00": 130.84968,
+    "5.00": 71.753592
+   },
+   "officialGalByPeriod": {
+    "PGA": 464.98575,
+    "0.10": 1022.7228,
+    "0.20": 1085.3997,
+    "0.50": 640.83109,
+    "1.00": 337.85846,
+    "2.00": 157.77252,
+    "3.00": 101.90578,
+    "5.00": 59.964984
+   },
+   "hypotheses": {
+    "H1_spread_le_0p15": true,
+    "H2_shape_le_0p10": true,
+    "H3_drift_le_0p15": true
+   }
+  }
+ },
+ "note": "MEASUREMENT ONLY — the pack is byte-frozen (tests/psha-region style sha invariant in tests/usgs-nshm-uhs.test.js); no calibration, no anchor change",
+ "findings": [
+  "ratio spread across {PGA ∪ 0.1-5.0 s}: LA 0.042 dex / SF 0.060 dex (H1 gate 0.15) — the v7.1 uniform-rate-factor story persists across the UHS grid",
+  "spectral-shape agreement (level removed): max |shape diff| LA 0.037 dex / SF 0.043 dex (H2 gate 0.10)",
+  "anchor drift: max |drift| LA 0.037 dex / SF 0.043 dex (H3 gate 0.15)"
+ ]
+}

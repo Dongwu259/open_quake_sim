@@ -1,6 +1,6 @@
 {
  "schema": "quake-sim-nw2-alias-report-v1",
- "frozenAt": "2026-11-08",
+ "frozenAt": "2026-11-18",
  "preregistration": "see tools/scorecard-nw2-alias.js header (gates frozen 2026-11-08, before first run)",
  "set": {
   "events": 19,

@@ -33,15 +33,18 @@ test('preregistered verdicts frozen: H1/H3 pass, H2 falsified as measured', () =
   assert.equal(report.hypotheses.H3_specificity_akl_ivc, true);
 });
 
-test('headline ratios byte-frozen: closure ~15% at 1/600, far cities untouched', () => {
+test('headline ratios byte-frozen: closure ~23% at 1/600, far cities untouched (2026-11-19 re-freeze)', () => {
   const before = report.sites.WLG.before.pga.rp475;
   const afterA = report.sites.WLG.after.pga['A-1/600|rp475'];
   const afterB = report.sites.WLG.after.pga['B-1/600|rp475'];
-  assert.ok(Math.abs(before - 0.453) < 0.001, 'before ' + before);
-  assert.ok(Math.abs(afterA - 0.480) < 0.001, 'A-1/600 ' + afterA);
-  assert.ok(Math.abs(afterB - 0.522) < 0.001, 'B-1/600 ' + afterB);
-  assert.ok(Math.abs(report.sites.WLG.closure.pga['B-1/600|rp475'] - 1.15152) < 1e-4, 'closure B');
-  assert.ok(Math.abs(report.sites.AKL.closure.pga['A-1/600|rp475'] - 1.00185) < 1e-4, 'AKL closure');
+  // 2026-11-19 convention re-freeze (finite-rupture lattice): the megathrust
+  // class now closes 23.5% of the WLG gap at 1/600 (was ~15%) — the honest
+  // convention removed the background-collapse inflation
+  assert.ok(Math.abs(before - 0.255574) < 0.001, 'before ' + before);
+  assert.ok(Math.abs(afterA - 0.261324) < 0.001, 'A-1/600 ' + afterA);
+  assert.ok(Math.abs(afterB - 0.315627) < 0.001, 'B-1/600 ' + afterB);
+  assert.ok(Math.abs(report.sites.WLG.closure.pga['B-1/600|rp475'] - 1.23497) < 1e-4, 'closure B');
+  assert.ok(Math.abs(report.sites.AKL.closure.pga['A-1/600|rp475'] - 1.00051) < 1e-4, 'AKL closure');
   assert.ok(Math.abs(report.sites.IVC.closure.pga['A-1/600|rp475'] - 1) < 1e-4, 'IVC closure');
   // lambda halving roughly halves the lift (near-linear in rate at these levels)
   const liftA = (arm) => report.sites.WLG.after.pga[arm + '|rp475'] - report.sites.WLG.before.pga.rp475;

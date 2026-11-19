@@ -55,12 +55,18 @@ const SITES = {
 // variant SA/SA_N (northern South America, PEER 2020/03 §4.3.4); Quito
 // anchors frozen from the v2 pack as built.
 const FROZEN = {
-  california: { cells: 1616, mainshocks: 685, rp475: 651.8, rp2500: 1094.5 }, // R-C tail (2026-11-10): CB14 HighQ/LowQ pair — RP anchors byte-stable
-  italy:      { cells: 4510, mainshocks: 577, rp475: 117.1, rp2500: 249.6 }, // R-C tail (2026-11-10): 117.0->117.1 / 249.5->249.6 (CB14 HighQ/LowQ pair)
-  chile:      { cells: 7940, mainshocks: 3376, rp475: 826.1, rp2500: 1950.1 },
-  taiwan:     { cells: 1218, mainshocks: 997, rp475: 499.8, rp2500: 1108.6 }, // R-C alias batch (2026-11-08): ask14 -> TWN adopted, 502.3->499.8 / 1111.1->1108.6
-  newzealand: { cells: 2765, mainshocks: 711, rp475: 387.3, rp2500: 1081.4 }, // R-C tail (2026-11-09): CB14 HighQ/LowQ split — RP anchors byte-stable (near-symmetric Dc20 pair, cb14 weight 0.25, gate rrup>80km)
-  ecuador:    { cells: 3387, mainshocks: 898, rp475: 300.5, rp2500: 629.7 }
+  // 2026-11-19 巨源距离代理整改 re-freeze (finite-rupture sub-fault lattice,
+  // preregistration tests/psha-point-rupture.test.js): the legacy equal-area
+  // sphere proxy inflated interface-dominated sites (Wellington -44%,
+  // Santiago -40%, Taipei -29%, Quito -15%) via its 0.1 km near-field floor
+  // and depth-eating slant subtraction; crustal/characteristic-dominated
+  // sites moved -2..-4%. Frozen as measured.
+  california: { cells: 1616, mainshocks: 685, rp475: 628.4, rp2500: 1060.0 }, // 2026-11-19 convention re-freeze: 651.8->628.4 / 1094.5->1060.0
+  italy:      { cells: 4510, mainshocks: 577, rp475: 112.9, rp2500: 231.2 }, // 2026-11-19: 117.1->112.9 / 249.6->231.2
+  chile:      { cells: 7940, mainshocks: 3376, rp475: 493.6, rp2500: 952.2 }, // 2026-11-19: 826.1->493.6 / 1950.1->952.2 (interplate Mmax 9.5 collapse removed)
+  taiwan:     { cells: 1218, mainshocks: 997, rp475: 354.8, rp2500: 680.7 }, // 2026-11-19: 499.8->354.8 / 1108.6->680.7
+  newzealand: { cells: 2765, mainshocks: 711, rp475: 218.5, rp2500: 459.1 }, // 2026-11-19: 387.3->218.5 / 1081.4->459.1 (interplate Mmax 9 collapse removed)
+  ecuador:    { cells: 3387, mainshocks: 898, rp475: 256.4, rp2500: 477.1 } // 2026-11-19: 300.5->256.4 / 629.7->477.1
 };
 
 function loadModel(rid) {
@@ -233,13 +239,14 @@ test('regional engine — uhs + deaggregate smoke at every regional city', () =>
 // PGA anchors (FROZEN.rp475/rp2500 above) re-based in the same batch. Japan
 // keeps the zhao collapse byte-identical (asserted below).
 const FROZEN_UHS_475 = {
-  california: { '0.20': 1600.6, '0.50': 1011.9, '1.00': 542.4 }, // R-C tail (2026-11-10): 542.6->542.4 (CB14 HighQ/LowQ)
-  italy:      { '0.20': 263.6, '0.50': 147.7, '1.00': 69.5 }, // R-C tail (2026-11-10): 263.2->263.6 / 147.2->147.7 / 70.1->69.5 (CB14 HighQ/LowQ)
-  chile:      { '0.20': 1835.9, '0.50': 1017.2, '1.00': 451.6 },
-  taiwan:     { '0.20': 1230.7, '0.50': 912.5, '1.00': 456.5 }, // R-C alias batch (2026-11-08): 1233.3->1230.7 / 910.3->912.5 / 456.3->456.5 (ask14 TWN)
-  newzealand: { '0.20': 889.4, '0.50': 536.1, '1.00': 245.4 }, // R-C tail (2026-11-09): 536.0->536.1 (CB14 HighQ/LowQ log-mean leans a hair above base)
+  // 2026-11-19 巨源距离代理整改 re-freeze (same convention note as FROZEN above)
+  california: { '0.20': 1550.8, '0.50': 991.6, '1.00': 535.2 }, // 2026-11-19: 1600.6->1550.8 / 1011.9->991.6 / 542.4->535.2
+  italy:      { '0.20': 254.1, '0.50': 142.9, '1.00': 67.4 }, // 2026-11-19: 263.6->254.1 / 147.7->142.9 / 69.5->67.4
+  chile:      { '0.20': 1137.8, '0.50': 617.8, '1.00': 279.5 }, // 2026-11-19: 1835.9->1137.8 / 1017.2->617.8 / 451.6->279.5
+  taiwan:     { '0.20': 898.7, '0.50': 674.4, '1.00': 342.2 }, // 2026-11-19: 1230.7->898.7 / 912.5->674.4 / 456.5->342.2
+  newzealand: { '0.20': 520.4, '0.50': 336.0, '1.00': 155.3 }, // 2026-11-19: 889.4->520.4 / 536.1->336.0 / 245.4->155.3
   // Ecuador batch (2026-10-14): Quito anchors from the first v2 pack build
-  ecuador:    { '0.20': 736.3, '0.50': 462.7, '1.00': 203.6 }
+  ecuador:    { '0.20': 628.1, '0.50': 388.8, '1.00': 171.8 } // 2026-11-19: 736.3->628.1 / 462.7->388.8 / 203.6->171.8
 };
 test('regional engine — UHS anchors: crustal SA on the four-model NGA-West2 tree (re-based 2026-10-12)', () => {
   for (const rid of REGIONS) {
@@ -318,12 +325,16 @@ test('Japan path untouched — no gmpeTree, three-branch logic tree, Tokyo ancho
   assert.deepEqual(br.map(x => x.model), ['si-midorikawa', 'kanno2006', 'zhao2006']);
   const hz = Physics.hazardCurve(m, { lat: 35.68, lng: 139.69, vs30: 600 }, 'pga', { years: 50 });
   const rp475 = Physics._pshaInvertCurve(hz.imLevels, hz.meanRate, 1 / 475);
-  assert.ok(Math.abs(rp475 - 901.9) / 901.9 < 0.002, 'Tokyo RP475 anchor ' + rp475);
+  // 2026-11-19 巨源距离代理整改: 901.9 -> 611.5 — the legacy proxy's 0.1 km
+  // floor under the tokyoInland M7.3 point scenario and the depth-eating
+  // slant subtraction on deep intraslab cells inflated the old anchor.
+  assert.ok(Math.abs(rp475 - 611.5) / 611.5 < 0.002, 'Tokyo RP475 anchor ' + rp475);
   // v6.9 byte-identity: the Japan SA collapse (zhao2006 single model) is
-  // untouched by the BSSA14 SA transcription — frozen 2026-10-07.
+  // untouched by the BSSA14 SA transcription — re-frozen 2026-11-19 under
+  // the finite-rupture convention.
   const uj = Physics.uhs(m, { lat: 35.68, lng: 139.69, vs30: 600 }, [475],
     { periods: ['0.20', '0.50', '1.00'], years: 50 });
-  const TOKYO_SA_475 = { '0.20': 2421.5, '0.50': 1155.2, '1.00': 562.5 };
+  const TOKYO_SA_475 = { '0.20': 1710.1, '0.50': 763.7, '1.00': 384.7 };
   ['0.20', '0.50', '1.00'].forEach((p, i) => {
     assert.ok(Math.abs(uj.uhs['475'][i] - TOKYO_SA_475[p]) / TOKYO_SA_475[p] < 0.002,
       `Tokyo UHS475 ${p}s ${uj.uhs['475'][i]} (zhao collapse unchanged)`);

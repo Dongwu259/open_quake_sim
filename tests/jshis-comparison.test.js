@@ -30,18 +30,19 @@ test('jshis — schema, provenance and basis frozen', () => {
 
 test('jshis — frozen comparison numbers (6 sites, honest overprediction locked)', () => {
   assert.equal(r.aggregate.nSites, 6);
-  // v2 segmented-source re-freeze (2026-09-04): J-SHIS curves reused verbatim
-  // from the frozen 2026-09-03 fetch (live API unreachable), ours recomputed
-  assert.deepEqual(r.aggregate.rp475PgvRatioOursOverJshis, { median: 1.827, min: 1.458, max: 4.227 });
-  assert.deepEqual(r.aggregate.midBandMedianLog10RateRatio, { median: 0.422, min: -0.594, max: 0.836 });
-  const want = { tokyo: 1.585, osaka: 3.313, sendai: 1.458, kochi: 1.827, nagoya: 1.793, fukuoka: 4.227 };
+  // 2026-11-19 巨源距离代理整改 re-freeze: J-SHIS curves reused verbatim from
+  // the frozen capture (--offline), ours recomputed under the finite-rupture
+  // convention — median 1.827 -> 1.823, the overprediction story holds
+  assert.deepEqual(r.aggregate.rp475PgvRatioOursOverJshis, { median: 1.823, min: 1.048, max: 4.098 });
+  assert.deepEqual(r.aggregate.midBandMedianLog10RateRatio, { median: 0.113, min: -0.599, max: 0.815 });
+  const want = { tokyo: 1.151, osaka: 3.271, sendai: 1.048, kochi: 1.823, nagoya: 1.765, fukuoka: 4.098 };
   for (const s of r.results) assert.equal(s.returnPeriods['475'].ratioOursOverJshis, want[s.site.id], s.site.id);
 });
 
 test('jshis — time-dependent arm frozen (v2: mid-band deficit closes, tail is not like-for-like)', () => {
-  // aggregate TD locks
-  assert.deepEqual(r.aggregate.tdRp475PgvRatioOverJshis, { median: 4.513, min: 1.552, max: 10.94 });
-  assert.deepEqual(r.aggregate.tdMidBandMedianLog10RateRatio, { median: 0.667, min: 0.234, max: 1.607 });
+  // aggregate TD locks (2026-11-19 re-freeze under the new convention)
+  assert.deepEqual(r.aggregate.tdRp475PgvRatioOverJshis, { median: 4.505, min: 1.187, max: 10.913 });
+  assert.deepEqual(r.aggregate.tdMidBandMedianLog10RateRatio, { median: 0.616, min: 0.233, max: 1.604 });
   // THE pre-registered scientific claim: every stationary mid-band deficit
   // (kochi -0.594, nagoya -0.15) flips POSITIVE under the BPT engine — J-SHIS
   // carries renewal-elevated mid-band rates at Nankai-adjacent sites
@@ -50,8 +51,8 @@ test('jshis — time-dependent arm frozen (v2: mid-band deficit closes, tail is 
     if (stat != null && stat < 0) assert.ok(td > 0, s.site.id + ': stationary deficit ' + stat + ' must flip positive under BPT, got ' + td);
     assert.equal(s.timeDependent.nBptSources, 3, s.site.id + ': 3 Nankai BPT modes recognised');
   }
-  // per-site TD RP475 locks (kochi/nagoya/fukuoka tail uplift; sendai nearest unchanged)
-  const tdWant = { tokyo: 2.481, osaka: 7.979, sendai: 1.552, kochi: 4.485, nagoya: 4.513, fukuoka: 10.94 };
+  // per-site TD RP475 locks (2026-11-19 re-freeze; kochi/nagoya/fukuoka tail uplift)
+  const tdWant = { tokyo: 2.239, osaka: 7.969, sendai: 1.187, kochi: 4.484, nagoya: 4.505, fukuoka: 10.913 };
   for (const s of r.results) assert.equal(s.timeDependent.returnPeriods['475'].ratioTdOverJshis, tdWant[s.site.id], s.site.id);
 });
 

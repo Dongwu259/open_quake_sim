@@ -1,6 +1,6 @@
 {
  "schema": "quake-sim-psha-attribution-v1",
- "generatedAt": "2026-09-04T15:47:30.512Z",
+ "generatedAt": "2026-11-18T16:16:55.368Z",
  "basis": {
   "sourceModel": "quake-sim-psha-source-v2",
   "engine": "Physics.hazardCurve (pgv, Vs30=600, extended level grid identical to the frozen comparison)",
@@ -48,34 +48,34 @@
   "confound": "residual ratios still carry the Vs30=600 vs engineering-bedrock basis confound (bounded <2x in the frozen comparison)"
  },
  "aggregate": {
-  "midBandMin": -0.594,
+  "midBandMin": -0.599,
   "scenarioList": "nankaiFullM89 0.005698/yr + nankaiEastM82 0.001425/yr + nankaiWestM83 0.001425/yr + tokyoInland 0.04013/yr",
   "chainMedian": {
-   "dropScenarios": 0.218,
-   "zhaoCollapse": 0.946,
-   "psvFactor": 0.741
+   "dropScenarios": 0.194,
+   "zhaoCollapse": 0.964,
+   "psvFactor": 0.74
   },
   "armRatioMedian": {
-   "baseline": 1.827,
-   "zhaoOnly": 1.395,
-   "noScenarios": 0.923,
-   "zhaoOnlyNoScenarios": 0.948,
-   "psv1p20": 1.756,
-   "psv1p35": 1.72,
-   "sigma0p80": 1.713,
-   "gridZhaoPsv": 0.702
+   "baseline": 1.823,
+   "zhaoOnly": 1.125,
+   "noScenarios": 0.798,
+   "zhaoOnlyNoScenarios": 0.822,
+   "psv1p20": 1.752,
+   "psv1p35": 1.716,
+   "sigma0p80": 1.71,
+   "gridZhaoPsv": 0.609
   },
-  "scenarioShareMedian": 0.9729,
-  "scenarioShareMin": 0.0358,
-  "scenarioShareMax": 0.9965,
-  "classRateAdditivityMaxRelative": 0.0000761
+  "scenarioShareMedian": 0.9928,
+  "scenarioShareMin": 0.0939,
+  "scenarioShareMax": 0.9997,
+  "classRateAdditivityMaxRelative": 0.000114
  },
  "findings": {
-  "headline": "on the v2 SEGMENTED source model the RP475 PGV overprediction vs J-SHIS falls to x1.83 median [baseline; was x5.97 on v1 single-M9] — chain: dropScenarios x0.22 -> zhaoCollapse x0.95 -> psvFactor x0.74; scenario modes carry a median 97.3% of the RP475 rate",
-  "scenarioDomination": "the characteristic scenarios (nankaiFullM89 0.005698/yr + nankaiEastM82 0.001425/yr + nankaiWestM83 0.001425/yr + tokyoInland 0.04013/yr) supply 97.3% median [3.6..99.7%] of the RP475 exceedance rate — Nankai-adjacent sites are scenario-dominated as they should be, while sendai drops to 3.6% (grid-dominated): the v1 pathology (one subjective M9 rate owning 99.7% MEDIAN across ALL sites) is gone",
-  "residualStructure": "the residual x1.83 is no longer a single-cause effect: removing scenarios undershoots J-SHIS at Nankai sites (grid-only kochi ~17 vs 118 cm/s — J-SHIS carries real characteristic hazard), the zhao branch collapse moves x1.83 -> x1.40, the PSV->PGV conversion factor x1.72 and the sigma arm x1.71 — mid-band log10 rate ratios now flip NEGATIVE at kochi/nagoya (-0.594): the Poisson long-run engine underpredicts mid-levels where J-SHIS BPT-conditional rates are elevated (elapsed ~80 yr since 1946); a time-dependent engine is the honest next step, not further rate tuning",
-  "diagnosticSigma": "the sigma x0.80 arm moves the RP475 ratio from x1.83 to x1.71 — sensitivity bound only, not a correction (J-SHIS integrates aleatory sigma too)",
-  "honestyNote": "this decomposition is a frozen measurement of pre-registered arm variants on quake-sim-psha-source-v2; no engine parameter was tuned from the J-SHIS side (the v2 segmented rates come from ERC plain-interval BPT statistics, an INDEPENDENT source; the live API was unreachable so the frozen embedded J-SHIS curves are reused verbatim). Chain factors are path-dependent (multiplicative substitution order baseline->noScenarios->zhaoOnly->PSV); per-class rate shares are exact (engine additivity, residual <= 0.0000761)"
+  "headline": "on the v2 SEGMENTED source model the RP475 PGV overprediction vs J-SHIS falls to x1.82 median [baseline; was x5.97 on v1 single-M9] — chain: dropScenarios x0.19 -> zhaoCollapse x0.96 -> psvFactor x0.74; scenario modes carry a median 99.3% of the RP475 rate",
+  "scenarioDomination": "the characteristic scenarios (nankaiFullM89 0.005698/yr + nankaiEastM82 0.001425/yr + nankaiWestM83 0.001425/yr + tokyoInland 0.04013/yr) supply 99.3% median [9.4..100.0%] of the RP475 exceedance rate — Nankai-adjacent sites are scenario-dominated as they should be, while sendai drops to 9.4% (grid-dominated): the v1 pathology (one subjective M9 rate owning 99.7% MEDIAN across ALL sites) is gone",
+  "residualStructure": "the residual x1.82 is no longer a single-cause effect: removing scenarios undershoots J-SHIS at Nankai sites (grid-only kochi ~17 vs 118 cm/s — J-SHIS carries real characteristic hazard), the zhao branch collapse moves x1.82 -> x1.13, the PSV->PGV conversion factor x1.72 and the sigma arm x1.71 — mid-band log10 rate ratios now flip NEGATIVE at kochi/nagoya (-0.599): the Poisson long-run engine underpredicts mid-levels where J-SHIS BPT-conditional rates are elevated (elapsed ~80 yr since 1946); a time-dependent engine is the honest next step, not further rate tuning",
+  "diagnosticSigma": "the sigma x0.80 arm moves the RP475 ratio from x1.82 to x1.71 — sensitivity bound only, not a correction (J-SHIS integrates aleatory sigma too)",
+  "honestyNote": "this decomposition is a frozen measurement of pre-registered arm variants on quake-sim-psha-source-v2; no engine parameter was tuned from the J-SHIS side (the v2 segmented rates come from ERC plain-interval BPT statistics, an INDEPENDENT source; the live API was unreachable so the frozen embedded J-SHIS curves are reused verbatim). Chain factors are path-dependent (multiplicative substitution order baseline->noScenarios->zhaoOnly->PSV); per-class rate shares are exact (engine additivity, residual <= 0.000114)"
  },
  "sites": [
   {
@@ -87,223 +87,223 @@
    "arms": {
     "baseline": {
      "475": {
-      "oursPgvCmS": 103.3,
+      "oursPgvCmS": 75,
       "jshisPgvCmS": 65.2,
-      "ratioOursOverJshis": 1.584
+      "ratioOursOverJshis": 1.151
      },
      "1000": {
-      "oursPgvCmS": 148.9,
+      "oursPgvCmS": 107.3,
       "jshisPgvCmS": 78.1,
-      "ratioOursOverJshis": 1.906
+      "ratioOursOverJshis": 1.374
      },
      "2500": {
-      "oursPgvCmS": 222.7,
+      "oursPgvCmS": 157.9,
       "jshisPgvCmS": 95,
-      "ratioOursOverJshis": 2.344
+      "ratioOursOverJshis": 1.662
      },
      "5000": {
-      "oursPgvCmS": 297,
+      "oursPgvCmS": 203.2,
       "jshisPgvCmS": 107.9,
-      "ratioOursOverJshis": 2.753
+      "ratioOursOverJshis": 1.883
      }
     },
     "zhaoOnly": {
      "475": {
-      "oursPgvCmS": 91,
+      "oursPgvCmS": 61.5,
       "jshisPgvCmS": 65.2,
-      "ratioOursOverJshis": 1.395
+      "ratioOursOverJshis": 0.944
      },
      "1000": {
-      "oursPgvCmS": 129.6,
+      "oursPgvCmS": 81.1,
       "jshisPgvCmS": 78.1,
-      "ratioOursOverJshis": 1.66
+      "ratioOursOverJshis": 1.038
      },
      "2500": {
-      "oursPgvCmS": 193.2,
+      "oursPgvCmS": 110.1,
       "jshisPgvCmS": 95,
-      "ratioOursOverJshis": 2.034
+      "ratioOursOverJshis": 1.159
      },
      "5000": {
-      "oursPgvCmS": 254,
+      "oursPgvCmS": 136.1,
       "jshisPgvCmS": 107.9,
-      "ratioOursOverJshis": 2.354
+      "ratioOursOverJshis": 1.261
      }
     },
     "noScenarios": {
      "475": {
-      "oursPgvCmS": 82.4,
+      "oursPgvCmS": 53.4,
       "jshisPgvCmS": 65.2,
-      "ratioOursOverJshis": 1.264
+      "ratioOursOverJshis": 0.819
      },
      "1000": {
-      "oursPgvCmS": 119.4,
+      "oursPgvCmS": 70.4,
       "jshisPgvCmS": 78.1,
-      "ratioOursOverJshis": 1.528
+      "ratioOursOverJshis": 0.902
      },
      "2500": {
-      "oursPgvCmS": 185,
+      "oursPgvCmS": 96.4,
       "jshisPgvCmS": 95,
-      "ratioOursOverJshis": 1.948
+      "ratioOursOverJshis": 1.015
      },
      "5000": {
-      "oursPgvCmS": 256.7,
+      "oursPgvCmS": 120.1,
       "jshisPgvCmS": 107.9,
-      "ratioOursOverJshis": 2.379
+      "ratioOursOverJshis": 1.113
      }
     },
     "zhaoOnlyNoScenarios": {
      "475": {
-      "oursPgvCmS": 87.6,
+      "oursPgvCmS": 55.8,
       "jshisPgvCmS": 65.2,
-      "ratioOursOverJshis": 1.343
+      "ratioOursOverJshis": 0.857
      },
      "1000": {
-      "oursPgvCmS": 126.9,
+      "oursPgvCmS": 74.3,
       "jshisPgvCmS": 78.1,
-      "ratioOursOverJshis": 1.625
+      "ratioOursOverJshis": 0.951
      },
      "2500": {
-      "oursPgvCmS": 191.5,
+      "oursPgvCmS": 102.4,
       "jshisPgvCmS": 95,
-      "ratioOursOverJshis": 2.016
+      "ratioOursOverJshis": 1.078
      },
      "5000": {
-      "oursPgvCmS": 252.8,
+      "oursPgvCmS": 128.1,
       "jshisPgvCmS": 107.9,
-      "ratioOursOverJshis": 2.343
+      "ratioOursOverJshis": 1.187
      }
     },
     "psv1p20": {
      "475": {
-      "oursPgvCmS": 98.5,
+      "oursPgvCmS": 71.7,
       "jshisPgvCmS": 65.2,
-      "ratioOursOverJshis": 1.511
+      "ratioOursOverJshis": 1.099
      },
      "1000": {
-      "oursPgvCmS": 142.5,
+      "oursPgvCmS": 103.8,
       "jshisPgvCmS": 78.1,
-      "ratioOursOverJshis": 1.825
+      "ratioOursOverJshis": 1.33
      },
      "2500": {
-      "oursPgvCmS": 213.6,
+      "oursPgvCmS": 154.6,
       "jshisPgvCmS": 95,
-      "ratioOursOverJshis": 2.248
+      "ratioOursOverJshis": 1.628
      },
      "5000": {
-      "oursPgvCmS": 285,
+      "oursPgvCmS": 200.2,
       "jshisPgvCmS": 107.9,
-      "ratioOursOverJshis": 2.641
+      "ratioOursOverJshis": 1.855
      }
     },
     "psv1p35": {
      "475": {
-      "oursPgvCmS": 96.1,
+      "oursPgvCmS": 70.1,
       "jshisPgvCmS": 65.2,
-      "ratioOursOverJshis": 1.473
+      "ratioOursOverJshis": 1.075
      },
      "1000": {
-      "oursPgvCmS": 139.4,
+      "oursPgvCmS": 102.3,
       "jshisPgvCmS": 78.1,
-      "ratioOursOverJshis": 1.785
+      "ratioOursOverJshis": 1.31
      },
      "2500": {
-      "oursPgvCmS": 209.3,
+      "oursPgvCmS": 153.3,
       "jshisPgvCmS": 95,
-      "ratioOursOverJshis": 2.203
+      "ratioOursOverJshis": 1.614
      },
      "5000": {
-      "oursPgvCmS": 279.4,
+      "oursPgvCmS": 199,
       "jshisPgvCmS": 107.9,
-      "ratioOursOverJshis": 2.59
+      "ratioOursOverJshis": 1.844
      }
     },
     "sigma0p80": {
      "475": {
-      "oursPgvCmS": 90.1,
+      "oursPgvCmS": 64.5,
       "jshisPgvCmS": 65.2,
-      "ratioOursOverJshis": 1.381
+      "ratioOursOverJshis": 0.989
      },
      "1000": {
-      "oursPgvCmS": 126.4,
+      "oursPgvCmS": 92.1,
       "jshisPgvCmS": 78.1,
-      "ratioOursOverJshis": 1.619
+      "ratioOursOverJshis": 1.179
      },
      "2500": {
-      "oursPgvCmS": 181.6,
+      "oursPgvCmS": 131,
       "jshisPgvCmS": 95,
-      "ratioOursOverJshis": 1.912
+      "ratioOursOverJshis": 1.379
      },
      "5000": {
-      "oursPgvCmS": 235.7,
+      "oursPgvCmS": 162.8,
       "jshisPgvCmS": 107.9,
-      "ratioOursOverJshis": 2.185
+      "ratioOursOverJshis": 1.509
      }
     },
     "gridZhaoPsv": {
      "475": {
-      "oursPgvCmS": 64.9,
+      "oursPgvCmS": 41.4,
       "jshisPgvCmS": 65.2,
-      "ratioOursOverJshis": 0.995
+      "ratioOursOverJshis": 0.635
      },
      "1000": {
-      "oursPgvCmS": 94,
+      "oursPgvCmS": 55,
       "jshisPgvCmS": 78.1,
-      "ratioOursOverJshis": 1.204
+      "ratioOursOverJshis": 0.705
      },
      "2500": {
-      "oursPgvCmS": 141.9,
+      "oursPgvCmS": 75.9,
       "jshisPgvCmS": 95,
-      "ratioOursOverJshis": 1.493
+      "ratioOursOverJshis": 0.799
      },
      "5000": {
-      "oursPgvCmS": 187.3,
+      "oursPgvCmS": 94.9,
       "jshisPgvCmS": 107.9,
-      "ratioOursOverJshis": 1.736
+      "ratioOursOverJshis": 0.879
      }
     }
    },
    "decomposition475": {
     "levels": [
-     103.3,
-     82.4,
-     87.6,
-     64.9
+     75,
+     53.4,
+     55.8,
+     41.4
     ],
     "steps": [
      {
       "from": "baseline",
       "to": "noScenarios",
-      "levelPgvCmS": 82.4,
-      "factor": 0.798
+      "levelPgvCmS": 53.4,
+      "factor": 0.712
      },
      {
       "from": "noScenarios",
       "to": "zhaoOnlyNoScenarios",
-      "levelPgvCmS": 87.6,
-      "factor": 1.063
+      "levelPgvCmS": 55.8,
+      "factor": 1.045
      },
      {
       "from": "zhaoOnlyNoScenarios",
       "to": "gridZhaoPsv",
-      "levelPgvCmS": 64.9,
-      "factor": 0.741
+      "levelPgvCmS": 41.4,
+      "factor": 0.742
      }
     ],
-    "residualFactorVsJshis": 0.995
+    "residualFactorVsJshis": 0.635
    },
    "classSharesAtBaselineRp475": {
-    "levelPgvCmS": 103.3,
+    "levelPgvCmS": 75,
     "shares": {
-     "crustal": 0.002,
-     "interplate": 0.3304,
-     "intraslab": 0.3049,
-     "nankaiFullM89": 0.3527,
-     "nankaiEastM82": 0.0084,
-     "nankaiWestM83": 0.0016,
+     "crustal": 0.0047,
+     "interplate": 0.1804,
+     "intraslab": 0.2128,
+     "nankaiFullM89": 0.5746,
+     "nankaiEastM82": 0.0222,
+     "nankaiWestM83": 0.0053,
      "tokyoInland": 0
     },
-    "scenarioShareTotal": 0.3627,
-    "additivityResidual": 0.0000642
+    "scenarioShareTotal": 0.6021,
+    "additivityResidual": 2.28e-14
    }
   },
   {
@@ -315,223 +315,223 @@
    "arms": {
     "baseline": {
      "475": {
-      "oursPgvCmS": 173.1,
+      "oursPgvCmS": 170.9,
       "jshisPgvCmS": 52.2,
-      "ratioOursOverJshis": 3.316
+      "ratioOursOverJshis": 3.274
      },
      "1000": {
-      "oursPgvCmS": 277.5,
+      "oursPgvCmS": 275.2,
       "jshisPgvCmS": 65.3,
-      "ratioOursOverJshis": 4.249
+      "ratioOursOverJshis": 4.214
      },
      "2500": {
-      "oursPgvCmS": 431.3,
+      "oursPgvCmS": 428.5,
       "jshisPgvCmS": 87.4,
-      "ratioOursOverJshis": 4.935
+      "ratioOursOverJshis": 4.903
      },
      "5000": {
-      "oursPgvCmS": 565.3,
+      "oursPgvCmS": 561.3,
       "jshisPgvCmS": 111.1,
-      "ratioOursOverJshis": 5.088
+      "ratioOursOverJshis": 5.052
      }
     },
     "zhaoOnly": {
      "475": {
-      "oursPgvCmS": 106.1,
+      "oursPgvCmS": 103.8,
       "jshisPgvCmS": 52.2,
-      "ratioOursOverJshis": 2.033
+      "ratioOursOverJshis": 1.988
      },
      "1000": {
-      "oursPgvCmS": 154,
+      "oursPgvCmS": 151.1,
       "jshisPgvCmS": 65.3,
-      "ratioOursOverJshis": 2.358
+      "ratioOursOverJshis": 2.314
      },
      "2500": {
-      "oursPgvCmS": 221.4,
+      "oursPgvCmS": 217.5,
       "jshisPgvCmS": 87.4,
-      "ratioOursOverJshis": 2.533
+      "ratioOursOverJshis": 2.488
      },
      "5000": {
-      "oursPgvCmS": 279.7,
+      "oursPgvCmS": 274.6,
       "jshisPgvCmS": 111.1,
-      "ratioOursOverJshis": 2.517
+      "ratioOursOverJshis": 2.472
      }
     },
     "noScenarios": {
      "475": {
-      "oursPgvCmS": 25.5,
+      "oursPgvCmS": 21.9,
       "jshisPgvCmS": 52.2,
-      "ratioOursOverJshis": 0.488
+      "ratioOursOverJshis": 0.419
      },
      "1000": {
-      "oursPgvCmS": 37.2,
+      "oursPgvCmS": 30.4,
       "jshisPgvCmS": 65.3,
-      "ratioOursOverJshis": 0.57
+      "ratioOursOverJshis": 0.466
      },
      "2500": {
-      "oursPgvCmS": 58.8,
+      "oursPgvCmS": 44.3,
       "jshisPgvCmS": 87.4,
-      "ratioOursOverJshis": 0.672
+      "ratioOursOverJshis": 0.507
      },
      "5000": {
-      "oursPgvCmS": 82.5,
+      "oursPgvCmS": 57.7,
       "jshisPgvCmS": 111.1,
-      "ratioOursOverJshis": 0.742
+      "ratioOursOverJshis": 0.519
      }
     },
     "zhaoOnlyNoScenarios": {
      "475": {
-      "oursPgvCmS": 22.9,
+      "oursPgvCmS": 19.9,
       "jshisPgvCmS": 52.2,
-      "ratioOursOverJshis": 0.439
+      "ratioOursOverJshis": 0.381
      },
      "1000": {
-      "oursPgvCmS": 34.3,
+      "oursPgvCmS": 28.2,
       "jshisPgvCmS": 65.3,
-      "ratioOursOverJshis": 0.525
+      "ratioOursOverJshis": 0.431
      },
      "2500": {
-      "oursPgvCmS": 55.5,
+      "oursPgvCmS": 41.9,
       "jshisPgvCmS": 87.4,
-      "ratioOursOverJshis": 0.635
+      "ratioOursOverJshis": 0.479
      },
      "5000": {
-      "oursPgvCmS": 79.2,
+      "oursPgvCmS": 55.1,
       "jshisPgvCmS": 111.1,
-      "ratioOursOverJshis": 0.713
+      "ratioOursOverJshis": 0.496
      }
     },
     "psv1p20": {
      "475": {
-      "oursPgvCmS": 166.8,
+      "oursPgvCmS": 164.6,
       "jshisPgvCmS": 52.2,
-      "ratioOursOverJshis": 3.195
+      "ratioOursOverJshis": 3.154
      },
      "1000": {
-      "oursPgvCmS": 272.2,
+      "oursPgvCmS": 270.1,
       "jshisPgvCmS": 65.3,
-      "ratioOursOverJshis": 4.169
+      "ratioOursOverJshis": 4.136
      },
      "2500": {
-      "oursPgvCmS": 427.5,
+      "oursPgvCmS": 424.9,
       "jshisPgvCmS": 87.4,
-      "ratioOursOverJshis": 4.891
+      "ratioOursOverJshis": 4.862
      },
      "5000": {
-      "oursPgvCmS": 562.2,
+      "oursPgvCmS": 558.4,
       "jshisPgvCmS": 111.1,
-      "ratioOursOverJshis": 5.06
+      "ratioOursOverJshis": 5.026
      }
     },
     "psv1p35": {
      "475": {
-      "oursPgvCmS": 163.6,
-      "jshisPgvCmS": 52.2,
-      "ratioOursOverJshis": 3.134
-     },
-     "1000": {
-      "oursPgvCmS": 269.9,
-      "jshisPgvCmS": 65.3,
-      "ratioOursOverJshis": 4.134
-     },
-     "2500": {
-      "oursPgvCmS": 426.1,
-      "jshisPgvCmS": 87.4,
-      "ratioOursOverJshis": 4.875
-     },
-     "5000": {
-      "oursPgvCmS": 561.1,
-      "jshisPgvCmS": 111.1,
-      "ratioOursOverJshis": 5.05
-     }
-    },
-    "sigma0p80": {
-     "475": {
-      "oursPgvCmS": 161.4,
+      "oursPgvCmS": 161.5,
       "jshisPgvCmS": 52.2,
       "ratioOursOverJshis": 3.093
      },
      "1000": {
-      "oursPgvCmS": 249.9,
+      "oursPgvCmS": 267.9,
       "jshisPgvCmS": 65.3,
-      "ratioOursOverJshis": 3.828
+      "ratioOursOverJshis": 4.102
      },
      "2500": {
-      "oursPgvCmS": 367,
+      "oursPgvCmS": 423.5,
       "jshisPgvCmS": 87.4,
-      "ratioOursOverJshis": 4.199
+      "ratioOursOverJshis": 4.846
      },
      "5000": {
-      "oursPgvCmS": 461.1,
+      "oursPgvCmS": 557.4,
       "jshisPgvCmS": 111.1,
-      "ratioOursOverJshis": 4.15
+      "ratioOursOverJshis": 5.017
+     }
+    },
+    "sigma0p80": {
+     "475": {
+      "oursPgvCmS": 159.8,
+      "jshisPgvCmS": 52.2,
+      "ratioOursOverJshis": 3.061
+     },
+     "1000": {
+      "oursPgvCmS": 248.4,
+      "jshisPgvCmS": 65.3,
+      "ratioOursOverJshis": 3.804
+     },
+     "2500": {
+      "oursPgvCmS": 365.2,
+      "jshisPgvCmS": 87.4,
+      "ratioOursOverJshis": 4.179
+     },
+     "5000": {
+      "oursPgvCmS": 458.7,
+      "jshisPgvCmS": 111.1,
+      "ratioOursOverJshis": 4.129
      }
     },
     "gridZhaoPsv": {
      "475": {
-      "oursPgvCmS": 17,
+      "oursPgvCmS": 14.7,
       "jshisPgvCmS": 52.2,
-      "ratioOursOverJshis": 0.325
+      "ratioOursOverJshis": 0.282
      },
      "1000": {
-      "oursPgvCmS": 25.4,
+      "oursPgvCmS": 20.9,
       "jshisPgvCmS": 65.3,
-      "ratioOursOverJshis": 0.389
+      "ratioOursOverJshis": 0.32
      },
      "2500": {
-      "oursPgvCmS": 41.1,
+      "oursPgvCmS": 31,
       "jshisPgvCmS": 87.4,
-      "ratioOursOverJshis": 0.47
+      "ratioOursOverJshis": 0.355
      },
      "5000": {
-      "oursPgvCmS": 58.6,
+      "oursPgvCmS": 40.8,
       "jshisPgvCmS": 111.1,
-      "ratioOursOverJshis": 0.528
+      "ratioOursOverJshis": 0.367
      }
     }
    },
    "decomposition475": {
     "levels": [
-     173.1,
-     25.5,
-     22.9,
-     17
+     170.9,
+     21.9,
+     19.9,
+     14.7
     ],
     "steps": [
      {
       "from": "baseline",
       "to": "noScenarios",
-      "levelPgvCmS": 25.5,
-      "factor": 0.147
+      "levelPgvCmS": 21.9,
+      "factor": 0.128
      },
      {
       "from": "noScenarios",
       "to": "zhaoOnlyNoScenarios",
-      "levelPgvCmS": 22.9,
-      "factor": 0.898
+      "levelPgvCmS": 19.9,
+      "factor": 0.909
      },
      {
       "from": "zhaoOnlyNoScenarios",
       "to": "gridZhaoPsv",
-      "levelPgvCmS": 17,
-      "factor": 0.742
+      "levelPgvCmS": 14.7,
+      "factor": 0.739
      }
     ],
-    "residualFactorVsJshis": 0.325
+    "residualFactorVsJshis": 0.282
    },
    "classSharesAtBaselineRp475": {
-    "levelPgvCmS": 173.1,
+    "levelPgvCmS": 170.9,
     "shares": {
-     "crustal": 0.0081,
-     "interplate": 0.0116,
-     "intraslab": 0.0005,
-     "nankaiFullM89": 0.8216,
-     "nankaiEastM82": 0.0705,
-     "nankaiWestM83": 0.0878,
+     "crustal": 0.0018,
+     "interplate": 0.0012,
+     "intraslab": 0.0001,
+     "nankaiFullM89": 0.8344,
+     "nankaiEastM82": 0.0724,
+     "nankaiWestM83": 0.09,
      "tokyoInland": 0
     },
-    "scenarioShareTotal": 0.9799,
-    "additivityResidual": 0.0000387
+    "scenarioShareTotal": 0.9968,
+    "additivityResidual": 0.0000152
    }
   },
   {
@@ -543,223 +543,223 @@
    "arms": {
     "baseline": {
      "475": {
-      "oursPgvCmS": 64.5,
+      "oursPgvCmS": 46.4,
       "jshisPgvCmS": 44.2,
-      "ratioOursOverJshis": 1.458
+      "ratioOursOverJshis": 1.049
      },
      "1000": {
-      "oursPgvCmS": 92.1,
+      "oursPgvCmS": 61.2,
       "jshisPgvCmS": 53.9,
-      "ratioOursOverJshis": 1.709
+      "ratioOursOverJshis": 1.136
      },
      "2500": {
-      "oursPgvCmS": 141.9,
+      "oursPgvCmS": 84,
       "jshisPgvCmS": 67.6,
-      "ratioOursOverJshis": 2.1
+      "ratioOursOverJshis": 1.242
      },
      "5000": {
-      "oursPgvCmS": 197.5,
+      "oursPgvCmS": 104.7,
       "jshisPgvCmS": 79.8,
-      "ratioOursOverJshis": 2.474
+      "ratioOursOverJshis": 1.312
      }
     },
     "zhaoOnly": {
      "475": {
-      "oursPgvCmS": 59.9,
+      "oursPgvCmS": 43.1,
       "jshisPgvCmS": 44.2,
-      "ratioOursOverJshis": 1.356
+      "ratioOursOverJshis": 0.974
      },
      "1000": {
-      "oursPgvCmS": 85.3,
+      "oursPgvCmS": 56.9,
       "jshisPgvCmS": 53.9,
-      "ratioOursOverJshis": 1.582
+      "ratioOursOverJshis": 1.057
      },
      "2500": {
-      "oursPgvCmS": 128.6,
+      "oursPgvCmS": 78.3,
       "jshisPgvCmS": 67.6,
-      "ratioOursOverJshis": 1.902
+      "ratioOursOverJshis": 1.158
      },
      "5000": {
-      "oursPgvCmS": 172,
+      "oursPgvCmS": 97.9,
       "jshisPgvCmS": 79.8,
-      "ratioOursOverJshis": 2.155
+      "ratioOursOverJshis": 1.227
      }
     },
     "noScenarios": {
      "475": {
-      "oursPgvCmS": 63.3,
+      "oursPgvCmS": 44.6,
       "jshisPgvCmS": 44.2,
-      "ratioOursOverJshis": 1.432
+      "ratioOursOverJshis": 1.009
      },
      "1000": {
-      "oursPgvCmS": 91.2,
+      "oursPgvCmS": 59.2,
       "jshisPgvCmS": 53.9,
-      "ratioOursOverJshis": 1.692
+      "ratioOursOverJshis": 1.098
      },
      "2500": {
-      "oursPgvCmS": 141.4,
+      "oursPgvCmS": 81.8,
       "jshisPgvCmS": 67.6,
-      "ratioOursOverJshis": 2.091
+      "ratioOursOverJshis": 1.209
      },
      "5000": {
-      "oursPgvCmS": 197.2,
+      "oursPgvCmS": 102.6,
       "jshisPgvCmS": 79.8,
-      "ratioOursOverJshis": 2.471
+      "ratioOursOverJshis": 1.285
      }
     },
     "zhaoOnlyNoScenarios": {
      "475": {
-      "oursPgvCmS": 59.9,
+      "oursPgvCmS": 43,
       "jshisPgvCmS": 44.2,
-      "ratioOursOverJshis": 1.355
+      "ratioOursOverJshis": 0.973
      },
      "1000": {
-      "oursPgvCmS": 85.3,
+      "oursPgvCmS": 56.9,
       "jshisPgvCmS": 53.9,
-      "ratioOursOverJshis": 1.582
+      "ratioOursOverJshis": 1.056
      },
      "2500": {
-      "oursPgvCmS": 128.5,
+      "oursPgvCmS": 78.3,
       "jshisPgvCmS": 67.6,
-      "ratioOursOverJshis": 1.902
+      "ratioOursOverJshis": 1.158
      },
      "5000": {
-      "oursPgvCmS": 172,
+      "oursPgvCmS": 97.9,
       "jshisPgvCmS": 79.8,
-      "ratioOursOverJshis": 2.155
+      "ratioOursOverJshis": 1.227
      }
     },
     "psv1p20": {
      "475": {
-      "oursPgvCmS": 61.4,
+      "oursPgvCmS": 44.3,
       "jshisPgvCmS": 44.2,
-      "ratioOursOverJshis": 1.389
+      "ratioOursOverJshis": 1.002
      },
      "1000": {
-      "oursPgvCmS": 87.7,
+      "oursPgvCmS": 58.6,
       "jshisPgvCmS": 53.9,
-      "ratioOursOverJshis": 1.628
+      "ratioOursOverJshis": 1.087
      },
      "2500": {
-      "oursPgvCmS": 135.2,
+      "oursPgvCmS": 80.4,
       "jshisPgvCmS": 67.6,
-      "ratioOursOverJshis": 2
+      "ratioOursOverJshis": 1.19
      },
      "5000": {
-      "oursPgvCmS": 188.3,
+      "oursPgvCmS": 100.5,
       "jshisPgvCmS": 79.8,
-      "ratioOursOverJshis": 2.36
+      "ratioOursOverJshis": 1.259
      }
     },
     "psv1p35": {
      "475": {
-      "oursPgvCmS": 59.9,
+      "oursPgvCmS": 43.3,
       "jshisPgvCmS": 44.2,
-      "ratioOursOverJshis": 1.354
+      "ratioOursOverJshis": 0.98
      },
      "1000": {
-      "oursPgvCmS": 85.6,
+      "oursPgvCmS": 57.4,
       "jshisPgvCmS": 53.9,
-      "ratioOursOverJshis": 1.588
+      "ratioOursOverJshis": 1.065
      },
      "2500": {
-      "oursPgvCmS": 131.9,
+      "oursPgvCmS": 78.9,
       "jshisPgvCmS": 67.6,
-      "ratioOursOverJshis": 1.952
+      "ratioOursOverJshis": 1.167
      },
      "5000": {
-      "oursPgvCmS": 183.9,
+      "oursPgvCmS": 98.6,
       "jshisPgvCmS": 79.8,
-      "ratioOursOverJshis": 2.305
+      "ratioOursOverJshis": 1.236
      }
     },
     "sigma0p80": {
      "475": {
-      "oursPgvCmS": 54.2,
+      "oursPgvCmS": 37.8,
       "jshisPgvCmS": 44.2,
-      "ratioOursOverJshis": 1.227
+      "ratioOursOverJshis": 0.856
      },
      "1000": {
-      "oursPgvCmS": 76.9,
+      "oursPgvCmS": 49,
       "jshisPgvCmS": 53.9,
-      "ratioOursOverJshis": 1.427
+      "ratioOursOverJshis": 0.908
      },
      "2500": {
-      "oursPgvCmS": 117.5,
+      "oursPgvCmS": 65.4,
       "jshisPgvCmS": 67.6,
-      "ratioOursOverJshis": 1.739
+      "ratioOursOverJshis": 0.968
      },
      "5000": {
-      "oursPgvCmS": 162.7,
+      "oursPgvCmS": 80.1,
       "jshisPgvCmS": 79.8,
-      "ratioOursOverJshis": 2.038
+      "ratioOursOverJshis": 1.004
      }
     },
     "gridZhaoPsv": {
      "475": {
-      "oursPgvCmS": 44.4,
+      "oursPgvCmS": 31.8,
       "jshisPgvCmS": 44.2,
-      "ratioOursOverJshis": 1.004
+      "ratioOursOverJshis": 0.721
      },
      "1000": {
-      "oursPgvCmS": 63.2,
+      "oursPgvCmS": 42.1,
       "jshisPgvCmS": 53.9,
-      "ratioOursOverJshis": 1.172
+      "ratioOursOverJshis": 0.782
      },
      "2500": {
-      "oursPgvCmS": 95.2,
+      "oursPgvCmS": 58,
       "jshisPgvCmS": 67.6,
-      "ratioOursOverJshis": 1.409
+      "ratioOursOverJshis": 0.858
      },
      "5000": {
-      "oursPgvCmS": 127.4,
+      "oursPgvCmS": 72.5,
       "jshisPgvCmS": 79.8,
-      "ratioOursOverJshis": 1.596
+      "ratioOursOverJshis": 0.909
      }
     }
    },
    "decomposition475": {
     "levels": [
-     64.5,
-     63.3,
-     59.9,
-     44.4
+     46.4,
+     44.6,
+     43,
+     31.8
     ],
     "steps": [
      {
       "from": "baseline",
       "to": "noScenarios",
-      "levelPgvCmS": 63.3,
-      "factor": 0.981
+      "levelPgvCmS": 44.6,
+      "factor": 0.961
      },
      {
       "from": "noScenarios",
       "to": "zhaoOnlyNoScenarios",
-      "levelPgvCmS": 59.9,
-      "factor": 0.946
+      "levelPgvCmS": 43,
+      "factor": 0.964
      },
      {
       "from": "zhaoOnlyNoScenarios",
       "to": "gridZhaoPsv",
-      "levelPgvCmS": 44.4,
-      "factor": 0.741
+      "levelPgvCmS": 31.8,
+      "factor": 0.74
      }
     ],
-    "residualFactorVsJshis": 1.004
+    "residualFactorVsJshis": 0.721
    },
    "classSharesAtBaselineRp475": {
-    "levelPgvCmS": 64.5,
+    "levelPgvCmS": 46.4,
     "shares": {
-     "crustal": 0.0872,
-     "interplate": 0.6756,
-     "intraslab": 0.2014,
-     "nankaiFullM89": 0.0357,
-     "nankaiEastM82": 0.0001,
-     "nankaiWestM83": 0,
+     "crustal": 0.1077,
+     "interplate": 0.5835,
+     "intraslab": 0.2149,
+     "nankaiFullM89": 0.0931,
+     "nankaiEastM82": 0.0005,
+     "nankaiWestM83": 0.0003,
      "tokyoInland": 0
     },
-    "scenarioShareTotal": 0.0358,
-    "additivityResidual": 0.0000162
+    "scenarioShareTotal": 0.0939,
+    "additivityResidual": 0.00000262
    }
   },
   {
@@ -771,223 +771,223 @@
    "arms": {
     "baseline": {
      "475": {
-      "oursPgvCmS": 216,
+      "oursPgvCmS": 215.5,
       "jshisPgvCmS": 118.2,
-      "ratioOursOverJshis": 1.827
+      "ratioOursOverJshis": 1.823
      },
      "1000": {
-      "oursPgvCmS": 349.9,
+      "oursPgvCmS": 349.3,
       "jshisPgvCmS": 133.6,
-      "ratioOursOverJshis": 2.619
+      "ratioOursOverJshis": 2.615
      },
      "2500": {
-      "oursPgvCmS": 545.1,
+      "oursPgvCmS": 544.3,
       "jshisPgvCmS": 151.9,
-      "ratioOursOverJshis": 3.588
+      "ratioOursOverJshis": 3.583
      },
      "5000": {
-      "oursPgvCmS": 716.3,
+      "oursPgvCmS": 715.2,
       "jshisPgvCmS": 164.8,
-      "ratioOursOverJshis": 4.347
+      "ratioOursOverJshis": 4.34
      }
     },
     "zhaoOnly": {
      "475": {
-      "oursPgvCmS": 133.6,
+      "oursPgvCmS": 133,
       "jshisPgvCmS": 118.2,
-      "ratioOursOverJshis": 1.131
+      "ratioOursOverJshis": 1.125
      },
      "1000": {
-      "oursPgvCmS": 196.8,
+      "oursPgvCmS": 196,
       "jshisPgvCmS": 133.6,
-      "ratioOursOverJshis": 1.473
+      "ratioOursOverJshis": 1.467
      },
      "2500": {
-      "oursPgvCmS": 285,
+      "oursPgvCmS": 284.1,
       "jshisPgvCmS": 151.9,
-      "ratioOursOverJshis": 1.876
+      "ratioOursOverJshis": 1.871
      },
      "5000": {
-      "oursPgvCmS": 360.7,
+      "oursPgvCmS": 359.6,
       "jshisPgvCmS": 164.8,
-      "ratioOursOverJshis": 2.189
+      "ratioOursOverJshis": 2.182
      }
     },
     "noScenarios": {
      "475": {
-      "oursPgvCmS": 17.1,
+      "oursPgvCmS": 15.1,
       "jshisPgvCmS": 118.2,
-      "ratioOursOverJshis": 0.145
+      "ratioOursOverJshis": 0.128
      },
      "1000": {
-      "oursPgvCmS": 24.1,
+      "oursPgvCmS": 20.6,
       "jshisPgvCmS": 133.6,
-      "ratioOursOverJshis": 0.181
+      "ratioOursOverJshis": 0.155
      },
      "2500": {
-      "oursPgvCmS": 36.5,
+      "oursPgvCmS": 29.6,
       "jshisPgvCmS": 151.9,
-      "ratioOursOverJshis": 0.24
+      "ratioOursOverJshis": 0.195
      },
      "5000": {
-      "oursPgvCmS": 49.6,
+      "oursPgvCmS": 38.4,
       "jshisPgvCmS": 164.8,
-      "ratioOursOverJshis": 0.301
+      "ratioOursOverJshis": 0.233
      }
     },
     "zhaoOnlyNoScenarios": {
      "475": {
-      "oursPgvCmS": 15.6,
+      "oursPgvCmS": 14,
       "jshisPgvCmS": 118.2,
-      "ratioOursOverJshis": 0.132
+      "ratioOursOverJshis": 0.118
      },
      "1000": {
-      "oursPgvCmS": 22.2,
+      "oursPgvCmS": 19.1,
       "jshisPgvCmS": 133.6,
-      "ratioOursOverJshis": 0.166
+      "ratioOursOverJshis": 0.143
      },
      "2500": {
-      "oursPgvCmS": 34,
+      "oursPgvCmS": 27.7,
       "jshisPgvCmS": 151.9,
-      "ratioOursOverJshis": 0.224
+      "ratioOursOverJshis": 0.182
      },
      "5000": {
-      "oursPgvCmS": 47,
+      "oursPgvCmS": 36.3,
       "jshisPgvCmS": 164.8,
-      "ratioOursOverJshis": 0.285
+      "ratioOursOverJshis": 0.22
      }
     },
     "psv1p20": {
      "475": {
-      "oursPgvCmS": 207.5,
+      "oursPgvCmS": 207,
       "jshisPgvCmS": 118.2,
-      "ratioOursOverJshis": 1.756
+      "ratioOursOverJshis": 1.752
      },
      "1000": {
-      "oursPgvCmS": 342.6,
+      "oursPgvCmS": 342.1,
       "jshisPgvCmS": 133.6,
-      "ratioOursOverJshis": 2.565
+      "ratioOursOverJshis": 2.561
      },
      "2500": {
-      "oursPgvCmS": 539.9,
+      "oursPgvCmS": 539.2,
       "jshisPgvCmS": 151.9,
-      "ratioOursOverJshis": 3.554
+      "ratioOursOverJshis": 3.55
      },
      "5000": {
-      "oursPgvCmS": 712.3,
+      "oursPgvCmS": 711.3,
       "jshisPgvCmS": 164.8,
-      "ratioOursOverJshis": 4.322
+      "ratioOursOverJshis": 4.316
      }
     },
     "psv1p35": {
      "475": {
-      "oursPgvCmS": 203.3,
+      "oursPgvCmS": 202.8,
       "jshisPgvCmS": 118.2,
-      "ratioOursOverJshis": 1.72
+      "ratioOursOverJshis": 1.716
      },
      "1000": {
-      "oursPgvCmS": 339.5,
+      "oursPgvCmS": 339,
       "jshisPgvCmS": 133.6,
-      "ratioOursOverJshis": 2.541
+      "ratioOursOverJshis": 2.537
      },
      "2500": {
-      "oursPgvCmS": 537.9,
+      "oursPgvCmS": 537.2,
       "jshisPgvCmS": 151.9,
-      "ratioOursOverJshis": 3.541
+      "ratioOursOverJshis": 3.537
      },
      "5000": {
-      "oursPgvCmS": 710.9,
+      "oursPgvCmS": 709.9,
       "jshisPgvCmS": 164.8,
-      "ratioOursOverJshis": 4.314
+      "ratioOursOverJshis": 4.308
      }
     },
     "sigma0p80": {
      "475": {
-      "oursPgvCmS": 202.5,
+      "oursPgvCmS": 202.1,
       "jshisPgvCmS": 118.2,
-      "ratioOursOverJshis": 1.713
+      "ratioOursOverJshis": 1.71
      },
      "1000": {
-      "oursPgvCmS": 316.4,
+      "oursPgvCmS": 316,
       "jshisPgvCmS": 133.6,
-      "ratioOursOverJshis": 2.368
+      "ratioOursOverJshis": 2.366
      },
      "2500": {
-      "oursPgvCmS": 465.9,
+      "oursPgvCmS": 465.4,
       "jshisPgvCmS": 151.9,
-      "ratioOursOverJshis": 3.067
+      "ratioOursOverJshis": 3.064
      },
      "5000": {
-      "oursPgvCmS": 584.3,
+      "oursPgvCmS": 583.5,
       "jshisPgvCmS": 164.8,
-      "ratioOursOverJshis": 3.546
+      "ratioOursOverJshis": 3.541
      }
     },
     "gridZhaoPsv": {
      "475": {
-      "oursPgvCmS": 11.6,
+      "oursPgvCmS": 10.3,
       "jshisPgvCmS": 118.2,
-      "ratioOursOverJshis": 0.098
+      "ratioOursOverJshis": 0.087
      },
      "1000": {
-      "oursPgvCmS": 16.4,
+      "oursPgvCmS": 14.2,
       "jshisPgvCmS": 133.6,
-      "ratioOursOverJshis": 0.123
+      "ratioOursOverJshis": 0.106
      },
      "2500": {
-      "oursPgvCmS": 25.2,
+      "oursPgvCmS": 20.5,
       "jshisPgvCmS": 151.9,
-      "ratioOursOverJshis": 0.166
+      "ratioOursOverJshis": 0.135
      },
      "5000": {
-      "oursPgvCmS": 34.8,
+      "oursPgvCmS": 26.9,
       "jshisPgvCmS": 164.8,
-      "ratioOursOverJshis": 0.211
+      "ratioOursOverJshis": 0.163
      }
     }
    },
    "decomposition475": {
     "levels": [
-     216,
-     17.1,
-     15.6,
-     11.6
+     215.5,
+     15.1,
+     14,
+     10.3
     ],
     "steps": [
      {
       "from": "baseline",
       "to": "noScenarios",
-      "levelPgvCmS": 17.1,
-      "factor": 0.079
+      "levelPgvCmS": 15.1,
+      "factor": 0.07
      },
      {
       "from": "noScenarios",
       "to": "zhaoOnlyNoScenarios",
-      "levelPgvCmS": 15.6,
-      "factor": 0.912
+      "levelPgvCmS": 14,
+      "factor": 0.927
      },
      {
       "from": "zhaoOnlyNoScenarios",
       "to": "gridZhaoPsv",
-      "levelPgvCmS": 11.6,
-      "factor": 0.744
+      "levelPgvCmS": 10.3,
+      "factor": 0.736
      }
     ],
-    "residualFactorVsJshis": 0.098
+    "residualFactorVsJshis": 0.087
    },
    "classSharesAtBaselineRp475": {
-    "levelPgvCmS": 216,
+    "levelPgvCmS": 215.5,
     "shares": {
      "crustal": 0,
-     "interplate": 0.0022,
-     "intraslab": 0.0014,
-     "nankaiFullM89": 0.853,
-     "nankaiEastM82": 0.0328,
-     "nankaiWestM83": 0.1107,
+     "interplate": 0.0002,
+     "intraslab": 0.0002,
+     "nankaiFullM89": 0.8555,
+     "nankaiEastM82": 0.033,
+     "nankaiWestM83": 0.1112,
      "tokyoInland": 0
     },
-    "scenarioShareTotal": 0.9965,
-    "additivityResidual": 0.0000669
+    "scenarioShareTotal": 0.9997,
+    "additivityResidual": 0.0000731
    }
   },
   {
@@ -999,223 +999,223 @@
    "arms": {
     "baseline": {
      "475": {
-      "oursPgvCmS": 132.7,
+      "oursPgvCmS": 130.7,
       "jshisPgvCmS": 74.1,
-      "ratioOursOverJshis": 1.791
+      "ratioOursOverJshis": 1.764
      },
      "1000": {
-      "oursPgvCmS": 216.8,
+      "oursPgvCmS": 214.5,
       "jshisPgvCmS": 87.4,
-      "ratioOursOverJshis": 2.48
+      "ratioOursOverJshis": 2.454
      },
      "2500": {
-      "oursPgvCmS": 342,
+      "oursPgvCmS": 338.9,
       "jshisPgvCmS": 103.6,
-      "ratioOursOverJshis": 3.301
+      "ratioOursOverJshis": 3.272
      },
      "5000": {
-      "oursPgvCmS": 451.6,
+      "oursPgvCmS": 447.2,
       "jshisPgvCmS": 115.4,
-      "ratioOursOverJshis": 3.913
+      "ratioOursOverJshis": 3.875
      }
     },
     "zhaoOnly": {
      "475": {
-      "oursPgvCmS": 80.6,
+      "oursPgvCmS": 78.7,
       "jshisPgvCmS": 74.1,
-      "ratioOursOverJshis": 1.088
+      "ratioOursOverJshis": 1.061
      },
      "1000": {
-      "oursPgvCmS": 117.7,
+      "oursPgvCmS": 115.1,
       "jshisPgvCmS": 87.4,
-      "ratioOursOverJshis": 1.347
+      "ratioOursOverJshis": 1.317
      },
      "2500": {
-      "oursPgvCmS": 170.6,
+      "oursPgvCmS": 166.7,
       "jshisPgvCmS": 103.6,
-      "ratioOursOverJshis": 1.646
+      "ratioOursOverJshis": 1.609
      },
      "5000": {
-      "oursPgvCmS": 216.5,
+      "oursPgvCmS": 211,
       "jshisPgvCmS": 115.4,
-      "ratioOursOverJshis": 1.876
+      "ratioOursOverJshis": 1.829
      }
     },
     "noScenarios": {
      "475": {
-      "oursPgvCmS": 25.7,
+      "oursPgvCmS": 22.3,
       "jshisPgvCmS": 74.1,
-      "ratioOursOverJshis": 0.346
+      "ratioOursOverJshis": 0.301
      },
      "1000": {
-      "oursPgvCmS": 36,
+      "oursPgvCmS": 30.2,
       "jshisPgvCmS": 87.4,
-      "ratioOursOverJshis": 0.412
+      "ratioOursOverJshis": 0.346
      },
      "2500": {
-      "oursPgvCmS": 54.2,
+      "oursPgvCmS": 43,
       "jshisPgvCmS": 103.6,
-      "ratioOursOverJshis": 0.524
+      "ratioOursOverJshis": 0.416
      },
      "5000": {
-      "oursPgvCmS": 74.1,
+      "oursPgvCmS": 55.5,
       "jshisPgvCmS": 115.4,
-      "ratioOursOverJshis": 0.642
+      "ratioOursOverJshis": 0.481
      }
     },
     "zhaoOnlyNoScenarios": {
      "475": {
-      "oursPgvCmS": 23.1,
+      "oursPgvCmS": 20.3,
       "jshisPgvCmS": 74.1,
-      "ratioOursOverJshis": 0.312
+      "ratioOursOverJshis": 0.274
      },
      "1000": {
-      "oursPgvCmS": 32.9,
+      "oursPgvCmS": 27.9,
       "jshisPgvCmS": 87.4,
-      "ratioOursOverJshis": 0.376
+      "ratioOursOverJshis": 0.319
      },
      "2500": {
-      "oursPgvCmS": 50.6,
+      "oursPgvCmS": 40.4,
       "jshisPgvCmS": 103.6,
-      "ratioOursOverJshis": 0.488
+      "ratioOursOverJshis": 0.39
      },
      "5000": {
-      "oursPgvCmS": 70.3,
+      "oursPgvCmS": 52.8,
       "jshisPgvCmS": 115.4,
-      "ratioOursOverJshis": 0.609
+      "ratioOursOverJshis": 0.458
      }
     },
     "psv1p20": {
      "475": {
-      "oursPgvCmS": 127.9,
+      "oursPgvCmS": 125.8,
       "jshisPgvCmS": 74.1,
-      "ratioOursOverJshis": 1.725
+      "ratioOursOverJshis": 1.698
      },
      "1000": {
-      "oursPgvCmS": 212.7,
+      "oursPgvCmS": 210.5,
       "jshisPgvCmS": 87.4,
-      "ratioOursOverJshis": 2.434
+      "ratioOursOverJshis": 2.409
      },
      "2500": {
-      "oursPgvCmS": 339.1,
+      "oursPgvCmS": 336.3,
       "jshisPgvCmS": 103.6,
-      "ratioOursOverJshis": 3.273
+      "ratioOursOverJshis": 3.246
      },
      "5000": {
-      "oursPgvCmS": 449.4,
+      "oursPgvCmS": 445.1,
       "jshisPgvCmS": 115.4,
-      "ratioOursOverJshis": 3.894
+      "ratioOursOverJshis": 3.857
      }
     },
     "psv1p35": {
      "475": {
-      "oursPgvCmS": 125.3,
+      "oursPgvCmS": 123.3,
       "jshisPgvCmS": 74.1,
-      "ratioOursOverJshis": 1.692
+      "ratioOursOverJshis": 1.664
      },
      "1000": {
-      "oursPgvCmS": 210.9,
+      "oursPgvCmS": 208.8,
       "jshisPgvCmS": 87.4,
-      "ratioOursOverJshis": 2.413
+      "ratioOursOverJshis": 2.389
      },
      "2500": {
-      "oursPgvCmS": 338,
+      "oursPgvCmS": 335.2,
       "jshisPgvCmS": 103.6,
-      "ratioOursOverJshis": 3.263
+      "ratioOursOverJshis": 3.236
      },
      "5000": {
-      "oursPgvCmS": 448.5,
+      "oursPgvCmS": 444.4,
       "jshisPgvCmS": 115.4,
-      "ratioOursOverJshis": 3.887
+      "ratioOursOverJshis": 3.851
      }
     },
     "sigma0p80": {
      "475": {
-      "oursPgvCmS": 123.9,
+      "oursPgvCmS": 122.2,
       "jshisPgvCmS": 74.1,
-      "ratioOursOverJshis": 1.672
+      "ratioOursOverJshis": 1.65
      },
      "1000": {
-      "oursPgvCmS": 196.9,
+      "oursPgvCmS": 195.2,
       "jshisPgvCmS": 87.4,
-      "ratioOursOverJshis": 2.252
+      "ratioOursOverJshis": 2.233
      },
      "2500": {
-      "oursPgvCmS": 293.3,
+      "oursPgvCmS": 291.2,
       "jshisPgvCmS": 103.6,
-      "ratioOursOverJshis": 2.831
+      "ratioOursOverJshis": 2.811
      },
      "5000": {
-      "oursPgvCmS": 369.4,
+      "oursPgvCmS": 366.5,
       "jshisPgvCmS": 115.4,
-      "ratioOursOverJshis": 3.201
+      "ratioOursOverJshis": 3.176
      }
     },
     "gridZhaoPsv": {
      "475": {
-      "oursPgvCmS": 17.1,
+      "oursPgvCmS": 15,
       "jshisPgvCmS": 74.1,
-      "ratioOursOverJshis": 0.231
+      "ratioOursOverJshis": 0.203
      },
      "1000": {
-      "oursPgvCmS": 24.3,
+      "oursPgvCmS": 20.6,
       "jshisPgvCmS": 87.4,
-      "ratioOursOverJshis": 0.278
+      "ratioOursOverJshis": 0.236
      },
      "2500": {
-      "oursPgvCmS": 37.5,
+      "oursPgvCmS": 29.9,
       "jshisPgvCmS": 103.6,
-      "ratioOursOverJshis": 0.361
+      "ratioOursOverJshis": 0.289
      },
      "5000": {
-      "oursPgvCmS": 52.1,
+      "oursPgvCmS": 39.1,
       "jshisPgvCmS": 115.4,
-      "ratioOursOverJshis": 0.451
+      "ratioOursOverJshis": 0.339
      }
     }
    },
    "decomposition475": {
     "levels": [
-     132.7,
-     25.7,
-     23.1,
-     17.1
+     130.7,
+     22.3,
+     20.3,
+     15
     ],
     "steps": [
      {
       "from": "baseline",
       "to": "noScenarios",
-      "levelPgvCmS": 25.7,
-      "factor": 0.194
+      "levelPgvCmS": 22.3,
+      "factor": 0.171
      },
      {
       "from": "noScenarios",
       "to": "zhaoOnlyNoScenarios",
-      "levelPgvCmS": 23.1,
-      "factor": 0.899
+      "levelPgvCmS": 20.3,
+      "factor": 0.91
      },
      {
       "from": "zhaoOnlyNoScenarios",
       "to": "gridZhaoPsv",
-      "levelPgvCmS": 17.1,
-      "factor": 0.74
+      "levelPgvCmS": 15,
+      "factor": 0.739
      }
     ],
-    "residualFactorVsJshis": 0.231
+    "residualFactorVsJshis": 0.203
    },
    "classSharesAtBaselineRp475": {
-    "levelPgvCmS": 132.7,
+    "levelPgvCmS": 130.7,
     "shares": {
-     "crustal": 0.0136,
-     "interplate": 0.0115,
-     "intraslab": 0.002,
-     "nankaiFullM89": 0.8565,
-     "nankaiEastM82": 0.0658,
-     "nankaiWestM83": 0.0506,
+     "crustal": 0.0046,
+     "interplate": 0.0021,
+     "intraslab": 0.0006,
+     "nankaiFullM89": 0.8723,
+     "nankaiEastM82": 0.068,
+     "nankaiWestM83": 0.0525,
      "tokyoInland": 0
     },
-    "scenarioShareTotal": 0.9729,
-    "additivityResidual": 0.0000761
+    "scenarioShareTotal": 0.9928,
+    "additivityResidual": 0.0000268
    }
   },
   {
@@ -1227,223 +1227,223 @@
    "arms": {
     "baseline": {
      "475": {
-      "oursPgvCmS": 110.4,
+      "oursPgvCmS": 107,
       "jshisPgvCmS": 26.1,
-      "ratioOursOverJshis": 4.23
+      "ratioOursOverJshis": 4.1
      },
      "1000": {
-      "oursPgvCmS": 183.5,
+      "oursPgvCmS": 180.1,
       "jshisPgvCmS": 40.9,
-      "ratioOursOverJshis": 4.488
-     },
-     "2500": {
-      "oursPgvCmS": 291.4,
-      "jshisPgvCmS": 72.4,
-      "ratioOursOverJshis": 4.025
-     },
-     "5000": {
-      "oursPgvCmS": 384.4,
-      "jshisPgvCmS": 98.8,
-      "ratioOursOverJshis": 3.89
-     }
-    },
-    "zhaoOnly": {
-     "475": {
-      "oursPgvCmS": 69.3,
-      "jshisPgvCmS": 26.1,
-      "ratioOursOverJshis": 2.654
-     },
-     "1000": {
-      "oursPgvCmS": 101.8,
-      "jshisPgvCmS": 40.9,
-      "ratioOursOverJshis": 2.488
-     },
-     "2500": {
-      "oursPgvCmS": 148.8,
-      "jshisPgvCmS": 72.4,
-      "ratioOursOverJshis": 2.055
-     },
-     "5000": {
-      "oursPgvCmS": 190.5,
-      "jshisPgvCmS": 98.8,
-      "ratioOursOverJshis": 1.928
-     }
-    },
-    "noScenarios": {
-     "475": {
-      "oursPgvCmS": 24.1,
-      "jshisPgvCmS": 26.1,
-      "ratioOursOverJshis": 0.923
-     },
-     "1000": {
-      "oursPgvCmS": 36,
-      "jshisPgvCmS": 40.9,
-      "ratioOursOverJshis": 0.88
-     },
-     "2500": {
-      "oursPgvCmS": 58.3,
-      "jshisPgvCmS": 72.4,
-      "ratioOursOverJshis": 0.806
-     },
-     "5000": {
-      "oursPgvCmS": 83.3,
-      "jshisPgvCmS": 98.8,
-      "ratioOursOverJshis": 0.843
-     }
-    },
-    "zhaoOnlyNoScenarios": {
-     "475": {
-      "oursPgvCmS": 24.7,
-      "jshisPgvCmS": 26.1,
-      "ratioOursOverJshis": 0.948
-     },
-     "1000": {
-      "oursPgvCmS": 37.6,
-      "jshisPgvCmS": 40.9,
-      "ratioOursOverJshis": 0.919
-     },
-     "2500": {
-      "oursPgvCmS": 62.5,
-      "jshisPgvCmS": 72.4,
-      "ratioOursOverJshis": 0.863
-     },
-     "5000": {
-      "oursPgvCmS": 91.2,
-      "jshisPgvCmS": 98.8,
-      "ratioOursOverJshis": 0.923
-     }
-    },
-    "psv1p20": {
-     "475": {
-      "oursPgvCmS": 105.9,
-      "jshisPgvCmS": 26.1,
-      "ratioOursOverJshis": 4.056
-     },
-     "1000": {
-      "oursPgvCmS": 179.9,
-      "jshisPgvCmS": 40.9,
-      "ratioOursOverJshis": 4.399
-     },
-     "2500": {
-      "oursPgvCmS": 288.7,
-      "jshisPgvCmS": 72.4,
-      "ratioOursOverJshis": 3.988
-     },
-     "5000": {
-      "oursPgvCmS": 382,
-      "jshisPgvCmS": 98.8,
-      "ratioOursOverJshis": 3.867
-     }
-    },
-    "psv1p35": {
-     "475": {
-      "oursPgvCmS": 103.6,
-      "jshisPgvCmS": 26.1,
-      "ratioOursOverJshis": 3.968
-     },
-     "1000": {
-      "oursPgvCmS": 178.3,
-      "jshisPgvCmS": 40.9,
-      "ratioOursOverJshis": 4.359
+      "ratioOursOverJshis": 4.403
      },
      "2500": {
       "oursPgvCmS": 287.7,
       "jshisPgvCmS": 72.4,
-      "ratioOursOverJshis": 3.973
+      "ratioOursOverJshis": 3.974
      },
      "5000": {
-      "oursPgvCmS": 381.2,
+      "oursPgvCmS": 380.3,
       "jshisPgvCmS": 98.8,
-      "ratioOursOverJshis": 3.858
+      "ratioOursOverJshis": 3.849
+     }
+    },
+    "zhaoOnly": {
+     "475": {
+      "oursPgvCmS": 65.8,
+      "jshisPgvCmS": 26.1,
+      "ratioOursOverJshis": 2.52
+     },
+     "1000": {
+      "oursPgvCmS": 96.6,
+      "jshisPgvCmS": 40.9,
+      "ratioOursOverJshis": 2.361
+     },
+     "2500": {
+      "oursPgvCmS": 140.1,
+      "jshisPgvCmS": 72.4,
+      "ratioOursOverJshis": 1.935
+     },
+     "5000": {
+      "oursPgvCmS": 177.6,
+      "jshisPgvCmS": 98.8,
+      "ratioOursOverJshis": 1.797
+     }
+    },
+    "noScenarios": {
+     "475": {
+      "oursPgvCmS": 20.8,
+      "jshisPgvCmS": 26.1,
+      "ratioOursOverJshis": 0.798
+     },
+     "1000": {
+      "oursPgvCmS": 29.7,
+      "jshisPgvCmS": 40.9,
+      "ratioOursOverJshis": 0.727
+     },
+     "2500": {
+      "oursPgvCmS": 44.6,
+      "jshisPgvCmS": 72.4,
+      "ratioOursOverJshis": 0.616
+     },
+     "5000": {
+      "oursPgvCmS": 59.1,
+      "jshisPgvCmS": 98.8,
+      "ratioOursOverJshis": 0.598
+     }
+    },
+    "zhaoOnlyNoScenarios": {
+     "475": {
+      "oursPgvCmS": 21.4,
+      "jshisPgvCmS": 26.1,
+      "ratioOursOverJshis": 0.822
+     },
+     "1000": {
+      "oursPgvCmS": 30.9,
+      "jshisPgvCmS": 40.9,
+      "ratioOursOverJshis": 0.755
+     },
+     "2500": {
+      "oursPgvCmS": 46.7,
+      "jshisPgvCmS": 72.4,
+      "ratioOursOverJshis": 0.646
+     },
+     "5000": {
+      "oursPgvCmS": 62.2,
+      "jshisPgvCmS": 98.8,
+      "ratioOursOverJshis": 0.63
+     }
+    },
+    "psv1p20": {
+     "475": {
+      "oursPgvCmS": 102.6,
+      "jshisPgvCmS": 26.1,
+      "ratioOursOverJshis": 3.932
+     },
+     "1000": {
+      "oursPgvCmS": 176.6,
+      "jshisPgvCmS": 40.9,
+      "ratioOursOverJshis": 4.318
+     },
+     "2500": {
+      "oursPgvCmS": 285.5,
+      "jshisPgvCmS": 72.4,
+      "ratioOursOverJshis": 3.943
+     },
+     "5000": {
+      "oursPgvCmS": 378.6,
+      "jshisPgvCmS": 98.8,
+      "ratioOursOverJshis": 3.832
+     }
+    },
+    "psv1p35": {
+     "475": {
+      "oursPgvCmS": 100.4,
+      "jshisPgvCmS": 26.1,
+      "ratioOursOverJshis": 3.846
+     },
+     "1000": {
+      "oursPgvCmS": 175.1,
+      "jshisPgvCmS": 40.9,
+      "ratioOursOverJshis": 4.282
+     },
+     "2500": {
+      "oursPgvCmS": 284.7,
+      "jshisPgvCmS": 72.4,
+      "ratioOursOverJshis": 3.932
+     },
+     "5000": {
+      "oursPgvCmS": 378,
+      "jshisPgvCmS": 98.8,
+      "ratioOursOverJshis": 3.826
      }
     },
     "sigma0p80": {
      "475": {
-      "oursPgvCmS": 103.7,
+      "oursPgvCmS": 100.9,
       "jshisPgvCmS": 26.1,
-      "ratioOursOverJshis": 3.974
+      "ratioOursOverJshis": 3.865
      },
      "1000": {
-      "oursPgvCmS": 167.8,
+      "oursPgvCmS": 165.2,
       "jshisPgvCmS": 40.9,
-      "ratioOursOverJshis": 4.104
+      "ratioOursOverJshis": 4.038
      },
      "2500": {
-      "oursPgvCmS": 250.6,
+      "oursPgvCmS": 248.2,
       "jshisPgvCmS": 72.4,
-      "ratioOursOverJshis": 3.462
+      "ratioOursOverJshis": 3.428
      },
      "5000": {
-      "oursPgvCmS": 315.7,
+      "oursPgvCmS": 313.2,
       "jshisPgvCmS": 98.8,
-      "ratioOursOverJshis": 3.196
+      "ratioOursOverJshis": 3.17
      }
     },
     "gridZhaoPsv": {
      "475": {
-      "oursPgvCmS": 18.3,
+      "oursPgvCmS": 15.9,
       "jshisPgvCmS": 26.1,
-      "ratioOursOverJshis": 0.702
+      "ratioOursOverJshis": 0.609
      },
      "1000": {
-      "oursPgvCmS": 27.8,
+      "oursPgvCmS": 22.9,
       "jshisPgvCmS": 40.9,
-      "ratioOursOverJshis": 0.681
+      "ratioOursOverJshis": 0.56
      },
      "2500": {
-      "oursPgvCmS": 46.3,
+      "oursPgvCmS": 34.6,
       "jshisPgvCmS": 72.4,
-      "ratioOursOverJshis": 0.639
+      "ratioOursOverJshis": 0.478
      },
      "5000": {
-      "oursPgvCmS": 67.6,
+      "oursPgvCmS": 46.1,
       "jshisPgvCmS": 98.8,
-      "ratioOursOverJshis": 0.684
+      "ratioOursOverJshis": 0.467
      }
     }
    },
    "decomposition475": {
     "levels": [
-     110.4,
-     24.1,
-     24.7,
-     18.3
+     107,
+     20.8,
+     21.4,
+     15.9
     ],
     "steps": [
      {
       "from": "baseline",
       "to": "noScenarios",
-      "levelPgvCmS": 24.1,
-      "factor": 0.218
+      "levelPgvCmS": 20.8,
+      "factor": 0.194
      },
      {
       "from": "noScenarios",
       "to": "zhaoOnlyNoScenarios",
-      "levelPgvCmS": 24.7,
-      "factor": 1.025
+      "levelPgvCmS": 21.4,
+      "factor": 1.029
      },
      {
       "from": "zhaoOnlyNoScenarios",
       "to": "gridZhaoPsv",
-      "levelPgvCmS": 18.3,
-      "factor": 0.741
+      "levelPgvCmS": 15.9,
+      "factor": 0.743
      }
     ],
-    "residualFactorVsJshis": 0.702
+    "residualFactorVsJshis": 0.609
    },
    "classSharesAtBaselineRp475": {
-    "levelPgvCmS": 110.4,
+    "levelPgvCmS": 107,
     "shares": {
-     "crustal": 0.0478,
-     "interplate": 0.0026,
-     "intraslab": 0.0037,
-     "nankaiFullM89": 0.8735,
+     "crustal": 0.0161,
+     "interplate": 0.001,
+     "intraslab": 0.0013,
+     "nankaiFullM89": 0.9044,
      "nankaiEastM82": 0.0002,
-     "nankaiWestM83": 0.0723,
+     "nankaiWestM83": 0.077,
      "tokyoInland": 0
     },
-    "scenarioShareTotal": 0.946,
-    "additivityResidual": 0.0000149
+    "scenarioShareTotal": 0.9816,
+    "additivityResidual": 0.000114
    }
   }
  ]

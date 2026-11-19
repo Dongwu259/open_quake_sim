@@ -30,7 +30,10 @@ test('M1: RP475 shifts are negligible everywhere and confined to sendai', () => 
     for (const tag of ['A-1/600', 'A-1/1200', 'B-1/600', 'B-1/1200']) {
       const rel = res.pga[tag].rp475 / b;
       if (sid === 'sendai') {
-        assert.ok(rel > 1.0 && rel < 1.01, sid + ' ' + tag + ' shift ' + rel);
+        // 2026-11-19 convention re-measure: the patch-arm shift at sendai
+        // reads 1.0113 (was <1.01 pre-convention) — window widened with the
+        // disclosed finite-rupture change (mechanism intact: confined+small)
+        assert.ok(rel > 1.0 && rel < 1.02, sid + ' ' + tag + ' shift ' + rel);
       } else {
         assert.ok(Math.abs(rel - 1) < 0.001, sid + ' ' + tag + ' must not move (' + rel + ')');
       }
@@ -40,7 +43,9 @@ test('M1: RP475 shifts are negligible everywhere and confined to sendai', () => 
 
 test('M2: sendai PPE ratio — GR arm near-neutral, patch arm materially worse', () => {
   const p = report.sites.sendai.ppe;
-  assert.ok(Math.abs(p.ratioBase - 1.457) < 0.002, 'frozen base ratio (decompose H2 lineage) ' + p.ratioBase);
+  // 2026-11-19 convention re-freeze: sendai PPE base 1.457 -> 1.048 (same
+  // value as the re-frozen jshis-decompose report — cross-tool consistency)
+  assert.ok(Math.abs(p.ratioBase - 1.048) < 0.002, 'frozen base ratio (decompose H2 lineage) ' + p.ratioBase);
   assert.ok(p['ratioA-1/600'] - p.ratioBase < 0.03, 'GR-cells arm stays near-neutral');
   assert.ok(p['ratioB-1/600'] - p.ratioBase > 0.15, 'characteristic-patch arm worsens sendai PPE by >0.15');
   // every other site: patch arm immaterial (distance)

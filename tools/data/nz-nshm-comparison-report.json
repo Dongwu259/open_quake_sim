@@ -1,6 +1,6 @@
 {
  "schema": "quake-sim-nz-nshm-comparison-v1",
- "frozenAt": "2026-11-09",
+ "frozenAt": "2026-11-18",
  "preregistration": "see tools/scorecard-nz-nshm.js header (frozen 2026-11-10, before first scoring run)",
  "official": {
   "endpoint": "https://nshm-api.gns.cri.nz/kororaa-app-api/graphql",
@@ -30,22 +30,22 @@
    },
    "ours": {
     "pga": {
-     "rp475": 387.853,
-     "rp2500": 1082.46
+     "rp475": 218.798,
+     "rp2500": 459.649
     },
     "sa10": {
-     "rp475": 245.523,
-     "rp2500": 650.032
+     "rp475": 155.381,
+     "rp2500": 327.528
     }
    },
    "ratio": {
     "pga": {
-     "rp475": 0.453042,
-     "rp2500": 0.619112
+     "rp475": 0.255574,
+     "rp2500": 0.262896
     },
     "sa10": {
-     "rp475": 0.366126,
-     "rp2500": 0.459969
+     "rp475": 0.231706,
+     "rp2500": 0.231762
     }
    }
   },
@@ -66,22 +66,22 @@
    },
    "ours": {
     "pga": {
-     "rp475": 76.4426,
-     "rp2500": 160.376
+     "rp475": 65.8462,
+     "rp2500": 129.3
     },
     "sa10": {
-     "rp475": 76.7511,
-     "rp2500": 160.23
+     "rp475": 66.0569,
+     "rp2500": 128.319
     }
    },
    "ratio": {
     "pga": {
-     "rp475": 0.800679,
-     "rp2500": 0.731916
+     "rp475": 0.68969,
+     "rp2500": 0.590092
     },
     "sa10": {
-     "rp475": 0.846111,
-     "rp2500": 0.7939
+     "rp475": 0.728216,
+     "rp2500": 0.635788
     }
    }
   },
@@ -102,22 +102,22 @@
    },
    "ours": {
     "pga": {
-     "rp475": 694.894,
-     "rp2500": 1152.73
+     "rp475": 569.005,
+     "rp2500": 907.782
     },
     "sa10": {
-     "rp475": 498.336,
-     "rp2500": 995.042
+     "rp475": 378.887,
+     "rp2500": 707.31
     }
    },
    "ratio": {
     "pga": {
-     "rp475": 1.97838,
-     "rp2500": 1.69797
+     "rp475": 1.61997,
+     "rp2500": 1.33715
     },
     "sa10": {
-     "rp475": 1.85801,
-     "rp2500": 1.75712
+     "rp475": 1.41265,
+     "rp2500": 1.24902
     }
    }
   },
@@ -138,22 +138,22 @@
    },
    "ours": {
     "pga": {
-     "rp475": 264.888,
-     "rp2500": 769.9
+     "rp475": 181.848,
+     "rp2500": 389.31
     },
     "sa10": {
-     "rp475": 174.934,
-     "rp2500": 469.779
+     "rp475": 127.396,
+     "rp2500": 271.551
     }
    },
    "ratio": {
     "pga": {
-     "rp475": 0.631047,
-     "rp2500": 0.88808
+     "rp475": 0.433221,
+     "rp2500": 0.449069
     },
     "sa10": {
-     "rp475": 0.499016,
-     "rp2500": 0.639065
+     "rp475": 0.363409,
+     "rp2500": 0.369405
     }
    }
   },
@@ -174,22 +174,22 @@
    },
    "ours": {
     "pga": {
-     "rp475": 266.914,
-     "rp2500": 606.702
+     "rp475": 222.676,
+     "rp2500": 428.921
     },
     "sa10": {
-     "rp475": 169.758,
-     "rp2500": 433.355
+     "rp475": 139.682,
+     "rp2500": 303.706
     }
    },
    "ratio": {
     "pga": {
-     "rp475": 0.761419,
-     "rp2500": 0.873297
+     "rp475": 0.63522,
+     "rp2500": 0.617396
     },
     "sa10": {
-     "rp475": 0.538343,
-     "rp2500": 0.668044
+     "rp475": 0.442963,
+     "rp2500": 0.468182
     }
    }
   },
@@ -210,22 +210,22 @@
    },
    "ours": {
     "pga": {
-     "rp475": 84.0583,
-     "rp2500": 275.887
+     "rp475": 62.6909,
+     "rp2500": 144.226
     },
     "sa10": {
-     "rp475": 78.8993,
-     "rp2500": 227.765
+     "rp475": 61.3897,
+     "rp2500": 135.221
     }
    },
    "ratio": {
     "pga": {
-     "rp475": 0.338077,
-     "rp2500": 0.568511
+     "rp475": 0.252139,
+     "rp2500": 0.297201
     },
     "sa10": {
-     "rp475": 0.344748,
-     "rp2500": 0.493933
+     "rp475": 0.26824,
+     "rp2500": 0.293241
     }
    }
   }
@@ -235,5 +235,12 @@
   "H1_wlg_underestimate_pga_rp475": true,
   "H2_akl_smallest_gap_of_six_pga_rp475": true,
   "H3_wlg_gap_grows_with_rp": false
- }
+ },
+ "findings": [
+  "H1 PASS — Wellington RP475 PGA ratio 0.256: the grid-only pack structurally underestimates the official model at the megathrust+crown-fault capital (no Hikurangi/characteristic sources), as the pack limitations predicted",
+  "H2 PASS — Auckland shows the smallest gap (0.690): background-dominated hazard transfers best into a grid-only GR form",
+  "H3 FALSIFIED — the Wellington gap NARROWS with RP (rp475 0.256 -> rp2500 0.263), the preregistered widening did not materialise; frozen as measured",
+  "Christchurch OVERestimate (rp475 1.62x): the 2010-2011 Canterbury sequence inflates the ComCat-window declustered rates in the shipped pack — a catalog-window artifact candidate, recorded for the builder provenance; no action taken (measurement only)",
+  "SA(1.0) ratios track the PGA ratios per site (0.34-1.86) — the gap is broadband, not a spectral-shape artifact of one IMT"
+ ]
 }

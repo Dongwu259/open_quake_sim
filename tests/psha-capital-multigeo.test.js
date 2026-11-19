@@ -56,13 +56,17 @@ test('multigeo report — pre-registration and mechanical verdicts locked', () =
   assert.ok(r.preRegistered.note.includes('BEFORE the first measured run'));
   assert.ok(r.preRegistered.discovery.includes('Null Island'));
   // gates registered before the run; verdicts computed mechanically
+  // (2026-11-19 巨源距离代理整改 amendment, disclosed before the re-run:
+  // H-A0/A1/A2/A3/A4 re-reference the current-convention jshis-decompose
+  // report — the R8-frozen constants can no longer serve as a reproduction
+  // reference after the disclosed engine change; R8 columns stay as history)
   assert.equal(Object.keys(r.preRegistered.hypotheses).length, 6);
-  assert.equal(r.hypotheses['H-A0'].verdict, 'SUPPORTED');   // R8 reproduction (engine validity)
+  assert.equal(r.hypotheses['H-A0'].verdict, 'SUPPORTED');   // current-baseline reproduction (engine validity)
   assert.equal(r.hypotheses['H-A1'].verdict, 'SUPPORTED');   // revival direction at tokyo
-  assert.equal(r.hypotheses['H-A2'].verdict, 'REFUTED');     // nagoya LND moved 0.856 -> 1.033
-  assert.equal(r.hypotheses['H-A3'].verdict, 'REFUTED');     // tokyo LND x5.097 > 1.30 ceiling
-  assert.equal(r.hypotheses['H-A4'].verdict, 'REFUTED');     // tokyo TTL 1.585 -> 1.911
-  assert.equal(r.hypotheses['H-A5'].verdict, 'SUPPORTED');   // weighting robust (x5.097 vs x5.055)
+  assert.equal(r.hypotheses['H-A2'].verdict, 'REFUTED');     // nagoya LND moved 0.812 -> 0.996
+  assert.equal(r.hypotheses['H-A3'].verdict, 'REFUTED');     // tokyo LND x5.095 > 1.30 ceiling
+  assert.equal(r.hypotheses['H-A4'].verdict, 'REFUTED');     // tokyo TTL 1.151 -> 1.609
+  assert.equal(r.hypotheses['H-A5'].verdict, 'SUPPORTED');   // weighting robust (x5.095 vs x5.053)
   assert.equal(r.decision.verdict, 'MEASURED-NOT-ADOPTED');
   assert.deepEqual(r.decision.failingGates, ['H-A2', 'H-A3', 'H-A4']);
   // umbrella rate conservation asserted at 1e-4 in every arm
@@ -74,20 +78,20 @@ test('multigeo report — pre-registration and mechanical verdicts locked', () =
 test('multigeo report — frozen Tokyo numbers (the refutation evidence)', () => {
   const t = r.sites.find((s) => s.site.id === 'tokyo');
   // J-SHIS LND at Tokyo is only ~15.6 cm/s RP475; any characteristic
-  // revival of the umbrella rate over-predicts it
+  // revival of the umbrella rate over-predicts it (2026-11-19 re-freeze)
   assert.equal(t.arms.lndBaseline['475'].jshisPgvCmS, 15.6);
-  assert.equal(t.arms.lndBaseline['475'].ratioOursOverJshis, 0.725); // dead-source state = R8
-  assert.equal(t.arms.lndSingle['475'].oursPgvCmS, 481.9);           // single revived geometry
-  assert.equal(t.arms.lndSingle['475'].ratioOursOverJshis, 30.805);
+  assert.equal(t.arms.lndBaseline['475'].ratioOursOverJshis, 0.701); // dead-source state (2026-11-19 convention; was R8 0.725)
+  assert.equal(t.arms.lndSingle['475'].oursPgvCmS, 149.7);           // single revived geometry
+  assert.equal(t.arms.lndSingle['475'].ratioOursOverJshis, 9.569);
   assert.equal(t.arms.lndMulti['475'].oursPgvCmS, 79.7);             // official multi-geometry, W1
-  assert.equal(t.arms.lndMulti['475'].ratioOursOverJshis, 5.097);
-  assert.equal(t.arms.ttlBaseline['475'].ratioOursOverJshis, 1.585);
-  assert.equal(t.arms.ttlMulti['475'].ratioOursOverJshis, 1.911);    // R8 PPE-carried conclusion strain
-  // far-field: nagoya is the only material mover (0.856 -> 1.033, toward parity)
+  assert.equal(t.arms.lndMulti['475'].ratioOursOverJshis, 5.095);
+  assert.equal(t.arms.ttlBaseline['475'].ratioOursOverJshis, 1.151);
+  assert.equal(t.arms.ttlMulti['475'].ratioOursOverJshis, 1.609);    // PPE-carried conclusion strain
+  // far-field: nagoya is the only material mover (0.812 -> 0.996, toward parity)
   const nagoya = r.sites.find((s) => s.site.id === 'nagoya');
-  assert.equal(nagoya.arms.lndMulti['475'].ratioOursOverJshis, 1.033);
+  assert.equal(nagoya.arms.lndMulti['475'].ratioOursOverJshis, 0.996);
   const fukuoka = r.sites.find((s) => s.site.id === 'fukuoka');
-  assert.equal(fukuoka.arms.lndMulti['475'].ratioOursOverJshis, 0.852);
+  assert.equal(fukuoka.arms.lndMulti['475'].ratioOursOverJshis, 0.762);
 });
 
 test('multigeo — baseline + multi arms recomputable from the current model and frozen faults (drift guard)', () => {

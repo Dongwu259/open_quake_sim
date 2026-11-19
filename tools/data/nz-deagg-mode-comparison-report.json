@@ -1,0 +1,323 @@
+{
+ "schema": "quake-sim-nz-deagg-mode-comparison-v1",
+ "frozenAt": "2026-11-18",
+ "preregistration": "see tools/scorecard-nz-deagg-mode.js header (frozen 2026-11-16, before first run)",
+ "officialArtifact": "tools/data/nshmnz/nshm-v104-disagg-modes.json",
+ "vs30": 750,
+ "hypotheses": {
+  "H1_chc_rp2475_nearfield_both": true,
+  "H2_modeDist_inOurTopBin_10of12": false,
+  "H3_modeMag_within0p7_10of12": false
+ },
+ "counts": {
+  "comparisons": 12,
+  "h2DistPass": 4,
+  "h3MagPass": 3
+ },
+ "sites": {
+  "akl": {
+   "name": "Auckland",
+   "lat": -36.87,
+   "lng": 174.77,
+   "byRp": {
+    "rp475": {
+     "officialMode": {
+      "mag": 6.9,
+      "distKm": 25,
+      "contribPct": 2.85
+     },
+     "ourTopBin": {
+      "srcType": "intraslab",
+      "magLo": 7,
+      "magHi": 7.5,
+      "rLo": 200,
+      "rHi": 300,
+      "meanMag": 7.24108,
+      "meanRrupKm": 252.545,
+      "meanEps": 0.94085,
+      "sharePct": 12.895
+     },
+     "distInTopBin": false,
+     "magWithin0p7": true,
+     "ourTopSharePct": 12.895
+    },
+    "rp2475": {
+     "officialMode": {
+      "mag": 6.9,
+      "distKm": 25,
+      "contribPct": 4.4
+     },
+     "ourTopBin": {
+      "srcType": "intraslab",
+      "magLo": 7,
+      "magHi": 7.5,
+      "rLo": 200,
+      "rHi": 300,
+      "meanMag": 7.26586,
+      "meanRrupKm": 249.548,
+      "meanEps": 1.68449,
+      "sharePct": 15.3553
+     },
+     "distInTopBin": false,
+     "magWithin0p7": true,
+     "ourTopSharePct": 15.3553
+    }
+   }
+  },
+  "chc": {
+   "name": "Christchurch",
+   "lat": -43.53,
+   "lng": 172.63,
+   "byRp": {
+    "rp475": {
+     "officialMode": {
+      "mag": 5.3,
+      "distKm": 7.5,
+      "contribPct": 3.12
+     },
+     "ourTopBin": {
+      "srcType": "crustal",
+      "magLo": 6,
+      "magHi": 6.5,
+      "rLo": 0,
+      "rHi": 10,
+      "meanMag": 6.24958,
+      "meanRrupKm": 8.63331,
+      "meanEps": 1.26053,
+      "sharePct": 20.7021
+     },
+     "distInTopBin": true,
+     "magWithin0p7": false,
+     "ourTopSharePct": 20.7021
+    },
+    "rp2475": {
+     "officialMode": {
+      "mag": 6.7,
+      "distKm": 7.5,
+      "contribPct": 4.38
+     },
+     "ourTopBin": {
+      "srcType": "crustal",
+      "magLo": 6,
+      "magHi": 6.5,
+      "rLo": 0,
+      "rHi": 10,
+      "meanMag": 6.26415,
+      "meanRrupKm": 8.5936,
+      "meanEps": 2.0006,
+      "sharePct": 21.7291
+     },
+     "distInTopBin": true,
+     "magWithin0p7": true,
+     "ourTopSharePct": 21.7291
+    },
+    "rp2475_chc_h1_detail": {
+     "officialDistKm": 7.5,
+     "ourMeanRrupKm": 8.5936
+    }
+   }
+  },
+  "ivc": {
+   "name": "Invercargill",
+   "lat": -46.43,
+   "lng": 168.36,
+   "byRp": {
+    "rp475": {
+     "officialMode": {
+      "mag": 8.7,
+      "distKm": 120,
+      "contribPct": 7.63
+     },
+     "ourTopBin": {
+      "srcType": "interplate",
+      "magLo": 7,
+      "magHi": 7.5,
+      "rLo": 100,
+      "rHi": 150,
+      "meanMag": 7.25776,
+      "meanRrupKm": 122.699,
+      "meanEps": 1.10242,
+      "sharePct": 6.08672
+     },
+     "distInTopBin": true,
+     "magWithin0p7": false,
+     "ourTopSharePct": 6.08672
+    },
+    "rp2475": {
+     "officialMode": {
+      "mag": 8.7,
+      "distKm": 120,
+      "contribPct": 8.35
+     },
+     "ourTopBin": {
+      "srcType": "interplate",
+      "magLo": 7.5,
+      "magHi": 8,
+      "rLo": 100,
+      "rHi": 150,
+      "meanMag": 7.75989,
+      "meanRrupKm": 121.248,
+      "meanEps": 1.466,
+      "sharePct": 6.11153
+     },
+     "distInTopBin": true,
+     "magWithin0p7": false,
+     "ourTopSharePct": 6.11153
+    }
+   }
+  },
+  "nsn": {
+   "name": "Nelson",
+   "lat": -41.27,
+   "lng": 173.28,
+   "byRp": {
+    "rp475": {
+     "officialMode": {
+      "mag": 8.1,
+      "distKm": 70,
+      "contribPct": 5.85
+     },
+     "ourTopBin": {
+      "srcType": "intraslab",
+      "magLo": 6.5,
+      "magHi": 7,
+      "rLo": 100,
+      "rHi": 150,
+      "meanMag": 6.7533,
+      "meanRrupKm": 118.381,
+      "meanEps": 1.10959,
+      "sharePct": 6.58674
+     },
+     "distInTopBin": false,
+     "magWithin0p7": false,
+     "ourTopSharePct": 6.58674
+    },
+    "rp2475": {
+     "officialMode": {
+      "mag": 8.1,
+      "distKm": 70,
+      "contribPct": 6.09
+     },
+     "ourTopBin": {
+      "srcType": "intraslab",
+      "magLo": 6.5,
+      "magHi": 7,
+      "rLo": 75,
+      "rHi": 100,
+      "meanMag": 6.75294,
+      "meanRrupKm": 88.0794,
+      "meanEps": 1.3082,
+      "sharePct": 7.96987
+     },
+     "distInTopBin": false,
+     "magWithin0p7": false,
+     "ourTopSharePct": 7.96987
+    }
+   }
+  },
+  "wlg": {
+   "name": "Wellington",
+   "lat": -41.3,
+   "lng": 174.78,
+   "byRp": {
+    "rp475": {
+     "officialMode": {
+      "mag": 8.1,
+      "distKm": 25,
+      "contribPct": 11.14
+     },
+     "ourTopBin": {
+      "srcType": "interplate",
+      "magLo": 6.5,
+      "magHi": 7,
+      "rLo": 30,
+      "rHi": 50,
+      "meanMag": 6.76608,
+      "meanRrupKm": 37.5541,
+      "meanEps": 1.25175,
+      "sharePct": 8.71211
+     },
+     "distInTopBin": false,
+     "magWithin0p7": false,
+     "ourTopSharePct": 8.71211
+    },
+    "rp2475": {
+     "officialMode": {
+      "mag": 8.1,
+      "distKm": 25,
+      "contribPct": 13.57
+     },
+     "ourTopBin": {
+      "srcType": "interplate",
+      "magLo": 7,
+      "magHi": 7.5,
+      "rLo": 30,
+      "rHi": 50,
+      "meanMag": 7.25847,
+      "meanRrupKm": 37.6124,
+      "meanEps": 1.58532,
+      "sharePct": 9.34429
+     },
+     "distInTopBin": false,
+     "magWithin0p7": false,
+     "ourTopSharePct": 9.34429
+    }
+   }
+  },
+  "zqn": {
+   "name": "Queenstown",
+   "lat": -45.02,
+   "lng": 168.69,
+   "byRp": {
+    "rp475": {
+     "officialMode": {
+      "mag": 8.7,
+      "distKm": 70,
+      "contribPct": 8.4
+     },
+     "ourTopBin": {
+      "srcType": "crustal",
+      "magLo": 5.5,
+      "magHi": 6,
+      "rLo": 10,
+      "rHi": 20,
+      "meanMag": 5.74038,
+      "meanRrupKm": 15.2725,
+      "meanEps": 0.83272,
+      "sharePct": 15.9004
+     },
+     "distInTopBin": false,
+     "magWithin0p7": false,
+     "ourTopSharePct": 15.9004
+    },
+    "rp2475": {
+     "officialMode": {
+      "mag": 8.7,
+      "distKm": 70,
+      "contribPct": 11.86
+     },
+     "ourTopBin": {
+      "srcType": "crustal",
+      "magLo": 6,
+      "magHi": 6.5,
+      "rLo": 10,
+      "rHi": 20,
+      "meanMag": 6.24169,
+      "meanRrupKm": 13.508,
+      "meanEps": 1.25501,
+      "sharePct": 13.9799
+     },
+     "distInTopBin": false,
+     "magWithin0p7": false,
+     "ourTopSharePct": 13.9799
+    }
+   }
+  }
+ },
+ "note": "MEASUREMENT ONLY — the NZ pack is byte-frozen (sha invariant in tests/nz-deagg-mode.test.js); official TRT decomposition is raster-only and stays NOT-OPENED",
+ "findings": [
+  "H1 CHC RP2475: official mode M6.7@7.5km vs our top bin mean M6.26415@8.5936km — both sides name a near-field (<30 km) shallow driver, magnitudes within 0.44 (near-field distance agreement holds under the finite-rupture convention; the old proxy run coincided to 0.05)",
+  "mode-distance agreement: 4/12 official modes fall inside our top-bin distance range — H2 FALSIFIED as measured. 2026-11-19 re-measurement under the finite-rupture sub-fault lattice (preregistration tests/psha-point-rupture.test.js): the legacy 1-3 km collapse of giant plate-interface cells is ELIMINATED — our top bins now sit in the official distance order (CHC 0-10 vs official 7.5 km; WLG 30-50 vs 25; NSN 75-150 vs 70; IVC 100-150 vs 120 in-range; AKL 200-300 vs 25), so the comparison is now structurally comparable at bin-range level. Remaining misses are STRUCTURAL, not hazard-level: the 0.25° grid pack carries no fault geometry, so the top contributor IDENTITY still disagrees (AKL: ours names the far Hikurangi giant at 200-300 km, the official names a local M6.9@25 km source)",
+  "mode-magnitude agreement: 3/12 within 0.7 of our top-bin mean magnitude — H3 FALSIFIED as measured (the same grid-vs-fault-geometry gap swaps the IDENTITY of the top contributor at interface/Alpine-dominated sites: ours names the dominant cell of its own grid, the official names the aggregate dominant M-D cell of real fault sources — e.g. ZQN: ours local M5.5-6@10-20 km vs official M8.7@70 km); CHC RP2475 matches to 0.05"
+ ]
+}

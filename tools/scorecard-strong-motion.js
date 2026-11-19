@@ -108,17 +108,17 @@ function loadJmaHypocenters(rootDir) {
     }
     out[evId] = h;
   }
-  const appSrc = fs.readFileSync(path.join(root, 'public', 'app.js'), 'utf8');
-  const block = appSrc.match(/var PRESETS = \{[\s\S]*?\n\};/);
-  if (!block) throw new Error('PRESETS block not found in public/app.js');
+  // 2026-11-17 CLI batch: the static preset catalog moved to
+  // public/presets-catalog.js — read the object directly instead of
+  // regex-parsing the app.js source literal.
+  const PRESET_CATALOG = require(path.join(root, 'public', 'presets-catalog.js'));
   for (const evId of PRESET_ONLY_EVENTS) {
     const key = JMA_KEY_BY_EVENT[evId];
-    const re = new RegExp('^\\s*' + key + '\\s*:\\s*\\{lat:([\\d.]+),lng:([\\d.]+),mag:([\\d.]+),depth:([\\d.]+)', 'm');
-    const m = block[0].match(re);
-    if (!m) throw new Error('PRESETS.' + key + ' not parseable in public/app.js');
+    const p = PRESET_CATALOG[key];
+    if (!p) throw new Error('PRESETS.' + key + ' not found in public/presets-catalog.js');
     const h = {
-      lat: Number(m[1]), lng: Number(m[2]), mw: Number(m[3]), depthKm: Number(m[4]),
-      source: 'public/app.js PRESETS.' + key
+      lat: Number(p.lat), lng: Number(p.lng), mw: Number(p.mag), depthKm: Number(p.depth),
+      source: 'public/presets-catalog.js#' + key
     };
     if (![h.lat, h.lng, h.depthKm, h.mw].every(isFinite)) {
       throw new Error('PRESETS.' + key + ' has non-finite hypocenter fields');

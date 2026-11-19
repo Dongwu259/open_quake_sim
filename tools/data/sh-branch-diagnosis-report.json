@@ -1,0 +1,234 @@
+{
+ "schema": "quake-sim-sh-branch-diagnosis-v1",
+ "frozenAt": "2026-11-16",
+ "preregistration": "see tools/broadband/sh-branch-diagnose.js header (frozen 2026-11-16, before first run)",
+ "kernel": "tools/broadband/core.js shSpectrumAtFrequency (post v8 Love-pole windows + v3 guardDiv 80)",
+ "arms": [
+  {
+   "arm": "A-layered-250km",
+   "rKm": 250,
+   "floorDkInvKm": 0.0003141593,
+   "fullSpace": false,
+   "points": [
+    {
+     "fHz": 0.3,
+     "referenceAmp": 0.0004899243,
+     "refSelfStability": 3.121392e-12,
+     "clampIdentityBit": true,
+     "ladder": [
+      {
+       "dkInvKm": 0.0004712389,
+       "relResidual": 9.589496e-11,
+       "order": null
+      },
+      {
+       "dkInvKm": 0.0003141593,
+       "relResidual": 9.589496e-11,
+       "order": 0
+      },
+      {
+       "dkInvKm": 0.0001570796,
+       "relResidual": 2.137357e-11,
+       "order": 2.17
+      },
+      {
+       "dkInvKm": 0.00007853982,
+       "relResidual": 3.140221e-11,
+       "order": -0.56
+      }
+     ]
+    },
+    {
+     "fHz": 0.5,
+     "referenceAmp": 0.0004493415,
+     "refSelfStability": 1.932898e-12,
+     "clampIdentityBit": true,
+     "ladder": [
+      {
+       "dkInvKm": 0.0004712389,
+       "relResidual": 5.761747e-11,
+       "order": null
+      },
+      {
+       "dkInvKm": 0.0003141593,
+       "relResidual": 5.761747e-11,
+       "order": 0
+      },
+      {
+       "dkInvKm": 0.0001570796,
+       "relResidual": 1.28062e-11,
+       "order": 2.17
+      },
+      {
+       "dkInvKm": 0.00007853982,
+       "relResidual": 1.871514e-11,
+       "order": -0.55
+      }
+     ]
+    },
+    {
+     "fHz": 1,
+     "referenceAmp": 0.00006335389,
+     "refSelfStability": 4.935719e-12,
+     "clampIdentityBit": true,
+     "ladder": [
+      {
+       "dkInvKm": 0.0004712389,
+       "relResidual": 1.545488e-10,
+       "order": null
+      },
+      {
+       "dkInvKm": 0.0003141593,
+       "relResidual": 1.545488e-10,
+       "order": 0
+      },
+      {
+       "dkInvKm": 0.0001570796,
+       "relResidual": 3.440992e-11,
+       "order": 2.17
+      },
+      {
+       "dkInvKm": 0.00007853982,
+       "relResidual": 5.065637e-11,
+       "order": -0.56
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "arm": "B-layered-88km",
+   "rKm": 88,
+   "floorDkInvKm": 0.0008924979,
+   "fullSpace": false,
+   "points": [
+    {
+     "fHz": 0.3,
+     "referenceAmp": 0.0005332581,
+     "refSelfStability": 3.072542e-12,
+     "clampIdentityBit": true,
+     "ladder": [
+      {
+       "dkInvKm": 0.001338747,
+       "relResidual": 2.353532e-10,
+       "order": null
+      },
+      {
+       "dkInvKm": 0.0008924979,
+       "relResidual": 2.353532e-10,
+       "order": 0
+      },
+      {
+       "dkInvKm": 0.000446249,
+       "relResidual": 2.566969e-11,
+       "order": 3.2
+      },
+      {
+       "dkInvKm": 0.0002231245,
+       "relResidual": 3.06466e-11,
+       "order": -0.26
+      }
+     ]
+    },
+    {
+     "fHz": 0.5,
+     "referenceAmp": 0.003538297,
+     "refSelfStability": 6.728174e-12,
+     "clampIdentityBit": true,
+     "ladder": [
+      {
+       "dkInvKm": 0.001338747,
+       "relResidual": 2.109515e-10,
+       "order": null
+      },
+      {
+       "dkInvKm": 0.0008924979,
+       "relResidual": 2.109515e-10,
+       "order": 0
+      },
+      {
+       "dkInvKm": 0.000446249,
+       "relResidual": 4.676259e-11,
+       "order": 2.17
+      },
+      {
+       "dkInvKm": 0.0002231245,
+       "relResidual": 6.872325e-11,
+       "order": -0.56
+      }
+     ]
+    },
+    {
+     "fHz": 1,
+     "referenceAmp": 0.002572935,
+     "refSelfStability": 2.815304e-12,
+     "clampIdentityBit": true,
+     "ladder": [
+      {
+       "dkInvKm": 0.001338747,
+       "relResidual": 8.706524e-11,
+       "order": null
+      },
+      {
+       "dkInvKm": 0.0008924979,
+       "relResidual": 8.706524e-11,
+       "order": 0
+      },
+      {
+       "dkInvKm": 0.000446249,
+       "relResidual": 1.91589e-11,
+       "order": 2.18
+      },
+      {
+       "dkInvKm": 0.0002231245,
+       "relResidual": 2.799783e-11,
+       "order": -0.55
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "arm": "C-fullspace-250km",
+   "rKm": 250,
+   "floorDkInvKm": 0.0003141593,
+   "fullSpace": true,
+   "points": [
+    {
+     "fHz": 0.5,
+     "referenceAmp": 0.0001099488,
+     "refSelfStability": 3.215206e-12,
+     "clampIdentityBit": true,
+     "ladder": [
+      {
+       "dkInvKm": 0.0004712389,
+       "relResidual": 9.642043e-11,
+       "order": null
+      },
+      {
+       "dkInvKm": 0.0003141593,
+       "relResidual": 9.642043e-11,
+       "order": 0
+      },
+      {
+       "dkInvKm": 0.0001570796,
+       "relResidual": 2.151723e-11,
+       "order": 2.16
+      },
+      {
+       "dkInvKm": 0.00007853982,
+       "relResidual": 3.160938e-11,
+       "order": -0.55
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "cuspConfirmedArms": 0,
+ "hypotheses": {
+  "H_yes_cusp_stable_p_half_every_arm": false
+ },
+ "verdict": "NOT-REPRODUCED — the below-alias-floor series is roundoff-bound (~1e-10 relative) with noisy non-monotone orders; the registered O(sqrt(h)) cusp is stale on the shipped kernel (post-v8/v3); no quadrature cure needed; registration retired",
+ "note": "MEASUREMENT ONLY — core.js untouched; the clamp identity (floor*1.5 == floor bit-exact) is asserted per frequency and validates the guard floor semantics"
+}

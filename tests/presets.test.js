@@ -9,9 +9,9 @@ const path = require('path');
 const Physics = require('../public/physics.js');
 
 function loadPreset(name) {
-  const src = fs.readFileSync(path.join(__dirname, '..', 'public', 'app.js'), 'utf8');
+  const src = fs.readFileSync(path.join(__dirname, '..', 'public', 'presets-catalog.js'), 'utf8');
   const m = src.match(new RegExp('(?:^|[,\\s])' + name + '\\s*:\\s*\\{'));
-  assert.ok(m, `preset ${name} not found in app.js`);
+  assert.ok(m, `preset ${name} not found in presets-catalog.js`);
   const open = src.indexOf('{', m.index);
   let depth = 0, end = -1;
   for (let i = open; i < src.length; i++) {

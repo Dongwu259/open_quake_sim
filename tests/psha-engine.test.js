@@ -27,8 +27,9 @@ function tinyModel() {
 const SITE = { lat: 35.0, lng: 135.0, vs30: 600 };
 
 /** Independent re-derivation of the mean curve with the documented semantics:
- *  incremental GR bins at 0.1 from mMin to class mMax, equal-area circular
- *  Rrup proxy, logic-tree-weighted CCDF mix per bin. */
+ *  incremental GR bins at 0.1 from mMin to class mMax, finite-rupture
+ *  sub-fault lattice (2026-11-18 巨源距离代理整改 — rate split exactly across
+ *  _pshaPointRuptures sub-faults), logic-tree-weighted CCDF mix per sub. */
 function closedFormMean(model, site, imt, imLevels, opts) {
   opts = opts || {};
   const mStep = 0.1, maxDist = opts.maxDistKm != null ? opts.maxDistKm : 500;
@@ -38,19 +39,19 @@ function closedFormMean(model, site, imt, imLevels, opts) {
     if (hd > maxDist) continue;
     const b = model.bValues[c.srcType];
     const mMax = model.mMaxByClass[c.srcType];
-    const hyp = Math.sqrt(hd * hd + c.depthKm * c.depthKm);
     for (let m = model.mMin; m <= mMax + 1e-9; m += mStep) {
       const lam = c.rateMc * (Math.pow(10, -b * (m - model.mc)) - Math.pow(10, -b * (m + mStep - model.mc)));
       if (!(lam > 1e-9)) continue;
       const mm = Math.min(m + mStep / 2, mMax);
-      const rRup = Physics._pshaPointRrup(hyp, mm, c.srcType);
-      for (const br of Physics.logicTreeBranches(c.srcType)) {
-        const mo = Physics._pshaBranchMotion(br.model, imt, c.srcType, mm, rRup, c.depthKm, site.vs30, Physics.PSHA_CLASS_RAKE[c.srcType]);
-        if (!mo || !(mo.median > 0)) continue;
-        for (let i = 0; i < imLevels.length; i++) {
-          out[i] += br.weight * lam * Physics.exceedanceProbability(mo.median, mo.sigmaLog10, imLevels[i]);
+      Physics._pshaPointRuptures(model, site.lat, site.lng, c.lat, c.lng, c.depthKm, mm, c.srcType, (rup, share) => {
+        for (const br of Physics.logicTreeBranches(c.srcType)) {
+          const mo = Physics._pshaBranchMotion(br.model, imt, c.srcType, mm, rup, c.depthKm, site.vs30, Physics.PSHA_CLASS_RAKE[c.srcType]);
+          if (!mo || !(mo.median > 0)) continue;
+          for (let i = 0; i < imLevels.length; i++) {
+            out[i] += br.weight * lam * share * Physics.exceedanceProbability(mo.median, mo.sigmaLog10, imLevels[i]);
+          }
         }
-      }
+      });
     }
   }
   return out;
@@ -80,14 +81,16 @@ test('psha — Monte Carlo Poisson-catalog cross-check (pre-registered |ln rate|
   const draws = []; // {rate, branchIdx} per (cell,bin,branch) — branch drawn per event
   const hyps = [];
   for (const c of model.cells) {
-    const hd = Physics.haversineDist(SITE.lat, SITE.lng, c.lat, c.lng);
     const b = model.bValues[c.srcType];
     const mMax = model.mMaxByClass[c.srcType];
-    const hyp = Math.sqrt(hd * hd + c.depthKm * c.depthKm);
     for (let m = model.mMin; m <= mMax + 1e-9; m += 0.1) {
       const lam = c.rateMc * (Math.pow(10, -b * (m - model.mc)) - Math.pow(10, -b * (m + 0.1 - model.mc)));
       if (!(lam > 1e-9)) continue;
-      hyps.push({ lam, srcType: c.srcType, mm: Math.min(m + 0.05, mMax), rRup: Physics._pshaPointRrup(hyp, Math.min(m + 0.05, mMax), c.srcType), depth: c.depthKm });
+      // 2026-11-18 convention: each sub-fault is its own catalog entry at its
+      // exact rate share
+      Physics._pshaPointRuptures(model, SITE.lat, SITE.lng, c.lat, c.lng, c.depthKm, Math.min(m + 0.05, mMax), c.srcType, (rup, share) => {
+        hyps.push({ lam: lam * share, srcType: c.srcType, mm: Math.min(m + 0.05, mMax), rRup: rup, depth: c.depthKm });
+      });
     }
   }
   const lamTotal = hyps.reduce((a, h) => a + h.lam, 0);

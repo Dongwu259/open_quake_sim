@@ -27,18 +27,29 @@ test('attribution — schema, arms and chain frozen', () => {
 
 test('attribution — frozen decomposition numbers locked', () => {
   // v2 segmented-source re-freeze (2026-09-04)
-  assert.equal(r.aggregate.armRatioMedian.baseline, 1.827);
-  assert.equal(r.aggregate.armRatioMedian.zhaoOnly, 1.395);
-  assert.equal(r.aggregate.armRatioMedian.noScenarios, 0.923);
-  assert.equal(r.aggregate.armRatioMedian.zhaoOnlyNoScenarios, 0.948);
-  assert.equal(r.aggregate.armRatioMedian.psv1p20, 1.756);
-  assert.equal(r.aggregate.armRatioMedian.psv1p35, 1.72);
-  assert.equal(r.aggregate.armRatioMedian.sigma0p80, 1.713);
-  assert.equal(r.aggregate.armRatioMedian.gridZhaoPsv, 0.702);
-  assert.deepEqual(r.aggregate.chainMedian, { dropScenarios: 0.218, zhaoCollapse: 0.946, psvFactor: 0.741 });
+  // 2026-11-19 巨源距离代理整改 re-freeze (finite-rupture convention; the
+  // J-SHIS comparison side byte-unchanged): baseline 1.827->1.823, chain
+  // dropScenarios 0.218->0.194 (scenario share grew — the convention removed
+  // inflated near-field background rates, concentrating the residual on the
+  // scenario sources), zhaoCollapse 0.946->0.964, psvFactor 0.741->0.740
+  assert.equal(r.aggregate.armRatioMedian.baseline, 1.823);
+  assert.equal(r.aggregate.armRatioMedian.zhaoOnly, 1.125);
+  assert.equal(r.aggregate.armRatioMedian.noScenarios, 0.798);
+  assert.equal(r.aggregate.armRatioMedian.zhaoOnlyNoScenarios, 0.822);
+  assert.equal(r.aggregate.armRatioMedian.psv1p20, 1.752);
+  assert.equal(r.aggregate.armRatioMedian.psv1p35, 1.716);
+  assert.equal(r.aggregate.armRatioMedian.sigma0p80, 1.71);
+  assert.equal(r.aggregate.armRatioMedian.gridZhaoPsv, 0.609);
+  assert.deepEqual(r.aggregate.chainMedian, { dropScenarios: 0.194, zhaoCollapse: 0.964, psvFactor: 0.74 });
   assert.deepEqual({ median: r.aggregate.scenarioShareMedian, min: r.aggregate.scenarioShareMin, max: r.aggregate.scenarioShareMax },
-    { median: 0.9729, min: 0.0358, max: 0.9965 });
-  assert.ok(r.aggregate.classRateAdditivityMaxRelative < 1e-4, 'class rates must re-sum to the baseline rate');
+    { median: 0.9928, min: 0.0939, max: 0.9997 });
+  // class-rate additivity: the ENGINE is exactly additive (psha-deagg's
+  // hazardCurve-vs-deaggregate identity holds at 1e-15 under the 2026-11-19
+  // convention); this gate measures only the per-class log-space rate
+  // interpolation artifact in rateAtLevel (nonlinear in rate space) — the
+  // reshaped curves moved the artifact max from 3.1e-5 to 1.14e-4, gate
+  // relaxed accordingly (2026-11-19, disclosed before freezing).
+  assert.ok(r.aggregate.classRateAdditivityMaxRelative < 2e-4, 'class rates must re-sum to the baseline rate (within interpolation artifact)');
 });
 
 test('attribution — findings carry the honest direction and levers', () => {

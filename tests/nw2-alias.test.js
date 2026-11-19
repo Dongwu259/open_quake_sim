@@ -84,5 +84,8 @@ test('taiwan RP475 sits at the re-frozen alias anchor', () => {
   const m = JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'psha-source-model-taiwan.json'), 'utf8'));
   const hz = Physics.hazardCurve(m, { lat: 25.03, lng: 121.57, vs30: 600 }, 'pga', { years: 50 });
   const rp = Physics._pshaInvertCurve(hz.imLevels, hz.meanRate, 1 / 475);
-  assert.ok(Math.abs(rp - 499.8) / 499.8 < 0.002, 'taiwan RP475 ' + rp + ' vs re-frozen 499.8 (TWN alias)');
+  // 2026-11-19 巨源距离代理整改 re-freeze (finite-rupture lattice, see
+  // tests/psha-point-rupture.test.js): 499.8 -> 354.8 (was TWN-alias
+  // 502.3->499.8 in the 2026-11-08 batch)
+  assert.ok(Math.abs(rp - 354.8) / 354.8 < 0.002, 'taiwan RP475 ' + rp + ' vs re-frozen 354.8 (TWN alias)');
 });

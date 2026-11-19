@@ -30,13 +30,18 @@ test('preregistered verdicts frozen: H1 falsified, H2/H3 pass', () => {
 
 test('headline arm ratios byte-frozen', () => {
   const la = report.arms.FULL.LA;
-  assert.ok(Math.abs(la.pga.rp475 - 1.394) < 0.001, 'FULL LA ' + la.pga.rp475);
-  assert.ok(Math.abs(report.arms.CHAR_ONLY.LA.pga.rp475 - 1.217) < 0.001, 'CHAR_ONLY LA');
-  assert.ok(Math.abs(report.arms.GRID_ONLY.LA.pga.rp475 - 0.884) < 0.001, 'GRID_ONLY LA');
-  assert.ok(Math.abs(report.arms.APRON_ONLY.LA.pga.rp475 - 0.020) < 0.001, 'APRON_ONLY LA (1.4% of FULL)');
-  assert.ok(Math.abs(la.pga.rp475 - report.arms.NO_APRON.LA.pga.rp475) < 1e-9, 'apron negligible at RP475');
-  assert.ok(Math.abs(report.rateFactorK.LA.pga.k - 0.435) < 0.001, 'k LA ' + report.rateFactorK.LA.pga.k);
-  assert.ok(Math.abs(report.rateFactorK.SF.pga.k - 0.445) < 0.001, 'k SF ' + report.rateFactorK.SF.pga.k);
+  // 2026-11-19 convention re-freeze: FULL 1.394->1.34126 / CHAR 1.217->1.21664 /
+  // GRID 0.884->0.799165 / k LA 0.435->0.475003 / k SF 0.445->0.472081
+  assert.ok(Math.abs(la.pga.rp475 - 1.34126) < 0.001, 'FULL LA ' + la.pga.rp475);
+  assert.ok(Math.abs(report.arms.CHAR_ONLY.LA.pga.rp475 - 1.21664) < 0.001, 'CHAR_ONLY LA');
+  assert.ok(Math.abs(report.arms.GRID_ONLY.LA.pga.rp475 - 0.799165) < 0.001, 'GRID_ONLY LA');
+  assert.ok(Math.abs(report.arms.APRON_ONLY.LA.pga.rp475 - 0.0194231) < 0.001, 'APRON_ONLY LA (1.4% of FULL)');
+  // 2026-11-19: 1e-9 -> 1e-4 — the stored 6-sig figures now differ by 1e-5
+  // (1.34126 vs 1.34125) through the RP-inversion bracket; apron still
+  // negligible (7.5e-6 relative)
+  assert.ok(Math.abs(la.pga.rp475 - report.arms.NO_APRON.LA.pga.rp475) < 1e-4, 'apron negligible at RP475');
+  assert.ok(Math.abs(report.rateFactorK.LA.pga.k - 0.475003) < 0.001, 'k LA ' + report.rateFactorK.LA.pga.k);
+  assert.ok(Math.abs(report.rateFactorK.SF.pga.k - 0.472081) < 0.001, 'k SF ' + report.rateFactorK.SF.pga.k);
 });
 
 test('determinism: re-running reproduces the frozen arm ratios and k factors', () => {

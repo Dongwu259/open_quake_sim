@@ -162,14 +162,15 @@ test('engine: LA TD hazard (UCERF3-TD channels) + Japan TD byte-compat', () => {
   assert.ok(td.timeDependent.ucerf3Td && /Field et al. 2015/.test(td.timeDependent.ucerf3Td.model), 'ucerf3Td diagnostics block');
   const rp475 = Physics._pshaInvertCurve(td.imLevels, td.meanRate, 1 / 475);
   const rp2500 = Physics._pshaInvertCurve(td.imLevels, td.meanRate, 1 / 2500);
-  // frozen 2026-10-12 on the v7.x four-model NGA-West2 crustal tree:
-  // 665.8 / 1108.8 (single-branch BSSA14 tree gave 628.9 / 1071.2; TI anchors
-  // 651.8 / 1094.5 stay pinned in psha-region)
-  assert.ok(Math.abs(rp475 - 665.8) / 665.8 < 0.01, 'LA TD RP475 ' + rp475);
-  assert.ok(Math.abs(rp2500 - 1108.8) / 1108.8 < 0.01, 'LA TD RP2500 ' + rp2500);
+  // frozen 2026-11-19 under the finite-rupture convention (巨源距离代理整改,
+  // tests/psha-point-rupture.test.js): 665.8 -> 649.9 / 1108.8 -> 1080.6 —
+  // characteristic-fault-dominated site, background-cell shift only (was
+  // 2026-10-12 four-model tree 665.8 / 1108.8)
+  assert.ok(Math.abs(rp475 - 649.9) / 649.9 < 0.01, 'LA TD RP475 ' + rp475);
+  assert.ok(Math.abs(rp2500 - 1080.6) / 1080.6 < 0.01, 'LA TD RP2500 ' + rp2500);
   const u = Physics.uhs(PACK, site, [475], { periods: ['0.20', '0.50', '1.00'], years: 50, timeDependent: true });
-  // v7.x four-model tree: 1641.8 / 1058.5 / 574.4 (BSSA14-only: 1386.3/869.0/488.6)
-  const want = [1641.8, 1058.5, 574.4];
+  // 2026-11-19 convention re-freeze: 1641.8->1594.3 / 1058.5->1039.9 / 574.4->567.8
+  const want = [1594.3, 1039.9, 567.8];
   u.uhs['475'].forEach((v, i) => assert.ok(Math.abs(v - want[i]) / want[i] < 0.01, 'TD UHS475 ' + i + ' ' + v));
   // Japan TD path untouched: no char TD sources, the 3 Nankai BPT scenarios intact
   const jp = JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'geojson', 'psha-source-model.json'), 'utf8'));
