@@ -26,6 +26,13 @@ const ObservedModels = require('../public/observed-fault-models.js');
 const PRESET_CATALOG = require('../public/presets-catalog.js');
 
 function runCli(args) {
+  // CI checkouts have no .cache/ — the --out targets below need the parent
+  // directory to exist (ENOENT otherwise, 2026-11-20 mirror CI)
+  const outIdx = args.indexOf('--out');
+  if (outIdx >= 0 && args[outIdx + 1]) {
+    const p = args[outIdx + 1];
+    fs.mkdirSync(path.dirname(path.isAbsolute(p) ? p : path.join(ROOT, p)), { recursive: true });
+  }
   return execFileSync(process.execPath, [CLI].concat(args), { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
 }
 

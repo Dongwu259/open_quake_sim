@@ -5,7 +5,7 @@
 //  carry five leaves (BSSA14/CY14/CB14-HighQ/CB14-LowQ/ASK14), and the SA
 //  degenerate-repeat unconditionally overwrote real regional branch sets
 //  down to set 0. Locked here:
-//    - Japan three-branch trees stay BYTE-IDENTICAL to their captured
+//    - Japan three-branch trees stay NUMERICALLY IDENTICAL (1e-12, portable) to their captured
 //      snapshot (fixture re-captured 2026-11-19 under the finite-rupture
 //      distance convention, tests/psha-point-rupture.test.js — the original
 //      capture pinned the pre-convention output, which that disclosed
@@ -26,6 +26,14 @@ const JP = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'public', 'geoj
 const NZ = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'public', 'geojson', 'psha-source-model-newzealand.json'), 'utf8'));
 const TOKYO = { lat: 35.68, lng: 139.76 }; // vs30 default 600, fixture agreement
 
+// 2026-11-20: JSON.stringify byte equality is not portable across libm
+// implementations (mirror CI Linux vs Windows capture differ in the 17th
+// digit) — numeric identity at 1e-12 relative keeps the drift guard
+function near(a, b) { return Math.abs(a - b) <= 1e-12 * Math.max(1e-300, Math.abs(b)); }
+function arrEq(arr, frozen, label) {
+  assert.ok(arr.length === frozen.length && arr.every((v, i) => near(v, frozen[i])), label);
+}
+
 test('Japan three-branch trees byte-identical to the pre-fix engine (frozen fixture)', () => {
   const pga = Physics.hazardCurve(JP, TOKYO, 'pga', {});
   assert.equal(pga.ensemble.length, 3);
@@ -33,8 +41,7 @@ test('Japan three-branch trees byte-identical to the pre-fix engine (frozen fixt
   assert.equal(pga.diagnostics.branchSetCount, 3);
   const pairs = [['pgaMean', pga.meanRate], ['pgaS0', pga.ensemble[0]], ['pgaS1', pga.ensemble[1]], ['pgaS2', pga.ensemble[2]]];
   for (const [key, arr] of pairs) {
-    assert.equal(JSON.stringify(arr), JSON.stringify(FIXTURE[key]),
-      key + ' drifted from the pre-fix (verified identical) engine');
+    arrEq(arr, FIXTURE[key], key + ' drifted from the pre-fix (verified identical) engine');
   }
 });
 
@@ -42,8 +49,8 @@ test('Japan SA zhao collapse keeps the degenerate repeat (floor-3 sets)', () => 
   const sa = Physics.hazardCurve(JP, TOKYO, 'sa:1.00', {});
   assert.equal(sa.ensemble.length, 3);
   assert.equal(sa.diagnostics.singleModel, true, 'zhao collapse is still single-model');
-  assert.equal(JSON.stringify(sa.meanRate), JSON.stringify(FIXTURE.saMean));
-  assert.equal(JSON.stringify(sa.ensemble[0]), JSON.stringify(FIXTURE.saS0));
+  arrEq(sa.meanRate, FIXTURE.saMean, 'saMean drifted');
+  arrEq(sa.ensemble[0], FIXTURE.saS0, 'saS0 drifted');
   // degenerate: sets 1..2 repeat set 0 exactly
   assert.equal(JSON.stringify(sa.ensemble[1]), JSON.stringify(sa.ensemble[0]));
   assert.equal(JSON.stringify(sa.ensemble[2]), JSON.stringify(sa.ensemble[0]));
